@@ -18,7 +18,6 @@ import {
   isSavedLook,
 } from "@paon/domain";
 import type { Outfit, WardrobeVisualizationJob } from "@paon/domain";
-import Image from "next/image";
 import Link from "next/link";
 
 import type { ComposableItem } from "./fitting-room-studio";
@@ -184,78 +183,45 @@ export default async function DigitalFittingRoomPage({
   );
 
   if (step !== "avatar") {
-    const preview = groups
-      .flatMap((group) => group.composableItems)
-      .find((item) => item.imageUrl)?.imageUrl;
     return (
       <div className="-mx-4 min-h-full bg-[linear-gradient(115deg,#283129_0%,#11150f_58%,#161510_100%)] px-4 py-8 text-white sm:-mx-7 sm:px-7 lg:-mx-10 lg:px-10 xl:-mx-14 xl:px-14">
-        <section className="mx-auto grid min-h-[min(42rem,calc(100vh-9rem))] max-w-6xl overflow-hidden rounded-[22px] bg-[linear-gradient(135deg,rgba(224,231,214,.17),rgba(26,31,23,.12)_52%,rgba(0,0,0,.18))] lg:grid-cols-[1.05fr_.95fr]">
-          <div className="flex flex-col justify-between p-8 sm:p-12 lg:p-16">
-            <div>
-              <p className="customer-kicker text-[#c5d0c0]">
-                Digital Fitting Room
-              </p>
-              <h1 className="font-display mt-5 max-w-xl text-5xl leading-[.94] text-white sm:text-7xl">
-                See a look take shape before you ask for it.
-              </h1>
-              <p className="mt-7 max-w-md text-base leading-7 text-white/70">
-                Build a private digital portrait, bring in pieces you own or are
-                considering, then create looks with your advisor.
-              </p>
-              <ol className="mt-10 grid max-w-xl gap-3 sm:grid-cols-3">
-                {[
-                  ["01", "Create your digital portrait"],
-                  ["02", "Choose real pieces"],
-                  ["03", "Create a look"],
-                ].map(([number, label]) => (
-                  <li
-                    key={number}
-                    className="border-l border-white/20 pl-3 text-sm leading-5 text-white/75"
-                  >
-                    <span className="block text-[10px] tracking-[0.16em] text-[#c5d0c0]">
-                      {number}
-                    </span>
-                    {label}
-                  </li>
-                ))}
-              </ol>
-            </div>
-            <div className="mt-12 flex flex-wrap items-center gap-5">
+        <section className="mx-auto mt-4 max-w-2xl overflow-hidden rounded-[22px] bg-[linear-gradient(135deg,rgba(224,231,214,.16),rgba(255,255,255,.05))] p-1 shadow-[0_24px_80px_rgba(0,0,0,.28)]">
+          <div className="rounded-[19px] bg-[#12160f]/55 p-8 sm:p-12">
+            <p className="customer-kicker text-[#c5d0c0]">
+              Digital Fitting Room
+            </p>
+            <h1 className="font-display mt-5 max-w-xl text-4xl leading-[.96] text-white sm:text-6xl">
+              See a look take shape before you ask for it.
+            </h1>
+            <p className="mt-6 max-w-md text-base leading-7 text-white/70">
+              Build a private digital portrait, bring in pieces you own or are
+              considering, then create looks with your advisor. A visualisation
+              is never a guarantee of physical fit.
+            </p>
+            <ol className="mt-9 grid max-w-lg gap-3 sm:grid-cols-3">
+              {[
+                ["01", "Create your digital portrait"],
+                ["02", "Choose real pieces"],
+                ["03", "Create a look"],
+              ].map(([number, label]) => (
+                <li
+                  key={number}
+                  className="border-l border-white/20 pl-3 text-sm leading-5 text-white/75"
+                >
+                  <span className="block text-[10px] tracking-[0.16em] text-[#c5d0c0]">
+                    {number}
+                  </span>
+                  {label}
+                </li>
+              ))}
+            </ol>
+            <div className="mt-10">
               <Link
                 href="/digital-fitting-room?step=avatar"
-                className="rounded-[15px] bg-[#dce3d6] px-6 py-4 text-sm font-medium text-[#182018] transition hover:bg-white"
+                className="inline-block rounded-[15px] bg-[#dce3d6] px-6 py-4 text-sm font-medium text-[#182018] transition hover:bg-white"
               >
                 Start creating →
               </Link>
-              <p className="max-w-xs text-xs leading-5 text-white/50">
-                Two photos, your approval, then your wardrobe becomes a canvas.
-                A visualisation is never a fit guarantee.
-              </p>
-            </div>
-          </div>
-          <div className="relative min-h-[22rem] overflow-hidden bg-[#b9c4b5]">
-            {preview ? (
-              <>
-                <Image
-                  src={preview}
-                  alt=""
-                  fill
-                  unoptimized
-                  className="scale-110 object-cover opacity-45 blur-2xl"
-                />
-                <Image
-                  src={preview}
-                  alt=""
-                  fill
-                  unoptimized
-                  className="object-contain p-8"
-                />
-              </>
-            ) : null}
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#11150f]/85 via-[#11150f]/20 to-transparent px-8 pb-8 pt-28">
-              <p className="font-display text-3xl text-white">
-                Your wardrobe, in motion.
-              </p>
             </div>
           </div>
         </section>
