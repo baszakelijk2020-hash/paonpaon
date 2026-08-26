@@ -1,0 +1,88 @@
+{
+  "capturedAt": "2026-08-26T07:38:21.691Z",
+  "baseUrl": "http://localhost:3002",
+  "slug": "atelier-demo",
+  "desktop": {
+    "width": 1440,
+    "height": 900,
+    "dpr": 2
+  },
+  "mobile": {
+    "width": 390,
+    "height": 844,
+    "dpr": 3
+  },
+  "shots": [
+    {
+      "name": "01-home-gate",
+      "url": "/r/atelier-demo",
+      "viewport": "desktop"
+    },
+    {
+      "name": "02-home-grid-suits",
+      "url": "/r/atelier-demo?category=Suits",
+      "viewport": "desktop"
+    },
+    {
+      "name": "03-home-grid-jackets",
+      "url": "/r/atelier-demo?category=Jackets",
+      "viewport": "desktop"
+    },
+    {
+      "name": "04-appointments",
+      "url": "/r/atelier-demo/appointments",
+      "viewport": "desktop"
+    },
+    {
+      "name": "05-locations",
+      "url": "/r/atelier-demo/locations",
+      "viewport": "desktop"
+    },
+    {
+      "name": "06-swipe",
+      "url": "/r/atelier-demo/swipe",
+      "viewport": "desktop"
+    },
+    {
+      "name": "07-configurator",
+      "url": "/r/atelier-demo/configurator",
+      "viewport": "desktop"
+    },
+    {
+      "name": "01-home-gate",
+      "url": "/r/atelier-demo",
+      "viewport": "mobile"
+    },
+    {
+      "name": "02-home-grid-suits",
+      "url": "/r/atelier-demo?category=Suits",
+      "viewport": "mobile"
+    },
+    {
+      "name": "03-home-grid-jackets",
+      "url": "/r/atelier-demo?category=Jackets",
+      "viewport": "mobile"
+    },
+    {
+      "name": "04-appointments",
+      "url": "/r/atelier-demo/appointments",
+      "viewport": "mobile"
+    },
+    {
+      "name": "05-locations",
+      "url": "/r/atelier-demo/locations",
+      "viewport": "mobile"
+    },
+    {
+      "name": "06-swipe",
+      "url": "/r/atelier-demo/swipe",
+      "viewport": "mobile"
+    },
+    {
+      "name": "07-configurator",
+      "url": "/r/atelier-demo/configurator",
+      "viewport": "mobile"
+    }
+  ],
+  "timingsMs": {}
+}
