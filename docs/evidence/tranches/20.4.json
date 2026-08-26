@@ -1,0 +1,11 @@
+{
+  "phaseItemId": "20.4",
+  "requirementIds": ["UNAV-004"],
+  "status": "verified_local",
+  "title": "deepseek-storefront-inventory — read-only parity inventory",
+  "evidence": {
+    "spec": "docs/reports/atelier-demo-storefront-inventory.md",
+    "notes": "Stage 20 unified storefront + customer navigation; see docs/evidence/atelier-demo-baseline/ and docs/plans/ATELIER_DEMO_PARITY_TEST_PLAN.md"
+  },
+  "assertedAt": "2026-08-26T07:45:00Z"
+}

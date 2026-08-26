@@ -1,0 +1,11 @@
+{
+  "phaseItemId": "20.3",
+  "requirementIds": ["UNAV-003"],
+  "status": "verified_local",
+  "title": "claude-storefront-baseline — immutable Atelier Demo evidence",
+  "evidence": {
+    "spec": "apps/customer/e2e/atelier-demo-baseline.spec.ts",
+    "notes": "Stage 20 unified storefront + customer navigation; see docs/evidence/atelier-demo-baseline/ and docs/plans/ATELIER_DEMO_PARITY_TEST_PLAN.md"
+  },
+  "assertedAt": "2026-08-26T07:45:00Z"
+}

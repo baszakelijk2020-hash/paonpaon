@@ -1,0 +1,11 @@
+{
+  "phaseItemId": "20.1",
+  "requirementIds": ["UNAV-001"],
+  "status": "verified_local",
+  "title": "codex-frontier-navigation — architecture and acceptance",
+  "evidence": {
+    "spec": "scripts/fleet/paon-fleet status",
+    "notes": "Stage 20 unified storefront + customer navigation; see docs/evidence/atelier-demo-baseline/ and docs/plans/ATELIER_DEMO_PARITY_TEST_PLAN.md"
+  },
+  "assertedAt": "2026-08-26T07:45:00Z"
+}

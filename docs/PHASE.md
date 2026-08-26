@@ -8039,7 +8039,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
 
 ### Stage 20 — Unified storefront and customer navigation
 
-- [ ] **20.1 codex-frontier-navigation — architecture and acceptance**
+- [x] **20.1 codex-frontier-navigation — architecture and acceptance**
   - **Requirement IDs:** `UNAV-001`.
   - **Dependencies:** founder-authorized unified-navigation programme.
   - **Owner boundary:** Route-C architecture, bounded task decomposition,
@@ -8064,7 +8064,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
   - **Tests:** customer typecheck, lint, production build, and focused
     Playwright performance test.
 
-- [ ] **20.3 claude-storefront-baseline — immutable Atelier Demo evidence**
+- [x] **20.3 claude-storefront-baseline — immutable Atelier Demo evidence**
   - **Requirement IDs:** `UNAV-003`.
   - **Dependencies:** `19.1`.
   - **Fleet owned paths:** `docs/evidence/atelier-demo-baseline/`,
@@ -8079,7 +8079,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     source edit.
   - **Tests:** production-browser baseline capture only.
 
-- [ ] **20.4 deepseek-storefront-inventory — read-only parity inventory**
+- [x] **20.4 deepseek-storefront-inventory — read-only parity inventory**
   - **Requirement IDs:** `UNAV-004`.
   - **Dependencies:** `19.1`.
   - **Fleet owned paths:** `docs/reports/atelier-demo-storefront-inventory.md`,

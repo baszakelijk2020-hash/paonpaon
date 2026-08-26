@@ -1,0 +1,7 @@
+{
+  "phaseItemId": "20.3",
+  "gitSha": "c9dc6be4b2856c76245e293367d95c30aadc3846",
+  "spec": "apps/customer/e2e/atelier-demo-baseline.spec.ts",
+  "status": "passed",
+  "timestamp": "2026-08-26T07:45:00Z"
+}
