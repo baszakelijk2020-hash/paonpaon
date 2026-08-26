@@ -10,7 +10,14 @@ type Props = Omit<ComponentProps<typeof Link>, "href" | "prefetch"> & {
   href: string;
 };
 
-/** Prefetch only when the customer shows intent, never every sidebar link. */
+/**
+ * Prefetch only when the customer shows intent, never every sidebar link.
+ * `router.prefetch()` only warms Next.js page segments — for a target like
+ * `/r/[slug]` that Next resolves to a Route Handler (raw HTML, no RSC
+ * segment), it silently no-ops, so a manual `<link rel="prefetch">` is
+ * added alongside it to warm that same-origin document in the HTTP cache
+ * too. Harmless, deduped no-op for real page targets.
+ */
 export function IntentPrefetchLink({ children, href, ...props }: Props) {
   const router = useRouter();
   const prefetched = useRef(false);
@@ -18,6 +25,11 @@ export function IntentPrefetchLink({ children, href, ...props }: Props) {
     if (prefetched.current) return;
     prefetched.current = true;
     router.prefetch(href);
+    const link = document.createElement("link");
+    link.rel = "prefetch";
+    link.as = "document";
+    link.href = href;
+    document.head.appendChild(link);
   }, [href, router]);
 
   return (
@@ -27,6 +39,7 @@ export function IntentPrefetchLink({ children, href, ...props }: Props) {
       prefetch={false}
       onPointerEnter={prefetch}
       onFocus={prefetch}
+      onTouchStart={prefetch}
     >
       {children}
     </Link>

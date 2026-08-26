@@ -121,7 +121,7 @@ __PAON_BRAND_HEAD__
 
     @font-face {
         font-family: Aviano;
-        src: url('/fonts/Munged-MZgX5NxJBs.woff2') format('woff2');
+        src: url('/fonts/aviano.woff2') format('woff2');
         font-weight: 400;
         font-style: normal;
         font-display: swap;
@@ -129,7 +129,7 @@ __PAON_BRAND_HEAD__
 
     @font-face {
         font-family: GTBold3;
-        src: url('/fonts/Munged-teVV8iw7A5.woff2') format('woff2');
+        src: url('/fonts/gtbold3.woff2') format('woff2');
         font-weight: 400;
         font-style: normal;
         font-display: swap;
@@ -3900,7 +3900,7 @@ __PAON_BRAND_HEAD__
 </svg>
 <span id="paon-header-basket-count" hidden>0</span>
 </div>
-<div class="header-icon" id="paon-header-profile" onclick="paonOpenCustomerPortal()" aria-label="Account">
+<div class="header-icon" id="paon-header-profile" onclick="paonOpenCustomerPortal()" onmouseenter="paonPrefetchCustomerPortal()" onfocus="paonPrefetchCustomerPortal()" ontouchstart="paonPrefetchCustomerPortal()" aria-label="Account">
 <svg viewbox="0 0 24 24">
 <circle cx="12" cy="8" r="4"></circle>
 <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"></path>
@@ -6780,6 +6780,16 @@ function renderGrid() {
     }
     function paonOpenCustomerPortal() {
         window.location.href = '/dashboard?from=' + encodeURIComponent('/r/__PAON_SLUG__');
+    }
+    var paonCustomerPortalPrefetched = false;
+    function paonPrefetchCustomerPortal() {
+        if (paonCustomerPortalPrefetched) return;
+        paonCustomerPortalPrefetched = true;
+        var link = document.createElement('link');
+        link.rel = 'prefetch';
+        link.href = '/dashboard';
+        link.as = 'document';
+        document.head.appendChild(link);
     }
     function paonFavoritesKey() {
         return 'paon-favorites:' + String('__PAON_SLUG__');

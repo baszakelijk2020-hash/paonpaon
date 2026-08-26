@@ -59,7 +59,8 @@ export default async function LoyaltyPage() {
           Loyalty &amp; rewards
         </h1>
         <p className="max-w-2xl text-base text-[var(--color-stone-600)]">
-          Membership, considered milestones, and referrals across houses.
+          Membership, considered milestones, and referrals across your
+          retailers.
         </p>
         <RelatedLinks
           links={[{ href: "/private-offers", label: "Private Offers" }]}

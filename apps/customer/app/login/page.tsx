@@ -99,7 +99,7 @@ export default async function LoginPage({
               ) : (
                 <MagicLinkForm redirectTo={redirectTo} />
               )}
-              {!isRealProduction ? (
+              {!isRealProduction && !isDemo ? (
                 <QuickDemoLogin redirectTo={redirectTo} />
               ) : null}
             </div>
