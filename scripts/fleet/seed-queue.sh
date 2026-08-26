@@ -164,8 +164,22 @@ if [ -f "$PHASE" ]; then
     declared_paths="$(printf '%s\n' "$ctx" | awk '
       /^[[:space:]]*-[[:space:]]+\*\*Fleet owned paths:\*\*/ {
         sub(/^[[:space:]]*-[[:space:]]+\*\*Fleet owned paths:\*\*[[:space:]]*/, "")
-        print
+        value=$0
+        collecting=1
+        next
+      }
+      collecting && /^    / {
+        sub(/^[[:space:]]+/, "")
+        value=value " " $0
+        next
+      }
+      collecting {
+        print value
+        printed=1
         exit
+      }
+      END {
+        if (collecting && !printed) print value
       }
     ')"
 
