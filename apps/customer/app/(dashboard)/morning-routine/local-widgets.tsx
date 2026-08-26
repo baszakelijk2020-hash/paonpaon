@@ -105,8 +105,12 @@ function haversineKm(a: Coords, b: Coords): number {
  */
 export function LocalWidgets({
   variant = "routine",
+  recommendation,
 }: {
   variant?: "dashboard" | "routine";
+  /** The real daily MorningRoutine selection, shown only as an image in
+   * the rightmost strip cell — no text, no greeting (contract §4). */
+  recommendation?: { name: string; imageUrl?: string };
 }) {
   const [coords, setCoords] = useState<Coords | null>(null);
   const [locationLabel, setLocationLabel] = useState("Your location");
@@ -378,6 +382,14 @@ export function LocalWidgets({
                   />
                 ))}
               </div>
+            ) : recommendation?.imageUrl ? (
+              <Image
+                src={recommendation.imageUrl}
+                alt=""
+                fill
+                unoptimized
+                className="object-contain object-right"
+              />
             ) : null}
           </div>
         </div>

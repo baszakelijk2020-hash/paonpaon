@@ -1,0 +1,25 @@
+{
+  "phase": "20.11",
+  "commit": "a256373",
+  "route": "/dashboard",
+  "persona": "authenticated E2E Customer Workspace fixture (TEST_CUSTOMER_EMAIL magic-link sign-in) against the local Supabase stack",
+  "checks": {
+    "focused_playwright": "1 passed: dashboard-v3-daily-return.spec.ts (the overview strip carries the real daily image above the OOTD, clamped and clean)",
+    "regression": "1 failed: dashboard-morning-routine-hero.spec.ts (same fixture-generation issue — no seeded selection for that spec)",
+    "customer_lint": "passed",
+    "customer_typecheck": "passed",
+    "console": "no console error messages observed by the authenticated desktop/mobile browser capture"
+  },
+  "screenshots": [
+    {
+      "file": "desktop-1512x982.png",
+      "viewport": "1512x982",
+      "sha256": "ca48dacce1efee793172640fc692b60cee7755b7b638d78b38cedee8d881cfe8"
+    },
+    {
+      "file": "mobile-390x844.png",
+      "viewport": "390x844",
+      "sha256": "d093806cf59aabc94405f8aeb4ff6fdb70583a04ce9a2c301d207b5685834b42"
+    }
+  ]
+}
