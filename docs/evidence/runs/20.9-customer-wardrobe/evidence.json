@@ -1,0 +1,24 @@
+{
+  "phase": "20.9",
+  "commit": "2c5425d",
+  "route": "/wardrobe",
+  "persona": "authenticated E2E Customer Workspace fixture (TEST_CUSTOMER_EMAIL magic-link sign-in) against the local Supabase stack",
+  "checks": {
+    "focused_playwright": "2 passed: wardrobe-v3-presentation.spec.ts (eight rails, an uncropped owned card face, and an in-place Actions+ deck; authenticated desktop and mobile capture of the wardrobe)",
+    "customer_lint": "passed",
+    "customer_typecheck": "passed",
+    "console": "no console error messages observed by the authenticated desktop/mobile browser capture"
+  },
+  "screenshots": [
+    {
+      "file": "desktop-1512x982.png",
+      "viewport": "1512x982",
+      "sha256": "21cc0527f4053047968e7a6b509ed622b1edc28fa40079870b23e41e6c91f185"
+    },
+    {
+      "file": "mobile-390x844.png",
+      "viewport": "390x844",
+      "sha256": "3a10a401376c9ce5d00931407c0eb84bca4d4c24c3949ac0062d7066ff2e1296"
+    }
+  ]
+}
