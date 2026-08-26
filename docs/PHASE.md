@@ -8346,6 +8346,26 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     `pnpm --filter @paon/customer lint`, and
     `pnpm --filter @paon/customer typecheck`.
 
+- [ ] **20.16 openrouter-deepseek-customer-environment-v3-proof-index — evidence metadata audit**
+  - **Requirement IDs:** `CENV-V3-PROOF-INDEX-001`.
+  - **Dependencies:** `20.10`.
+  - **Fleet owned paths:** `docs/evidence/customer-environment-v3-proof-index/`.
+  - **Owner boundary:** one founder-authorized OpenRouter DeepSeek worker may
+    read only `docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md`, completed static
+    audit artifacts, existing customer evidence metadata, and Git commit/SHA
+    references. Write only beneath
+    `docs/evidence/customer-environment-v3-proof-index/`. Produce one proof
+    index covering every V3 remediation lane: exact required proof, current
+    artifact/commit reference, status (`present`, `missing`, `stale`, or
+    `unverifiable`), and exact owner/task required to close every gap. Do not
+    capture screenshots, analyze images, rerun browser tests, inspect or edit
+    application code, edit `docs/PHASE.md`, queue files, auth, RLS, migrations,
+    Supabase, storefront, or Claude-owned paths. Do not invent completion
+    claims.
+  - **Acceptance:** commit only the complete proof-index report beneath its
+    owned path, then mark this fleet task done.
+  - **Tests:** static evidence and Git-reference cross-check only.
+
 ### Stage 21 — Storefront-to-shell incremental migration
 
 Governed by `docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md` §3.2 / §13 and

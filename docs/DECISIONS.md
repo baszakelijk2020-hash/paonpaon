@@ -3586,3 +3586,28 @@ claims.
 **Consequences.** This is a non-precedential, evidence-only exception. The
 worker may commit only the audit report and mark `phase-20.10` done. OpenRouter
 remains outside PAON's default execution path.
+
+## ADR-079: one-off OpenRouter DeepSeek Customer Environment V3 proof-index audit
+
+**Status: accepted (2026-08-26).**
+
+**Context.** The founder has authorized one further OpenRouter DeepSeek task
+after the completed static traceability audit. The next useful bounded output
+is a current proof index for the V3 remediation lanes, not duplicate source
+analysis or implementation.
+
+**Decision.** `phase-20.16` may use OpenRouter DeepSeek once, solely to read
+the V3 contract, the completed static-audit artifacts, existing customer
+evidence metadata, and Git commit/SHA references; then write a proof-index
+report beneath `docs/evidence/customer-environment-v3-proof-index/`. The
+report must state, for each V3 remediation lane, the exact required proof,
+current artifact/commit reference, current status (`present`, `missing`,
+`stale`, or `unverifiable`), and the exact owner/task needed to close a gap.
+It must not capture screenshots, analyze images, rerun browser tests, inspect
+or edit application code, edit `docs/PHASE.md`, queue files, auth, RLS,
+migrations, Supabase, storefront, or Claude-owned paths, or invent completion
+claims.
+
+**Consequences.** This is a non-precedential, evidence-only exception. The
+worker may commit only its proof-index report and mark `phase-20.16` done.
+OpenRouter remains outside PAON's default execution path.
