@@ -20,17 +20,7 @@ export function IntentPrefetchLink({ children, href, ...props }: Props) {
     router.prefetch(href);
   }, [href, router]);
   const navigate = useCallback(() => {
-    if (
-      typeof window === "undefined" ||
-      !(
-        window as Window & {
-          gsap?: {
-            to: (target: Element, vars: Record<string, unknown>) => void;
-          };
-        }
-      ).gsap
-    )
-      return;
+    if (typeof window === "undefined") return;
     const overlay = document.createElement("div");
     overlay.setAttribute("data-paon-navigation-transition", "true");
     Object.assign(overlay.style, {
@@ -38,19 +28,18 @@ export function IntentPrefetchLink({ children, href, ...props }: Props) {
       inset: "0",
       zIndex: "9999",
       pointerEvents: "none",
-      background: "#1d1d1d",
-      opacity: "0",
+      background: "#b86f3f",
+      transform: "translateY(100%)",
+      transition: "transform 420ms cubic-bezier(.76,0,.24,1)",
     });
     document.body.appendChild(overlay);
-    (
-      window as Window & {
-        gsap?: { to: (target: Element, vars: Record<string, unknown>) => void };
-      }
-    ).gsap?.to(overlay, {
-      opacity: 0.18,
-      duration: 0.14,
-      ease: "power2.out",
+    requestAnimationFrame(() => {
+      overlay.style.transform = "translateY(0)";
     });
+    window.setTimeout(() => {
+      overlay.style.transform = "translateY(-100%)";
+    }, 180);
+    window.setTimeout(() => overlay.remove(), 650);
   }, []);
 
   return (
