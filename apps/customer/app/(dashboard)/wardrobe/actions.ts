@@ -6,7 +6,6 @@ import {
   WardrobeRepository,
 } from "@paon/database";
 import {
-  createExternalWardrobeItemInputSchema,
   requestWardrobeItemServiceInputSchema,
   retireWardrobeItemInputSchema,
   updateWardrobeItemStateInputSchema,
@@ -35,58 +34,6 @@ async function resolveCustomer(userId: string, retailerId: string) {
     userId as never,
   );
   return customers.find((candidate) => candidate.retailerId === retailerId);
-}
-
-export async function addExternalWardrobeItem(
-  _prevState: WardrobeActionState,
-  formData: FormData,
-): Promise<WardrobeActionState> {
-  const session = await requireSession();
-  const parsed = createExternalWardrobeItemInputSchema.safeParse({
-    retailerId: formData.get("retailerId"),
-    customerId: formData.get("customerId"),
-    categoryCode: formData.get("categoryCode"),
-    displayName: formData.get("displayName"),
-    brand: optionalString(formData.get("brand")),
-    description: optionalString(formData.get("description")),
-    condition: formData.get("condition") || "good",
-    wearFrequency: optionalString(formData.get("wearFrequency")),
-    careState: formData.get("careState") || "current",
-    fitPerception: formData.get("fitPerception") || "unknown",
-    careNotes: optionalString(formData.get("careNotes")),
-    fitNotes: optionalString(formData.get("fitNotes")),
-  });
-
-  if (!parsed.success) {
-    return { fieldErrors: zodFieldErrors(parsed.error) };
-  }
-
-  const customer = await resolveCustomer(
-    session.userId,
-    parsed.data.retailerId,
-  );
-  if (!customer || customer.id !== parsed.data.customerId) {
-    return {
-      fieldErrors: {},
-      formError: "No relationship with this retailer.",
-    };
-  }
-
-  try {
-    const supabase = await getSupabaseServerClient();
-    await new WardrobeRepository(supabase).createExternalItem({
-      ...parsed.data,
-      customerId: customer.id,
-    });
-  } catch (error) {
-    return {
-      fieldErrors: {},
-      formError: error instanceof Error ? error.message : "Could not add item.",
-    };
-  }
-
-  revalidatePath("/wardrobe");
-  return { fieldErrors: {}, success: true };
 }
 
 export async function updateWardrobeItemState(
