@@ -1,0 +1,23 @@
+{
+  "phaseItemId": "21.6",
+  "requirementIds": ["UNAV-010"],
+  "status": "verified_local",
+  "title": "storefront -> dashboard boundary performance budget",
+  "performance": {
+    "direction": "storefront->dashboard",
+    "mechanism": "prefetch-warmed document navigation (link rel=prefetch as=document) + bfcache",
+    "p50Ms": 142,
+    "p95Ms": 168,
+    "samples": [155, 139, 141, 142, 140, 155, 168, 159],
+    "regressionCeilingMs": 2000,
+    "browser": "Chromium (Playwright devices['Desktop Chrome'])",
+    "viewport": "1280x720",
+    "network": "local loopback, Next.js production build (pnpm start)",
+    "note": "deliberately NOT the 200ms customer-shell warm-nav budget (plan §13); this is a full document load, recorded as a regression guard. Warmed hop lands ~= in-shell warm nav."
+  },
+  "evidence": {
+    "spec": "apps/customer/e2e/storefront-dashboard-boundary-perf.spec.ts"
+  },
+  "browserProofSpec": "apps/customer/e2e/storefront-dashboard-boundary-perf.spec.ts",
+  "assertedAt": "2026-08-26T08:50:00Z"
+}

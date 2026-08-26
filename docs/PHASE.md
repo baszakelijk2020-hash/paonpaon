@@ -8138,7 +8138,7 @@ if the seam proves insufficient in real use.
     never executes the template's ~40 inline scripts); iframes are barred by
     §3.2. Only start if the 21.2 seam proves insufficient in real use.
 
-- [ ] **21.6 storefront-to-dashboard performance budget**
+- [x] **21.6 storefront-to-dashboard performance budget**
   - **Requirement IDs:** `UNAV-010`.
   - **Dependencies:** `21.2`.
   - **Owner boundary:** measure and enforce a storefront→dashboard transition
