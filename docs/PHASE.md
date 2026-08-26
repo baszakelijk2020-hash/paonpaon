@@ -8207,6 +8207,25 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     `pnpm --filter @paon/customer lint`, and
     `pnpm --filter @paon/customer typecheck`.
 
+- [ ] **20.10 openrouter-deepseek-customer-environment-v3-static-audit — static traceability audit**
+  - **Requirement IDs:** `CENV-V3-STATIC-AUDIT-001`.
+  - **Dependencies:** `20.8`.
+  - **Fleet owned paths:** `docs/evidence/customer-environment-v3-static-audit/`.
+  - **Owner boundary:** one founder-authorized OpenRouter DeepSeek worker may
+    read only `docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md`, customer
+    application source, existing customer E2E tests, and existing evidence
+    files. Write only beneath
+    `docs/evidence/customer-environment-v3-static-audit/`. Produce one complete
+    requirement matrix covering every V3 requirement with its route/component,
+    existing test/evidence, status (`implemented`, `partial`, `missing`, or
+    `unverifiable`), and exact next bounded implementation task. Do not capture
+    screenshots or perform image analysis. Do not edit application code,
+    `docs/PHASE.md`, queue files, auth, RLS, migrations, Supabase, or
+    worker-owned files. Do not invent completion claims.
+  - **Acceptance:** commit only the complete static-audit report beneath its
+    owned path, then mark this fleet task done.
+  - **Tests:** static source, test, and evidence cross-check only.
+
 ### Stage 21 — Storefront-to-shell incremental migration
 
 Governed by `docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md` §3.2 / §13 and

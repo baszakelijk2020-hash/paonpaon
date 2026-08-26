@@ -3562,3 +3562,27 @@ for any other work.
 **Consequences.** This is a non-precedential evidence-only exception. OpenRouter
 remains outside PAON's default execution path. The resulting report is an
 audit artifact, not implementation proof or authorization for remediation.
+
+## ADR-078: one-off OpenRouter DeepSeek Customer Environment V3 static traceability audit
+
+**Status: accepted (2026-08-26).**
+
+**Context.** The founder has separately authorized one additional OpenRouter
+DeepSeek worker for a static, evidence-only traceability audit of the Customer
+Environment V3 contract. This is distinct from ADR-077's live visual audit.
+
+**Decision.** `phase-20.10` may use OpenRouter DeepSeek once, solely to read
+`docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md`, customer application source,
+existing customer E2E tests, and existing evidence files; and to write one
+complete requirement matrix beneath
+`docs/evidence/customer-environment-v3-static-audit/`. For every V3
+requirement, the matrix must identify route/component, existing test/evidence,
+status (`implemented`, `partial`, `missing`, or `unverifiable`), and the exact
+next bounded implementation task. The worker must not capture screenshots or
+perform image analysis; edit application code, `docs/PHASE.md`, queue files,
+auth, RLS, migrations, Supabase, or worker-owned files; or invent completion
+claims.
+
+**Consequences.** This is a non-precedential, evidence-only exception. The
+worker may commit only the audit report and mark `phase-20.10` done. OpenRouter
+remains outside PAON's default execution path.
