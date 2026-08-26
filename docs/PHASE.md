@@ -8366,6 +8366,45 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     owned path, then mark this fleet task done.
   - **Tests:** static evidence and Git-reference cross-check only.
 
+- [ ] **20.17 claude-customer-wardrobe-removal-v3 — advisor-selection removal flow**
+  - **Requirement IDs:** `CENV-WARDROBE-REMOVE-001`.
+  - **Dependencies:** `20.9`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/wardrobe/wardrobe-panel.tsx`,
+    `apps/customer/e2e/wardrobe-removal-v3.spec.ts`, and
+    `docs/evidence/runs/20.17-customer-wardrobe-removal-v3/`.
+  - **Owner boundary:** implement only the V3 advisor-selection-card removal
+    plan and confirmation. Preserve real tenant-safe garment actions. The
+    progressive action replaces the current card face; do not append a form or
+    restore external garments, provenance, purchase-location distinction,
+    Virtual Studio, lifecycle, roadmap, QR, payment, email, Mission Control,
+    auth, RLS, migration, or non-owned scope.
+  - **Acceptance:** authenticated Isabelle desktop/mobile browser proof,
+    console-clean real remove/confirm path, focused E2E, customer lint,
+    customer typecheck, exact-SHA evidence, and owned-files-only commit.
+  - **Tests:** `pnpm --filter @paon/customer test:e2e -- wardrobe-removal-v3.spec.ts`,
+    `pnpm --filter @paon/customer lint`, and
+    `pnpm --filter @paon/customer typecheck`.
+
+- [ ] **20.18 claude-customer-orders-actions-v3 — real order action row and supporting modules**
+  - **Requirement IDs:** `CENV-ORDERS-ACTIONS-001`.
+  - **Dependencies:** `20.12`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/orders/page.tsx`,
+    `apps/customer/e2e/orders-actions-v3.spec.ts`, and
+    `docs/evidence/runs/20.18-customer-orders-actions-v3/`.
+  - **Owner boundary:** implement only V3 Orders item action row and compact
+    supporting modules. Each order/item exposes real Order again, Complete the
+    look, Ask a question, Request service, and View order/invoice actions.
+    Complete the Look centres the owned source item in a 70x70 squircle above a
+    carousel of real suggestions; do not duplicate overlapping products on one
+    viewport. No QR, payment, email, Mission Control, auth, RLS, migration,
+    storefront, or non-owned scope.
+  - **Acceptance:** authenticated Isabelle desktop/mobile browser proof,
+    console-clean real action success/failure paths, focused E2E, customer
+    lint, customer typecheck, exact-SHA evidence, and owned-files-only commit.
+  - **Tests:** `pnpm --filter @paon/customer test:e2e -- orders-actions-v3.spec.ts`,
+    `pnpm --filter @paon/customer lint`, and
+    `pnpm --filter @paon/customer typecheck`.
+
 ### Stage 21 — Storefront-to-shell incremental migration
 
 Governed by `docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md` §3.2 / §13 and
