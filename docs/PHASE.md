@@ -8405,6 +8405,61 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     `pnpm --filter @paon/customer lint`, and
     `pnpm --filter @paon/customer typecheck`.
 
+- [ ] **20.19 claude-customer-v3-stale-e2e — remove assertions for deleted V3 UI**
+  - **Requirement IDs:** `CENV-TEST-001`.
+  - **Dependencies:** `20.13`, `20.17`.
+  - **Fleet owned paths:** `apps/customer/e2e/house-memory-fact-correction.spec.ts`,
+    `apps/customer/e2e/style-profile-account.spec.ts`,
+    `apps/customer/e2e/item-specific-complete-the-look.spec.ts`,
+    `apps/customer/e2e/roadmap-look-review.spec.ts`, and
+    `docs/evidence/runs/20.19-customer-v3-stale-e2e/`.
+  - **Owner boundary:** reconcile only stale assertions that require UI V3
+    explicitly removes. Do not restore House Memory, Style Portrait/avatar
+    setup in Profile, removed Wardrobe roadmap markup, or removed item-specific
+    Complete the Look markup to satisfy a test. Replace only with V3-conformant
+    assertions. No application code, QR, payment, email, Mission Control,
+    auth, RLS, migration, Supabase, or storefront work.
+  - **Acceptance:** focused stale-test suite passes against V3-conformant UI;
+    customer lint/typecheck and exact-SHA evidence pass; owned-files-only commit.
+  - **Tests:** the four owned specs, customer lint, and customer typecheck.
+
+- [ ] **20.20 claude-customer-alteration-choices-v3 — service decision branches**
+  - **Requirement IDs:** `CENV-ALTERATION-CHOICES-001`.
+  - **Dependencies:** `20.6`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/appointments/paid-care-flow.tsx`,
+    `apps/customer/e2e/appointments-alteration-choices-v3.spec.ts`, and
+    `docs/evidence/runs/20.20-customer-alteration-choices-v3/`.
+  - **Owner boundary:** expose only the existing V3 customer decision branches:
+    `I know exactly what needs changing`, `Ask advisor with self-scan`, and
+    `Assess in store`. Progressive choices replace the current card face;
+    Assess in store accepts a short service note, requests the item be brought,
+    and shows the existing folded price list without forcing a product choice.
+    No QR, payment, email, Mission Control, auth, RLS, migration, Supabase, or
+    non-owned path edits.
+  - **Acceptance:** authenticated desktop/mobile real success/failure flow,
+    console-clean focused E2E, customer lint/typecheck, exact-SHA evidence, and
+    owned-files-only commit.
+  - **Tests:** appointments-alteration-choices V3 E2E, customer lint, typecheck.
+
+- [ ] **20.21 claude-storefront-dfr-handoff-v3 — canonical raw PDP fitting-room module**
+  - **Requirement IDs:** `CENV-DFR-HANDOFF-001`.
+  - **Dependencies:** `20.7`.
+  - **Fleet owned paths:** `apps/customer/app/r/[slug]/route.ts`,
+    `apps/customer/e2e/storefront-digital-fitting-room-handoff-v3.spec.ts`, and
+    `docs/evidence/runs/20.21-storefront-dfr-handoff-v3/`.
+  - **Owner boundary:** add only the V3 canonical raw PDP third-column module:
+    `Try in Digital Fitting Room`, three short steps, and `Start creating` in
+    the existing 15px squircle system. The CTA passes canonical product ID/slug
+    correctly and opens the existing Digital Fitting Room; no fake route,
+    result, product, or dead button. Preserve raw storefront behavior, URLs,
+    rendering, cart, and Back/Forward. No QR, payment, email, Mission Control,
+    auth, RLS, migration, or non-owned edits.
+  - **Acceptance:** authenticated desktop/mobile browser proof, console-clean
+    canonical product handoff, focused E2E, customer lint/typecheck, exact-SHA
+    evidence, and owned-files-only commit.
+  - **Tests:** storefront-digital-fitting-room-handoff V3 E2E, customer lint,
+    typecheck.
+
 ### Stage 21 — Storefront-to-shell incremental migration
 
 Governed by `docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md` §3.2 / §13 and
