@@ -8,7 +8,12 @@ import { RelatedLinks } from "../related-links";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
-const TERMINAL_ORDER_STATUSES = new Set(["completed", "canceled", "refunded"]);
+const TERMINAL_ORDER_STATUSES = new Set([
+  "completed",
+  "canceled",
+  "refunded",
+  "delivered",
+]);
 
 export default async function OrdersPage() {
   const session = await requireSession();
