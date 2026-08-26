@@ -8182,6 +8182,31 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     worker.
   - **Tests:** read-only browser capture and source-contract cross-check only.
 
+- [ ] **20.9 claude-customer-wardrobe-v3 — Customer Wardrobe V3 presentation**
+  - **Requirement IDs:** `CENV-WARDROBE-001`.
+  - **Dependencies:** `20.2`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/wardrobe/**`,
+    `apps/customer/e2e/wardrobe-v3-*.spec.ts`, and
+    `docs/evidence/runs/20.9-customer-wardrobe/`.
+  - **Owner boundary:** Customer Wardrobe V3 presentation only. Show only
+    retailer purchase-linked garments; do not add external garments,
+    provenance, or purchase-location distinction. Provide eight category rails
+    with real item counts and ten visible slots per rail. Product images use
+    `object-contain` and are never clipped. Cards use a bottom progressive-blur
+    information overlay with title, purchased-on date, and days-owned. Replace
+    `Garment Details` with `Actions +`; progressive actions replace the card
+    face and never append forms. No generic outlined-card AI styling, no
+    customer-facing `house` copy, auth, RLS, migration, external-garment,
+    provenance, purchase-location, storefront, or non-Wardrobe changes.
+  - **Acceptance:** preserve real existing garment actions and tenant-safe data
+    paths. Authenticated desktop and mobile browser flows are console-clean;
+    focused E2E, customer lint, and customer typecheck pass; executable
+    evidence records the exact committed SHA; commit only owned files and
+    evidence.
+  - **Tests:** focused `apps/customer/e2e/wardrobe-v3-*.spec.ts`,
+    `pnpm --filter @paon/customer lint`, and
+    `pnpm --filter @paon/customer typecheck`.
+
 ### Stage 21 — Storefront-to-shell incremental migration
 
 Governed by `docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md` §3.2 / §13 and
