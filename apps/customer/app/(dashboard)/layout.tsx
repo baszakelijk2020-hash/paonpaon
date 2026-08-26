@@ -36,10 +36,10 @@ export default async function DashboardLayout({
         <div className="min-w-0">
           <nav className="sticky top-0 z-40 flex h-[60px] items-center justify-end border-b border-black/10 bg-white px-4 py-3">
             <Link
-              href="/login?redirectTo=%2Fdashboard"
+              href="/login?demo=1&email=contact%2Bisabelle%40nebelspiegel.com&redirectTo=%2Fdashboard"
               className={buttonVariants({ size: "sm" })}
             >
-              Sign in
+              Customer Demo
             </Link>
           </nav>
           <main className="mx-auto w-full max-w-[92rem] px-4 py-6 sm:px-7 sm:py-8 lg:px-10 xl:px-14">
