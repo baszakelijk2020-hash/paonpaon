@@ -1,0 +1,68 @@
+{
+  "phaseItemId": "20.15",
+  "requirement": "CENV-NAVIGATION-003",
+  "gitSha": "f51757c531e9282ae9056ebe8ec3eaa429a90706",
+  "spec": "apps/customer/e2e/customer-navigation-v3-copy.spec.ts",
+  "status": "passed",
+  "timestamp": "2026-08-27T02:55:00.000Z",
+  "testSummary": {
+    "total": 8,
+    "passed": 8,
+    "failed": 0,
+    "duration": "49.0s"
+  },
+  "testCases": [
+    {
+      "name": "Desktop viewport: shows exactly 7 navigation tabs in correct order with correct hrefs",
+      "status": "passed",
+      "duration": "5.6s"
+    },
+    {
+      "name": "Desktop viewport: navigation is client-side (no full page reload)",
+      "status": "passed",
+      "duration": "6.3s"
+    },
+    {
+      "name": "Desktop viewport: no forbidden 'house' wording in navigation",
+      "status": "passed",
+      "duration": "4.2s"
+    },
+    {
+      "name": "Desktop viewport: console-clean warm navigation across all destinations",
+      "status": "passed",
+      "duration": "7.9s"
+    },
+    {
+      "name": "Mobile viewport: first 3 destinations inline, remaining in overflow menu, all reachable",
+      "status": "passed",
+      "duration": "5.7s"
+    },
+    {
+      "name": "Mobile viewport: mobile navigation is client-side",
+      "status": "passed",
+      "duration": "6.3s"
+    },
+    {
+      "name": "Mobile viewport: no forbidden 'house' wording in mobile navigation",
+      "status": "passed",
+      "duration": "5.7s"
+    },
+    {
+      "name": "Mobile viewport: console-clean warm navigation across all destinations (mobile)",
+      "status": "passed",
+      "duration": "5.4s"
+    }
+  ],
+  "verification": {
+    "lint": "passed",
+    "typecheck": "passed",
+    "e2e": "passed",
+    "ownedFilesUnmodified": true,
+    "implementation": {
+      "layoutModified": false,
+      "accountTopTabsModified": false,
+      "customerNavigationLifecycleModified": false,
+      "intentPrefetchLinkModified": false
+    }
+  }
+}
