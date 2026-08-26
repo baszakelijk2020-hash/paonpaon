@@ -8051,7 +8051,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     integration.
   - **Tests:** `scripts/fleet/paon-fleet status`.
 
-- [ ] **20.2 claude-customer-navigation — persistent warm customer shell**
+- [x] **20.2 claude-customer-navigation — persistent warm customer shell**
   - **Requirement IDs:** `UNAV-002`.
   - **Dependencies:** `19.1` architecture boundary.
   - **Fleet owned paths:** `apps/customer/app/(dashboard)/account-top-tabs.tsx`,
