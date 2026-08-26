@@ -8128,10 +8128,12 @@ if the seam proves insufficient in real use.
   - **Tests:** `apps/customer/e2e/storefront-dashboard-roundtrip.spec.ts`;
     `customer-navigation-performance.spec.ts`; `atelier-demo-baseline.spec.ts`.
 
-- [ ] **21.3 / 21.4 / 21.5 — full JSX storefront port — DEFERRED**
+- [ ] **21.3 / 21.4 / 21.5 — full JSX storefront port — NOT PURSUED**
   - **Requirement IDs:** `UNAV-007`, `UNAV-008`, `UNAV-009`.
-  - **Status:** deferred pending an explicit founder parity-vs-timeline
-    decision. Rebuilding the 668KB founder template as JSX (client-side
+  - **Status:** founder decision 2026-08-26 — the 21.2 seam is sufficient; the
+    raw storefront stays canonical and its internal full-page navigation is
+    accepted. Do not start this port without a new founder instruction.
+    Rebuilding the 668KB founder template as JSX (client-side
     internal storefront nav, both surfaces in one React tree) is the only path
     to literal SPA-everywhere, reverses ADR-046, and must pass C1–C7 on every
     surface desktop + mobile. `dangerouslySetInnerHTML` is not a shortcut (it
