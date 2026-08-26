@@ -1,0 +1,25 @@
+{
+  "phase": "20.14",
+  "commit": "4118202",
+  "route": "/loyalty",
+  "persona": "authenticated E2E Customer Workspace fixture (TEST_CUSTOMER_EMAIL magic-link sign-in) against the local Supabase stack",
+  "checks": {
+    "focused_playwright": "1 passed: loyalty-v3-presentation.spec.ts (the Rewards & Referrals page frames the real loyalty engine)",
+    "customer_lint": "passed",
+    "customer_typecheck": "passed",
+    "console": "no console error messages observed by the authenticated desktop/mobile browser capture"
+  },
+  "notes": "CUSTOMER_ENVIRONMENT_REBUILD_V3 §9: 'Rewards & Referrals renders the existing /loyalty implementation; do not create a duplicate rewards engine.' The /loyalty page already renders the real LoyaltyRepository-backed engine (tier, points, milestones/BadgesShelf, redeemable rewards via redeem_my_reward, referral invite via create_my_referral) with no duplicate surface anywhere in apps/customer. This slice is presentation only: the page frame gains the V3 kicker ('Membership') and its heading is renamed to match the navigation label and the contract, 'Rewards & Referrals'. No engine, schema, repository or action change.",
+  "screenshots": [
+    {
+      "file": "desktop-1512x982.png",
+      "viewport": "1512x982",
+      "sha256": "336390c1ddc6a0538769985ec09a0566d9e8a89d93469794597d4e6711adf23f"
+    },
+    {
+      "file": "mobile-390x844.png",
+      "viewport": "390x844",
+      "sha256": "76af42cca7e70f2f303e78d0b3f3c0c12a01df2d0281774a68f6d1a92850e2dd"
+    }
+  ]
+}

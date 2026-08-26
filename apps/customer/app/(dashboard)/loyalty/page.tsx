@@ -55,12 +55,15 @@ export default async function LoyaltyPage() {
   return (
     <div className="customer-page flex flex-col gap-6">
       <header className="customer-page-header flex-col items-start gap-2">
+        <p className="customer-kicker text-[var(--color-stone-500)]">
+          Membership
+        </p>
         <h1 className="font-display text-4xl text-[var(--customer-ink)]">
-          Loyalty &amp; rewards
+          Rewards &amp; Referrals
         </h1>
         <p className="max-w-2xl text-base text-[var(--color-stone-600)]">
-          Membership, considered milestones, and referrals across your
-          retailers.
+          Your membership tier and points, considered milestones, redeemable
+          rewards, and referrals across your retailers.
         </p>
         <RelatedLinks
           links={[{ href: "/private-offers", label: "Private Offers" }]}
