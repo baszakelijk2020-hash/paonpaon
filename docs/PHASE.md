@@ -8139,6 +8139,28 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     `pnpm --filter @paon/customer lint`, and
     `pnpm --filter @paon/customer typecheck`.
 
+- [ ] **20.7 claude-digital-fitting-room — first-run experience**
+  - **Requirement IDs:** `CENV-FITTING-ROOM-001`.
+  - **Dependencies:** `20.2`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/digital-fitting-room/**`,
+    `apps/customer/e2e/digital-fitting-room-*.spec.ts`,
+    `docs/evidence/runs/20.7-digital-fitting-room/`.
+  - **Owner boundary:** Digital Fitting Room first-run experience only. Build
+    a premium single-card entry experience with a clear invitation, concise
+    explainer, and one prominent `Start Creating` action. Progressive steps
+    replace the current step; do not append an endless form. The real existing
+    fitting-room and avatar workflow remains connected. No fake avatar result,
+    upload, route, or dead button; no auth, RLS, migration, storefront,
+    Overview, Appointments, Wardrobe, Orders, Profile, Rewards, QR, payment,
+    email, receipt, or Mission Control work.
+  - **Acceptance:** authenticated desktop and mobile browser verification with
+    screenshots and no console errors; focused Digital Fitting Room E2E,
+    customer typecheck, and customer lint pass; commit only owned files and
+    record executable evidence.
+  - **Tests:** focused `apps/customer/e2e/digital-fitting-room-*.spec.ts`,
+    `pnpm --filter @paon/customer lint`, and
+    `pnpm --filter @paon/customer typecheck`.
+
 ### Stage 21 — Storefront-to-shell incremental migration
 
 Governed by `docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md` §3.2 / §13 and
