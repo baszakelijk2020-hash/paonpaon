@@ -8226,6 +8226,121 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     owned path, then mark this fleet task done.
   - **Tests:** static source, test, and evidence cross-check only.
 
+- [ ] **20.11 claude-customer-overview-v3-daily-return — dashboard daily-return composition**
+  - **Requirement IDs:** `CENV-OVERVIEW-002`.
+  - **Dependencies:** `20.5`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/dashboard/**`,
+    `apps/customer/e2e/dashboard-v3-daily-return.spec.ts`, and
+    `docs/evidence/runs/20.11-customer-overview-v3/`.
+  - **Owner boundary:** dashboard route only. The desktop local-context strip
+    is no taller than 100px and preserves date, local weather, local time,
+    work-address save, personal-distance estimate, and world clocks. Its
+    rightmost area shows the real MorningRoutine daily suit or jacket; OOTD
+    starts immediately below using that same real selection and its existing
+    save, buy, appointment, and advisor actions. Remove duplicate morning
+    greeting, Today's Edit explanation, one-tap setup advertisement, Complete
+    the Look, and generic retailer promotional panel. Product imagery is
+    visible, `object-contain`, and never clipped. At mobile width every
+    local-context function remains reachable without five tiny columns. No QR,
+    payment, email, Mission Control, auth, RLS, migration, storefront, or
+    non-dashboard scope.
+  - **Acceptance:** authenticated Isabelle browser proof at 1512x982 and
+    390x844, console-clean real controls, focused E2E, customer lint,
+    customer typecheck, exact-SHA evidence, and an owned-files-only commit.
+  - **Tests:** `pnpm --filter @paon/customer test:e2e -- dashboard-v3-daily-return.spec.ts`,
+    `pnpm --filter @paon/customer lint`, and
+    `pnpm --filter @paon/customer typecheck`.
+
+- [ ] **20.12 claude-customer-orders-v3 — pending orders, history, and real actions**
+  - **Requirement IDs:** `CENV-ORDERS-001`.
+  - **Dependencies:** `20.2`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/orders/page.tsx`,
+    `apps/customer/app/(dashboard)/orders/[id]/page.tsx`,
+    `apps/customer/e2e/orders-v3-*.spec.ts`, and
+    `docs/evidence/runs/20.12-customer-orders-v3/`.
+  - **Owner boundary:** Orders routes only. Render Pending Orders first, then
+    Order History. History remains the complete purchase record even when its
+    products also appear in Wardrobe. Each order/item exposes its real existing
+    Order again, Complete the look, Ask a question, Request service, and View
+    order/invoice actions. Supporting modules remain compact and clearly
+    separated; Complete the Look centres the owned source item in a 70x70
+    squircle above real-suggestion carousel; do not duplicate an overlapping
+    product in multiple modules on one viewport. No QR, payment, email,
+    Mission Control, auth, RLS, migration, storefront, or non-Orders scope.
+  - **Acceptance:** authenticated Isabelle desktop/mobile browser proof,
+    console-clean real success/failure action exercise, focused E2E, customer
+    lint, customer typecheck, exact-SHA evidence, and an owned-files-only
+    commit.
+  - **Tests:** focused `apps/customer/e2e/orders-v3-*.spec.ts`,
+    `pnpm --filter @paon/customer lint`, and
+    `pnpm --filter @paon/customer typecheck`.
+
+- [ ] **20.13 claude-customer-profile-v3 — profile cleanup and clarification**
+  - **Requirement IDs:** `CENV-PROFILE-001`.
+  - **Dependencies:** `20.2`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/account/**`,
+    `apps/customer/e2e/account-v3-profile.spec.ts`, and
+    `docs/evidence/runs/20.13-customer-profile-v3/`.
+  - **Owner boundary:** My Profile/account route only. Remove the entire
+    customer-facing House Memory panel and all `House Memory` copy. Remove
+    style-discovery quiz and Style Portrait/avatar setup from Profile; style
+    discovery belongs in Wardrobe and avatar/portrait setup belongs in Digital
+    Fitting Room. Clarify the remaining real profile controls without generic
+    outlined-card AI styling or customer-facing `house` wording. No QR,
+    payment, email, Mission Control, auth, RLS, migration, storefront,
+    Wardrobe, or Digital Fitting Room changes.
+  - **Acceptance:** authenticated Isabelle desktop/mobile browser proof,
+    console-clean real profile controls, focused E2E, customer lint, customer
+    typecheck, exact-SHA evidence, and an owned-files-only commit.
+  - **Tests:** `pnpm --filter @paon/customer test:e2e -- account-v3-profile.spec.ts`,
+    `pnpm --filter @paon/customer lint`, and
+    `pnpm --filter @paon/customer typecheck`.
+
+- [ ] **20.14 claude-customer-loyalty-v3 — Rewards & Referrals exposure**
+  - **Requirement IDs:** `CENV-REWARDS-001`.
+  - **Dependencies:** `20.2`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/loyalty/**`,
+    `apps/customer/e2e/loyalty-v3-*.spec.ts`, and
+    `docs/evidence/runs/20.14-customer-loyalty-v3/`.
+  - **Owner boundary:** Rewards & Referrals/loyalty route only. Render the
+    existing `/loyalty` implementation; do not create a duplicate rewards
+    engine. Preserve its real loyalty and referral actions and tenant-safe data
+    paths. No QR, payment, email, Mission Control, auth, RLS, migration,
+    storefront, or non-loyalty scope.
+  - **Acceptance:** authenticated Isabelle desktop/mobile browser proof,
+    console-clean real reward/referral controls, focused E2E, customer lint,
+    customer typecheck, exact-SHA evidence, and an owned-files-only commit.
+  - **Tests:** focused `apps/customer/e2e/loyalty-v3-*.spec.ts`,
+    `pnpm --filter @paon/customer lint`, and
+    `pnpm --filter @paon/customer typecheck`.
+
+- [ ] **20.15 claude-customer-navigation-v3-copy — navigation and forbidden-copy consistency**
+  - **Requirement IDs:** `CENV-NAVIGATION-003`.
+  - **Dependencies:** `20.2`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/layout.tsx`,
+    `apps/customer/app/(dashboard)/account-top-tabs.tsx`,
+    `apps/customer/app/(dashboard)/customer-navigation-lifecycle.tsx`,
+    `apps/customer/app/(dashboard)/intent-prefetch-link.tsx`,
+    `apps/customer/e2e/customer-navigation-v3-copy.spec.ts`, and
+    `docs/evidence/runs/20.15-customer-navigation-v3-copy/`.
+  - **Owner boundary:** customer sidebar/top-menu labels and forbidden
+    customer-facing `house` wording only. Preserve the exact seven desktop
+    destinations: Overview, Wardrobe, My Appointments, Orders, Digital Fitting
+    Room, Rewards & Referrals, and My Profile. Mobile retains access to every
+    destination through a compact overflow/menu. Visible customer navigation
+    uses client-side navigation, not full reloads. Preserve the persistent
+    shell and do not redesign the existing top-navigation geometry, fonts, or
+    active-state treatment. Exclude storefront and every active worker-owned
+    path. No QR, payment, email, Mission Control, auth, RLS, migration, or
+    storefront scope.
+  - **Acceptance:** authenticated Isabelle desktop/mobile browser proof,
+    console-clean warm navigation, focused label/removed-copy/route E2E,
+    customer lint, customer typecheck, exact-SHA evidence, and an
+    owned-files-only commit.
+  - **Tests:** `pnpm --filter @paon/customer test:e2e -- customer-navigation-v3-copy.spec.ts`,
+    `pnpm --filter @paon/customer lint`, and
+    `pnpm --filter @paon/customer typecheck`.
+
 ### Stage 21 — Storefront-to-shell incremental migration
 
 Governed by `docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md` §3.2 / §13 and
