@@ -19,15 +19,13 @@ export async function buildVariantIdByProductSlug(
     retailerId,
   );
   const variantRepo = new ProductVariantRepository(supabase);
-  const entries = await Promise.all(
-    products.map(async (product) => {
-      const variants = await variantRepo.findByProduct(product.id);
-      return [product.slug, variants[0]?.id] as const;
-    }),
-  );
+  const productIds = products.map((p) => p.id);
+  const variantsByProductId = await variantRepo.findByProducts(productIds);
   const map: Record<string, string> = {};
-  for (const [slug, variantId] of entries) {
-    if (variantId) map[slug] = variantId;
+  for (const product of products) {
+    const variants = variantsByProductId.get(product.id) ?? [];
+    const variantId = variants[0]?.id;
+    if (variantId) map[product.slug] = variantId;
   }
   return map;
 }
