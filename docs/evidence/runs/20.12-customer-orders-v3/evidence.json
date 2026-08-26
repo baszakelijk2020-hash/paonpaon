@@ -1,0 +1,29 @@
+{
+  "phase": "20.12",
+  "commit": "3325ee0",
+  "route": "/orders",
+  "persona": "authenticated E2E Customer Workspace fixture (TEST_CUSTOMER_EMAIL magic-link sign-in) against the local Supabase stack",
+  "checks": {
+    "focused_playwright": "2 passed: orders-v3-presentation.spec.ts (orders V3: pending-first, full history, real per-order actions, complete-the-look module; authenticated desktop and mobile capture of orders)",
+    "customer_lint": "passed",
+    "customer_typecheck": "passed",
+    "console": "no console error messages observed by the authenticated desktop/mobile browser capture"
+  },
+  "screenshots": [
+    {
+      "file": "desktop-1512x982.png",
+      "viewport": "1512x982",
+      "sha256": "6667e3e0d618140481e42ff47689a4ede8bbd519ab919879e593de360ddebf89"
+    },
+    {
+      "file": "mobile-390x844.png",
+      "viewport": "390x844",
+      "sha256": "da04e7de26d6476f7819e2f8f866b99d14216048d7812c912d84b66ec3c761b9"
+    },
+    {
+      "file": "desktop-detail-1512x982.png",
+      "viewport": "1512x982",
+      "sha256": "d53a77dba1a2311dbccdd8edb6f7bf99404cb06daebd1413372a6898ba0e3ed3"
+    }
+  ]
+}
