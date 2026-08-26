@@ -202,6 +202,23 @@ export default async function DigitalFittingRoomPage({
                 Build a private digital portrait, bring in pieces you own or are
                 considering, then create looks with your advisor.
               </p>
+              <ol className="mt-10 grid max-w-xl gap-3 sm:grid-cols-3">
+                {[
+                  ["01", "Create your digital portrait"],
+                  ["02", "Choose real pieces"],
+                  ["03", "Create a look"],
+                ].map(([number, label]) => (
+                  <li
+                    key={number}
+                    className="border-l border-white/20 pl-3 text-sm leading-5 text-white/75"
+                  >
+                    <span className="block text-[10px] tracking-[0.16em] text-[#c5d0c0]">
+                      {number}
+                    </span>
+                    {label}
+                  </li>
+                ))}
+              </ol>
             </div>
             <div className="mt-12 flex flex-wrap items-center gap-5">
               <Link
@@ -218,13 +235,22 @@ export default async function DigitalFittingRoomPage({
           </div>
           <div className="relative min-h-[22rem] overflow-hidden bg-[#b9c4b5]">
             {preview ? (
-              <Image
-                src={preview}
-                alt=""
-                fill
-                unoptimized
-                className="object-contain p-8"
-              />
+              <>
+                <Image
+                  src={preview}
+                  alt=""
+                  fill
+                  unoptimized
+                  className="scale-110 object-cover opacity-45 blur-2xl"
+                />
+                <Image
+                  src={preview}
+                  alt=""
+                  fill
+                  unoptimized
+                  className="object-contain p-8"
+                />
+              </>
             ) : null}
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#11150f]/85 via-[#11150f]/20 to-transparent px-8 pb-8 pt-28">
               <p className="font-display text-3xl text-white">
@@ -238,63 +264,71 @@ export default async function DigitalFittingRoomPage({
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
-          Digital Fitting Room
-        </h1>
-        <p className="text-sm text-[var(--color-stone-500)]">
-          Build your Style Portrait, then create looks from real pieces you own,
-          wish for, or your advisor has selected. AI visualization only — never
-          a guarantee of physical fit.
-        </p>
-      </div>
-
-      {groups.length === 0 ? (
-        <div
-          className="rounded-[var(--radius-md)] border border-dashed border-[var(--color-stone-300)] px-6 py-16 text-center"
-          role="status"
-        >
-          <p className="text-[var(--color-stone-600)]">
-            No retailer connections yet.
+    <div className="-mx-4 min-h-full bg-[linear-gradient(115deg,#283129_0%,#11150f_58%,#161510_100%)] px-4 py-8 text-white sm:-mx-7 sm:px-7 lg:-mx-10 lg:px-10 xl:-mx-14 xl:px-14">
+      <div className="mx-auto flex max-w-6xl flex-col gap-8">
+        <header className="max-w-2xl">
+          <p className="customer-kicker text-[#c5d0c0]">Digital Fitting Room</p>
+          <h1 className="font-display mt-3 text-4xl leading-[.96] text-white sm:text-6xl">
+            {groups.some((group) => group.canGenerate)
+              ? "Your portrait is ready. Create a considered look."
+              : "First, create a digital portrait."}
+          </h1>
+          <p className="mt-4 max-w-xl text-sm leading-6 text-white/65 sm:text-base">
+            {groups.some((group) => group.canGenerate)
+              ? "Select real wardrobe, wishlist, advisor, or catalogue pieces to create a visual look. It is not a guarantee of physical fit."
+              : "Upload two reference photos, review the result, and approve it before choosing pieces and creating looks. A visual result is never a guarantee of physical fit."}
           </p>
-        </div>
-      ) : (
-        groups.map(
-          ({
-            customer,
-            retailer,
-            composableItems,
-            outfits,
-            latestJobByOutfitId,
-            canGenerate,
-            consent,
-            portrait,
-            portraitPreviewJob,
-            fitArchetypes,
-            preloadKey,
-          }) => (
-            <div key={customer.id} className="flex flex-col gap-5">
-              <StylePortraitPanel
-                retailerId={customer.retailerId}
-                retailerName={retailer?.displayName ?? "Retailer"}
-                consent={consent}
-                portrait={portrait}
-                previewJob={portraitPreviewJob}
-                fitArchetypes={fitArchetypes}
-              />
-              <FittingRoomStudio
-                retailerId={customer.retailerId}
-                composableItems={composableItems}
-                outfits={outfits}
-                latestJobByOutfitId={latestJobByOutfitId}
-                canGenerate={canGenerate}
-                {...(preloadKey ? { preloadKey } : {})}
-              />
-            </div>
-          ),
-        )
-      )}
+        </header>
+
+        {groups.length === 0 ? (
+          <div
+            className="rounded-[22px] bg-white/[0.08] px-6 py-16 text-center shadow-[0_20px_60px_rgba(0,0,0,.18)]"
+            role="status"
+          >
+            <p className="text-white/70">No retailer connections yet.</p>
+          </div>
+        ) : (
+          groups.map(
+            ({
+              customer,
+              retailer,
+              composableItems,
+              outfits,
+              latestJobByOutfitId,
+              canGenerate,
+              consent,
+              portrait,
+              portraitPreviewJob,
+              fitArchetypes,
+              preloadKey,
+            }) => (
+              <div key={customer.id} className="flex flex-col gap-5">
+                {canGenerate ? (
+                  <FittingRoomStudio
+                    retailerId={customer.retailerId}
+                    composableItems={composableItems}
+                    outfits={outfits}
+                    latestJobByOutfitId={latestJobByOutfitId}
+                    canGenerate={canGenerate}
+                    {...(preloadKey ? { preloadKey } : {})}
+                  />
+                ) : (
+                  <div className="max-w-3xl rounded-[22px] bg-[linear-gradient(135deg,rgba(220,227,214,.16),rgba(255,255,255,.055))] p-1 shadow-[0_24px_80px_rgba(0,0,0,.24)]">
+                    <StylePortraitPanel
+                      retailerId={customer.retailerId}
+                      retailerName={retailer?.displayName ?? "Retailer"}
+                      consent={consent}
+                      portrait={portrait}
+                      previewJob={portraitPreviewJob}
+                      fitArchetypes={fitArchetypes}
+                    />
+                  </div>
+                )}
+              </div>
+            ),
+          )
+        )}
+      </div>
     </div>
   );
 }
