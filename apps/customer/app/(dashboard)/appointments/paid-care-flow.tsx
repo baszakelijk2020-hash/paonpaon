@@ -29,6 +29,7 @@ function formatMoney(amountMinorUnits: number, currency: string): string {
 }
 
 type Step =
+  | "alteration_branch"
   | "operation"
   | "quantity"
   | "pickup"
@@ -36,6 +37,32 @@ type Step =
   | "review"
   | "payment"
   | "confirmed";
+
+/** §6.1 alteration decision branches. The retailer reads which one the
+ * customer chose from the booking note prefix. */
+type AlterationBranch = "know_exact" | "advisor_self_scan" | "assess_in_store";
+
+const ALTERATION_BRANCHES: readonly {
+  readonly value: AlterationBranch;
+  readonly label: string;
+  readonly detail: string;
+}[] = [
+  {
+    value: "know_exact",
+    label: "I know exactly what needs changing",
+    detail: "Pick the priced operations yourself.",
+  },
+  {
+    value: "advisor_self_scan",
+    label: "Ask advisor with self-scan",
+    detail: "Describe the fit and let your advisor assess it.",
+  },
+  {
+    value: "assess_in_store",
+    label: "Assess in store",
+    detail: "Bring the garment in; your advisor prices it with you.",
+  },
+];
 
 const FULFILMENT_METHODS: readonly PaidCareFulfilmentMethod[] = [
   "home",
@@ -56,9 +83,14 @@ export function PaidCareFlow({
   operations: readonly PricedOperation[];
   onCloseAction: () => void;
 }) {
+  const isAlteration = serviceKind === "alteration";
+  const firstNonBranchStep: Step =
+    operations.length === 0 ? "quantity" : "operation";
   const [step, setStep] = useState<Step>(
-    operations.length === 0 ? "quantity" : "operation",
+    isAlteration ? "alteration_branch" : firstNonBranchStep,
   );
+  const [branch, setBranch] = useState<AlterationBranch | null>(null);
+  const [serviceNote, setServiceNote] = useState("");
   const [operationCode, setOperationCode] = useState<string | null>(
     operations.length === 0 ? "unspecified" : null,
   );
@@ -79,6 +111,35 @@ export function PaidCareFlow({
   const total = operation
     ? formatMoney(operation.amountMinorUnits * quantity, operation.currency)
     : null;
+  const assessInStore = branch === "assess_in_store";
+
+  // The booking note the retailer receives — branch-tagged so the chosen
+  // decision path (and, for the folded-price branches, the customer's own
+  // words) survive into the work order.
+  const bookingNote = (
+    branch === "assess_in_store"
+      ? `[Assess in store] Please have the garment brought to the store for assessment. ${serviceNote}`
+      : branch === "advisor_self_scan"
+        ? `[Advisor self-scan] ${serviceNote}`
+        : serviceNote
+  ).trim();
+
+  function priceList() {
+    return operations.length > 0 ? (
+      <ul className="mt-2 flex flex-col gap-1 text-xs text-[var(--color-stone-300)]">
+        {operations.map((op) => (
+          <li key={op.code} className="flex justify-between">
+            <span>{op.label}</span>
+            <span>{formatMoney(op.amountMinorUnits, op.currency)}</span>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p className="mt-2 text-xs text-[var(--color-stone-400)]">
+        Your advisor confirms the price with you in store.
+      </p>
+    );
+  }
 
   if (state.success) {
     return (
@@ -132,6 +193,37 @@ export function PaidCareFlow({
         </button>
       </div>
 
+      {step === "alteration_branch" ? (
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-[var(--color-stone-300)]">
+            How would you like to handle this alteration?
+          </p>
+          <div className="flex flex-col gap-2">
+            {ALTERATION_BRANCHES.map((choice) => (
+              <button
+                key={choice.value}
+                type="button"
+                aria-label={choice.label}
+                onClick={() => {
+                  setBranch(choice.value);
+                  setStep(
+                    choice.value === "know_exact"
+                      ? firstNonBranchStep
+                      : "quantity",
+                  );
+                }}
+                className="rounded-[10px] bg-white/[0.06] px-4 py-3 text-left text-sm"
+              >
+                <span className="block font-medium">{choice.label}</span>
+                <span className="block text-xs text-[var(--color-stone-400)]">
+                  {choice.detail}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       {step === "operation" && operations.length > 0 ? (
         <div className="flex flex-col gap-2">
           {operations.map((op) => (
@@ -155,6 +247,36 @@ export function PaidCareFlow({
 
       {step === "quantity" ? (
         <div className="flex flex-col gap-3">
+          {assessInStore || branch === "advisor_self_scan" ? (
+            <label className="text-sm text-[var(--color-stone-300)]">
+              {assessInStore
+                ? "What should we look at? (a short note)"
+                : "Describe the fit for your advisor"}
+              <textarea
+                value={serviceNote}
+                onChange={(event) => setServiceNote(event.target.value)}
+                rows={3}
+                maxLength={800}
+                placeholder={
+                  assessInStore
+                    ? "e.g. jacket sleeves feel long, trousers a touch loose at the waist"
+                    : "e.g. the shoulders pull when I reach forward"
+                }
+                className="mt-1 block w-full rounded-[10px] bg-white/[0.06] px-3 py-2 text-sm text-white placeholder:text-[var(--color-stone-500)]"
+              />
+            </label>
+          ) : null}
+          {assessInStore ? (
+            <div className="rounded-[10px] bg-white/[0.06] p-3 text-xs text-[var(--color-stone-300)]">
+              <p>Please bring the garment to the store for assessment.</p>
+              <details className="mt-2">
+                <summary className="cursor-pointer text-[var(--color-stone-400)]">
+                  Price list
+                </summary>
+                {priceList()}
+              </details>
+            </div>
+          ) : null}
           <label className="text-sm text-[var(--color-stone-300)]">
             Garment
             <input
@@ -230,15 +352,36 @@ export function PaidCareFlow({
             <p>{garmentDescription}</p>
             {operation ? (
               <p className="text-[var(--color-stone-300)]">{operation.label}</p>
+            ) : assessInStore ? (
+              <p className="text-[var(--color-stone-300)]">
+                Assessed and priced with you in store.
+              </p>
+            ) : branch === "advisor_self_scan" ? (
+              <p className="text-[var(--color-stone-300)]">
+                Your advisor assesses this from your description.
+              </p>
             ) : (
               <p className="text-[var(--color-stone-300)]">
                 Price confirmed by your advisor.
               </p>
             )}
+            {serviceNote.trim() ? (
+              <p className="mt-1 text-[var(--color-stone-400)]">
+                “{serviceNote.trim()}”
+              </p>
+            ) : null}
             <p className="text-[var(--color-stone-300)]">
               {pickupMethod} pickup · {returnMethod} return
             </p>
             {total ? <p className="mt-2 font-medium">{total}</p> : null}
+            {assessInStore ? (
+              <details className="mt-2">
+                <summary className="cursor-pointer text-xs text-[var(--color-stone-400)]">
+                  Price list
+                </summary>
+                {priceList()}
+              </details>
+            ) : null}
           </div>
           <Button
             size="sm"
@@ -265,6 +408,9 @@ export function PaidCareFlow({
           ) : null}
           <input type="hidden" name="pickupMethod" value={pickupMethod ?? ""} />
           <input type="hidden" name="returnMethod" value={returnMethod ?? ""} />
+          {bookingNote ? (
+            <input type="hidden" name="notes" value={bookingNote} />
+          ) : null}
 
           <button
             type="button"
