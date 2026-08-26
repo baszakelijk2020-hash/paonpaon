@@ -1,4 +1,5 @@
-import { DEMO_PASSWORD, seedDemoData } from "@paon/database/demo-seed";
+import { createSupabaseAdminClient } from "@paon/database";
+import { seedDemoData } from "@paon/database/demo-seed";
 import { expect, test } from "@playwright/test";
 
 const CUSTOMER_ROUTES = [
@@ -24,14 +25,30 @@ test("customer top-menu warm navigation stays under 200ms p95", async ({
   }
 
   await seedDemoData({ supabaseUrl, anonKey, serviceRoleKey });
-  await page.goto("/login?demo=1");
-  await page.getByLabel("Demo email").fill("contact+isabelle@nebelspiegel.com");
-  await page.getByLabel("Demo password").fill(DEMO_PASSWORD);
-  await page
-    .getByRole("button", { name: "Enter the private client demo" })
-    .click();
+  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+  const { data, error } = await admin.auth.admin.generateLink({
+    type: "magiclink",
+    email: "contact+isabelle@nebelspiegel.com",
+  });
+  if (error || !data.properties) {
+    throw error ?? new Error("Customer magic link is missing");
+  }
+  await page.goto(
+    `/auth/confirm?token_hash=${data.properties.hashed_token}&type=magiclink`,
+  );
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.locator("[data-customer-shell]")).toBeVisible();
+
+  const consoleErrors: string[] = [];
+  const failedResponses: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") consoleErrors.push(message.text());
+  });
+  page.on("response", (response) => {
+    if (response.status() >= 400) {
+      failedResponses.push(`${response.status()} ${response.url()}`);
+    }
+  });
 
   for (const [href, label] of CUSTOMER_ROUTES) {
     await expect(
@@ -39,7 +56,9 @@ test("customer top-menu warm navigation stays under 200ms p95", async ({
     ).toHaveText(label);
   }
 
-  await page.waitForTimeout(500);
+  // Mounted full-prefetch menu Links warm every RSC route immediately after
+  // login. Measure only after that post-login warm-up has had time to settle.
+  await page.waitForTimeout(8_000);
   await page.evaluate(() => {
     const shell = document.querySelector("[data-customer-shell]");
     if (!shell) throw new Error("customer shell is missing");
@@ -47,22 +66,24 @@ test("customer top-menu warm navigation stays under 200ms p95", async ({
       shell;
   });
 
-  let documentNavigations = 0;
-  page.on("framenavigated", (frame) => {
-    if (frame === page.mainFrame()) documentNavigations += 1;
+  let documentRequests = 0;
+  page.on("request", (request) => {
+    if (
+      request.isNavigationRequest() &&
+      request.resourceType() === "document"
+    ) {
+      documentRequests += 1;
+    }
   });
 
   const measurements: Array<{ href: string; milliseconds: number }> = [];
   for (let index = 0; index < 21; index += 1) {
     const [href] = CUSTOMER_ROUTES[(index + 1) % CUSTOMER_ROUTES.length]!;
-    const milliseconds = await page.evaluate(async (destination) => {
-      const link = document.querySelector<HTMLAnchorElement>(
-        `[data-customer-top-menu][href="${destination}"]`,
-      );
-      if (!link) throw new Error(`missing top-menu link for ${destination}`);
-
-      return new Promise<number>((resolve) => {
-        const startedAt = performance.now();
+    await page.evaluate((destination) => {
+      const startedAt = performance.now();
+      (
+        window as Window & { __paonNavigationTiming?: Promise<number> }
+      ).__paonNavigationTiming = new Promise<number>((resolve) => {
         const onVisible = (event: Event) => {
           const pathname = (event as CustomEvent<{ pathname?: string }>).detail
             ?.pathname;
@@ -71,9 +92,19 @@ test("customer top-menu warm navigation stays under 200ms p95", async ({
           resolve(performance.now() - startedAt);
         };
         window.addEventListener("paon:customer-route-visible", onVisible);
-        link.click();
       });
     }, href);
+    await page.locator(`[data-customer-top-menu][href="${href}"]`).click();
+    const milliseconds = await page.evaluate(
+      async () =>
+        await (window as Window & { __paonNavigationTiming?: Promise<number> })
+          .__paonNavigationTiming,
+    );
+    if (milliseconds === undefined) {
+      throw new Error(
+        `customer navigation timing is missing for ${href}; browser errors: ${JSON.stringify(consoleErrors)}; failed responses: ${JSON.stringify(failedResponses)}`,
+      );
+    }
     measurements.push({ href, milliseconds });
 
     await expect(page).toHaveURL(new RegExp(`${href.replace("/", "\\/")}$`));
@@ -100,6 +131,8 @@ test("customer top-menu warm navigation stays under 200ms p95", async ({
     contentType: "application/json",
   });
 
-  expect(documentNavigations).toBe(0);
+  expect(documentRequests).toBe(0);
+  expect(consoleErrors).toEqual([]);
+  expect(failedResponses).toEqual([]);
   expect(p95).toBeLessThanOrEqual(200);
 });

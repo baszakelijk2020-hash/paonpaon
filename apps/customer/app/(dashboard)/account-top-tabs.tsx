@@ -45,6 +45,7 @@ export function AccountTopTabs({
           <Link
             key={tab.href}
             href={tab.href}
+            prefetch={true}
             data-customer-top-menu
             aria-current={active ? "page" : undefined}
             className={`${index < mobilePrimaryTabs.length ? "flex" : "hidden sm:flex"} flex-1 items-center justify-center border-r border-black/10 px-2 text-center text-[12px] font-medium tracking-[0.01em] transition-colors duration-200 sm:px-3 sm:text-[13px] ${
@@ -87,6 +88,7 @@ export function AccountTopTabs({
                   <Link
                     key={tab.href}
                     href={tab.href}
+                    prefetch={true}
                     data-customer-top-menu
                     aria-current={active ? "page" : undefined}
                     onClick={() => setIsMobileMenuOpen(false)}

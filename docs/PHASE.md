@@ -8037,6 +8037,61 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     specific stages are wired to Stage 12 production, exactly as 18.7's
     own status already names.
 
+### Stage 20 — Unified storefront and customer navigation
+
+- [ ] **20.1 codex-frontier-navigation — architecture and acceptance**
+  - **Requirement IDs:** `UNAV-001`.
+  - **Dependencies:** founder-authorized unified-navigation programme.
+  - **Owner boundary:** Route-C architecture, bounded task decomposition,
+    integration, and independent acceptance only. No concurrent feature-file
+    edits.
+  - **Fleet owned paths:** `docs/PHASE.md`.
+  - **Acceptance:** fleet lanes have disjoint ownership and claims; worker
+    commits, diffs, tests, and evidence are independently verified before
+    integration.
+  - **Tests:** `scripts/fleet/paon-fleet status`.
+
+- [ ] **20.2 claude-customer-navigation — persistent warm customer shell**
+  - **Requirement IDs:** `UNAV-002`.
+  - **Dependencies:** `19.1` architecture boundary.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/account-top-tabs.tsx`,
+    `apps/customer/app/(dashboard)/customer-navigation-lifecycle.tsx`, and
+    `apps/customer/e2e/customer-navigation-performance.spec.ts`.
+  - **Acceptance:** all seven customer destinations use client navigation;
+    shell identity persists; production-browser warm menu switches meet p95
+    ≤200ms with recorded p50/p95, sample count, browser, viewport, and network
+    profile. Existing auth, repositories, and RLS remain unchanged.
+  - **Tests:** customer typecheck, lint, production build, and focused
+    Playwright performance test.
+
+- [ ] **20.3 claude-storefront-baseline — immutable Atelier Demo evidence**
+  - **Requirement IDs:** `UNAV-003`.
+  - **Dependencies:** `19.1`.
+  - **Fleet owned paths:** `docs/evidence/atelier-demo-baseline/`,
+    `docs/plans/ATELIER_DEMO_PARITY_TEST_PLAN.md`,
+    `apps/customer/e2e/atelier-demo-baseline.spec.ts`.
+  - **Owner boundary:** read-only source investigation; evidence and plan only
+    under `docs/evidence/atelier-demo-baseline/` and
+    `docs/plans/ATELIER_DEMO_PARITY_TEST_PLAN.md`. Source probe path for fleet
+    isolation: `apps/customer/e2e/atelier-demo-baseline.spec.ts`.
+  - **Acceptance:** versioned desktop/mobile screenshots, interaction/timing,
+    URL, script, data-wiring, DPR, browser, and network baseline; no storefront
+    source edit.
+  - **Tests:** production-browser baseline capture only.
+
+- [ ] **20.4 deepseek-storefront-inventory — read-only parity inventory**
+  - **Requirement IDs:** `UNAV-004`.
+  - **Dependencies:** `19.1`.
+  - **Fleet owned paths:** `docs/reports/atelier-demo-storefront-inventory.md`,
+    `apps/customer/app/r/[slug]/route.ts`.
+  - **Owner boundary:** read-only inventory only in
+    `docs/reports/atelier-demo-storefront-inventory.md`. Source probe path for
+    fleet isolation: `apps/customer/app/r/[slug]/route.ts`.
+  - **Acceptance:** concise inventory of interactions, inline scripts,
+    route/data substitutions, component boundaries, and parity checkpoints;
+    no code or architecture change.
+  - **Tests:** source inventory cross-check only.
+
 ## Real hard blockers
 
 A hard blocker stops only the affected item. Continue with the next independent

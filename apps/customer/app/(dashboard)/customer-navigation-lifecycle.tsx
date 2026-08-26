@@ -1,65 +1,29 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
-
-const CUSTOMER_DESTINATIONS = [
-  "/dashboard",
-  "/wardrobe",
-  "/appointments",
-  "/orders",
-  "/digital-fitting-room",
-  "/loyalty",
-  "/account",
-] as const;
+import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 
 /**
- * Lives in the persistent customer layout so each destination is warmed once
- * after sign-in and stale RSC data is refreshed only after cached UI is shown.
+ * Lives in the persistent customer layout. The mounted top-menu Links own full
+ * App Router prefetches after hydration; this component only marks the first
+ * painted route for browser proof and must never invalidate the warmed App
+ * Router payloads while the customer is navigating.
  */
 export function CustomerNavigationLifecycle() {
   const pathname = usePathname();
-  const router = useRouter();
-  const initialPathname = useRef(pathname);
-  const refreshedPathnames = useRef(new Set<string>());
 
   useEffect(() => {
-    for (const destination of CUSTOMER_DESTINATIONS) {
-      router.prefetch(destination);
-    }
-  }, [router]);
-
-  useEffect(() => {
-    let cancelled = false;
-    let timeoutId: number | undefined;
     const animationFrameId = window.requestAnimationFrame(() => {
-      if (cancelled) return;
-
       window.dispatchEvent(
         new CustomEvent("paon:customer-route-visible", {
           detail: { pathname },
         }),
       );
-
-      if (
-        pathname === initialPathname.current ||
-        refreshedPathnames.current.has(pathname)
-      ) {
-        return;
-      }
-
-      refreshedPathnames.current.add(pathname);
-      timeoutId = window.setTimeout(() => {
-        if (!cancelled) router.refresh();
-      }, 0);
     });
-
     return () => {
-      cancelled = true;
       window.cancelAnimationFrame(animationFrameId);
-      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
     };
-  }, [pathname, router]);
+  }, [pathname]);
 
   return (
     <span

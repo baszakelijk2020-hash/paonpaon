@@ -53,6 +53,37 @@ Do not redesign these again. Only repair a demonstrated defect against this cont
 - `NEBEL & SPIEGEL` alone uses Aviano.
 - Add automated checks for navigation labels, removed labels, font scoping, and route validity.
 
+### 3.1 Navigation performance and shared-state contract
+
+- The customer shell is persistent after authenticated entry: sidebar, top navigation, font loading, background, authenticated customer context, and shared query/cache provider must not remount during customer-to-customer navigation.
+- Customer destinations are Overview, Wardrobe, My Appointments, Orders, Digital Fitting Room, Rewards & Referrals, and My Profile. A visible customer-nav link must use client-side navigation; `window.location`, raw anchors that force a document navigation, and intentional full reloads fail this requirement.
+- After the first authenticated customer view paints, preload the code and initial data required by every customer top-navigation destination. Preloading must never block the first paint or interaction of the current route.
+- Reuse the established PAON client/server data pattern first. Introduce at most one explicit shared client cache only when it is necessary to provide consistent fast reads across migrated shop and customer components; do not add multiple overlapping state libraries.
+- Cached data may make a destination visible immediately, but it is never the source of truth. Revalidate in the background after navigation and after a mutation.
+- Define and test an explicit customer-context lifecycle for session, customer, cart, wardrobe, fitting room, appointments, rewards, and advisor context. Each slice must distinguish at least unavailable/anonymous, loading, ready, stale, and error states where applicable; a feature may depend only on the slice it needs.
+- Every async request that can update shared customer state must be scoped to the authenticated user and retailer, must be cancelable or version-guarded, and must not let an older response overwrite newer data.
+- A new tab, a login/logout, an account switch, or a customer/retailer-context change must clear or partition every customer cache before new data is displayed. No prior identity's wardrobe, orders, appointment, cart, fitting-room, or advisor state may flash for another identity.
+- Use a readiness signal only for customer-context-dependent controls. It must never delay the storefront's initial paint, category filtering, product detail, cart, or existing storefront interactions.
+- Protect constrained connections: do not eagerly preload heavyweight routes or documents when Save-Data is enabled or effective connection type is 2G. This guard must not change normal navigation correctness.
+- Preload in strict priority order: product imagery and product detail, category/filter interaction, price/variant/add-to-cart controls, core navigation, customer-context summaries, then non-critical customer-route details. Background work must yield whenever a critical commerce interaction needs bandwidth or main-thread time.
+- Do not introduce iframes, custom document-swapping engines, or competing routers as the production architecture.
+
+### 3.2 Storefront-to-customer convergence
+
+- **Absolute non-negotiable: the current Atelier Demo storefront is the immutable visual, motion, interaction, and perceived-speed specification.** A replacement may not be an approximation, redesign, interpretation, modernization, or "close enough" recreation.
+- Before a storefront port begins, capture a versioned baseline from the current production-equivalent Atelier Demo at desktop and mobile: full-page screenshots; category selection; product opening/closing; every drawer/modal; filters/sort; archetype/price selection; image treatment; cart/account entry; Back/Forward; scroll behavior; and click-to-visible timing for each interaction. Record the exact viewport, browser, device-pixel ratio, data fixture, and network profile.
+- Preserve the exact existing CSS values, typography, image rules, class-level structure where useful, animation durations, easing curves, sequencing, and interaction model as the initial port. No visual or motion "improvement" is authorized as part of this port.
+- The port must match the frozen baseline at every declared checkpoint. It must not introduce clipping, crop/cover behavior, layout shift, hydration flash, animation restart, changed timing, changed navigation behavior, or a less responsive interaction. Any mismatch is a failed port, not an acceptable approximation.
+- The raw Atelier Demo remains the live fallback until independent desktop/mobile screenshot comparison, interaction regression tests, console checks, and timing tests all pass against that baseline. Only then may the shared-shell storefront replace it.
+- The current raw storefront route remains the production fallback while it is fast and functionally verified. Do not replace it wholesale or inject its template into React via `dangerouslySetInnerHTML`.
+- The target is one Next application shell containing the storefront, customer environment, Digital Fitting Room, Morning Routine, and product-detail customer actions. This is an incremental migration, not a rewrite.
+- Migrate one independently testable storefront capability at a time. Preserve its URLs, rendering, product/category speed, cart behavior, Back/Forward behavior, authentication, and real PAON repository/RPC path before retiring its legacy implementation.
+- Durable storefront state belongs in the URL: canonical product/variant, category, filters, sort, pagination, and other shareable selection state. Temporary return context may use one lightweight navigation-state mechanism, but it must be scoped to session/customer/retailer and discarded when that context changes.
+- Preserve and deliberately restore the exact return experience: source route, category/filter/sort state, product/variant selection, relevant drawer or modal state, and scroll position. Browser Back/Forward must restore the same valid state without a full reload or wrong-customer data.
+- Do not use parallel routes or intercepting routes to paper over the raw storefront route. They may be evaluated only after both source and destination are actual Next page routes and only where they simplify an established shell.
+- Same-origin document prefetch/prerender may be used as a measured interim optimization, with constrained-connection guards. It is not proof of a persistent shell and does not satisfy the customer-route performance gate by itself.
+- Storefront and customer surfaces must read and mutate the same authenticated PAON source of truth for customer identity, retailer scope, catalogue, cart, saved products, wardrobe, appointments, advisor conversations, and fitting-room state. No duplicate client-only business state is allowed.
+
 ## 4. Overview
 
 - Desktop local-context strip is no taller than 100px.
@@ -221,6 +252,15 @@ For every phase:
 8. Add E2E assertions for removed copy, route mappings, progressive deck replacement, eight rails, ten empty slots, real counts, and no external-garment entry.
 9. Commit only after focused proof is green.
 
+For any navigation or shared-state change, additionally prove:
+
+1. No full document reload or customer-shell remount during each warm customer top-menu transition.
+2. Click-to-visible-content timing for every warm top-menu direction, measured in the production build with automated browser instrumentation.
+3. p95 warm customer-to-customer transition is at most 200ms on the declared test machine and network profile. Record p50, p95, sample count, browser version, viewport, and network profile. A missed budget is an open blocker, not a pass.
+4. Correct customer/retailer data after direct navigation, Back/Forward, refresh, a second tab, login/logout, and rapid consecutive route changes.
+5. Storefront first paint and its category/product interactions have not regressed against a recorded baseline. Do not claim a storefront-to-customer sub-200ms guarantee until both are inside the same client navigation architecture and measured as such.
+6. Save-Data and 2G guards prevent speculative heavyweight loading while normal navigation remains correct.
+
 Before final completion run:
 
 - full lint;
@@ -252,3 +292,18 @@ Do not say `done` because tests compile. Completion requires a report containing
 - desktop/mobile screenshots;
 - every real customer-to-retailer handoff exercised;
 - any unavailable real pricing/data as an explicit blocker, never replaced by invented demo content.
+
+## 13. Storefront-to-dashboard migration boundary
+
+- The raw HTML storefront route (`/r/[slug]`) remains intact in this phase. Its
+  visual, product, category, cart, and storefront-navigation behaviour is out
+  of scope for the unified customer-shell performance budget.
+- Do not claim a storefront-to-dashboard transition of 200ms or less. The
+  ≤200ms p95 contract applies only after the customer dashboard shell has
+  loaded and the customer switches among its top-menu destinations.
+- A future incremental migration must first extract the shared storefront
+  chrome into App Router-compatible boundaries while retaining the canonical
+  raw storefront response. It must then introduce one ownership-preserving
+  client transition at a time, verify category/product/cart behaviour against
+  the raw route, and only then establish a separate storefront-to-dashboard
+  performance budget.
