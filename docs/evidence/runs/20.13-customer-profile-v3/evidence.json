@@ -1,0 +1,25 @@
+{
+  "phase": "20.13",
+  "commit": "38a99dd",
+  "route": "/account",
+  "persona": "authenticated E2E Customer Workspace fixture (TEST_CUSTOMER_EMAIL magic-link sign-in) against the local Supabase stack",
+  "checks": {
+    "focused_playwright": "1 passed: account-v3-profile.spec.ts (the profile page shows only account preferences — no House Memory, quiz, or portrait setup)",
+    "customer_lint": "passed",
+    "customer_typecheck": "passed",
+    "console": "no console error messages observed by the authenticated desktop/mobile browser capture"
+  },
+  "notes": "CUSTOMER_ENVIRONMENT_REBUILD_V3 §9. The Profile page (account/page.tsx) already rendered only PreferencesForm since commit d37817b; this slice removes the now-orphaned account/customer-facts-panel.tsx (House Memory), account/style-profile-panel.tsx + account/style-profile-actions.ts (style quiz), and the dead correctOwnCustomerFact server action, so no 'House Memory' or style-quiz copy remains anywhere under account/. Pre-existing: apps/customer/e2e/house-memory-fact-correction.spec.ts and style-profile-account.spec.ts assert the removed /account panels and are already red on this branch from d37817b — not in this lane's owned paths; flagged for the profile/navigation owner.",
+  "screenshots": [
+    {
+      "file": "desktop-1512x982.png",
+      "viewport": "1512x982",
+      "sha256": "1f30c139edab5650a3a196c2eb9acd6a55c47c23a43841b96617e66f65d49b48"
+    },
+    {
+      "file": "mobile-390x844.png",
+      "viewport": "390x844",
+      "sha256": "fd4e4c8891f183b4e58f3ea4a6e5bf0668332716158ebd52ba8b4fb7c0ebee01"
+    }
+  ]
+}
