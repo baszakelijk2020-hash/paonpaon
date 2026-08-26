@@ -171,9 +171,13 @@ export default async function AppointmentsPage() {
           </h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {INSPIRATION_APPOINTMENTS.map((card) => (
-              <div
+              <BookAppointmentLauncher
                 key={card.id}
-                className="flex min-h-32 flex-col justify-end gap-3 rounded-[15px] p-5 text-white shadow-[inset_0_-80px_80px_rgba(0,0,0,0.16)]"
+                retailerId={primaryCustomer.retailerId}
+                branches={bookableBranches}
+                initialReason="in_the_mood_for_something_fresh"
+                purpose={card.title}
+                className="group flex min-h-32 w-full flex-col justify-end gap-3 rounded-[15px] p-5 text-left text-white shadow-[inset_0_-80px_80px_rgba(0,0,0,0.16)] transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white motion-safe:duration-200 sm:hover:-translate-y-0.5"
                 style={{ background: card.treatment }}
               >
                 <div>
@@ -181,8 +185,11 @@ export default async function AppointmentsPage() {
                     {card.dateLabel}
                   </p>
                   <p className="font-display mt-1 text-base">{card.title}</p>
+                  <p className="mt-3 text-xs font-medium uppercase tracking-[0.12em] text-white/80">
+                    Start booking
+                  </p>
                 </div>
-              </div>
+              </BookAppointmentLauncher>
             ))}
           </div>
         </section>

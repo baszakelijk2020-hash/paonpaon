@@ -84,14 +84,20 @@ const initialState: BookAppointmentState = { fieldErrors: {} };
 export function BookingFlow({
   retailerId,
   branches,
+  initialReason,
+  purpose,
   onCloseAction,
 }: {
   retailerId: string;
   branches: readonly BookableBranch[];
+  initialReason?: AppointmentReason;
+  purpose?: string;
   onCloseAction: () => void;
 }) {
-  const [step, setStep] = useState<Step>("reason");
-  const [reason, setReason] = useState<AppointmentReason | null>(null);
+  const [step, setStep] = useState<Step>(initialReason ? "location" : "reason");
+  const [reason, setReason] = useState<AppointmentReason | null>(
+    initialReason ?? null,
+  );
   const [branchId, setBranchId] = useState<string | null>(
     branches.length === 1 ? branches[0]!.id : null,
   );
@@ -136,7 +142,14 @@ export function BookingFlow({
   return (
     <div className="flex flex-col gap-4 rounded-[15px] bg-[var(--color-stone-900)] p-6 text-white">
       <div className="flex items-center justify-between">
-        <p className="font-display text-xl">Book an appointment</p>
+        <div>
+          <p className="font-display text-xl">Book an appointment</p>
+          {purpose ? (
+            <p className="mt-1 text-sm text-[var(--color-stone-300)]">
+              {purpose}
+            </p>
+          ) : null}
+        </div>
         <button
           type="button"
           onClick={onCloseAction}
@@ -266,6 +279,7 @@ export function BookingFlow({
           <input type="hidden" name="branchId" value={branch.id} />
           <input type="hidden" name="startsAt" value={startsAtIso} />
           <div className="rounded-[10px] bg-white/[0.06] p-4 text-sm">
+            {purpose ? <p>{purpose}</p> : null}
             <p>{reasonLabel}</p>
             <p className="text-[var(--color-stone-300)]">{branch.name}</p>
             <p className="text-[var(--color-stone-300)]">
