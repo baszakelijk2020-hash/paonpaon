@@ -150,19 +150,7 @@ async function DashboardDailyLook({
 
   return (
     <>
-      <LocalWidgets
-        variant="dashboard"
-        {...(dailyLook
-          ? {
-              recommendation: {
-                name: dailyLook.featured.displayName,
-                ...(dailyLook.featured.imageUrl
-                  ? { imageUrl: dailyLook.featured.imageUrl }
-                  : {}),
-              },
-            }
-          : {})}
-      />
+      <LocalWidgets variant="dashboard" />
       {primary?.retailer && dailyLook ? (
         <MorningRoutineDashboardHero
           retailerId={primary.customer.retailerId}

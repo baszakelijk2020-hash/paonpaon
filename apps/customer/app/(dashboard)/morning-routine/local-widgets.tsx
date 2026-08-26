@@ -105,10 +105,8 @@ function haversineKm(a: Coords, b: Coords): number {
  */
 export function LocalWidgets({
   variant = "routine",
-  recommendation,
 }: {
   variant?: "dashboard" | "routine";
-  recommendation?: { name: string; imageUrl?: string };
 }) {
   const [coords, setCoords] = useState<Coords | null>(null);
   const [locationLabel, setLocationLabel] = useState("Your location");
@@ -283,6 +281,9 @@ export function LocalWidgets({
                   month: "long",
                 }) ?? "Today"}
               </p>
+              <p className="mt-1 max-w-36 truncate text-xs text-[#596157]">
+                {locationLabel}
+              </p>
             </div>
             <div className="ml-auto text-right">
               <p className="font-display flex items-center justify-end gap-2 text-3xl leading-none">
@@ -377,21 +378,7 @@ export function LocalWidgets({
                   />
                 ))}
               </div>
-            ) : recommendation?.imageUrl ? (
-              <Image
-                src={recommendation.imageUrl}
-                alt=""
-                fill
-                unoptimized
-                className="object-contain object-right"
-              />
             ) : null}
-            <div className="relative z-10 flex max-w-[70%] flex-col justify-end px-4 py-3 text-white [text-shadow:0_1px_12px_rgba(0,0,0,.7)]">
-              <p className="customer-kicker text-[#596157]">Today’s look</p>
-              <p className="mt-2 line-clamp-2 text-xs leading-4 text-[#2b302a]">
-                {recommendation?.name ?? "A considered recommendation"}
-              </p>
-            </div>
           </div>
         </div>
       </section>
