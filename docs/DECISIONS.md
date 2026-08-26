@@ -1898,6 +1898,22 @@ language). See `docs/PROJECT_STATE.md`'s "paon.html verbatim + Mission
 Control/AM House Party/Morning Routine" entry for the fuller status and
 what's still open.
 
+### ADR-046 addendum (Stage 21.2): the storefront↔dashboard boundary is a smoothed document navigation, not a React port
+
+The raw `/r/[slug]` Route Handler remains canonical exactly as this ADR
+requires. "One platform" is delivered at the boundary without touching the
+storefront: bidirectional `<link rel="prefetch" as="document">`, a native
+cross-document View Transition (`@view-transition { navigation: auto }` on both
+documents, `prefers-reduced-motion` guarded, progressive), and Back-Forward
+Cache hygiene so Back restores the storefront frozen as left. Result: the
+storefront→dashboard hop paints instantly and animates; the storefront's own
+internal navigation stays full-page (its ~40 inline scripts require it) and is
+out of scope, per `CUSTOMER_ENVIRONMENT_REBUILD_V3.md` §13. A full JSX port of
+`paon-template.html` (which would reverse this ADR) is deferred and revisited
+only if the seam proves insufficient in real use. `dangerouslySetInnerHTML` is
+not an option — injected `<script>` never executes — and iframes are barred by
+§3.2.
+
 ## ADR-047: a real layout bug in `paon-template.html` was patched directly, and the founder-requested consumer lander was built as Customer Portal's own `/login`
 
 **Context.** Closing out ADR-046's two open items surfaced a genuine defect,

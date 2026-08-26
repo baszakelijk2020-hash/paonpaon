@@ -1,0 +1,25 @@
+{
+  "phaseItemId": "21.2",
+  "requirementIds": ["UNAV-006"],
+  "status": "verified_local",
+  "title": "one-platform seam - storefront <-> dashboard",
+  "acceptance": {
+    "storefrontUntouched": "proven",
+    "warmNavP95AtOrUnder200ms": "proven",
+    "atelierBaselineUnchanged": "proven",
+    "cartAndAuthPersistAcrossBoundary": "proven",
+    "noWrongIdentityFlash": "proven"
+  },
+  "implementation": [
+    "apps/customer/app/r/[slug]/route.ts",
+    "apps/customer/app/globals.css"
+  ],
+  "evidence": {
+    "roundTripSpec": "apps/customer/e2e/storefront-dashboard-roundtrip.spec.ts",
+    "regression": "customer-navigation-performance.spec.ts p95<=200ms; atelier-demo-baseline.spec.ts 2/2 unchanged",
+    "mechanism": "bidirectional document prefetch + cross-document @view-transition (reduced-motion guarded, progressive) + bfcache preserved",
+    "decision": "docs/DECISIONS.md ADR-046 addendum"
+  },
+  "browserProofSpec": "apps/customer/e2e/storefront-dashboard-roundtrip.spec.ts",
+  "assertedAt": "2026-08-26T08:40:00Z"
+}
