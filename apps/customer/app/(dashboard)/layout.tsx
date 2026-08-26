@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { AccountTopTabs, type AccountTab } from "./account-top-tabs";
+import { CustomerNavigationLifecycle } from "./customer-navigation-lifecycle";
 import { GuestPortalPreview } from "./guest-portal-preview";
 import { ShopCategorySidebar } from "./shop-category-sidebar";
 
@@ -19,6 +20,7 @@ const ACCOUNT_TABS: AccountTab[] = [
   { href: "/orders", label: "Orders" },
   { href: "/digital-fitting-room", label: "Digital Fitting Room" },
   { href: "/loyalty", label: "Rewards & Referrals" },
+  { href: "/account", label: "My Profile" },
 ];
 
 export default async function DashboardLayout({
@@ -53,20 +55,14 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="customer-page min-h-screen lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
+    <div
+      data-customer-shell
+      className="customer-page min-h-screen lg:grid lg:grid-cols-[250px_minmax(0,1fr)]"
+    >
       <ShopCategorySidebar />
       <div className="min-w-0">
-        <AccountTopTabs
-          tabs={ACCOUNT_TABS}
-          trailing={
-            <a
-              href="/account"
-              className="flex h-full items-center justify-center px-3 text-center text-[13px] text-[var(--color-stone-700)]"
-            >
-              My Profile
-            </a>
-          }
-        />
+        <CustomerNavigationLifecycle />
+        <AccountTopTabs tabs={ACCOUNT_TABS} />
         <main className="mx-auto w-full max-w-[92rem] px-4 py-6 sm:px-7 sm:py-8 lg:px-10 xl:px-14">
           {children}
         </main>

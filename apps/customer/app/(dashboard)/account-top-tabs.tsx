@@ -45,6 +45,7 @@ export function AccountTopTabs({
           <Link
             key={tab.href}
             href={tab.href}
+            data-customer-top-menu
             aria-current={active ? "page" : undefined}
             className={`${index < mobilePrimaryTabs.length ? "flex" : "hidden sm:flex"} flex-1 items-center justify-center border-r border-black/10 px-2 text-center text-[12px] font-medium tracking-[0.01em] transition-colors duration-200 sm:px-3 sm:text-[13px] ${
               active
@@ -86,6 +87,7 @@ export function AccountTopTabs({
                   <Link
                     key={tab.href}
                     href={tab.href}
+                    data-customer-top-menu
                     aria-current={active ? "page" : undefined}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`flex min-h-12 items-center rounded-[11px] px-4 text-[14px] font-medium transition-colors ${
