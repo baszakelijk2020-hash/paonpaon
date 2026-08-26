@@ -8092,6 +8092,53 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     no code or architecture change.
   - **Tests:** source inventory cross-check only.
 
+- [ ] **20.5 codex-customer-overview — daily-return composition correction**
+  - **Requirement IDs:** `CENV-OVERVIEW-001`.
+  - **Dependencies:** `20.2`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/dashboard/page.tsx`,
+    `apps/customer/app/(dashboard)/dashboard/morning-routine-hero.tsx`,
+    `apps/customer/app/(dashboard)/morning-routine/local-widgets.tsx`,
+    `apps/customer/e2e/dashboard-morning-routine-hero.spec.ts`,
+    `docs/evidence/runs/20.5-customer-overview/`.
+  - **Owner boundary:** Customer Overview only. Keep the compact green
+    local-context strip no taller than 100px on desktop; show real
+    city/video, weather icon, temperature, rain condition, local time, and
+    one real Morning Routine OOTD suit or jacket; place OOTD directly below
+    the strip. Remove only the redundant Overview dark morning, Today's Edit,
+    generic retailer promotional, and Complete the Look blocks. Preserve real
+    product, appointment, advisor, cart, and authentication actions; imagery
+    remains `object-contain` and unclipped. No QR, payment, email, receipt,
+    service-record, Mission Control, storefront, Wardrobe, Appointments,
+    Orders, Profile, Rewards, Digital Fitting Room, auth, RLS, migration, or
+    external-garment work.
+  - **Acceptance:** authenticated Isabelle browser proof at 1512x982 and
+    390x844 with screenshots and no console errors; focused E2E, customer
+    lint, and customer typecheck pass; executable evidence records the exact
+    committed SHA.
+  - **Tests:** `pnpm --filter @paon/customer test:e2e -- dashboard-morning-routine-hero.spec.ts`,
+    `pnpm --filter @paon/customer lint`, and
+    `pnpm --filter @paon/customer typecheck`.
+
+- [ ] **20.6 claude-customer-appointments — My Appointments visual and flow audit**
+  - **Requirement IDs:** `CENV-APPOINTMENTS-001`.
+  - **Dependencies:** `20.2`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/appointments/**`,
+    `apps/customer/e2e/appointments-*.spec.ts`,
+    `docs/evidence/runs/20.6-customer-appointments-audit/`.
+  - **Owner boundary:** Customer My Appointments visual and flow audit only.
+    Title is `My Appointments`; four seasonal inspiration cards exist;
+    history is collapsed initially; existing real appointment booking remains
+    intact. No paid-care QR, payment, email, receipt, Mission Control,
+    storefront, login, Overview, Wardrobe, Orders, Profile, Rewards, auth,
+    RLS, or migration changes.
+  - **Acceptance:** authenticated desktop and mobile browser verification with
+    screenshots and no console errors; focused tests, customer typecheck, and
+    customer lint pass; commit and mark this fleet task done with only owned
+    files and its evidence.
+  - **Tests:** focused `apps/customer/e2e/appointments-*.spec.ts`,
+    `pnpm --filter @paon/customer lint`, and
+    `pnpm --filter @paon/customer typecheck`.
+
 ### Stage 21 — Storefront-to-shell incremental migration
 
 Governed by `docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md` §3.2 / §13 and
