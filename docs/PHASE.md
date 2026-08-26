@@ -8230,9 +8230,14 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
   - **Requirement IDs:** `CENV-OVERVIEW-002`.
   - **Dependencies:** `20.5`.
   - **Fleet owned paths:** `apps/customer/app/(dashboard)/dashboard/**`,
+    `apps/customer/app/(dashboard)/morning-routine/local-widgets.tsx`,
     `apps/customer/e2e/dashboard-v3-daily-return.spec.ts`, and
     `docs/evidence/runs/20.11-customer-overview-v3/`.
-  - **Owner boundary:** dashboard route only. The desktop local-context strip
+  - **Owner boundary:** dashboard route plus the named shared widget only. The
+    shared-widget change is minimal: restore only the real daily MorningRoutine
+    suit/jacket image in the rightmost green context-strip cell. Do not restore
+    duplicate greeting, recommendation, Today's Edit, one-tap advertisement,
+    Complete the Look, or promotional content. The desktop local-context strip
     is no taller than 100px and preserves date, local weather, local time,
     work-address save, personal-distance estimate, and world clocks. Its
     rightmost area shows the real MorningRoutine daily suit or jacket; OOTD
