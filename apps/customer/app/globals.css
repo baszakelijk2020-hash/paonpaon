@@ -167,3 +167,27 @@ h3 {
     animation: none;
   }
 }
+
+/*
+ * Stage 21.2 one-platform seam: smooth the storefront <-> customer-dashboard
+ * boundary (two same-origin documents) with a native cross-document view
+ * transition. The storefront's brand <style> block (route.ts) opts in on its
+ * side too; both documents must set `navigation: auto` for the transition to
+ * run. Progressive enhancement — unsupported browsers keep today's instant
+ * navigation unchanged.
+ */
+@view-transition {
+  navigation: auto;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 180ms;
+  animation-timing-function: ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

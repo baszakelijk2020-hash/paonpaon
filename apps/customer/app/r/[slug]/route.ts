@@ -388,6 +388,13 @@ export async function GET(
       ? `<link rel="preload" as="image" href="${escapeHtml(logoUrl ?? heroUrl!)}"/>`
       : "",
     faviconUrl ? `<link rel="icon" href="${escapeHtml(faviconUrl)}"/>` : "",
+    // Stage 21.2 one-platform seam: warm the customer dashboard + login
+    // documents in the HTTP cache so the storefront -> app hop paints
+    // instantly. Reverse of the app -> storefront `IntentPrefetchLink`
+    // warming. `<link rel=prefetch>` is already lowest-priority and the
+    // browser skips it under data-saver.
+    `<link rel="prefetch" as="document" href="/dashboard"/>`,
+    `<link rel="prefetch" as="document" href="/login"/>`,
     `<style id="paon-retailer-brand">
 :root {
   --paon-accent: ${accent};
@@ -427,6 +434,20 @@ ${
   width: 100%; height: min(42vh, 420px); object-fit: cover; display: block;
 }`
     : ""
+}
+/* Stage 21.2 one-platform seam: opt this document into the native
+   cross-document view transition shared with the customer dashboard
+   (apps/customer/app/globals.css). Both sides must set navigation: auto. */
+@view-transition { navigation: auto; }
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 180ms;
+  animation-timing-function: ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) { animation: none !important; }
 }
 </style>`,
   ]
