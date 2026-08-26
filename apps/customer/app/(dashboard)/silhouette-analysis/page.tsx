@@ -61,7 +61,7 @@ export default async function SilhouetteAnalysisPage() {
         ({ customer, retailer, session: silhouetteSession, captures }) => (
           <Card key={customer.id} className="flex flex-col gap-3">
             <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
-              {retailer?.displayName ?? "Your House"}
+              {retailer?.displayName ?? "Your retailer"}
             </h2>
             <SilhouetteAnalysisPanel
               retailerId={customer.retailerId}

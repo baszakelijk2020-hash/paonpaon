@@ -252,7 +252,7 @@ export default async function PreferredTailoringPage() {
 
       {careStatus.length === 0 ? (
         <p role="status" className="text-sm text-[var(--color-stone-500)]">
-          No care is scheduled this month. Your house advisor arranges Preferred
+          No care is scheduled this month. Your advisor arranges Preferred
           Tailoring and HighMaintenance visits.
         </p>
       ) : null}
