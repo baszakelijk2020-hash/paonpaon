@@ -1,0 +1,42 @@
+{
+  "task": "phase-20.23 — storefront-dashboard-return-state-v3 — return-state restoration proof",
+  "commit_sha": "826f5fb",
+  "date": "2026-08-27T03:23:00Z",
+  "scope": "PHASE 20.23 return-state restoration proof extends the already-shipped PHASE 21.2 (one-platform seam — storefront ⇄ dashboard) to prove the seam still holds with the V3 top-nav active (7-tab account bar, PHASE 20.15 already merged: Overview, Wardrobe, My Appointments, Orders, Digital Fitting Room, Rewards & Referrals, My Profile in apps/customer/app/(dashboard)/account-top-tabs.tsx / layout.tsx).",
+  "acceptance_criteria": [
+    "Storefront untouched (ADR-046 intact)",
+    "Warm-nav p95 still ≤200ms",
+    "Atelier baseline 2/2 unchanged",
+    "Cart + auth + retailer scope persist across a storefront→dashboard→storefront round trip with no wrong-identity flash",
+    "Back-Forward Cache preserved (storefront has 0 unload/beforeunload, no no-store), so Back restores the storefront frozen exactly as left"
+  ],
+  "tests": {
+    "e2e": {
+      "spec": "apps/customer/e2e/storefront-dashboard-return-state-v3.spec.ts",
+      "count": 2,
+      "passed": 2,
+      "failed": 0,
+      "output": "Running 2 tests using 1 worker\n\n  ✓  1 [chromium] › e2e/storefront-dashboard-return-state-v3.spec.ts:22:3 › storefront <-> dashboard return-state with V3 top-nav — desktop › storefront → dashboard via top-nav → Back restores storefront with BFCache (8.5s)\n  ✓  2 [chromium] › e2e/storefront-dashboard-return-state-v3.spec.ts:149:3 › storefront <-> dashboard return-state with V3 top-nav — mobile › storefront → dashboard via top-nav → Back restores storefront with BFCache (mobile) (7.7s)\n\n  2 passed (17.6s)"
+    },
+    "lint": {
+      "command": "pnpm --filter @paon/customer lint",
+      "status": "PASS",
+      "output": "No errors"
+    },
+    "typecheck": {
+      "command": "pnpm --filter @paon/customer typecheck",
+      "status": "PASS",
+      "output": "No errors"
+    }
+  },
+  "files_changed": [
+    "apps/customer/e2e/storefront-dashboard-return-state-v3.spec.ts"
+  ],
+  "notes": [
+    "This is a proof-only task confirming the already-shipped 21.2 capability (one-platform seam) still holds with V3 navigation active.",
+    "Spec authenticates via magic link (Isabelle session), adds item to cart on storefront, navigates to dashboard via /dashboard link, verifies V3 top-nav is present (7 tabs), returns to storefront via browser Back, and verifies cart is intact with authentication preserved.",
+    "Tests both desktop (1440x900) and mobile (390x844) viewports.",
+    "No storefront or implementation files were touched; proof is via e2e spec only.",
+    "No session-info endpoint exists on the storefront; instead, proof relies on cart-summary authenticated flag and cart contents persistence, which together verify both authentication and state survival across the round trip."
+  ]
+}
