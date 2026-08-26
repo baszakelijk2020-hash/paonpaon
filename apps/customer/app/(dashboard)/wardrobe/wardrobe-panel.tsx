@@ -176,6 +176,7 @@ function DeckOverlay({
         open ? "translate-y-0" : "translate-y-full"
       }`}
       aria-hidden={!open}
+      inert={!open}
     >
       {children}
     </div>
