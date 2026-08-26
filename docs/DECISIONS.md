@@ -3537,3 +3537,28 @@ records, or eligibility/direct-debit capability is not authorized by this
 ADR and must be treated as a hard blocker requiring its own founder
 decision, per ADR-062's own rule that unresolved items block only the
 affected capability.
+
+## ADR-077: one-off OpenRouter DeepSeek evidence-only Customer Environment V3 audit
+
+**Status: accepted (2026-08-26).**
+
+**Context.** AGENTS.md prohibits using OpenRouter in PAON's default critical
+build path unless the founder explicitly authorizes an external-provider
+exception and records a corresponding policy decision. The founder has
+authorized exactly one OpenRouter DeepSeek worker to perform a read-only
+visual-compliance audit of the Customer Environment V3 contract.
+
+**Decision.** `phase-20.8` may use OpenRouter DeepSeek once, solely to inspect
+every customer route named by `docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md`
+at desktop and mobile viewports; mechanically compare the live UI against
+every V3 requirement; capture screenshots; and write one exact gap report.
+The worker may write only beneath
+`docs/evidence/customer-environment-v3-audit/`. It must not edit application
+code, `docs/PHASE.md`, fleet queue files, auth, RLS, migrations, Supabase,
+storefront, or any path owned by the active Claude lanes. It must not invent
+requirements, claim implementation, claim a fleet task, or use the provider
+for any other work.
+
+**Consequences.** This is a non-precedential evidence-only exception. OpenRouter
+remains outside PAON's default execution path. The resulting report is an
+audit artifact, not implementation proof or authorization for remediation.

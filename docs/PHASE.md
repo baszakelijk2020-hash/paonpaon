@@ -8161,6 +8161,27 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     `pnpm --filter @paon/customer lint`, and
     `pnpm --filter @paon/customer typecheck`.
 
+- [ ] **20.8 openrouter-deepseek-customer-environment-v3-audit — evidence-only visual compliance audit**
+  - **Requirement IDs:** `CENV-V3-AUDIT-001`.
+  - **Dependencies:** `20.2`.
+  - **Fleet owned paths:** `docs/evidence/customer-environment-v3-audit/`.
+  - **Owner boundary:** one founder-authorized OpenRouter DeepSeek worker may
+    inspect every customer route named in
+    `docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md` at 1512x982 desktop and
+    390x844 mobile, compare the live UI mechanically against every stated V3
+    requirement, capture screenshots, and write exactly one gap report beneath
+    its owned evidence path. The report must state route, requirement, current
+    behavior, and required correction for every gap. Do not edit application
+    code, `docs/PHASE.md`, queue files, auth, RLS, migrations, Supabase,
+    storefront, or any active Claude-owned path. Do not invent requirements or
+    claim implementation.
+  - **Acceptance:** evidence directory contains desktop and mobile screenshots
+    for every in-scope route plus one exact gap report; report cites the V3
+    requirement for each finding and labels no-gap routes explicitly. No files
+    outside `docs/evidence/customer-environment-v3-audit/` are changed by the
+    worker.
+  - **Tests:** read-only browser capture and source-contract cross-check only.
+
 ### Stage 21 — Storefront-to-shell incremental migration
 
 Governed by `docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md` §3.2 / §13 and
