@@ -48,13 +48,20 @@ function reorderHref(view: OrderView): string {
   return `/orders/${view.order.id}`;
 }
 
-/** The real, existing destinations behind §7's per-order action set. None
- * of these fabricate a flow — each is a shipped customer route. */
+/** §7's per-order action set. Each target is a shipped customer route and,
+ * where the route accepts it, carries this order's own context so the
+ * action continues *this* order rather than a generic flow. */
 function orderActions(view: OrderView) {
+  const completeTheLookHref = view.firstProduct
+    ? `/digital-fitting-room?productSlug=${encodeURIComponent(view.firstProduct.slug)}`
+    : "/orders#complete-the-look";
+  const askHref = `/messages?prefill=${encodeURIComponent(
+    `A question about order ${view.order.orderNumber}: `,
+  )}`;
   return [
     { label: "Order again", href: reorderHref(view) },
-    { label: "Complete the look", href: "/orders#complete-the-look" },
-    { label: "Ask a question", href: "/messages" },
+    { label: "Complete the look", href: completeTheLookHref },
+    { label: "Ask a question", href: askHref },
     { label: "Request service", href: "/services" },
     { label: "View order / invoice", href: `/orders/${view.order.id}` },
   ];
