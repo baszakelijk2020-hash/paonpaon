@@ -1,0 +1,24 @@
+{
+  "phase": "20.5",
+  "commit": "ee1cbe9",
+  "route": "/dashboard",
+  "persona": "authenticated Isabelle customer fixture",
+  "checks": {
+    "focused_playwright": "1 passed: dashboard-morning-routine-hero.spec.ts",
+    "customer_lint": "passed",
+    "customer_typecheck": "passed",
+    "console": "no error messages observed by the authenticated browser test"
+  },
+  "screenshots": [
+    {
+      "file": "desktop-1512x982.png",
+      "viewport": "1512x982",
+      "sha256": "aa98406306d6b33da4c171a345e69b6e81e33d9bbc89276c51bf9820a153a952"
+    },
+    {
+      "file": "mobile-390x844.png",
+      "viewport": "390x844",
+      "sha256": "ba1f551e6907e514e41ca2e03a6ce536d16c6d1247c3f5042b0acf410a103466"
+    }
+  ]
+}
