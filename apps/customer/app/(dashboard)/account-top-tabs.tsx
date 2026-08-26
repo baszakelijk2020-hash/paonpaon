@@ -26,7 +26,12 @@ export function AccountTopTabs({
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const mobilePrimaryTabs = tabs.slice(0, 3);
-  const mobileOverflowTabs = tabs.slice(3);
+  const mobileOverflowTabs = [
+    ...tabs.slice(3),
+    ...(tabs.some((tab) => tab.href === "/account")
+      ? []
+      : [{ href: "/account", label: "My Profile" }]),
+  ];
 
   return (
     <nav
