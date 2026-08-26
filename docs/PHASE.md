@@ -8092,6 +8092,98 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     no code or architecture change.
   - **Tests:** source inventory cross-check only.
 
+### Stage 21 — Storefront-to-shell incremental migration
+
+Governed by `docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md` §3.2 and §13 and
+by `docs/plans/ATELIER_DEMO_PARITY_TEST_PLAN.md` (checkpoints C1–C7). The raw
+`/r/[slug]` Route Handler stays the production fallback until an item's parity
+gate passes independently on desktop and mobile. No visual, motion, timing, or
+navigation "improvement" is authorised. One independently testable capability
+per item; retire a legacy path only after its successor passes C1–C7.
+
+- [ ] **21.1 shared storefront chrome extraction**
+  - **Requirement IDs:** `UNAV-005`.
+  - **Dependencies:** `20.3` frozen baseline, `20.4` inventory.
+  - **Owner boundary:** extract header / top-nav / footer / font + theme
+    wiring into App Router layout components consumed by both the raw route's
+    output contract and a future React storefront. The raw `/r/[slug]` response
+    stays byte-for-byte canonical; no `dangerouslySetInnerHTML`.
+  - **Fleet owned paths:** `apps/customer/app/r/[slug]/`.
+  - **Acceptance:** raw-route output unchanged (placeholder set, byte size,
+    serialisation order); extracted components render an identical DOM for the
+    chrome regions; C1 static parity passes for every baseline surface.
+  - **Tests:** customer typecheck, lint, production build; `atelier-demo-baseline`
+    parity comparison spec (raw vs extracted chrome).
+
+- [ ] **21.2 storefront home as a Next page route (flagged)**
+  - **Requirement IDs:** `UNAV-006`.
+  - **Dependencies:** `21.1`.
+  - **Owner boundary:** add `app/r/[slug]/page.tsx` rendering the same data via
+    the existing serializers (`storefront-page-data`, `serialize-storefront-*`),
+    behind an off-by-default flag. Raw Route Handler remains the default and the
+    fallback. Preserve URL, `?category=` deep links, OG tags.
+  - **Fleet owned paths:** `apps/customer/app/r/[slug]/`.
+  - **Acceptance:** with the flag on, C1–C3 + C6 pass for home + both category
+    grids, desktop and mobile, vs the frozen baseline; with the flag off,
+    nothing changes.
+  - **Tests:** typecheck, lint, build; parity comparison spec; console/network
+    cleanliness.
+
+- [ ] **21.3 category grid + filter interaction in the shell**
+  - **Requirement IDs:** `UNAV-007`.
+  - **Dependencies:** `21.2`.
+  - **Owner boundary:** move category selection, filter/sort, archetype/price
+    selection onto client navigation with durable state in the URL. Same
+    `getCat()` taxonomy and bucketing. No motion change.
+  - **Fleet owned paths:** `apps/customer/app/r/[slug]/`.
+  - **Acceptance:** C2 interaction parity + C4 Back/Forward parity for the grid;
+    C5 click-to-visible ≤ frozen baseline per interaction (record p50/p95,
+    sample count, browser, viewport, network profile).
+  - **Tests:** typecheck, lint, build; parity comparison spec with timing
+    assertions.
+
+- [ ] **21.4 PDP + cart under the shared shell with return-context restore**
+  - **Requirement IDs:** `UNAV-008`.
+  - **Dependencies:** `21.3`.
+  - **Owner boundary:** bring the existing PDP page and `/cart` under the shared
+    shell; implement deliberate return-experience restoration (source route,
+    category/filter/sort, variant selection, drawer/modal state, scroll
+    position), scoped to session/customer/retailer and discarded on context
+    change. Same real repository/RPC cart path.
+  - **Fleet owned paths:** `apps/customer/app/r/[slug]/`.
+  - **Acceptance:** C2 + C4 + C7 pass for PDP open/close and cart add/update;
+    Back/Forward restores exact valid state with no full reload and no
+    wrong-tenant data.
+  - **Tests:** typecheck, lint, build; parity comparison spec; cart repository
+    integration test.
+
+- [ ] **21.5 retire the raw `/r/[slug]` Route Handler**
+  - **Requirement IDs:** `UNAV-009`.
+  - **Dependencies:** `21.2`, `21.3`, `21.4` all passing their gates.
+  - **Owner boundary:** flip the flag default, remove the Route Handler and
+    `paon-template.html` substitution path only after C1–C7 pass independently
+    on desktop and mobile for every baseline surface. Keep the template file in
+    history and the baseline as the immutable reference.
+  - **Fleet owned paths:** `apps/customer/app/r/[slug]/`.
+  - **Acceptance:** full C1–C7 pass, desktop + mobile, independently verified;
+    no console/network regressions; storefront first paint and category/product
+    interaction not regressed vs the recorded baseline.
+  - **Tests:** typecheck, lint, build; the complete `atelier-demo-baseline`
+    parity suite; independent desktop/mobile screenshot comparison.
+
+- [ ] **21.6 storefront-to-dashboard performance budget**
+  - **Requirement IDs:** `UNAV-010`.
+  - **Dependencies:** `21.5`.
+  - **Owner boundary:** now that storefront and customer surfaces share one
+    client navigation architecture, define and enforce a separate
+    storefront→dashboard transition budget (distinct from the ≤200ms
+    customer-shell budget in `20.2` / plan §13). No new state library.
+  - **Fleet owned paths:** `apps/customer/e2e/`, `docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md`.
+  - **Acceptance:** measured storefront→dashboard p50/p95 recorded with browser,
+    viewport, and network profile; a stated budget with a failing test when
+    exceeded; Save-Data / 2G guards verified.
+  - **Tests:** focused Playwright performance test.
+
 ## Real hard blockers
 
 A hard blocker stops only the affected item. Continue with the next independent
