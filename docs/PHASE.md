@@ -8319,7 +8319,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     `pnpm --filter @paon/customer lint`, and
     `pnpm --filter @paon/customer typecheck`.
 
-- [ ] **20.15 claude-customer-navigation-v3-copy — navigation and forbidden-copy consistency**
+- [x] **20.15 claude-customer-navigation-v3-copy — navigation and forbidden-copy consistency**
   - **Requirement IDs:** `CENV-NAVIGATION-003`.
   - **Dependencies:** `20.2`.
   - **Fleet owned paths:** `apps/customer/app/(dashboard)/layout.tsx`,
