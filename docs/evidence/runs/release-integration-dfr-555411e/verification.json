@@ -1,0 +1,23 @@
+{
+  "target_release_sha": "555411e",
+  "scope": "Digital Fitting Room release verification after isolated Playwright server repair",
+  "checks": {
+    "focused_e2e": {
+      "command": "PAON_E2E_PORT=3103 pnpm --filter @paon/customer exec playwright test e2e/digital-fitting-room-first-run.spec.ts --reporter=line",
+      "result": "passed (1/1)"
+    },
+    "customer_lint": "passed",
+    "customer_typecheck": "passed",
+    "authenticated_browser": {
+      "desktop_viewport": "1512x982",
+      "mobile_viewport": "390x844",
+      "screenshots": [
+        "desktop-first-run-1512x982.png",
+        "mobile-first-run-390x844.png",
+        "desktop-avatar-step-1512x982.png"
+      ],
+      "console_errors": "none"
+    }
+  },
+  "notes": "The route was verified through the focused test's authenticated magic-link flow against a freshly built release-local Next server; no existing evidence files were overwritten. docs/PHASE.md remains unchanged because the Phase 20.7 completion status was not altered by this release repair."
+}
