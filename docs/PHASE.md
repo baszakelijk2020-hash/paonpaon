@@ -8593,6 +8593,57 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     only owned evidence.
   - **Tests:** Git history and evidence metadata cross-check only.
 
+- [ ] **20.32 evidence-review-4118202 — Overview, Orders, and Profile candidate review**
+  - **Dependencies:** saved candidate `4118202`.
+  - **Fleet owned paths:** `docs/evidence/reviews/20.32-candidate-4118202/`.
+  - **Owner boundary:** review only `4118202`: exact changed files, V3 task scope,
+    dependencies, test claims, evidence-SHA freshness, safe re-proof disposition,
+    and required release-branch verification. No application, migration, auth,
+    RLS, Supabase, storefront, QR, payment, email, or dirty-file edits.
+  - **Acceptance:** one exact review report; commit only its owned evidence.
+  - **Tests:** Git, source, and evidence cross-check only.
+
+- [ ] **20.33 evidence-review-55e6d01 — Rewards candidate review**
+  - **Dependencies:** saved candidate `55e6d01`.
+  - **Fleet owned paths:** `docs/evidence/reviews/20.33-candidate-55e6d01/`.
+  - **Owner boundary:** review only `55e6d01`: exact changed files, V3 task scope,
+    dependencies, test claims, evidence-SHA freshness, safe-integration verdict,
+    and required release-branch verification. No application, migration, auth,
+    RLS, Supabase, storefront, QR, payment, email, or dirty-file edits.
+  - **Acceptance:** one exact review report; commit only its owned evidence.
+  - **Tests:** Git, source, and evidence cross-check only.
+
+- [ ] **20.34 evidence-review-orders-candidates — Orders action and history candidate review**
+  - **Dependencies:** saved candidates `fe91186`, `b49798b`.
+  - **Fleet owned paths:** `docs/evidence/reviews/20.34-orders-candidates/`.
+  - **Owner boundary:** review only `fe91186` and `b49798b`: exact changed files,
+    V3 task scope, dependencies, test claims, evidence-SHA freshness,
+    safe-integration verdict, and required release-branch verification. No
+    application, migration, auth, RLS, Supabase, storefront, QR, payment,
+    email, or dirty-file edits.
+  - **Acceptance:** one exact review report; commit only its owned evidence.
+  - **Tests:** Git, source, and evidence cross-check only.
+
+- [ ] **20.35 evidence-review-50bdf00 — alteration decision candidate review**
+  - **Dependencies:** saved candidate `50bdf00`.
+  - **Fleet owned paths:** `docs/evidence/reviews/20.35-candidate-50bdf00/`.
+  - **Owner boundary:** review only `50bdf00`: exact changed files, V3 task scope,
+    dependencies, test claims, evidence-SHA freshness, safe-integration verdict,
+    and required release-branch verification. No application, migration, auth,
+    RLS, Supabase, storefront, QR, payment, email, or dirty-file edits.
+  - **Acceptance:** one exact review report; commit only its owned evidence.
+  - **Tests:** Git, source, and evidence cross-check only.
+
+- [ ] **20.36 evidence-review-86e45d0 — stale E2E cleanup candidate review**
+  - **Dependencies:** saved candidate `86e45d0`.
+  - **Fleet owned paths:** `docs/evidence/reviews/20.36-candidate-86e45d0/`.
+  - **Owner boundary:** review only `86e45d0`: exact changed files, V3 task scope,
+    dependencies, test claims, evidence-SHA freshness, safe-integration verdict,
+    and required release-branch verification. No application, migration, auth,
+    RLS, Supabase, storefront, QR, payment, email, or dirty-file edits.
+  - **Acceptance:** one exact review report; commit only its owned evidence.
+  - **Tests:** Git, source, and evidence cross-check only.
+
 ### Stage 21 — Storefront-to-shell incremental migration
 
 Governed by `docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md` §3.2 / §13 and
