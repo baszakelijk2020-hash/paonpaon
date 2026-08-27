@@ -8301,7 +8301,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     `pnpm --filter @paon/customer lint`, and
     `pnpm --filter @paon/customer typecheck`.
 
-- [ ] **20.14 claude-customer-loyalty-v3 — Rewards & Referrals exposure**
+- [x] **20.14 claude-customer-loyalty-v3 — Rewards & Referrals exposure**
   - **Requirement IDs:** `CENV-REWARDS-001`.
   - **Dependencies:** `20.2`.
   - **Fleet owned paths:** `apps/customer/app/(dashboard)/loyalty/**`,
@@ -8385,7 +8385,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     `pnpm --filter @paon/customer lint`, and
     `pnpm --filter @paon/customer typecheck`.
 
-- [ ] **20.18 claude-customer-orders-actions-v3 — real order action row and supporting modules**
+- [x] **20.18 claude-customer-orders-actions-v3 — real order action row and supporting modules**
   - **Requirement IDs:** `CENV-ORDERS-ACTIONS-001`.
   - **Dependencies:** `20.12`.
   - **Fleet owned paths:** `apps/customer/app/(dashboard)/orders/page.tsx`,
@@ -8423,7 +8423,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     customer lint/typecheck and exact-SHA evidence pass; owned-files-only commit.
   - **Tests:** the four owned specs, customer lint, and customer typecheck.
 
-- [ ] **20.20 claude-customer-alteration-choices-v3 — service decision branches**
+- [x] **20.20 claude-customer-alteration-choices-v3 — service decision branches**
   - **Requirement IDs:** `CENV-ALTERATION-CHOICES-001`.
   - **Dependencies:** `20.6`.
   - **Fleet owned paths:** `apps/customer/app/(dashboard)/appointments/paid-care-flow.tsx`,
@@ -8529,7 +8529,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     exact-SHA evidence, and owned-files-only commit.
   - **Tests:** wardrobe-rail-contract V3 E2E, customer lint, typecheck.
 
-- [ ] **20.27 claude-orders-history-integrity-v3 — history and duplicate-suppression proof**
+- [x] **20.27 claude-orders-history-integrity-v3 — history and duplicate-suppression proof**
   - **Requirement IDs:** `CENV-ORDERS-HISTORY-001`.
   - **Dependencies:** `20.18`.
   - **Fleet owned paths:** `apps/customer/e2e/orders-history-integrity-v3.spec.ts`,

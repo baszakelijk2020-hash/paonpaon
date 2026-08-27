@@ -1,0 +1,17 @@
+{
+  "target_release_sha": "3f1c88d",
+  "reconciled_commits": [
+    "1923565",
+    "6aa075d",
+    "9695bac",
+    "4a10f0b",
+    "e9d52e0",
+    "da4c0dc",
+    "d6898ef"
+  ],
+  "focused_playwright": "10 passed: loyalty V3, referral and reward redemption lifecycle, orders actions, alteration decisions, appointment repair, orders history, external-garment removal",
+  "customer_lint": "passed",
+  "customer_typecheck": "passed",
+  "browser": "authenticated desktop 1512x982 and mobile 390x844 screenshots captured by focused suites; console errors absent",
+  "command": "PAON_E2E_PORT=3130 pnpm --filter @paon/customer exec playwright test e2e/loyalty-v3-presentation.spec.ts e2e/loyalty-referrals.spec.ts e2e/orders-actions-v3.spec.ts e2e/appointments-alteration-choices-v3.spec.ts e2e/appointments-alterations.spec.ts e2e/orders-history-integrity-v3.spec.ts e2e/wardrobe-no-external-entry-v3.spec.ts --reporter=line"
+}
