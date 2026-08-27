@@ -3611,3 +3611,16 @@ claims.
 **Consequences.** This is a non-precedential, evidence-only exception. The
 worker may commit only its proof-index report and mark `phase-20.16` done.
 OpenRouter remains outside PAON's default execution path.
+
+## ADR-080: one-off OpenRouter DeepSeek Phase 20 text-only integration map
+
+**Status: accepted (2026-08-27).**
+
+**Decision.** `phase-20.31` may use OpenRouter DeepSeek once to map completed
+Phase 20 branches and commits to merge order, ancestor/duplicate status, and
+required independent review. It may write only beneath
+`docs/evidence/customer-environment-v3-integration-map/`; it may not use
+images, browser work, application edits, queue edits, or integration.
+
+**Consequences.** This is a non-precedential evidence-only exception. OpenRouter
+remains outside PAON's default execution path.

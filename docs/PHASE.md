@@ -8542,6 +8542,57 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     exact-SHA evidence, and owned-files-only commit.
   - **Tests:** orders-history-integrity V3 E2E, customer lint, typecheck.
 
+- [ ] **20.28 evidence-review-20.11-20.13 — independent candidate-batch review**
+  - **Requirement IDs:** `CENV-REVIEW-001`.
+  - **Dependencies:** completed candidate `4118202`.
+  - **Fleet owned paths:** `docs/evidence/reviews/20.28-v3-candidate-4118202/`.
+  - **Owner boundary:** review only candidate `4118202` for exact V3 compliance,
+    changed paths, test claims, and stale-SHA evidence. Write only review
+    evidence; no application edits, integration, auth, RLS, migration, Supabase,
+    QR, payment, email, receipts, or Mission Control work.
+  - **Acceptance:** one exact review report with verdict, changed paths, claim
+    verification, stale evidence references, and required correction; commit
+    only owned review evidence.
+  - **Tests:** Git/evidence/source cross-check only.
+
+- [ ] **20.29 evidence-review-20.21 — independent raw-storefront DFR review**
+  - **Requirement IDs:** `CENV-REVIEW-002`.
+  - **Dependencies:** completed candidates `5a087e0`, `b559653`.
+  - **Fleet owned paths:** `docs/evidence/reviews/20.29-storefront-dfr-5a087e0/`.
+  - **Owner boundary:** independently review raw storefront parity, canonical
+    product handoff, E2E result, screenshots, and absence of a dead route for
+    `5a087e0` plus `b559653`. Write only review evidence; no app edits or
+    integration.
+  - **Acceptance:** one exact review report with accept/reject verdict, proof
+    references, findings, and required correction; commit only owned review evidence.
+  - **Tests:** Git/evidence/browser-artifact cross-check only.
+
+- [ ] **20.30 evidence-phase-20-freshness — stale-SHA reconciliation**
+  - **Requirement IDs:** `CENV-EVIDENCE-001`.
+  - **Dependencies:** completed Phase 20 tasks.
+  - **Fleet owned paths:** `docs/evidence/reviews/20.30-phase-20-freshness/`.
+  - **Owner boundary:** identify every completed Phase 20 item whose evidence
+    SHA is stale. Write exact rerun requirements and affected test commands
+    only. No app edits, integration, auth, RLS, migration, Supabase, QR,
+    payment, email, receipts, or Mission Control work.
+  - **Acceptance:** one complete freshness matrix naming each stale item,
+    expected SHA boundary, required rerun proof, and exact commands; commit
+    only owned review evidence.
+  - **Tests:** Git/evidence metadata cross-check only.
+
+- [ ] **20.31 openrouter-deepseek-phase-20-integration-map — text-only merge map**
+  - **Requirement IDs:** `CENV-INTEGRATION-MAP-001`.
+  - **Dependencies:** completed Phase 20 branches.
+  - **Fleet owned paths:** `docs/evidence/customer-environment-v3-integration-map/`.
+  - **Owner boundary:** founder-authorized OpenRouter DeepSeek text-only map of
+    completed Phase 20 branches/commits to merge order, ancestor/duplicate
+    status, and required independent review. Write only owned evidence. No
+    images, browser work, app edits, queue edits, or integration.
+  - **Acceptance:** one complete integration map with exact commits, dependency
+    order, duplicate/ancestor disposition, and independent-review gate; commit
+    only owned evidence.
+  - **Tests:** Git history and evidence metadata cross-check only.
+
 ### Stage 21 — Storefront-to-shell incremental migration
 
 Governed by `docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md` §3.2 / §13 and
