@@ -8226,7 +8226,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     owned path, then mark this fleet task done.
   - **Tests:** static source, test, and evidence cross-check only.
 
-- [ ] **20.11 claude-customer-overview-v3-daily-return — dashboard daily-return composition**
+- [x] **20.11 claude-customer-overview-v3-daily-return — dashboard daily-return composition**
   - **Requirement IDs:** `CENV-OVERVIEW-002`.
   - **Dependencies:** `20.5`.
   - **Fleet owned paths:** `apps/customer/app/(dashboard)/dashboard/**`,
@@ -8256,7 +8256,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     `pnpm --filter @paon/customer lint`, and
     `pnpm --filter @paon/customer typecheck`.
 
-- [ ] **20.12 claude-customer-orders-v3 — pending orders, history, and real actions**
+- [x] **20.12 claude-customer-orders-v3 — pending orders, history, and real actions**
   - **Requirement IDs:** `CENV-ORDERS-001`.
   - **Dependencies:** `20.2`.
   - **Fleet owned paths:** `apps/customer/app/(dashboard)/orders/page.tsx`,
@@ -8280,7 +8280,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     `pnpm --filter @paon/customer lint`, and
     `pnpm --filter @paon/customer typecheck`.
 
-- [ ] **20.13 claude-customer-profile-v3 — profile cleanup and clarification**
+- [x] **20.13 claude-customer-profile-v3 — profile cleanup and clarification**
   - **Requirement IDs:** `CENV-PROFILE-001`.
   - **Dependencies:** `20.2`.
   - **Fleet owned paths:** `apps/customer/app/(dashboard)/account/**`,

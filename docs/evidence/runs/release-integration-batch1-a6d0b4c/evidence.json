@@ -1,0 +1,22 @@
+{
+  "target_release_sha": "a6d0b4c",
+  "batch": ["3325ee0", "a256373", "38a99dd", "4118202"],
+  "result": "passed",
+  "checks": {
+    "focused_playwright": "5 passed: dashboard-v3-daily-return, dashboard-morning-routine-hero, orders-v3-presentation (two tests), account-v3-profile",
+    "customer_lint": "passed",
+    "customer_typecheck": "passed",
+    "browser": "authenticated customer desktop 1512x982 and mobile 390x844 screenshots captured for Overview, Orders, and Profile",
+    "console": "no errors observed by the focused browser tests"
+  },
+  "command": "PAON_E2E_PORT=3113 pnpm --filter @paon/customer exec playwright test e2e/dashboard-v3-daily-return.spec.ts e2e/dashboard-morning-routine-hero.spec.ts e2e/orders-v3-presentation.spec.ts e2e/account-v3-profile.spec.ts --reporter=line",
+  "screenshots": [
+    "overview-desktop-1512x982.png",
+    "overview-mobile-390x844.png",
+    "orders-desktop-1512x982.png",
+    "orders-detail-desktop-1512x982.png",
+    "orders-mobile-390x844.png",
+    "profile-desktop-1512x982.png",
+    "profile-mobile-390x844.png"
+  ]
+}
