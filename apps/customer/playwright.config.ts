@@ -30,7 +30,7 @@ export default defineConfig({
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    command: `pnpm exec next start -p ${e2ePort}`,
+    command: `pnpm build && pnpm exec next start -p ${e2ePort}`,
     url: e2eBaseUrl,
     reuseExistingServer: false,
   },
