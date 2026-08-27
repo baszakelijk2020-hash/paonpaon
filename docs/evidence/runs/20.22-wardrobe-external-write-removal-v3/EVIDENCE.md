@@ -63,3 +63,12 @@ entirely (confirmed via direct import-line inspection before editing).
 - Regression check: `pnpm exec playwright test wardrobe.spec.ts` — 3/3
   passed, confirming the six fixture files' direct
   `WardrobeRepository.createExternalItem()` usage is unaffected.
+
+## Release integration verification
+
+The customer-facing removal is integrated at release code commit `e9d52e0`.
+On that release code, the isolated local-Supabase run of
+`wardrobe-no-external-entry-v3.spec.ts` passed 1/1, followed by customer lint
+and customer typecheck with no errors. The test authenticated as the canonical
+customer demo persona and proved both the absence of every external-garment
+entry affordance and the presence of all eight real wardrobe rails.

@@ -8460,7 +8460,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
   - **Tests:** storefront-digital-fitting-room-handoff V3 E2E, customer lint,
     typecheck.
 
-- [ ] **20.22 claude-wardrobe-external-write-removal-v3 — remove dormant external garment write path**
+- [x] **20.22 claude-wardrobe-external-write-removal-v3 — remove dormant external garment write path**
   - **Requirement IDs:** `CENV-WARDROBE-EXTERNAL-001`.
   - **Dependencies:** `20.9`.
   - **Fleet owned paths:** `apps/customer/app/(dashboard)/wardrobe/actions.ts`,
