@@ -1,0 +1,22 @@
+{
+  "target_release_sha": "fd81779",
+  "scope": "Digital Fitting Room candidate integration: 7819396 + d967434 only",
+  "result": "failed",
+  "checks": {
+    "focused_e2e": {
+      "command": "pnpm --filter @paon/customer exec playwright test e2e/digital-fitting-room-first-run.spec.ts",
+      "result": "failed",
+      "failure": "The authenticated first-run route still renders 'Your wardrobe, in motion.', so the test's required absence assertion received one matching element."
+    },
+    "customer_lint": "passed",
+    "customer_typecheck": "passed",
+    "authenticated_browser_capture": {
+      "result": "captured in an isolated checkout at fd81779",
+      "desktop": "desktop-authenticated-first-run-1512x982.png",
+      "mobile": "mobile-first-run-390x844.png",
+      "avatar_step": "desktop-avatar-step-1512x982.png",
+      "console": "no browser console errors observed by the capture harness"
+    }
+  },
+  "disposition": "No docs/PHASE.md update: the focused acceptance E2E is not green at the integrated release SHA."
+}
