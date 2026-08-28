@@ -3,6 +3,7 @@ import {
   ProductRepository,
   RetailerRepository,
 } from "@paon/database";
+import { cookies } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -72,11 +73,24 @@ async function populatedCategories(): Promise<
   return CANONICAL_CATEGORIES.filter((category) => present.has(category));
 }
 
+/** Same open-redirect guard as `store-return-capture.tsx`'s client-side
+ * validation — the cookie is trusted only if it still matches on read. */
+const VALID_STORE_RETURN = /^\/r\/[A-Za-z0-9_-]+(?:[/?].*)?$/;
+
+async function storeReturnHref(): Promise<string> {
+  const cookieStore = await cookies();
+  const value = cookieStore.get("paon_storefront_return")?.value;
+  if (!value) return "/r/atelier-demo";
+  const decoded = decodeURIComponent(value);
+  return VALID_STORE_RETURN.test(decoded) ? decoded : "/r/atelier-demo";
+}
+
 export async function ShopCategorySidebar() {
   const categories = await populatedCategories();
+  const storeHref = await storeReturnHref();
   return (
     <aside
-      className="sticky top-0 hidden h-screen min-h-screen grid-rows-[60px_minmax(0,1fr)_210px] self-start overflow-hidden lg:grid"
+      className="sticky top-0 hidden h-screen min-h-screen grid-rows-[60px_auto_minmax(0,1fr)_210px] self-start overflow-hidden lg:grid"
       style={{
         width: "250px",
         background: "linear-gradient(to right, #333333, #1a1a1a)",
@@ -102,9 +116,68 @@ export async function ShopCategorySidebar() {
         </span>
       </IntentPrefetchLink>
       <div
+        id="paon-context-switcher"
+        className="paon-context-switcher flex shrink-0 items-center justify-center"
+        style={{
+          gap: "16px",
+          background:
+            "linear-gradient(to right, rgba(255,255,255,.045), rgba(255,255,255,0)), linear-gradient(to right, #262626, #1d1d1d)",
+          padding: "14px 25px",
+        }}
+      >
+        <IntentPrefetchLink
+          href={storeHref}
+          className="pcs-store pcs-inactive"
+          style={{
+            fontFamily: "GTBold3, Arial, sans-serif",
+            fontSize: "7px",
+            textTransform: "uppercase",
+            letterSpacing: "0.04em",
+            color: "#8a8a87",
+            opacity: 0.7,
+            textDecoration: "none",
+          }}
+        >
+          Store
+        </IntentPrefetchLink>
+        <span
+          aria-hidden="true"
+          style={{
+            width: "1px",
+            height: "14px",
+            background: "rgba(255,255,255,.18)",
+          }}
+        />
+        <span
+          className="pcs-mypaon pcs-active"
+          style={{
+            position: "relative",
+            fontFamily: "GTBold3, Arial, sans-serif",
+            fontSize: "7px",
+            textTransform: "uppercase",
+            letterSpacing: "0.04em",
+            color: "#d9d9d9",
+            opacity: 1,
+          }}
+        >
+          My PAON
+          <span
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              bottom: "-4px",
+              left: 0,
+              right: 0,
+              height: "2px",
+              background: "rgba(217,217,217,.72)",
+            }}
+          />
+        </span>
+      </div>
+      <div
         className="flex flex-1 flex-col overflow-y-auto"
         style={{
-          padding: "62px 25px 28px",
+          padding: "40px 25px 28px",
           background:
             "linear-gradient(to right, rgba(255,255,255,.043), rgba(255,255,255,0)), linear-gradient(to right, #262626, #1d1d1d)",
         }}

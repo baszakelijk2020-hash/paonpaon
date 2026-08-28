@@ -242,6 +242,26 @@ export async function GET(
   const activeProducts = allProducts.filter((p) => p.status === "active");
   const collectionNameById = new Map(collections.map((c) => [c.id, c.name]));
 
+  // The sidebar's category list must reflect the retailer's whole active
+  // catalogue, never just whichever slice a `?category=` request happens to
+  // load below (that slice exists purely to skip paying for the full
+  // catalogue's downstream projections on a scoped request — it must not
+  // also narrow what the nav shows, or clicking a category link collapses
+  // the sidebar to that one category instead of highlighting it within the
+  // full list).
+  const allActiveCategoryNames = new Set(
+    activeProducts.map((product) => {
+      const collectionName = product.collectionIds
+        .map((id) => collectionNameById.get(id))
+        .find((name): name is string => Boolean(name));
+      return canonicalCategoryFor(
+        product.name,
+        collectionName,
+        product.primaryImageUrl ?? "",
+      );
+    }),
+  );
+
   // Resolve the intent from the retailer-scoped product catalogue before
   // loading variants and metadata. A category request must not pay for the
   // full catalogue's expensive downstream projections.
@@ -383,6 +403,93 @@ export async function GET(
   const bodyFont = BODY_FONTS[theme.bodyFont] ?? BODY_FONTS.quiet_sans;
   const radius = CORNERS[theme.cornerStyle] ?? CORNERS.tailored;
 
+  // Store/My PAON context switcher: only for a signed-in customer (an
+  // anonymous shopper has no "My PAON" to switch to, and must see zero
+  // change to the founder's storefront). Injected purely via this existing
+  // __PAON_BRAND_HEAD__ placeholder — paon-template.html is never touched
+  // (ADR-046). Desktop only: it mounts as a sibling of #sidebar-logo inside
+  // <aside>, which the template's own `@media (max-width: 850px) { aside {
+  // display: none } }` rule already hides — the same pre-existing boundary
+  // that hides .cat-grid's category rail on mobile.
+  const contextSwitcherScript = tableServiceSignedIn
+    ? `<script id="paon-context-switcher-inject">
+(function() {
+  if (document.getElementById("paon-context-switcher")) return;
+  function init() {
+    const logoEl = document.getElementById("sidebar-logo");
+    if (!logoEl) return;
+
+    const currentPathname = location.pathname + location.search;
+
+    const switcherEl = document.createElement("div");
+    switcherEl.id = "paon-context-switcher";
+    switcherEl.className = "paon-context-switcher";
+    switcherEl.innerHTML = \`
+      <style>
+        #paon-context-switcher {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: center;
+          gap: 16px;
+          background: linear-gradient(to right, rgba(255,255,255,.045), rgba(255,255,255,0)), linear-gradient(to right, #262626, #1d1d1d);
+          padding: 14px 25px;
+          margin: 0;
+        }
+        .pcs-store, .pcs-mypaon {
+          position: relative;
+          display: inline-block;
+          padding: 0;
+          margin: 0;
+          text-decoration: none;
+          font-family: GTBold3, Arial, sans-serif;
+          font-size: 7px;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          background: transparent;
+          border: none;
+          cursor: pointer;
+        }
+        .pcs-inactive {
+          color: #8a8a87;
+          opacity: 0.7;
+        }
+        .pcs-active {
+          color: #d9d9d9;
+          opacity: 1;
+        }
+        .pcs-active::after {
+          content: '';
+          position: absolute;
+          bottom: -4px;
+          left: 0;
+          right: 0;
+          height: 2px;
+          background-color: rgba(217,217,217,.72);
+        }
+        #paon-context-switcher .pcs-divider {
+          width: 1px;
+          height: 14px;
+          background-color: rgba(255,255,255,.18);
+        }
+      </style>
+      <span class="pcs-store pcs-active">Store</span>
+      <span class="pcs-divider"></span>
+      <a href="/dashboard?returnTo=\${encodeURIComponent(currentPathname)}" class="pcs-mypaon pcs-inactive">My PAON</a>
+    \`;
+
+    logoEl.insertAdjacentElement("afterend", switcherEl);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init, { once: true });
+  } else {
+    init();
+  }
+})();
+</script>`
+    : "";
+
   const brandHead = [
     logoUrl || heroUrl
       ? `<link rel="preload" as="image" href="${escapeHtml(logoUrl ?? heroUrl!)}"/>`
@@ -450,6 +557,7 @@ ${
   ::view-transition-new(*) { animation: none !important; }
 }
 </style>`,
+    contextSwitcherScript,
   ]
     .filter(Boolean)
     .join("\n");
@@ -503,7 +611,7 @@ ${
   // so reusing it for the sidebar nav meant Suits could never appear there
   // no matter how many suit products existed.
   const categoryNames = CANONICAL_CATEGORIES.filter((category) =>
-    entries.some((entry) => entry.category === category),
+    allActiveCategoryNames.has(category),
   );
   const resolvedCategories =
     categoryNames.length > 0 ? categoryNames : [...CANONICAL_CATEGORIES];
