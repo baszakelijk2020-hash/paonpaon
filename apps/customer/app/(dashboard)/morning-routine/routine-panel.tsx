@@ -119,6 +119,7 @@ function RecommendationActions({
             size="sm"
             variant="outline"
             disabled={actionPending}
+            className="rounded-[15px]"
           >
             Save
           </Button>
@@ -140,6 +141,7 @@ function RecommendationActions({
               size="sm"
               variant="outline"
               disabled={actionPending}
+              className="rounded-[15px]"
             >
               Mark reviewed
             </Button>
@@ -153,7 +155,11 @@ function RecommendationActions({
             />
             <button
               type="submit"
-              className={buttonVariants({ variant: "outline", size: "sm" })}
+              className={buttonVariants({
+                variant: "outline",
+                size: "sm",
+                className: "rounded-[15px]",
+              })}
             >
               Ask advisor
             </button>
@@ -163,14 +169,22 @@ function RecommendationActions({
       {book?.available && book.href ? (
         <Link
           href={book.href}
-          className={buttonVariants({ variant: "outline", size: "sm" })}
+          className={buttonVariants({
+            variant: "outline",
+            size: "sm",
+            className: "rounded-[15px]",
+          })}
         >
           Book
         </Link>
       ) : (
         <Link
           href={`/r/${retailerSlug}/appointments`}
-          className={buttonVariants({ variant: "outline", size: "sm" })}
+          className={buttonVariants({
+            variant: "outline",
+            size: "sm",
+            className: "rounded-[15px]",
+          })}
         >
           Book
         </Link>
@@ -190,12 +204,23 @@ function RecommendationActions({
             name="productVariantId"
             value={buy.productVariantId}
           />
-          <Button type="submit" size="sm" disabled={actionPending}>
+          <Button
+            type="submit"
+            size="sm"
+            disabled={actionPending}
+            className="rounded-[15px]"
+          >
             Buy
           </Button>
         </form>
       ) : buy?.available && buy.href ? (
-        <Link href={buy.href} className={buttonVariants({ size: "sm" })}>
+        <Link
+          href={buy.href}
+          className={buttonVariants({
+            size: "sm",
+            className: "rounded-[15px]",
+          })}
+        >
           Buy
         </Link>
       ) : null}

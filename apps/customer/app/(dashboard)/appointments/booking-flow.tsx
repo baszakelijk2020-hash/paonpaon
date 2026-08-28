@@ -292,7 +292,12 @@ export function BookingFlow({
             </p>
           ) : null}
           <div className="flex gap-2">
-            <Button type="submit" size="sm" disabled={isPending}>
+            <Button
+              type="submit"
+              size="sm"
+              disabled={isPending}
+              className="rounded-[15px]"
+            >
               {isPending ? "Booking…" : "Confirm"}
             </Button>
             <button

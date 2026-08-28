@@ -37,7 +37,7 @@ export function OneTapCheckoutBanner({ retailerId }: { retailerId: string }) {
         <Button
           size="sm"
           variant="secondary"
-          className="rounded-[12px] border-white/20 bg-white/10 text-white hover:bg-white/20"
+          className="rounded-[15px] border-white/20 bg-white/10 text-white hover:bg-white/20"
           onClick={() => setOpen(true)}
         >
           Turn it on
@@ -103,7 +103,12 @@ export function OneTapCheckoutBanner({ retailerId }: { retailerId: string }) {
         />
       </div>
       <div className="flex gap-2">
-        <Button type="submit" size="sm" disabled={pending}>
+        <Button
+          type="submit"
+          size="sm"
+          disabled={pending}
+          className="rounded-[15px]"
+        >
           {pending ? "Saving…" : "Save & turn on"}
         </Button>
         <Button

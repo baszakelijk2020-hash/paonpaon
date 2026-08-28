@@ -161,7 +161,7 @@ export function CartClient({
           </p>
           <Link
             href={appointmentHref}
-            className={`${buttonVariants()} hidden lg:inline-flex`}
+            className={`${buttonVariants({ className: "rounded-[15px]" })} hidden lg:inline-flex`}
           >
             Book an appointment
           </Link>
@@ -216,7 +216,12 @@ export function CartClient({
                   {state.formError}
                 </p>
               ) : null}
-              <Button type="submit" variant="secondary" disabled={pending}>
+              <Button
+                type="submit"
+                variant="secondary"
+                disabled={pending}
+                className="rounded-[15px]"
+              >
                 {pending ? "Saving…" : "Save pending order"}
               </Button>
               <p className="text-xs text-[var(--color-stone-500)]">
@@ -243,7 +248,13 @@ export function CartClient({
             {formatMoney(order.total, "en-US")}
           </p>
         </div>
-        <Link href={appointmentHref} className={buttonVariants({ size: "lg" })}>
+        <Link
+          href={appointmentHref}
+          className={buttonVariants({
+            size: "lg",
+            className: "rounded-[15px]",
+          })}
+        >
           Book appointment
         </Link>
       </div>

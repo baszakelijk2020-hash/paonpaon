@@ -63,6 +63,13 @@ h3 {
   --customer-moss: #cbd3c5;
   --customer-border: #ddd9d0;
   --customer-radius: 12px;
+  /*
+   * Phase 20.25 CENV-CTA-001: customer CTA controls (Buy, Save, Book
+   * Appointment, and equivalents) use one 15px squircle system. This is
+   * intentionally distinct from --customer-radius (panels, inputs, list
+   * rows) so only action controls move.
+   */
+  --customer-cta-radius: 15px;
 }
 
 .customer-page {
@@ -121,7 +128,7 @@ h3 {
   align-items: center;
   justify-content: center;
   border: 1px solid var(--customer-ink);
-  border-radius: var(--customer-radius);
+  border-radius: var(--customer-cta-radius);
   background: var(--customer-ink);
   padding-inline: 1rem;
   color: var(--customer-paper);
