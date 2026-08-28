@@ -131,12 +131,12 @@ function SupportingModules({ shopHref }: { shopHref: string }) {
       >
         Keep going
       </p>
-      <div className="grid grid-cols-2 gap-px border-y border-[var(--customer-border)] bg-[var(--customer-border)] sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {modules.map((module) => (
           <Link
             key={module.label}
             href={module.href}
-            className="bg-[var(--customer-paper)] px-5 py-4 text-sm text-[var(--color-stone-700)] hover:text-[var(--color-stone-900)]"
+            className="rounded-[var(--customer-radius)] bg-gradient-to-br from-[rgba(203,211,197,0.45)] to-[rgba(203,211,197,0.18)] px-5 py-4 text-sm text-[var(--color-stone-700)] shadow-sm transition-colors hover:text-[var(--color-stone-900)]"
           >
             {module.label}
           </Link>

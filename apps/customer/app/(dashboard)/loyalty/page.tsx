@@ -76,7 +76,7 @@ export default async function LoyaltyPage() {
         ) => (
           <section
             key={customer.id}
-            className="customer-panel paon-reveal flex flex-col gap-5 p-5"
+            className="paon-reveal flex flex-col gap-5 rounded-[var(--customer-radius)] border border-[var(--customer-border)] bg-gradient-to-br from-[var(--customer-paper)] to-[#e4e1d3] p-5 shadow-sm"
             style={{ animationDelay: `${index * 120}ms` }}
           >
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -129,7 +129,14 @@ export default async function LoyaltyPage() {
                           status: award.status,
                         });
                         return (
-                          <li key={award.id} className="customer-panel p-4">
+                          <li
+                            key={award.id}
+                            className={`rounded-[var(--customer-radius)] p-4 ${
+                              presentation.tone === "reversed"
+                                ? "bg-[rgba(203,211,197,0.35)]"
+                                : "bg-gradient-to-br from-[#7c8772]/20 to-[#3f493b]/10"
+                            }`}
+                          >
                             <div className="flex flex-wrap items-center justify-between gap-2">
                               <p className="font-medium text-[var(--color-stone-900)]">
                                 {presentation.headline}

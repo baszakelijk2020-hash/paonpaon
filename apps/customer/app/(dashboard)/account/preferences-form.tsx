@@ -62,7 +62,7 @@ export function PreferencesForm({
   );
 
   return (
-    <Card className="flex flex-col gap-4">
+    <Card className="flex flex-col gap-4 border-[var(--customer-border)] bg-gradient-to-br from-[var(--customer-paper)] to-[#e4e1d3] shadow-sm">
       <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
         {retailerName}
       </h2>

@@ -208,26 +208,37 @@ export default async function AppointmentsPage() {
       ) : null}
 
       {upcoming ? (
-        <section className="customer-panel">
+        <section
+          className="relative overflow-hidden rounded-[var(--customer-radius)] p-6 text-white"
+          style={{
+            background: "linear-gradient(135deg, #2c3428 0%, #14170f 100%)",
+          }}
+        >
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--color-stone-500)]">
+              <p className="text-xs font-medium uppercase tracking-[0.14em] text-white/60">
                 Next appointment
               </p>
-              <h2 className="font-display mt-2 text-2xl text-[var(--color-stone-900)]">
+              <h2 className="font-display mt-2 text-2xl text-white">
                 {APPOINTMENT_TYPE_LABELS[upcoming.type]}
               </h2>
-              <p className="mt-1 text-[var(--color-stone-700)]">
+              <p className="mt-1 text-white/80">
                 {retailerById.get(upcoming.id)?.displayName ??
                   "Unknown retailer"}
               </p>
             </div>
             <AppointmentStatusBadge status={upcoming.status} />
           </div>
-          <p className="mt-5 text-sm text-[var(--color-stone-700)]">
+          <p className="mt-5 text-sm text-white/80">
             {formatDate(upcoming.startsAt, "en-US")} ·{" "}
             {formatRange(upcoming.startsAt, upcoming.endsAt)}
           </p>
+          <Link
+            href={`/appointments/${upcoming.id}`}
+            className="customer-button mt-6 inline-flex"
+          >
+            View appointment
+          </Link>
         </section>
       ) : !primaryCustomer ? (
         <div className="customer-panel px-6 py-16 text-center">
@@ -238,11 +249,16 @@ export default async function AppointmentsPage() {
       ) : null}
 
       {history.length > 0 ? (
-        <details className="customer-panel p-0">
-          <summary className="font-display cursor-pointer list-none px-6 py-4 text-xl text-[var(--color-stone-900)]">
+        <details className="overflow-hidden rounded-[var(--customer-radius)] border border-[var(--customer-border)]">
+          <summary
+            className="font-display cursor-pointer list-none px-6 py-4 text-xl text-white"
+            style={{
+              background: "linear-gradient(135deg, #56665a 0%, #222b24 100%)",
+            }}
+          >
             Appointment history ({history.length})
           </summary>
-          <div className="divide-y divide-[var(--color-stone-100)]">
+          <div className="divide-y divide-[var(--color-stone-100)] bg-[var(--customer-paper)]">
             {history.map((appointment) => (
               <Link
                 key={appointment.id}
