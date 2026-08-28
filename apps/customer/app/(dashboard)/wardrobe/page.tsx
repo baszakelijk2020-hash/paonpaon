@@ -107,13 +107,48 @@ export default async function WardrobePage() {
       const historyByItemId: Record<string, readonly WardrobeOwnershipEvent[]> =
         Object.fromEntries(historyEntries);
 
-      const ownedCards: OwnedCardModel[] = active.map((item) => ({
-        item,
-        history: historyByItemId[item.id] ?? [],
-        completeTheLookSuggestions:
-          completeTheLookByCategory[item.categoryCode] ?? [],
-        purchasedOnLabel: purchasedOnLabel(item.acquiredAt, nowIso),
-      }));
+      // "The size is perfect" (order-again) must land on the real retailer
+      // product-detail route, never a fabricated one — so resolve each
+      // owned item's linked product to its live slug here, server-side,
+      // where the real retailer slug and repository are available. A
+      // missing retailer slug, missing productId, or a product that no
+      // longer exists (deleted/unavailable) yields no href, and the UI
+      // falls back to the real "Ask your advisor to reorder" action.
+      const ownedProductIds = [
+        ...new Set(
+          active
+            .map((item) => item.productId)
+            .filter((id): id is NonNullable<typeof id> => Boolean(id)),
+        ),
+      ];
+      const ownedProducts = await Promise.all(
+        ownedProductIds.map((productId) => productRepo.findById(productId)),
+      );
+      const ownedProductById = Object.fromEntries(
+        ownedProducts
+          .filter((product): product is NonNullable<typeof product> =>
+            Boolean(product),
+          )
+          .map((product) => [product.id, product]),
+      );
+
+      const ownedCards: OwnedCardModel[] = active.map((item) => {
+        const linkedProduct = item.productId
+          ? ownedProductById[item.productId]
+          : undefined;
+        return {
+          item,
+          history: historyByItemId[item.id] ?? [],
+          completeTheLookSuggestions:
+            completeTheLookByCategory[item.categoryCode] ?? [],
+          purchasedOnLabel: purchasedOnLabel(item.acquiredAt, nowIso),
+          ...(retailer && linkedProduct
+            ? {
+                productDetailHref: `/r/${retailer.slug}/products/${linkedProduct.slug}`,
+              }
+            : {}),
+        };
+      });
 
       const approvedRoadmap = roadmaps.find(
         (roadmap) => roadmap.status === "approved",

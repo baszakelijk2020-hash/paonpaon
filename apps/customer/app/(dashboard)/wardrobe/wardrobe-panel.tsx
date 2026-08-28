@@ -66,6 +66,12 @@ export interface OwnedCardModel {
   readonly history: readonly WardrobeOwnershipEvent[];
   readonly completeTheLookSuggestions: readonly CompleteTheLookSuggestion[];
   readonly purchasedOnLabel: string;
+  /** Real `/r/{retailerSlug}/products/{productSlug}` route for this item's
+   * linked, still-existing product — resolved server-side. Absent when the
+   * item has no product link or that product no longer exists; "The size
+   * is perfect" then never renders a broken destination and the real
+   * "Ask your advisor to reorder" action is offered instead. */
+  readonly productDetailHref?: string;
 }
 
 export interface AdvisorSelectionAlternative {
@@ -397,9 +403,9 @@ function OwnedActionsDeck({
               Has this garment been altered by another tailor? We recommend an
               in-store fit check so your current size can be updated.
             </p>
-            {item.productId ? (
+            {card.productDetailHref ? (
               <Link
-                href={`/products/${item.productId}`}
+                href={card.productDetailHref}
                 className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-sm"
               >
                 The size is perfect
