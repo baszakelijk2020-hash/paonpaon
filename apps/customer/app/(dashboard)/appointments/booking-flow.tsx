@@ -86,12 +86,20 @@ export function BookingFlow({
   branches,
   initialReason,
   purpose,
+  wardrobeItemId,
+  roadmapGapId,
   onCloseAction,
 }: {
   retailerId: string;
   branches: readonly BookableBranch[];
   initialReason?: AppointmentReason;
   purpose?: string;
+  /** Wardrobe-originated context (DeepSeek remediation Cards 1-2) — passed
+   * through as hidden fields only; `booking-actions.ts` independently
+   * re-resolves and re-authorizes whichever one is present before it ever
+   * touches the persisted appointment's notes. */
+  wardrobeItemId?: string;
+  roadmapGapId?: string;
   onCloseAction: () => void;
 }) {
   const [step, setStep] = useState<Step>(initialReason ? "location" : "reason");
@@ -278,6 +286,12 @@ export function BookingFlow({
           <input type="hidden" name="reason" value={reason ?? ""} />
           <input type="hidden" name="branchId" value={branch.id} />
           <input type="hidden" name="startsAt" value={startsAtIso} />
+          {wardrobeItemId ? (
+            <input type="hidden" name="wardrobeItemId" value={wardrobeItemId} />
+          ) : null}
+          {roadmapGapId ? (
+            <input type="hidden" name="roadmapGapId" value={roadmapGapId} />
+          ) : null}
           <div className="rounded-[10px] bg-white/[0.06] p-4 text-sm">
             {purpose ? <p>{purpose}</p> : null}
             <p>{reasonLabel}</p>

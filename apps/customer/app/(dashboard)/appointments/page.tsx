@@ -5,6 +5,8 @@ import {
   PaidCareServicePriceRepository,
   RetailerBranchRepository,
   RetailerRepository,
+  WardrobeRepository,
+  WardrobeRoadmapRepository,
 } from "@paon/database";
 import {
   APPOINTMENT_TYPE_LABELS,
@@ -12,17 +14,91 @@ import {
 } from "@paon/domain";
 import { formatDate } from "@paon/utils";
 import Link from "next/link";
+import { z } from "zod";
 
 import { RelatedLinks } from "../related-links";
 
 import { BookAppointmentLauncher } from "./book-appointment-launcher";
 import type { BookableBranch } from "./booking-flow";
+import { APPOINTMENT_REASONS } from "./booking-reasons";
 import type { PricedOperation } from "./paid-care-flow";
 import { PaidCareLauncher } from "./paid-care-launcher";
 import { AppointmentStatusBadge } from "./status-badge";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
+
+const prefillParamsSchema = z.object({
+  prefillReason: z.enum(
+    APPOINTMENT_REASONS.map((r) => r.value) as [string, ...string[]],
+  ),
+  prefillWardrobeItemId: z.string().uuid().optional(),
+  prefillRoadmapGapId: z.string().uuid().optional(),
+});
+
+interface ResolvedBookingPrefill {
+  readonly initialReason: (typeof APPOINTMENT_REASONS)[number]["value"];
+  readonly purpose: string;
+  readonly wardrobeItemId?: string;
+  readonly roadmapGapId?: string;
+}
+
+/**
+ * DeepSeek remediation Cards 1-2: Wardrobe's "Request a fit-check in
+ * store" / "Proceed in store" actions link here with typed, allowlisted
+ * query params for the garment/context they're about. Anything that
+ * doesn't resolve to real data this customer actually owns — bad reason,
+ * missing/retired/cross-tenant garment or roadmap gap, malformed ids —
+ * fails closed to `null`: the page renders the normal, un-prefilled
+ * booking flow exactly as if no query params were present at all.
+ */
+async function resolveBookingPrefill(
+  supabase: Awaited<ReturnType<typeof getSupabaseServerClient>>,
+  customerId: string,
+  searchParams: Record<string, string | string[] | undefined>,
+): Promise<ResolvedBookingPrefill | null> {
+  const firstOf = (value: string | string[] | undefined) =>
+    Array.isArray(value) ? value[0] : value;
+  const parsed = prefillParamsSchema.safeParse({
+    prefillReason: firstOf(searchParams["prefillReason"]),
+    prefillWardrobeItemId: firstOf(searchParams["prefillWardrobeItemId"]),
+    prefillRoadmapGapId: firstOf(searchParams["prefillRoadmapGapId"]),
+  });
+  if (!parsed.success) return null;
+  const initialReason = parsed.data
+    .prefillReason as ResolvedBookingPrefill["initialReason"];
+
+  if (parsed.data.prefillWardrobeItemId) {
+    const item = await new WardrobeRepository(supabase).findById(
+      parsed.data.prefillWardrobeItemId as never,
+    );
+    if (!item || item.customerId !== customerId || item.retiredAt) {
+      return null;
+    }
+    return {
+      initialReason,
+      purpose: `Fit-check: ${item.displayName}`,
+      wardrobeItemId: parsed.data.prefillWardrobeItemId,
+    };
+  }
+
+  if (parsed.data.prefillRoadmapGapId) {
+    const roadmaps = await new WardrobeRoadmapRepository(
+      supabase,
+    ).findByCustomer(customerId as never, { customerVisibleOnly: true });
+    const gap = roadmaps
+      .flatMap((roadmap) => roadmap.gaps)
+      .find((candidate) => candidate.id === parsed.data.prefillRoadmapGapId);
+    if (!gap) return null;
+    return {
+      initialReason,
+      purpose: `In-store: ${gap.title}`,
+      roadmapGapId: parsed.data.prefillRoadmapGapId,
+    };
+  }
+
+  return null;
+}
 
 const INSPIRATION_APPOINTMENTS = [
   {
@@ -51,9 +127,14 @@ const INSPIRATION_APPOINTMENTS = [
   },
 ] as const;
 
-export default async function AppointmentsPage() {
+export default async function AppointmentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const session = await requireSession();
   const supabase = await getSupabaseServerClient();
+  const resolvedSearchParams = await searchParams;
 
   const customers = await new CustomerRepository(supabase).findByUserId(
     session.userId,
@@ -76,6 +157,13 @@ export default async function AppointmentsPage() {
   );
 
   const primaryCustomer = customers[0];
+  const bookingPrefill = primaryCustomer
+    ? await resolveBookingPrefill(
+        supabase,
+        primaryCustomer.id,
+        resolvedSearchParams,
+      )
+    : null;
   const bookableBranches: readonly BookableBranch[] = primaryCustomer
     ? (await branchRepo.listByRetailer(primaryCustomer.retailerId)).map(
         (branch) => ({
@@ -158,6 +246,19 @@ export default async function AppointmentsPage() {
             <BookAppointmentLauncher
               retailerId={primaryCustomer.retailerId}
               branches={bookableBranches}
+              {...(bookingPrefill
+                ? {
+                    autoOpen: true,
+                    initialReason: bookingPrefill.initialReason,
+                    purpose: bookingPrefill.purpose,
+                    ...(bookingPrefill.wardrobeItemId
+                      ? { wardrobeItemId: bookingPrefill.wardrobeItemId }
+                      : {}),
+                    ...(bookingPrefill.roadmapGapId
+                      ? { roadmapGapId: bookingPrefill.roadmapGapId }
+                      : {}),
+                  }
+                : {})}
             />
           ) : null}
           <RelatedLinks links={[{ href: "/concierge", label: "Concierge" }]} />

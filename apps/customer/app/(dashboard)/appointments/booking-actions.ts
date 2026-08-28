@@ -1,6 +1,11 @@
 "use server";
 
-import { AppointmentRepository, CustomerRepository } from "@paon/database";
+import {
+  AppointmentRepository,
+  CustomerRepository,
+  WardrobeRepository,
+  WardrobeRoadmapRepository,
+} from "@paon/database";
 import { asId, type AppointmentType } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -34,7 +39,46 @@ const bookAppointmentSchema = z.object({
   ]),
   branchId: z.string().uuid().optional(),
   startsAt: z.string().datetime(),
+  // Optional Wardrobe-originated context (DeepSeek remediation Cards 1-2):
+  // re-resolved and re-authorized here independently of the client-supplied
+  // `purpose` shown in the review step — never trust it for what gets
+  // persisted. Neither ever blocks a booking: if the reference no longer
+  // resolves to this customer's own data, it is silently dropped and the
+  // appointment still books exactly like a plain, unprefixed booking.
+  wardrobeItemId: z.string().uuid().optional(),
+  roadmapGapId: z.string().uuid().optional(),
 });
+
+/** Real garment/gap context, re-verified against this session's own
+ * customer — never the client-supplied `purpose` string. Returns `null`
+ * (fail closed, no note suffix) for anything unresolved or cross-tenant. */
+async function resolveBookingContextLabel(
+  supabase: Awaited<ReturnType<typeof getSupabaseServerClient>>,
+  customerId: string,
+  input: { wardrobeItemId?: string; roadmapGapId?: string },
+): Promise<string | null> {
+  if (input.wardrobeItemId) {
+    const item = await new WardrobeRepository(supabase).findById(
+      asId<"WardrobeItemId">(input.wardrobeItemId),
+    );
+    if (item && item.customerId === customerId && !item.retiredAt) {
+      return item.displayName;
+    }
+    return null;
+  }
+  if (input.roadmapGapId) {
+    const roadmaps = await new WardrobeRoadmapRepository(
+      supabase,
+    ).findByCustomer(asId<"CustomerId">(customerId), {
+      customerVisibleOnly: true,
+    });
+    const gap = roadmaps
+      .flatMap((roadmap) => roadmap.gaps)
+      .find((candidate) => candidate.id === input.roadmapGapId);
+    return gap?.title ?? null;
+  }
+  return null;
+}
 
 /**
  * My Appointments' new step-by-step booking flow (contract §6): reason,
@@ -52,6 +96,8 @@ export async function bookAppointment(
     reason: formData.get("reason"),
     branchId: formData.get("branchId") || undefined,
     startsAt: formData.get("startsAt"),
+    wardrobeItemId: formData.get("wardrobeItemId") || undefined,
+    roadmapGapId: formData.get("roadmapGapId") || undefined,
   });
 
   if (!parsed.success) {
@@ -83,6 +129,15 @@ export async function bookAppointment(
   const reasonLabel = APPOINTMENT_REASONS.find(
     (r) => r.value === parsed.data.reason,
   )?.label;
+  const contextLabel = await resolveBookingContextLabel(supabase, customer.id, {
+    ...(parsed.data.wardrobeItemId
+      ? { wardrobeItemId: parsed.data.wardrobeItemId }
+      : {}),
+    ...(parsed.data.roadmapGapId
+      ? { roadmapGapId: parsed.data.roadmapGapId }
+      : {}),
+  });
+  const notes = [reasonLabel, contextLabel].filter(Boolean).join(" — ");
 
   let appointmentId: string;
   try {
@@ -93,7 +148,7 @@ export async function bookAppointment(
       type: REASON_TO_TYPE[parsed.data.reason]!,
       startsAt,
       endsAt,
-      ...(reasonLabel ? { notes: reasonLabel } : {}),
+      ...(notes ? { notes } : {}),
       ...(parsed.data.branchId
         ? { branchId: asId<"RetailerBranchId">(parsed.data.branchId) }
         : {}),

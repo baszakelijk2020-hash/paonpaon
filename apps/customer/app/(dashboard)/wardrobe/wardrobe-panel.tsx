@@ -314,7 +314,7 @@ function OwnedActionsDeck({
               </form>
             ))}
             <Link
-              href={`/appointments?type=fitting&wardrobeItemId=${item.id}&reason=service_size_check`}
+              href={`/appointments?prefillReason=service_size_check&prefillWardrobeItemId=${item.id}`}
               className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-left text-sm"
             >
               Request a fit-check in store
@@ -420,7 +420,7 @@ function OwnedActionsDeck({
               </form>
             )}
             <Link
-              href={`/appointments?type=fitting&wardrobeItemId=${item.id}&reason=service_size_check`}
+              href={`/appointments?prefillReason=service_size_check&prefillWardrobeItemId=${item.id}`}
               className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-sm"
             >
               Request a fit-check in store
@@ -721,7 +721,7 @@ function AdvisorSelectionCard({
                 </Button>
               </form>
               <Link
-                href={`/appointments?reason=roadmap_gap&gapId=${gap.id}`}
+                href={`/appointments?prefillReason=in_the_mood_for_something_fresh&prefillRoadmapGapId=${gap.id}`}
                 className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-sm"
               >
                 Proceed in store

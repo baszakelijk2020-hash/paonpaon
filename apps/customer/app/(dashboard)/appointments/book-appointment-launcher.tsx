@@ -11,6 +11,9 @@ export function BookAppointmentLauncher({
   branches,
   initialReason,
   purpose,
+  wardrobeItemId,
+  roadmapGapId,
+  autoOpen,
   children,
   className,
   style,
@@ -19,14 +22,22 @@ export function BookAppointmentLauncher({
   branches: readonly BookableBranch[];
   initialReason?: AppointmentReason;
   purpose?: string;
+  wardrobeItemId?: string;
+  roadmapGapId?: string;
+  /** Opens the real booking flow immediately, skipping the closed-button
+   * gate — used only when a server-verified Wardrobe prefill context
+   * resolved successfully (DeepSeek remediation Cards 1-2). */
+  autoOpen?: boolean;
   children?: ReactNode;
   className?: string;
   style?: CSSProperties;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(autoOpen ?? false);
   const bookingContext = {
     ...(initialReason ? { initialReason } : {}),
     ...(purpose ? { purpose } : {}),
+    ...(wardrobeItemId ? { wardrobeItemId } : {}),
+    ...(roadmapGapId ? { roadmapGapId } : {}),
   };
 
   if (!open) {
