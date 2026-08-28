@@ -32,21 +32,35 @@ import {
  *   - self scan                 submitWardrobeSelfScan
  *   - retire                    retireWardrobeItem
  *
- * Roadmap review control: the pending-approval banner + its
- * "Approve" / "Request changes" forms are proven real and wired to
- * decideWardrobeRoadmap, but the customer-side DB write currently FAILS
- * (see docs/evidence/runs/customer-v3-real-actions-proof/REPORT.md
- * "Broken backing behaviour"). The test asserts the real failure rather
- * than weakening it.
+ * Roadmap review control (UPDATED — see
+ * docs/evidence/runs/customer-v3-roadmap-approval-rls/REPORT.md): the
+ * customer-side DB write that this file previously proved BROKEN
+ * ("Could not update roadmap.") is now repaired by migration
+ * 20260828155029_fix_wardrobe_roadmap_tenancy_update_author_recheck.sql
+ * (candidate branch agent/c2-roadmap-approval-rls). This test now proves
+ * the real success path through the authenticated customer UI: approving
+ * a pending roadmap persists status='approved' with decided_by_actor and
+ * decided_at, and the pending-approval banner disappears from the page;
+ * requesting changes on a SEPARATE fresh roadmap persists
+ * status='rejected'. No console error is filtered for this test — not
+ * React #418, not weather/camera noise, nothing.
+ *
+ * The service-role client is used ONLY to create/clean fixtures and to
+ * inspect DB postconditions after the fact; every mutating click runs
+ * under the real, magic-link-authenticated customer session (the
+ * Server Action uses the request-scoped, RLS-respecting Supabase client,
+ * never the admin client).
  *
  * "Discuss with advisor" on the advisor-selection card is a real handler
- * (askAdvisorAboutWardrobeItem, discuss_roadmap_gap) but only renders on
- * an approved-roadmap gap — unreachable in E2E because customer approve
- * is broken. Recorded in REPORT.md, not asserted.
+ * (askAdvisorAboutWardrobeItem, discuss_roadmap_gap) that only renders on
+ * an approved-roadmap's open gap — now reachable in principle since
+ * approve works, but exercising it is out of this repair's required
+ * scope and is not asserted here.
  *
  * "Complete the look", "Order again", "Explore alternatives" are
  * navigation / display-only (no mutation handler) — recorded in
- * REPORT.md, not asserted.
+ * docs/evidence/runs/customer-v3-real-actions-proof/REPORT.md, not
+ * asserted.
  */
 
 // Filter the pre-existing, out-of-scope React hydration error #418 that
@@ -384,14 +398,14 @@ test.describe("V3 Wardrobe real-action proof", () => {
     }
   });
 
-  test("roadmap review control is real and wired to decideWardrobeRoadmap (customer-side write currently blocked — recorded in REPORT.md)", async ({
-    page,
-  }) => {
-    const consoleErrors = attachConsole(page);
-    const client = admin();
-    const { retailerId, customerId, staffId, productId } =
-      await resolveIdentity();
-
+  async function seedPendingRoadmap(
+    client: ReturnType<typeof admin>,
+    retailerId: string,
+    customerId: string,
+    staffId: string,
+    productId: string,
+    title: string,
+  ) {
     const { data: productRow } = await client
       .from("products")
       .select("name")
@@ -409,7 +423,7 @@ test.describe("V3 Wardrobe real-action proof", () => {
       {
         retailerId,
         customerId,
-        title: `E2E RealActions Roadmap ${Date.now()}`,
+        title,
         horizonLabel: "12 months",
         goals: [{ title: "Build a stronger wardrobe core", displayOrder: 0 }],
         gaps: [
@@ -458,67 +472,189 @@ test.describe("V3 Wardrobe real-action proof", () => {
         role: "owner",
       },
     );
+    return roadmap;
+  }
+
+  async function cleanupRoadmap(
+    client: ReturnType<typeof admin>,
+    roadmapId: string,
+  ) {
+    await client
+      .from("wardrobe_roadmap_stages")
+      .delete()
+      .eq("roadmap_id", roadmapId);
+    await client
+      .from("wardrobe_roadmap_gaps")
+      .delete()
+      .eq("roadmap_id", roadmapId);
+    await client
+      .from("wardrobe_roadmap_goals")
+      .delete()
+      .eq("roadmap_id", roadmapId);
+    await client.from("wardrobe_roadmaps").delete().eq("id", roadmapId);
+  }
+
+  test("roadmap review: a customer approves a pending roadmap and separately requests changes on another, both through the real authenticated UI (repaired by agent/c2-roadmap-approval-rls)", async ({
+    page,
+  }) => {
+    // No console-error filtering for this test — not React #418, not
+    // weather/camera noise, nothing. A real error here is a real failure.
+    const consoleErrors: string[] = [];
+    page.on("console", (m) => {
+      if (m.type() === "error") consoleErrors.push(m.text());
+    });
+    page.on("pageerror", (e) => consoleErrors.push(`pageerror: ${String(e)}`));
+
+    const client = admin();
+    const { retailerId, customerId, staffId, productId } =
+      await resolveIdentity();
+
+    // Seeded one at a time, not both up front: the wardrobe page shows at
+    // most one pending-approval banner, so a second simultaneous pending
+    // roadmap makes which one renders unpredictable. The reject roadmap is
+    // only created after the approve roadmap has been fully approved and
+    // cleaned up.
+    const approveRoadmap = await seedPendingRoadmap(
+      client,
+      retailerId,
+      customerId,
+      staffId,
+      productId,
+      `E2E RealActions Approve Roadmap ${Date.now()}`,
+    );
+    let approveRoadmapCleaned = false;
+    let rejectRoadmap: { id: string } | undefined;
 
     try {
       await page.setViewportSize({ width: 1512, height: 982 });
       await signIn(page);
-      const response = await page.goto("/wardrobe", {
+
+      // --- Approve, through the real authenticated customer session ---
+      let response = await page.goto("/wardrobe", {
         waitUntil: "networkidle",
       });
       expect(response?.status()).toBe(200);
 
-      // --- roadmap review action: the control is real and wired ---
-      // The pending-approval banner and its "Approve" / "Request changes"
-      // buttons render and submit to the real `decideWardrobeRoadmap`
-      // Server Action (apps/customer/app/(dashboard)/wardrobe/roadmap-
-      // actions.ts). The customer-side DB write, however, currently fails
-      // — see docs/evidence/runs/customer-v3-real-actions-proof/REPORT.md
-      // "Broken backing behaviour": the `enforce_wardrobe_roadmap_tenancy`
-      // trigger re-checks `retailer_staff_members` on every UPDATE, and
-      // that table is invisible to a customer session under RLS, so every
-      // customer approve/reject raises "Roadmap author does not belong to
-      // the retailer" and surfaces as "Could not update roadmap." This
-      // test does NOT weaken that: it proves the control is real, records
-      // the defect, and establishes the approved-gap precondition below
-      // through the valid admin path instead of the broken button.
       const banner = page.locator("form", {
         has: page.getByRole("button", { name: "Approve", exact: true }),
       });
       await expect(
         page.getByText(/Your advisor shared a plan awaiting your review/),
       ).toBeVisible();
-      // The two review controls render and each is a real <form> carrying
-      // the roadmap id and the exact action value the real
-      // `decideWardrobeRoadmap` Server Action validates ("approve" /
-      // "reject").
       await expect(banner).toBeVisible();
-      await expect(
-        banner.locator('input[name="roadmapId"]'),
-      ).toHaveValue(roadmap.id);
+      await expect(banner.locator('input[name="roadmapId"]')).toHaveValue(
+        approveRoadmap.id,
+      );
       await expect(banner.locator('input[name="action"]')).toHaveValue(
         "approve",
       );
-      await expect(
-        page.getByRole("button", { name: "Request changes", exact: true }),
-      ).toBeVisible();
 
-      // The customer-side write itself currently fails at the DB layer
-      // (see REPORT.md "Broken backing behaviour"). Clicking Approve runs
-      // the real Server Action and surfaces its real error rather than
-      // approving the plan — asserted here so the defect is captured, not
-      // hidden, and never silently treated as a pass.
+      // The click submits the real <form action={decideWardrobeRoadmap}>
+      // under the real customer session — the service-role client below
+      // only ever reads the postcondition, never performs the mutation.
       await page
         .getByRole("button", { name: "Approve", exact: true })
         .click();
-      await expect(
-        page.getByText("Could not update roadmap."),
-      ).toBeVisible();
-      const { data: afterClick } = await client
+
+      // DB postcondition: really approved, decided by the customer, timed.
+      await expect
+        .poll(async () => {
+          const { data } = await client
+            .from("wardrobe_roadmaps")
+            .select("status, decided_by_actor, decided_at, customer_id, retailer_id")
+            .eq("id", approveRoadmap.id)
+            .single();
+          return data;
+        })
+        .toEqual(
+          expect.objectContaining({
+            status: "approved",
+            decided_by_actor: "customer",
+            customer_id: customerId,
+            retailer_id: retailerId,
+          }),
+        );
+      const { data: approvedRow } = await client
         .from("wardrobe_roadmaps")
-        .select("status")
-        .eq("id", roadmap.id)
+        .select("decided_at")
+        .eq("id", approveRoadmap.id)
         .single();
-      expect(afterClick?.status).toBe("pending_approval");
+      expect(approvedRow?.decided_at).not.toBeNull();
+
+      // The pending banner for this roadmap is gone from the page — either
+      // it disappeared in place (Server Action revalidation) or it is gone
+      // on reload; either way the customer sees no stale "awaiting your
+      // review" banner for a roadmap that is no longer pending.
+      await page.waitForTimeout(500);
+      let bannerGone = (await banner.count()) === 0;
+      if (!bannerGone) {
+        response = await page.goto("/wardrobe", { waitUntil: "networkidle" });
+        expect(response?.status()).toBe(200);
+        bannerGone = (await banner.count()) === 0;
+      }
+      expect(bannerGone).toBe(true);
+      await expect(
+        page.getByText(/Your advisor shared a plan awaiting your review/),
+      ).toHaveCount(0);
+
+      // --- Request changes, on a SEPARATE fresh roadmap, same session ---
+      // Cleaned up the approve roadmap first, then seed the reject one, so
+      // at most one pending-approval roadmap ever exists at a time — the
+      // wardrobe page shows only one banner.
+      await cleanupRoadmap(client, approveRoadmap.id);
+      approveRoadmapCleaned = true;
+      rejectRoadmap = await seedPendingRoadmap(
+        client,
+        retailerId,
+        customerId,
+        staffId,
+        productId,
+        `E2E RealActions Reject Roadmap ${Date.now()}`,
+      );
+
+      response = await page.goto("/wardrobe", { waitUntil: "networkidle" });
+      expect(response?.status()).toBe(200);
+      const rejectBanner = page.locator("form", {
+        has: page.getByRole("button", { name: "Approve", exact: true }),
+      });
+      await expect(
+        rejectBanner.locator('input[name="roadmapId"]'),
+      ).toHaveValue(rejectRoadmap.id);
+      const requestChanges = page.getByRole("button", {
+        name: "Request changes",
+        exact: true,
+      });
+      await expect(requestChanges).toBeVisible();
+
+      // The current customer-facing "Request changes" control is a bare
+      // submit button with no note/reason field anywhere in its form (see
+      // apps/customer/app/(dashboard)/wardrobe/wardrobe-panel.tsx, the
+      // pending-approval banner JSX) — there is no real UI affordance to
+      // type a note through. Submitting it is the real, complete action a
+      // customer can currently take; a note is not fabricated to simulate
+      // one. This gap is recorded in
+      // docs/evidence/runs/customer-v3-roadmap-approval-rls/REPORT.md.
+      await requestChanges.click();
+
+      const rejectRoadmapId = rejectRoadmap.id;
+      await expect
+        .poll(async () => {
+          const { data } = await client
+            .from("wardrobe_roadmaps")
+            .select("status, decided_by_actor, customer_decision_note, customer_id, retailer_id")
+            .eq("id", rejectRoadmapId)
+            .single();
+          return data;
+        })
+        .toEqual(
+          expect.objectContaining({
+            status: "rejected",
+            decided_by_actor: "customer",
+            customer_decision_note: null,
+            customer_id: customerId,
+            retailer_id: retailerId,
+          }),
+        );
 
       expect(consoleErrors, consoleErrors.join("\n")).toEqual([]);
     } finally {
@@ -531,19 +667,12 @@ test.describe("V3 Wardrobe real-action proof", () => {
       for (const c of convoIds ?? []) {
         await client.from("messages").delete().eq("conversation_id", c.id);
       }
-      await client
-        .from("wardrobe_roadmap_stages")
-        .delete()
-        .eq("roadmap_id", roadmap.id);
-      await client
-        .from("wardrobe_roadmap_gaps")
-        .delete()
-        .eq("roadmap_id", roadmap.id);
-      await client
-        .from("wardrobe_roadmap_goals")
-        .delete()
-        .eq("roadmap_id", roadmap.id);
-      await client.from("wardrobe_roadmaps").delete().eq("id", roadmap.id);
+      if (!approveRoadmapCleaned) {
+        await cleanupRoadmap(client, approveRoadmap.id);
+      }
+      if (rejectRoadmap) {
+        await cleanupRoadmap(client, rejectRoadmap.id);
+      }
     }
   });
 });
