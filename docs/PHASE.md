@@ -8182,7 +8182,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     worker.
   - **Tests:** read-only browser capture and source-contract cross-check only.
 
-- [ ] **20.9 claude-customer-wardrobe-v3 — Customer Wardrobe V3 presentation**
+- [x] **20.9 claude-customer-wardrobe-v3 — Customer Wardrobe V3 presentation**
   - **Requirement IDs:** `CENV-WARDROBE-001`.
   - **Dependencies:** `20.2`.
   - **Fleet owned paths:** `apps/customer/app/(dashboard)/wardrobe/**`,
