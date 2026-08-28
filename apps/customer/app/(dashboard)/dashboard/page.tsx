@@ -20,6 +20,7 @@ import {
   MorningRoutineDashboardHero,
   type HeroPiece,
 } from "./morning-routine-hero";
+import { SeasonalCapsuleStrip } from "./seasonal-capsule-strip";
 
 import { getSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -248,6 +249,14 @@ export default async function DashboardPage() {
           />
         )}
       </Suspense>
+      {primary?.retailer ? (
+        <Suspense fallback={null}>
+          <SeasonalCapsuleStrip
+            retailerId={primary.customer.retailerId}
+            retailerSlug={primary.retailer.slug}
+          />
+        </Suspense>
+      ) : null}
     </div>
   );
 }
