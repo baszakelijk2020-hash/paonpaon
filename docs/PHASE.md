@@ -8567,7 +8567,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     references, findings, and required correction; commit only owned review evidence.
   - **Tests:** Git/evidence/browser-artifact cross-check only.
 
-- [ ] **20.30 evidence-phase-20-freshness — stale-SHA reconciliation**
+- [x] **20.30 evidence-phase-20-freshness — stale-SHA reconciliation**
   - **Requirement IDs:** `CENV-EVIDENCE-001`.
   - **Dependencies:** completed Phase 20 tasks.
   - **Fleet owned paths:** `docs/evidence/reviews/20.30-phase-20-freshness/`.
@@ -8603,7 +8603,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
   - **Acceptance:** one exact review report; commit only its owned evidence.
   - **Tests:** Git, source, and evidence cross-check only.
 
-- [ ] **20.33 evidence-review-55e6d01 — Rewards candidate review**
+- [x] **20.33 evidence-review-55e6d01 — Rewards candidate review**
   - **Dependencies:** saved candidate `55e6d01`.
   - **Fleet owned paths:** `docs/evidence/reviews/20.33-candidate-55e6d01/`.
   - **Owner boundary:** review only `55e6d01`: exact changed files, V3 task scope,
@@ -8613,7 +8613,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
   - **Acceptance:** one exact review report; commit only its owned evidence.
   - **Tests:** Git, source, and evidence cross-check only.
 
-- [ ] **20.34 evidence-review-orders-candidates — Orders action and history candidate review**
+- [x] **20.34 evidence-review-orders-candidates — Orders action and history candidate review**
   - **Dependencies:** saved candidates `fe91186`, `b49798b`.
   - **Fleet owned paths:** `docs/evidence/reviews/20.34-orders-candidates/`.
   - **Owner boundary:** review only `fe91186` and `b49798b`: exact changed files,
