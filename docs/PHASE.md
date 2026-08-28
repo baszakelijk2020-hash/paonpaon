@@ -8502,7 +8502,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     and owned-files-only commit.
   - **Tests:** customer-prefetch-constrained-network V3 E2E, customer lint, typecheck.
 
-- [ ] **20.25 claude-customer-cta-squircle-v3 — CTA-system contract proof**
+- [x] **20.25 claude-customer-cta-squircle-v3 — CTA-system contract proof**
   - **Requirement IDs:** `CENV-CTA-001`.
   - **Dependencies:** `20.15`.
   - **Fleet owned paths:** `apps/customer/e2e/customer-cta-squircle-v3.spec.ts`,
