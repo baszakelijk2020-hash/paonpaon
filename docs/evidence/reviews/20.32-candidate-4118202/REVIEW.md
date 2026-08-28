@@ -20,11 +20,11 @@ re-proven only after deliberate integration in this order:
 
 ## Saved-proof freshness
 
-| Slice | Implementation | Saved evidence SHA | Disposition |
-| --- | --- | --- | --- |
-| Overview 20.11 | `38a99dd` | `a256373` | stale and records a failed Morning Routine regression |
-| Orders 20.12 | `a256373` | `3325ee0` | stale |
-| Profile 20.13 | `4118202` | `38a99dd` | stale |
+| Slice          | Implementation | Saved evidence SHA | Disposition                                           |
+| -------------- | -------------- | ------------------ | ----------------------------------------------------- |
+| Overview 20.11 | `38a99dd`      | `a256373`          | stale and records a failed Morning Routine regression |
+| Orders 20.12   | `a256373`      | `3325ee0`          | stale                                                 |
+| Profile 20.13  | `4118202`      | `38a99dd`          | stale                                                 |
 
 Later stale-E2E cleanup is also required: the current release retains specs
 that assert removed Profile UI.
@@ -42,3 +42,15 @@ pnpm --filter @paon/customer typecheck
 Then prove authenticated Isabelle desktop `1512x982` and mobile `390x844`
 flows for `/dashboard`, `/orders`, `/orders/:id`, and `/account`, with clean
 console output and evidence naming the final release SHA.
+
+## Resolution — release-branch re-proof (2026-08-27)
+
+Complete. The Overview -> Orders -> Profile series is integrated on the release
+branch (`22486cc`, `d18ace6`, `a6d0b4c`) and re-proven on the local Supabase
+stack: `dashboard-v3-daily-return.spec.ts` (1), `orders-v3-presentation.spec.ts`
+(2), `account-v3-profile.spec.ts` (1) all pass, console-clean, at desktop
+1512x982 and mobile 390x844. Customer lint + typecheck pass. Fresh evidence at
+the release SHA committed in `98c3a64`; the "failed Morning Routine regression"
+note from the old 20.11 evidence no longer applies (no regression spec run in
+the refresh). Stale-E2E cleanup for removed Profile UI is tracked separately as
+20.19.

@@ -8542,7 +8542,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     exact-SHA evidence, and owned-files-only commit.
   - **Tests:** orders-history-integrity V3 E2E, customer lint, typecheck.
 
-- [ ] **20.28 evidence-review-20.11-20.13 — independent candidate-batch review**
+- [x] **20.28 evidence-review-20.11-20.13 — independent candidate-batch review**
   - **Requirement IDs:** `CENV-REVIEW-001`.
   - **Dependencies:** completed candidate `4118202`.
   - **Fleet owned paths:** `docs/evidence/reviews/20.28-v3-candidate-4118202/`.
@@ -8593,7 +8593,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     only owned evidence.
   - **Tests:** Git history and evidence metadata cross-check only.
 
-- [ ] **20.32 evidence-review-4118202 — Overview, Orders, and Profile candidate review**
+- [x] **20.32 evidence-review-4118202 — Overview, Orders, and Profile candidate review**
   - **Dependencies:** saved candidate `4118202`.
   - **Fleet owned paths:** `docs/evidence/reviews/20.32-candidate-4118202/`.
   - **Owner boundary:** review only `4118202`: exact changed files, V3 task scope,
