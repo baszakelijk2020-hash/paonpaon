@@ -119,6 +119,10 @@ export function LocalWidgets({
     label: string;
     code: number;
   } | null>(null);
+  // Distinguish "still resolving" from "cannot show weather" so the strip
+  // renders a readable state rather than a bare em dash (contract §3/§4).
+  const [locationDenied, setLocationDenied] = useState(false);
+  const [weatherError, setWeatherError] = useState(false);
   const [workAddress, setWorkAddress] = useState("");
   const [workInput, setWorkInput] = useState("");
   const [commute, setCommute] = useState<{
@@ -159,7 +163,10 @@ export function LocalWidgets({
   }, []);
 
   useEffect(() => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      setLocationDenied(true);
+      return;
+    }
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setCoords({
@@ -168,7 +175,9 @@ export function LocalWidgets({
         });
       },
       () => {
-        // Denied or unavailable — widgets below fall back to no-location copy.
+        // Denied or unavailable — the strip shows a readable "weather
+        // unavailable" state instead of a bare em dash.
+        setLocationDenied(true);
       },
       { maximumAge: 10 * 60_000, timeout: 8_000 },
     );
@@ -191,10 +200,14 @@ export function LocalWidgets({
             label: WEATHER_CODE_LABELS[code] ?? "Conditions unavailable",
             code: typeof code === "number" ? code : -1,
           });
+        } else {
+          setWeatherError(true);
         }
       })
       .catch(() => {
-        // Network/API unavailable — weather card just doesn't render.
+        // Network/API unavailable — the strip shows a readable
+        // "weather unavailable" state, never a bare em dash.
+        if (!cancelled) setWeatherError(true);
       });
     fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lon}`,
@@ -275,8 +288,8 @@ export function LocalWidgets({
     return (
       <section className="overflow-hidden border-b border-black/10 bg-[linear-gradient(100deg,#dce3d6_0%,#c5d0c0_58%,#aebdab_100%)] text-[var(--customer-ink)] lg:h-[100px]">
         <div className="grid h-full grid-cols-2 divide-x divide-black/10 lg:grid-cols-[1.15fr_0.55fr_1.35fr_1.45fr_1.2fr]">
-          <div className="flex min-h-24 items-center gap-4 px-5 lg:min-h-0">
-            <div>
+          <div className="flex min-h-24 min-w-0 items-center gap-4 px-5 lg:min-h-0">
+            <div className="min-w-0">
               <p className="customer-kicker text-[#596157]">Local context</p>
               <p className="mt-2 text-sm text-[#2f352e]">
                 {now?.toLocaleDateString(undefined, {
@@ -289,18 +302,35 @@ export function LocalWidgets({
                 {locationLabel}
               </p>
             </div>
-            <div className="ml-auto text-right">
-              <p className="font-display flex items-center justify-end gap-2 text-3xl leading-none">
-                <span className="font-sans text-2xl" aria-hidden="true">
-                  {weatherSymbol(weather?.code)}
-                </span>
-                {weather ? `${Math.round(weather.tempC)}°` : "—"}
-              </p>
-              <p className="mt-1 max-w-28 truncate text-xs text-[#596157]">
-                {weather
-                  ? `${weather.label} · ${[51, 61, 63, 65, 80, 95].includes(weather.code) ? "Rain likely" : "Dry"}`
-                  : locationLabel}
-              </p>
+            <div className="ml-auto min-w-0 max-w-[7.5rem] text-right lg:max-w-[9.5rem]">
+              {weather ? (
+                <>
+                  <p className="font-display flex items-center justify-end gap-2 text-3xl leading-none">
+                    <span className="font-sans text-2xl" aria-hidden="true">
+                      {weatherSymbol(weather.code)}
+                    </span>
+                    {`${Math.round(weather.tempC)}°`}
+                  </p>
+                  <p className="mt-1 truncate text-xs text-[#596157]">
+                    {`${weather.label} · ${[51, 61, 63, 65, 80, 95].includes(weather.code) ? "Rain likely" : "Dry"}`}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="font-display text-sm leading-tight text-[#2f352e]">
+                    {locationDenied || weatherError
+                      ? "Weather unavailable"
+                      : "Checking weather…"}
+                  </p>
+                  <p className="mt-1 truncate text-xs text-[#596157]">
+                    {locationDenied
+                      ? "Allow location for local weather"
+                      : weatherError
+                        ? "No live weather right now"
+                        : locationLabel}
+                  </p>
+                </>
+              )}
             </div>
           </div>
 
@@ -348,7 +378,7 @@ export function LocalWidgets({
             </form>
           </div>
 
-          <div className="col-span-2 hidden min-h-24 items-center gap-4 px-5 lg:col-span-1 lg:min-h-0 xl:flex">
+          <div className="col-span-2 flex min-h-24 items-center gap-4 border-t border-black/10 px-5 lg:col-span-1 lg:min-h-0 lg:border-t-0">
             <p className="customer-kicker shrink-0 text-[#596157]">Elsewhere</p>
             <div className="grid flex-1 grid-cols-3 gap-x-3 gap-y-1">
               {WORLD_CLOCKS.map((clock) => (
@@ -369,7 +399,11 @@ export function LocalWidgets({
             </div>
           </div>
 
-          <div className="relative col-span-2 hidden overflow-hidden bg-white/20 lg:col-span-1 lg:flex">
+          <div
+            className={`relative col-span-2 overflow-hidden border-t border-black/10 bg-white/15 lg:col-span-1 lg:h-auto lg:border-t-0 lg:flex ${
+              recommendation?.imageUrl ? "flex h-44" : "hidden lg:flex"
+            }`}
+          >
             {CITY_STREAMS_ENABLED && streamReady && isDesktop ? (
               <div className="absolute inset-0 grid grid-cols-3 gap-px bg-[#c5d0c0]">
                 {CITY_CAMERAS.slice(0, 3).map((camera) => (
@@ -388,7 +422,7 @@ export function LocalWidgets({
                 alt=""
                 fill
                 unoptimized
-                className="object-contain object-right"
+                className="object-contain object-center lg:object-right"
               />
             ) : null}
           </div>

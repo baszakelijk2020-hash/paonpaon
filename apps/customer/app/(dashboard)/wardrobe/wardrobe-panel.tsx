@@ -120,17 +120,21 @@ function CardImageLayers({
   }
   return (
     <>
-      {/* Restrained blurred full-bleed background, cropped, so no letterbox
-          band is ever plain white behind the uncropped foreground image. */}
+      {/* Restrained blurred full-bleed background: the same garment image,
+          cropped and softened, so the letterbox band beside the uncropped
+          foreground reads as a deliberate darkened blur of the piece and is
+          never plain white — even for studio shots on white. */}
       <Image
         src={imageUrl}
         alt=""
         fill
         unoptimized
         aria-hidden="true"
-        className="scale-110 object-cover opacity-40 blur-2xl"
+        className="scale-110 object-cover opacity-60 blur-2xl"
       />
-      {/* The complete original image, uncropped, no artificial margin. */}
+      <div aria-hidden="true" className="absolute inset-0 bg-black/40" />
+      {/* The complete original image, uncropped, no artificial margin — stays
+          the primary image above the restrained background. */}
       <Image
         src={imageUrl}
         alt={alt}
