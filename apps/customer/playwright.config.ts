@@ -2,6 +2,8 @@ import { defineConfig, devices } from "@playwright/test";
 
 const e2ePort = Number(process.env["PAON_E2E_PORT"] ?? "3102");
 const e2eBaseUrl = `http://localhost:${e2ePort}`;
+const e2eDistDir = process.env["PAON_NEXT_DIST_DIR"] ?? `.next-e2e-${e2ePort}`;
+const e2eRuntimeEnvironment = `VERCEL_ENV=development PAON_NEXT_DIST_DIR=${e2eDistDir}`;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -30,8 +32,9 @@ export default defineConfig({
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    command: `pnpm build && pnpm exec next start -p ${e2ePort}`,
+    command: `${e2eRuntimeEnvironment} pnpm build && ${e2eRuntimeEnvironment} pnpm exec next start -p ${e2ePort}`,
     url: e2eBaseUrl,
+    timeout: 180_000,
     reuseExistingServer: false,
   },
 });

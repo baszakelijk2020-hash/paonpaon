@@ -7,7 +7,7 @@
   "scripts": {
     "build": "next build",
     "clean": "rm -rf .next dist",
-    "dev": "next dev --turbopack -p 3002",
+    "dev": "next dev --turbopack -p ${PAON_DEV_PORT:-3002}",
     "lint": "eslint . --max-warnings 0",
     "start": "next start -p 3002",
     "test:e2e": "playwright test",
