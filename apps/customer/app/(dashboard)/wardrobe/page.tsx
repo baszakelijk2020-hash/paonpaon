@@ -136,17 +136,24 @@ export default async function WardrobePage() {
         const linkedProduct = item.productId
           ? ownedProductById[item.productId]
           : undefined;
+        // The real product-detail route (`/r/[slug]/products/[productSlug]`)
+        // redirects to the storefront root unless `?legacy=1` is present —
+        // it exists only as the canonical signed-in action target, not the
+        // default shopping surface (see that route's own file comment). It
+        // also 404s a product whose status isn't "active". Matching both
+        // here is what makes this a real, working destination rather than a
+        // silent bounce back to the generic storefront home.
+        const productDetailHref =
+          retailer && linkedProduct && linkedProduct.status === "active"
+            ? `/r/${retailer.slug}/products/${linkedProduct.slug}?legacy=1`
+            : undefined;
         return {
           item,
           history: historyByItemId[item.id] ?? [],
           completeTheLookSuggestions:
             completeTheLookByCategory[item.categoryCode] ?? [],
           purchasedOnLabel: purchasedOnLabel(item.acquiredAt, nowIso),
-          ...(retailer && linkedProduct
-            ? {
-                productDetailHref: `/r/${retailer.slug}/products/${linkedProduct.slug}`,
-              }
-            : {}),
+          ...(productDetailHref ? { productDetailHref } : {}),
         };
       });
 

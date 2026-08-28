@@ -21,8 +21,12 @@ import {
  *
  * Fixed: the owned card's Order-Again screen now uses a server-resolved
  * `card.productDetailHref` built from the item's real linked product and
- * the real retailer slug. When no product link exists — or resolves to
- * nothing — only the real "Ask your advisor to reorder" fallback renders;
+ * the real retailer slug, with the required `?legacy=1` (that route
+ * redirects to the storefront root without it — it exists only as the
+ * canonical signed-in action target, not the default shopping surface).
+ * When no product link exists — or resolves to nothing, or the linked
+ * product is no longer active — only the real "Ask your advisor to
+ * reorder" fallback renders;
  * no fabricated route, product, variant, or order is ever shown.
  */
 
@@ -183,15 +187,21 @@ test("owned-card Order Again offers the real product route or the real advisor f
     expect(href).not.toBeNull();
     // Never the old broken destination.
     expect(href).not.toMatch(/^\/products\//);
-    // The real retailer product-detail route, with the real slugs.
-    expect(href).toBe(`/r/${TEST_RETAILER_SLUG}/products/${TEST_PRODUCT_SLUG}`);
+    // The real retailer product-detail route, with the real slugs. That
+    // route redirects to the storefront root unless `?legacy=1` is present
+    // (it exists only as the canonical signed-in action target — see that
+    // route's own file comment) — the href must carry it, or "The size is
+    // perfect" silently bounces to the generic storefront home instead of
+    // the actual product.
+    const expectedHref = `/r/${TEST_RETAILER_SLUG}/products/${TEST_PRODUCT_SLUG}?legacy=1`;
+    expect(href).toBe(expectedHref);
 
-    // Following it must actually resolve — not 404, not an error page.
-    const [response] = await Promise.all([
-      page.waitForResponse((r) => r.url().endsWith(href!)),
-      sizePerfect.click(),
-    ]);
-    expect(response.status()).toBe(200);
+    // Following it must actually land ON that product page — not 404, and
+    // not silently redirected elsewhere.
+    await sizePerfect.click();
+    await page.waitForURL(
+      (u) => u.pathname === `/r/${TEST_RETAILER_SLUG}/products/${TEST_PRODUCT_SLUG}`,
+    );
     await expect(page.getByText(/page not found|404/i)).toHaveCount(0);
 
     await page.screenshot({
@@ -223,9 +233,7 @@ test("owned-card Order Again offers the real product route or the real advisor f
     const mobileHref = await linkedCardMobile
       .getByRole("link", { name: "The size is perfect" })
       .getAttribute("href");
-    expect(mobileHref).toBe(
-      `/r/${TEST_RETAILER_SLUG}/products/${TEST_PRODUCT_SLUG}`,
-    );
+    expect(mobileHref).toBe(expectedHref);
 
     await page.screenshot({
       path: resolve(evidenceDir, "size-perfect-linked-product-mobile.png"),
