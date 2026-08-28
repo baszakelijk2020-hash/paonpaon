@@ -4,6 +4,7 @@ import type { Order, OrderLine, Product, ProductVariant } from "@paon/domain";
 import { Button, buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { Input } from "@paon/ui/components/Input";
+import { cn } from "@paon/ui/lib/cn";
 import { formatMoney } from "@paon/utils";
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
@@ -161,7 +162,11 @@ export function CartClient({
           </p>
           <Link
             href={appointmentHref}
-            className={`${buttonVariants({ className: "rounded-[15px]" })} hidden lg:inline-flex`}
+            className={cn(
+              buttonVariants(),
+              "rounded-[15px]",
+              "hidden lg:inline-flex",
+            )}
           >
             Book an appointment
           </Link>
@@ -250,10 +255,7 @@ export function CartClient({
         </div>
         <Link
           href={appointmentHref}
-          className={buttonVariants({
-            size: "lg",
-            className: "rounded-[15px]",
-          })}
+          className={cn(buttonVariants({ size: "lg" }), "rounded-[15px]")}
         >
           Book appointment
         </Link>

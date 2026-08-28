@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, buttonVariants } from "@paon/ui/components/Button";
+import { cn } from "@paon/ui/lib/cn";
 import Image from "next/image";
 import Link from "next/link";
 import { useActionState } from "react";
@@ -155,11 +156,10 @@ function RecommendationActions({
             />
             <button
               type="submit"
-              className={buttonVariants({
-                variant: "outline",
-                size: "sm",
-                className: "rounded-[15px]",
-              })}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "rounded-[15px]",
+              )}
             >
               Ask advisor
             </button>
@@ -169,22 +169,20 @@ function RecommendationActions({
       {book?.available && book.href ? (
         <Link
           href={book.href}
-          className={buttonVariants({
-            variant: "outline",
-            size: "sm",
-            className: "rounded-[15px]",
-          })}
+          className={cn(
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "rounded-[15px]",
+          )}
         >
           Book
         </Link>
       ) : (
         <Link
           href={`/r/${retailerSlug}/appointments`}
-          className={buttonVariants({
-            variant: "outline",
-            size: "sm",
-            className: "rounded-[15px]",
-          })}
+          className={cn(
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "rounded-[15px]",
+          )}
         >
           Book
         </Link>
@@ -216,10 +214,7 @@ function RecommendationActions({
       ) : buy?.available && buy.href ? (
         <Link
           href={buy.href}
-          className={buttonVariants({
-            size: "sm",
-            className: "rounded-[15px]",
-          })}
+          className={cn(buttonVariants({ size: "sm" }), "rounded-[15px]")}
         >
           Buy
         </Link>
