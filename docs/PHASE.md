@@ -8489,7 +8489,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     console clean, lint/typecheck, exact-SHA evidence, and owned-files-only commit.
   - **Tests:** storefront-dashboard-return-state V3 E2E, customer lint, typecheck.
 
-- [ ] **20.24 claude-customer-prefetch-guard-v3 — constrained-network prefetch proof**
+- [x] **20.24 claude-customer-prefetch-guard-v3 — constrained-network prefetch proof**
   - **Requirement IDs:** `CENV-PREFETCH-001`.
   - **Dependencies:** `20.15`.
   - **Fleet owned paths:** `apps/customer/e2e/customer-prefetch-constrained-network-v3.spec.ts`,
