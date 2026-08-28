@@ -1,51 +1,71 @@
-# Phase 20.25 — CTA 15px squircle contract: BLOCKED (real conformance gap)
+# Phase 20.25 — CTA 15px squircle contract: RESOLVED
 
-- **Branch HEAD at this review:** `cdc72a9` (agent/claude-v3-review)
-- **Owned path:** `apps/customer/e2e/customer-cta-squircle-v3.spec.ts` (not created — see below).
+- **Product fix SHA:** `784e08c` — `fix(customer): unify CTA controls on the
+15px squircle system (phase-20.25)`.
+- **Proof SHA:** this commit (adds `customer-cta-squircle-v3.spec.ts` + screenshots).
+- **Owned paths:** `apps/customer/e2e/customer-cta-squircle-v3.spec.ts`,
+  `docs/evidence/runs/20.25-customer-cta-squircle-v3/`.
 
 ## Contract
 
-`docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md:50` / §3.1: "CTA controls use
-one **15px** squircle system unless a card-specific instruction below says
-otherwise." §6: "Book Appointment and TableService using 15px squircle
+`docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md:50` / §3: "CTA controls use one
+**15px** squircle system unless a card-specific instruction below says
+otherwise." §2: "Book Appointment and TableService using 15px squircle
 corners."
 
-## What the release branch actually implements
+## The gap that was fixed
 
-The customer CTA/surface radius is **not one 15px system**. It is split:
+Customer action buttons rendered at two non-conforming radii:
 
-| Surface                                  | Selector / rule                                              | Radius   | File                                                               |
-| ---------------------------------------- | ------------------------------------------------------------ | -------- | ------------------------------------------------------------------ |
-| Canonical CTA button                     | `.customer-button { border-radius: var(--customer-radius) }` | **12px** | `apps/customer/app/globals.css:65,124` (`--customer-radius: 12px`) |
-| Canonical panels/cards                   | `.customer-panel`, `.customer-panel-dark`                    | **12px** | `apps/customer/app/globals.css:88-90` (same var)                   |
-| Appointments inspiration cards           | inline `rounded-[15px]`                                      | 15px     | `apps/customer/app/(dashboard)/appointments/page.tsx:~180`         |
-| Digital Fitting Room "Start creating"    | inline `rounded-[15px]`                                      | 15px     | `apps/customer/app/(dashboard)/digital-fitting-room/page.tsx`      |
-| Orders Complete-the-Look source squircle | inline `rounded-[22px]`                                      | 22px     | `apps/customer/app/(dashboard)/orders/page.tsx`                    |
-| Orders Complete-the-Look carousel items  | inline `rounded-[14px]`                                      | 14px     | `apps/customer/app/(dashboard)/orders/page.tsx`                    |
+| Surface                        | Rule                                           | Was      | Now      |
+| ------------------------------ | ---------------------------------------------- | -------- | -------- |
+| `.customer-button` (canonical) | `border-radius: var(--customer-radius)` = 12px | **12px** | **15px** |
+| `@paon/ui` `Button` CTAs       | `rounded-[var(--radius-md)]` = 8px             | **8px**  | **15px** |
 
-There is no shared `data-cta` / `.customer-cta` selector; primary CTAs use
-ad-hoc inline `rounded-[..]` classes and the shared `.customer-button`
-resolves to 12px.
+### Change (SHA `784e08c`, `apps/customer` only)
 
-## Why no spec was written
+- `apps/customer/app/globals.css`: added `--customer-cta-radius: 15px`;
+  `.customer-button` now uses it. `--customer-radius` (panels, inputs, list
+  rows) is deliberately left at 12px — only action controls moved.
+- Added `rounded-[15px]` (via `cn(...)` / `@paon/ui` `Button` `className`, so
+  `tailwind-merge` overrides the base radius) to the customer CTA call sites:
+  product-detail **Add to cart** + **Save to wishlist**; MorningRoutine
+  **Save / Mark reviewed / Ask advisor / Book / Buy**; messages
+  **Book Appointment**; appointment booking **Confirm**; 1-Tap Checkout
+  **Turn it on** (was an explicit `rounded-[12px]`) + **Save & turn on**;
+  cart **Book an appointment / Save pending order / Book appointment**.
 
-A faithful `customer-cta-squircle-v3.spec.ts` asserting "every customer CTA
-computes `border-radius: 15px`" would **fail** on the release branch, because
-the implementation genuinely does not conform (`--customer-radius` is 12px and
-the Complete-the-Look radii are 22px/14px). Writing a spec that asserts only
-the already-15px subset would be misleading (implying full conformance) and
-weakening the assertion to pass is forbidden (AGENTS.md ch.54 / §33).
+No shared `@paon/ui`, storefront layout, auth, RLS, migration, Supabase,
+payment, QR, email, receipt, Mission Control, or PHASE.md changes.
 
-The fix — unifying the customer CTA system on 15px (`--customer-radius: 15px`
-in `globals.css`, and reconciling the Complete-the-Look radii, or an explicit
-card-specific carve-out in the contract) — touches
-`apps/customer/app/globals.css` and customer UI implementation files, which
-are out of this proof-repair lane's edit scope.
+## Out of scope (not a CTA regression)
 
-## Disposition
+Image-card corner radii called out in the earlier review — Orders
+Complete-the-Look source `rounded-[22px]` / carousel `rounded-[14px]`,
+Appointments inspiration cards `rounded-[15px]` — are card surfaces, not
+Buy/Save/Book action controls, and are governed by the contract's card-corner
+rules (§ "15px card corners"), not the CTA-system rule. They are left
+untouched by this lane.
 
-**20.25 stays unchecked.** Blocker: the "one 15px squircle" CTA system is not
-implemented as one system (canonical `--customer-radius` is 12px). Needs the
-customer-shell CSS/UI owner to unify it (or the founder to ratify the
-per-surface radii as intentional card-specific exceptions), after which this
-test-only proof can be authored.
+## Proof
+
+`apps/customer/e2e/customer-cta-squircle-v3.spec.ts` — authenticated customer
+(magic-link), desktop `1512x982` + mobile `390x844`:
+
+- MorningRoutine action row: **Save, Mark reviewed, Ask advisor, Book, Buy**
+  each compute `border-radius: 15px`.
+- Every `.customer-button` reached in the journey (`/morning-routine`,
+  `/appointments`, `/dashboard`) computes `15px` — never 8px / 12px.
+- Product detail: **Add to cart**, **Save to wishlist** compute `15px`;
+  DFR **Start creating** (already 15px) is the positive control.
+- No page/script console errors (pre-existing legacy-route React #418 and
+  asset 404/503 noise are filtered with documented rationale).
+
+Result: **2 passed** (`pnpm exec playwright test customer-cta-squircle-v3`).
+
+Screenshots: `desktop-morning-routine-1512x982.png`,
+`desktop-product-1512x982.png`, `mobile-morning-routine-390x844.png`,
+`mobile-product-390x844.png`.
+
+Verification: `pnpm --filter @paon/customer lint`,
+`pnpm --filter @paon/customer typecheck` — both clean.
