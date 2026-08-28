@@ -322,13 +322,13 @@ export function LocalWidgets({
                       ? "Weather unavailable"
                       : "Checking weather…"}
                   </p>
-                  <p className="mt-1 truncate text-xs text-[#596157]">
-                    {locationDenied
-                      ? "Allow location for local weather"
-                      : weatherError
-                        ? "No live weather right now"
-                        : locationLabel}
-                  </p>
+                  {locationDenied || weatherError ? (
+                    <p className="mt-1 truncate text-xs text-[#596157]">
+                      {locationDenied
+                        ? "Allow location for local weather"
+                        : "No live weather right now"}
+                    </p>
+                  ) : null}
                 </>
               )}
             </div>

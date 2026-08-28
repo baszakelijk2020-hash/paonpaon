@@ -28,6 +28,20 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
  * same Next.js app's own same-origin route (apps/customer/app/fonts/
  * [filename]/route.ts), not a fallback system font.
  */
+/**
+ * The customer environment's canonical garment taxonomy uses "Trousers" and
+ * "Knitwear" (CUSTOMER_ENVIRONMENT_REBUILD_V3 §5.2 / audit F10). The
+ * storefront's canonical category values ("Pants", "Knits") stay unchanged so
+ * catalogue filtering and the storefront template keep matching — only the
+ * label shown in this shared sidebar is aligned.
+ */
+const SIDEBAR_CATEGORY_LABELS: Partial<
+  Record<(typeof CANONICAL_CATEGORIES)[number], string>
+> = {
+  Pants: "Trousers",
+  Knits: "Knitwear",
+};
+
 async function populatedCategories(): Promise<
   readonly (typeof CANONICAL_CATEGORIES)[number][]
 > {
@@ -137,7 +151,7 @@ export async function ShopCategorySidebar() {
                 lineHeight: 1,
               }}
             >
-              {category}
+              {SIDEBAR_CATEGORY_LABELS[category] ?? category}
             </span>
           </IntentPrefetchLink>
         ))}
