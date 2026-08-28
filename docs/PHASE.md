@@ -8475,7 +8475,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     E2E, lint, typecheck, exact-SHA evidence, and owned-files-only commit.
   - **Tests:** wardrobe-no-external-entry V3 E2E, customer lint, typecheck.
 
-- [ ] **20.23 claude-storefront-dashboard-return-state-v3 — return-state restoration proof**
+- [x] **20.23 claude-storefront-dashboard-return-state-v3 — return-state restoration proof**
   - **Requirement IDs:** `CENV-RETURN-STATE-001`.
   - **Dependencies:** `20.21`.
   - **Fleet owned paths:** `apps/customer/e2e/storefront-dashboard-return-state-v3.spec.ts`,
