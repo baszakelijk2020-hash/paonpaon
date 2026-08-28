@@ -1,25 +1,33 @@
 {
   "phase": "20.14",
-  "commit": "4118202",
+  "commit": "ddf84e9",
+  "customer_app_code_sha": "3f1c88d",
+  "note": "Release-branch re-proof. Prior evidence recorded candidate SHA 4118202 (not an ancestor of release HEAD; see docs/evidence/reviews/phase-20-v3-release-audit/AUDIT.md). The /loyalty V3 frame ('Membership' kicker + 'Rewards & Referrals' heading) is integrated on the release branch at 1923565. apps/customer application code is unchanged since 3f1c88d.",
   "route": "/loyalty",
-  "persona": "authenticated E2E Customer Workspace fixture (TEST_CUSTOMER_EMAIL magic-link sign-in) against the local Supabase stack",
+  "persona": "authenticated E2E Customer Workspace fixture (TEST_CUSTOMER_EMAIL magic-link sign-in) against the local Supabase stack (http://127.0.0.1:54321)",
   "checks": {
-    "focused_playwright": "1 passed: loyalty-v3-presentation.spec.ts (the Rewards & Referrals page frames the real loyalty engine)",
-    "customer_lint": "passed",
-    "customer_typecheck": "passed",
-    "console": "no console error messages observed by the authenticated desktop/mobile browser capture"
+    "focused_playwright": "1 passed: loyalty-v3-presentation.spec.ts — 'the Rewards & Referrals page frames the real loyalty engine' (1.4s)",
+    "related_playwright": "2 passed: loyalty-badges.spec.ts — 'badges shelf shows all five built-in milestones, not-yet-earned by default' (0.7s); loyalty-referrals.spec.ts — 'a referral converts through signup and first delivered order' (5.6s), which exercises Join, Send invitation, referral state transitions (Invited -> Signed up -> Reward issued), a real +500 referral-points DB delta, and a real reward redemption (reward_redemptions row + -100 points DB delta)",
+    "customer_lint": "passed (pnpm --filter @paon/customer lint)",
+    "customer_typecheck": "passed (pnpm --filter @paon/customer typecheck)",
+    "console": "no console error messages observed by the authenticated desktop/mobile browser capture (spec asserts consoleErrors.toEqual([]))"
   },
-  "notes": "CUSTOMER_ENVIRONMENT_REBUILD_V3 §9: 'Rewards & Referrals renders the existing /loyalty implementation; do not create a duplicate rewards engine.' The /loyalty page already renders the real LoyaltyRepository-backed engine (tier, points, milestones/BadgesShelf, redeemable rewards via redeem_my_reward, referral invite via create_my_referral) with no duplicate surface anywhere in apps/customer. This slice is presentation only: the page frame gains the V3 kicker ('Membership') and its heading is renamed to match the navigation label and the contract, 'Rewards & Referrals'. No engine, schema, repository or action change.",
+  "asserted": [
+    "V3 page frame: 'Membership' kicker text and exact 'Rewards & Referrals' heading",
+    "the real LoyaltyRepository-backed engine renders here — 'Badges' shelf and 'Introduce a friend' referral invite — not a second bespoke rewards surface",
+    "no 'house memory' copy",
+    "desktop 1512x982 and mobile 390x844 captures, console-clean at both"
+  ],
   "screenshots": [
     {
       "file": "desktop-1512x982.png",
       "viewport": "1512x982",
-      "sha256": "336390c1ddc6a0538769985ec09a0566d9e8a89d93469794597d4e6711adf23f"
+      "sha256": "8e8085cd521ddf246c681c6de1438e545bf4e8d5e760fbff5d76df979c9fd740"
     },
     {
       "file": "mobile-390x844.png",
       "viewport": "390x844",
-      "sha256": "76af42cca7e70f2f303e78d0b3f3c0c12a01df2d0281774a68f6d1a92850e2dd"
+      "sha256": "7a70bc25ba47eed3529545cfe019635c55d15a2835aa2f4af4a4caf39d25852e"
     }
   ]
 }
