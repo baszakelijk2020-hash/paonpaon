@@ -1,0 +1,64 @@
+{
+  "branch": "release-integration-lane-h",
+  "commit": "e0cebae",
+  "note": "Isolated browser proof for F1/F2/F7 remediation (house copy removal, tonal panel styling, next-appointment primary action).",
+  "capturedAt": "2026-08-28T08:00:42.791Z",
+  "results": [
+    {
+      "route": "/loyalty",
+      "viewport": "desktop",
+      "httpStatus": 200,
+      "consoleErrors": [],
+      "screenshot": "loyalty--desktop.png"
+    },
+    {
+      "route": "/orders",
+      "viewport": "desktop",
+      "httpStatus": 200,
+      "consoleErrors": [],
+      "screenshot": "orders--desktop.png"
+    },
+    {
+      "route": "/appointments",
+      "viewport": "desktop",
+      "httpStatus": 200,
+      "consoleErrors": [],
+      "screenshot": "appointments--desktop.png"
+    },
+    {
+      "route": "/account",
+      "viewport": "desktop",
+      "httpStatus": 200,
+      "consoleErrors": [],
+      "screenshot": "account--desktop.png"
+    },
+    {
+      "route": "/loyalty",
+      "viewport": "mobile",
+      "httpStatus": 200,
+      "consoleErrors": [],
+      "screenshot": "loyalty--mobile.png"
+    },
+    {
+      "route": "/orders",
+      "viewport": "mobile",
+      "httpStatus": 200,
+      "consoleErrors": [],
+      "screenshot": "orders--mobile.png"
+    },
+    {
+      "route": "/appointments",
+      "viewport": "mobile",
+      "httpStatus": 200,
+      "consoleErrors": [],
+      "screenshot": "appointments--mobile.png"
+    },
+    {
+      "route": "/account",
+      "viewport": "mobile",
+      "httpStatus": 200,
+      "consoleErrors": [],
+      "screenshot": "account--mobile.png"
+    }
+  ]
+}
