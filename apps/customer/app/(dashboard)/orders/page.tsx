@@ -13,6 +13,8 @@ import Link from "next/link";
 import { RelatedLinks } from "../related-links";
 import { buildCategorizedCatalogue } from "../wardrobe/complete-the-look-catalogue";
 
+import { SeasonalStaffFavourites } from "./seasonal-staff-favourites";
+
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -421,6 +423,27 @@ export default async function OrdersPage() {
         <CompleteTheLookModule
           source={completeTheLook.source}
           suggestions={completeTheLook.suggestions}
+        />
+      ) : null}
+
+      {mostRecent?.retailerSlug ? (
+        <SeasonalStaffFavourites
+          retailerId={mostRecent.order.retailerId}
+          retailerSlug={mostRecent.retailerSlug}
+          excludeProductIds={
+            new Set(
+              completeTheLook
+                ? [
+                    ...(mostRecent.firstProduct
+                      ? [mostRecent.firstProduct.id]
+                      : []),
+                    ...completeTheLook.suggestions.map(
+                      (suggestion) => suggestion.productId,
+                    ),
+                  ]
+                : [],
+            )
+          }
         />
       ) : null}
 
