@@ -181,6 +181,7 @@ export default async function DigitalFittingRoomPage({
       };
     }),
   );
+  const hasSavedOutfits = groups.some((group) => group.outfits.length > 0);
 
   if (step !== "avatar") {
     return (
@@ -215,13 +216,25 @@ export default async function DigitalFittingRoomPage({
                 </li>
               ))}
             </ol>
-            <div className="mt-10">
+            <div className="mt-10 space-y-4">
               <Link
                 href="/digital-fitting-room?step=avatar"
                 className="inline-block rounded-[15px] bg-[#dce3d6] px-6 py-4 text-sm font-medium text-[#182018] transition hover:bg-white"
               >
                 Start creating →
               </Link>
+              {hasSavedOutfits ? (
+                <Link
+                  href="/digital-fitting-room?step=avatar"
+                  className="block w-fit text-sm text-[#dce3d6] underline decoration-white/35 underline-offset-4 transition hover:text-white"
+                >
+                  View saved drafts &amp; results
+                </Link>
+              ) : (
+                <p className="text-sm text-white/60">
+                  No saved drafts or results yet.
+                </p>
+              )}
             </div>
           </div>
         </section>
