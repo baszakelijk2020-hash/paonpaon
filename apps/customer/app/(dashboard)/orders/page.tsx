@@ -42,9 +42,17 @@ interface OrderView {
   readonly lineCount: number;
 }
 
+/** The real product-detail route (`/r/[slug]/products/[productSlug]`)
+ * redirects to the storefront root unless `?legacy=1` is present — it
+ * exists only as the canonical signed-in action target, not the default
+ * shopping surface (see that route's own file comment). `firstProduct`
+ * is only populated here when its linked product resolved and is
+ * `status === "active"` (see the OrdersPage loader below), so reaching
+ * this branch already guarantees a real, live landing rather than a
+ * silent bounce back to the generic storefront home. */
 function reorderHref(view: OrderView): string {
   if (view.retailerSlug && view.firstProduct) {
-    return `/r/${view.retailerSlug}/products/${view.firstProduct.slug}`;
+    return `/r/${view.retailerSlug}/products/${view.firstProduct.slug}?legacy=1`;
   }
   if (view.retailerSlug) return `/r/${view.retailerSlug}`;
   return `/orders/${view.order.id}`;
@@ -180,20 +188,33 @@ function CompleteTheLookModule({
       <div className="border-y border-[var(--customer-border)] py-6">
         <Link
           href={source.href}
-          className="mx-auto flex h-[70px] w-[70px] items-center justify-center overflow-hidden rounded-[22px] bg-[var(--color-stone-100)]"
+          className="relative mx-auto flex h-[70px] w-[70px] items-center justify-center overflow-hidden rounded-[22px] bg-[var(--color-stone-900)]"
           aria-label={`From your order: ${source.name}`}
         >
           {source.imageUrl ? (
-            <Image
-              src={source.imageUrl}
-              alt={source.name}
-              width={70}
-              height={70}
-              unoptimized
-              className="h-full w-full object-cover"
-            />
+            <>
+              {/* Restrained blurred backing layer only — never plain
+                  empty letterboxing — while the full original image
+                  stays primary via object-contain below (§5.3's
+                  owned-card treatment, reused here). */}
+              <Image
+                src={source.imageUrl}
+                alt=""
+                fill
+                unoptimized
+                aria-hidden="true"
+                className="scale-110 object-cover opacity-50 blur-md"
+              />
+              <Image
+                src={source.imageUrl}
+                alt={source.name}
+                fill
+                unoptimized
+                className="object-contain"
+              />
+            </>
           ) : (
-            <span className="px-1 text-center text-[10px] leading-tight text-[var(--color-stone-500)]">
+            <span className="px-1 text-center text-[10px] leading-tight text-[var(--color-stone-300)]">
               {source.name}
             </span>
           )}
@@ -209,18 +230,27 @@ function CompleteTheLookModule({
                   href={suggestion.href}
                   className="flex w-32 flex-col gap-2"
                 >
-                  <span className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-[14px] bg-[var(--color-stone-100)]">
+                  <span className="relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-[14px] bg-[var(--color-stone-900)]">
                     {suggestion.primaryImageUrl ? (
-                      <Image
-                        src={suggestion.primaryImageUrl}
-                        alt={suggestion.displayName}
-                        width={128}
-                        height={128}
-                        unoptimized
-                        className="h-full w-full object-cover"
-                      />
+                      <>
+                        <Image
+                          src={suggestion.primaryImageUrl}
+                          alt=""
+                          fill
+                          unoptimized
+                          aria-hidden="true"
+                          className="scale-110 object-cover opacity-50 blur-md"
+                        />
+                        <Image
+                          src={suggestion.primaryImageUrl}
+                          alt={suggestion.displayName}
+                          fill
+                          unoptimized
+                          className="object-contain"
+                        />
+                      </>
                     ) : (
-                      <span className="px-2 text-center text-[10px] text-[var(--color-stone-500)]">
+                      <span className="px-2 text-center text-[10px] text-[var(--color-stone-300)]">
                         {suggestion.displayName}
                       </span>
                     )}
@@ -283,7 +313,7 @@ export default async function OrdersPage() {
         const product = variant
           ? await productRepo.findById(variant.productId)
           : null;
-        if (product) {
+        if (product && product.status === "active") {
           firstProduct = {
             id: product.id,
             slug: product.slug,
@@ -345,14 +375,14 @@ export default async function OrdersPage() {
         ...(candidate.primaryImageUrl
           ? { primaryImageUrl: candidate.primaryImageUrl }
           : {}),
-        href: `/r/${retailerSlug}/products/${candidate.productSlug}`,
+        href: `/r/${retailerSlug}/products/${candidate.productSlug}?legacy=1`,
       }));
 
     completeTheLook = {
       source: {
         name: source.name,
         imageUrl: source.imageUrl,
-        href: `/r/${retailerSlug}/products/${source.slug}`,
+        href: `/r/${retailerSlug}/products/${source.slug}?legacy=1`,
       },
       suggestions,
     };
