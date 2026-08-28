@@ -8515,7 +8515,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     exact-SHA evidence, and owned-files-only commit.
   - **Tests:** customer-cta-squircle V3 E2E, customer lint, typecheck.
 
-- [ ] **20.26 claude-wardrobe-rail-contract-v3 — eight-rail contract proof**
+- [x] **20.26 claude-wardrobe-rail-contract-v3 — eight-rail contract proof**
   - **Requirement IDs:** `CENV-WARDROBE-RAILS-001`.
   - **Dependencies:** `20.9`.
   - **Fleet owned paths:** `apps/customer/e2e/wardrobe-rail-contract-v3.spec.ts`,
