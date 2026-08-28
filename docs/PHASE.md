@@ -8634,7 +8634,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
   - **Acceptance:** one exact review report; commit only its owned evidence.
   - **Tests:** Git, source, and evidence cross-check only.
 
-- [ ] **20.36 evidence-review-86e45d0 — stale E2E cleanup candidate review**
+- [x] **20.36 evidence-review-86e45d0 — stale E2E cleanup candidate review**
   - **Dependencies:** saved candidate `86e45d0`.
   - **Fleet owned paths:** `docs/evidence/reviews/20.36-candidate-86e45d0/`.
   - **Owner boundary:** review only `86e45d0`: exact changed files, V3 task scope,
