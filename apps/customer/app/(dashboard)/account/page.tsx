@@ -4,6 +4,8 @@ import {
   RetailerRepository,
 } from "@paon/database";
 
+import { SignOutButton } from "../components/sign-out-button";
+
 import { PreferencesForm } from "./preferences-form";
 
 import { requireSession } from "@/lib/session";
@@ -82,6 +84,18 @@ export default async function AccountPage() {
           </section>
         ))
       )}
+
+      <section className="customer-panel flex items-center justify-between gap-4 px-6 py-5">
+        <div>
+          <p className="customer-kicker text-[var(--color-stone-500)]">
+            Session
+          </p>
+          <p className="mt-1 text-base text-[var(--color-stone-600)]">
+            Sign out of your account on this device.
+          </p>
+        </div>
+        <SignOutButton className="inline-flex shrink-0 rounded-[var(--customer-radius)] border border-[var(--customer-border)] px-4 py-2" />
+      </section>
     </div>
   );
 }
