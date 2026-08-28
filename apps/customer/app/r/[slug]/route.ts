@@ -490,6 +490,122 @@ export async function GET(
 </script>`
     : "";
 
+  const dfrHandoffScript = `<script id="paon-dfr-handoff-inject">
+(function() {
+  function initDfrModule() {
+    const infoCardsFlow = document.getElementById('paon-info-cards-flow');
+    if (!infoCardsFlow || document.getElementById('paon-dfr-module')) return;
+
+    const dfrModule = document.createElement('div');
+    dfrModule.id = 'paon-dfr-module';
+    dfrModule.className = 'paon-dfr-module';
+    dfrModule.innerHTML = \`
+      <style>
+        .paon-dfr-module {
+          margin: 24px 0;
+          padding: 20px;
+          background: linear-gradient(135deg, rgba(220, 227, 214, 0.08), rgba(255, 255, 255, 0.04));
+          border-radius: 12px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .paon-dfr-module-heading {
+          font-size: 16px;
+          font-weight: 600;
+          margin: 0 0 16px 0;
+          line-height: 1.3;
+          letter-spacing: 0.01em;
+        }
+        .paon-dfr-module-steps {
+          list-style: none;
+          margin: 0 0 20px 0;
+          padding: 0;
+        }
+        .paon-dfr-module-step {
+          margin: 0 0 12px 0;
+          padding: 0 0 0 24px;
+          position: relative;
+          font-size: 13px;
+          line-height: 1.5;
+          color: rgba(255, 255, 255, 0.75);
+        }
+        .paon-dfr-module-step::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 2px;
+          width: 6px;
+          height: 6px;
+          background: rgba(220, 227, 214, 0.6);
+          border-radius: 50%;
+        }
+        .paon-dfr-module-cta {
+          display: inline-block;
+          padding: 10px 20px;
+          background: #dce3d6;
+          color: #182018;
+          text-decoration: none;
+          border: none;
+          border-radius: 15px;
+          font-size: 13px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: background-color 200ms ease;
+        }
+        .paon-dfr-module-cta:hover {
+          background: white;
+        }
+      </style>
+      <div class="paon-dfr-module-heading">Try in Digital Fitting Room</div>
+      <ol class="paon-dfr-module-steps">
+        <li class="paon-dfr-module-step">Upload two reference photos to create your digital portrait.</li>
+        <li class="paon-dfr-module-step">Select this piece and compose it with other items you own or are considering.</li>
+        <li class="paon-dfr-module-step">See how the look takes shape before you ask your advisor to make it real.</li>
+      </ol>
+      <a href="#" class="paon-dfr-module-cta" id="paon-dfr-cta">Start creating</a>
+    \`;
+
+    infoCardsFlow.parentNode.insertBefore(dfrModule, infoCardsFlow.nextSibling);
+  }
+
+  function updateDfrLink(productSlug) {
+    const ctaLink = document.getElementById('paon-dfr-cta');
+    if (ctaLink) {
+      ctaLink.href = '/digital-fitting-room?productSlug=' + encodeURIComponent(productSlug);
+    }
+  }
+
+  function init() {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initDfrModule);
+    } else {
+      initDfrModule();
+    }
+
+    // Hook into openDetail to update the DFR link
+    const originalOpenDetail = window.openDetail;
+    if (typeof originalOpenDetail === 'function' && !originalOpenDetail.__paonDfrBound) {
+      window.openDetail = function(id) {
+        const result = originalOpenDetail.apply(this, arguments);
+        if (typeof products !== 'undefined') {
+          const product = products.find(p => String(p.id) === String(id));
+          if (product) {
+            updateDfrLink(product.id);
+          }
+        }
+        return result;
+      };
+      window.openDetail.__paonDfrBound = true;
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>`;
+
   const brandHead = [
     logoUrl || heroUrl
       ? `<link rel="preload" as="image" href="${escapeHtml(logoUrl ?? heroUrl!)}"/>`
@@ -502,6 +618,7 @@ export async function GET(
     // browser skips it under data-saver.
     `<link rel="prefetch" as="document" href="/dashboard"/>`,
     `<link rel="prefetch" as="document" href="/login"/>`,
+    dfrHandoffScript,
     `<style id="paon-retailer-brand">
 :root {
   --paon-accent: ${accent};
