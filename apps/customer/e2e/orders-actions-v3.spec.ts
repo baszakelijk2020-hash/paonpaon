@@ -170,12 +170,14 @@ test("every per-order action is a real route carrying this order's own context",
       ).toBeVisible();
     }
 
-    // Order again -> this retailer's real product-detail route.
+    // Order again -> this retailer's real product-detail route, with the
+    // required `?legacy=1` (that route otherwise redirects to the
+    // storefront root — see its own file comment).
     await expect(
       seededArticle.getByRole("link", { name: "Order again", exact: true }),
     ).toHaveAttribute(
       "href",
-      new RegExp(`^/r/${TEST_RETAILER_SLUG}/products/[^/?#]+$`),
+      new RegExp(`^/r/${TEST_RETAILER_SLUG}/products/[^/?#]+\\?legacy=1$`),
     );
 
     // Complete the look -> the Digital Fitting Room, preloaded with THIS
