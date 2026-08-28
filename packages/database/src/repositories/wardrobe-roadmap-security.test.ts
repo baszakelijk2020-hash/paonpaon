@@ -131,9 +131,7 @@ describe("wardrobe roadmap tenancy-trigger UPDATE fix (phase C2)", () => {
     );
     expect(tenancyFixCode).toContain("staff.id = new.authored_by_staff_id");
     expect(tenancyFixCode).toContain("staff.deleted_at is null");
-    expect(tenancyFixCode).toContain(
-      "v_staff_retailer_id <> new.retailer_id",
-    );
+    expect(tenancyFixCode).toContain("v_staff_retailer_id <> new.retailer_id");
     expect(tenancyFixCode).toContain(
       "Roadmap author does not belong to the retailer",
     );
@@ -182,6 +180,149 @@ describe("wardrobe roadmap tenancy-trigger UPDATE fix (phase C2)", () => {
     );
     expect(migration).toContain(
       "Wardrobe roadmap identity fields are immutable",
+    );
+  });
+});
+
+// Phase 20.17 — customer removal of an advisor selection from the wardrobe
+// plan. New forward-only migration adds a customer-scoped, one-way
+// `wardrobe_roadmap_gap_dispositions` table. It must isolate the
+// disposition per customer/tenant without a SECURITY DEFINER shortcut,
+// without granting customers anything on unrelated tables, and without
+// touching the advisor-authored roadmap/gap/stage rows.
+const gapDisposition = readFileSync(
+  new URL(
+    "../../../../supabase/migrations/20260828185506_add_wardrobe_roadmap_gap_dispositions.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
+
+const gapDispositionCode = gapDisposition
+  .split("\n")
+  .map((line) => line.replace(/--.*$/, ""))
+  .join("\n");
+
+describe("wardrobe roadmap gap-disposition migration (phase 20.17)", () => {
+  it("is a new forward-only file, not an edit of an existing migration", () => {
+    // It creates its own table/triggers/policies; it never recreates or
+    // alters objects owned by earlier migrations.
+    expect(gapDispositionCode).toContain(
+      "create table if not exists public.wardrobe_roadmap_gap_dispositions",
+    );
+    expect(gapDispositionCode).not.toContain(
+      "create table if not exists public.wardrobe_roadmap_gaps",
+    );
+    expect(gapDispositionCode).not.toContain(
+      "create or replace function public.enforce_wardrobe_roadmap_tenancy()",
+    );
+    expect(gapDispositionCode).not.toMatch(/drop\s+policy/i);
+    expect(gapDispositionCode).not.toMatch(
+      /alter\s+table\s+public\.wardrobe_roadmaps/i,
+    );
+    expect(gapDispositionCode).not.toMatch(
+      /alter\s+table\s+public\.wardrobe_roadmap_gaps/i,
+    );
+  });
+
+  it("pins tenancy with a composite customer/retailer foreign key", () => {
+    expect(gapDispositionCode).toMatch(
+      /foreign key \(customer_id, retailer_id\)\s*references public\.customers \(id, retailer_id\)/,
+    );
+  });
+
+  it("locks the disposition to a single one-way value", () => {
+    expect(gapDispositionCode).toMatch(
+      /disposition text not null default 'removed_from_plan'\s*check \(disposition in \('removed_from_plan'\)\)/,
+    );
+  });
+
+  it("enables RLS and removes anonymous Data API access", () => {
+    expect(gapDispositionCode).toContain(
+      "alter table public.wardrobe_roadmap_gap_dispositions enable row level security",
+    );
+    expect(gapDispositionCode).toContain(
+      "revoke all on table public.wardrobe_roadmap_gap_dispositions from anon",
+    );
+  });
+
+  it("keeps both trigger functions explicit security invoker, never security definer", () => {
+    for (const fn of [
+      "public.enforce_wardrobe_roadmap_gap_disposition_tenancy()",
+      "public.protect_wardrobe_roadmap_gap_disposition_identity()",
+    ]) {
+      expect(gapDispositionCode).toContain(`create or replace function ${fn}`);
+    }
+    expect(gapDispositionCode).not.toContain("security definer");
+    const invokerCount = (gapDispositionCode.match(/security invoker/g) ?? [])
+      .length;
+    expect(invokerCount).toBe(2);
+  });
+
+  it("keeps an empty search path and revokes public execute on both functions", () => {
+    const searchPathCount = (
+      gapDispositionCode.match(/set search_path = ''/g) ?? []
+    ).length;
+    expect(searchPathCount).toBe(2);
+    expect(gapDispositionCode).toContain(
+      "revoke all on function public.enforce_wardrobe_roadmap_gap_disposition_tenancy() from public",
+    );
+    expect(gapDispositionCode).toContain(
+      "revoke all on function public.protect_wardrobe_roadmap_gap_disposition_identity() from public",
+    );
+  });
+
+  it("re-derives ownership from customer-visible tables only (no retailer_staff_members)", () => {
+    const bodyMatches = [
+      ...gapDispositionCode.matchAll(/as \$\$([\s\S]*?)\$\$;/g),
+    ];
+    expect(bodyMatches.length).toBe(2);
+    const bodies = bodyMatches.map((m) => m[1]).join("\n");
+    expect(bodies).not.toContain("retailer_staff_members");
+    expect(bodies).toContain("from public.wardrobe_roadmap_gaps");
+    expect(bodies).toContain("from public.wardrobe_roadmaps");
+  });
+
+  it("grants customers nothing on retailer_staff_members or other unrelated tables", () => {
+    expect(gapDispositionCode).not.toMatch(
+      /grant\s+[^;]*retailer_staff_members/i,
+    );
+    // The only GRANT statements target the new table itself.
+    for (const m of gapDispositionCode.matchAll(
+      /grant\s+[^;]+?\son\s+(?:table\s+)?([a-z_.]+)/gi,
+    )) {
+      expect(m[1]).toContain("wardrobe_roadmap_gap_dispositions");
+    }
+  });
+
+  it("scopes reads/writes to the owning customer and their approved roadmap", () => {
+    expect(gapDispositionCode).toContain(
+      'create policy "customers read own gap dispositions"',
+    );
+    expect(gapDispositionCode).toContain(
+      'create policy "customers create own gap dispositions"',
+    );
+    expect(gapDispositionCode).toContain(
+      'create policy "retailer staff read tenant gap dispositions"',
+    );
+    expect(gapDispositionCode).toContain("c.user_id = (select auth.uid())");
+    expect(gapDispositionCode).toContain("r.status = 'approved'");
+    expect(gapDispositionCode).toContain(
+      "retailer_id = (select public.current_retailer_id())",
+    );
+  });
+
+  it("has no update or delete policy for any caller — the disposition is append-only", () => {
+    expect(gapDispositionCode).not.toMatch(/create policy[^;]*\sfor update\s/i);
+    expect(gapDispositionCode).not.toMatch(/create policy[^;]*\sfor delete\s/i);
+  });
+
+  it("keeps the disposition identity columns immutable", () => {
+    expect(gapDispositionCode).toContain(
+      "create trigger protect_wardrobe_roadmap_gap_disposition_identity_on_update",
+    );
+    expect(gapDispositionCode).toContain(
+      "Wardrobe roadmap gap disposition identity fields are immutable",
     );
   });
 });
