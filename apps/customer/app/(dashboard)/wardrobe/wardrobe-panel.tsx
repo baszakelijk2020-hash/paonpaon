@@ -30,6 +30,7 @@ import {
 } from "./lifecycle-actions";
 import {
   decideWardrobeRoadmap,
+  removeAdvisorSelectionFromPlan,
   type CustomerRoadmapActionState,
 } from "./roadmap-actions";
 import { SuggestedLookTile } from "./suggested-look-tile";
@@ -644,11 +645,22 @@ function AdvisorSelectionCard({
 }) {
   const [open, setOpen] = useState(false);
   const [showAlternatives, setShowAlternatives] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(false);
   const initialAskState: AdvisorAskState = { fieldErrors: {} };
   const [askState, askAction, askPending] = useActionState(
     askAdvisorAboutWardrobeItem,
     initialAskState,
   );
+  const initialRemoveState: CustomerRoadmapActionState = { fieldErrors: {} };
+  const [removeState, removeAction, removePending] = useActionState(
+    removeAdvisorSelectionFromPlan,
+    initialRemoveState,
+  );
+
+  // Phase 20.17 — once the removal persists the card is gone from the
+  // customer's wardrobe plan (the server component also refetches without
+  // it via revalidatePath).
+  if (removeState.success) return null;
 
   return (
     <article className={CARD_CLASS}>
@@ -686,13 +698,49 @@ function AdvisorSelectionCard({
               onClick={() => {
                 setOpen(false);
                 setShowAlternatives(false);
+                setConfirmRemove(false);
               }}
               className="text-xs text-[var(--color-stone-300)] underline underline-offset-2"
             >
               Close
             </button>
           </div>
-          {!showAlternatives ? (
+          {confirmRemove ? (
+            <div className="flex flex-col gap-2">
+              <DeckBackRow
+                onBack={() => setConfirmRemove(false)}
+                label="Remove from wardrobe plan"
+              />
+              <p className="text-sm text-[var(--color-stone-200)]">
+                Remove &ldquo;{gap.title}&rdquo; from your wardrobe plan? Your
+                advisor keeps their original plan &mdash; this only hides the
+                selection from your wardrobe.
+              </p>
+              <form action={removeAction} className="flex gap-2">
+                <input type="hidden" name="retailerId" value={retailerId} />
+                <input type="hidden" name="roadmapGapId" value={gap.id} />
+                <Button type="submit" size="sm" disabled={removePending}>
+                  Confirm removal
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setConfirmRemove(false)}
+                >
+                  Cancel
+                </Button>
+              </form>
+              {removeState.formError ? (
+                <p
+                  role="alert"
+                  className="text-xs text-[var(--color-danger-500)]"
+                >
+                  {removeState.formError}
+                </p>
+              ) : null}
+            </div>
+          ) : !showAlternatives ? (
             <>
               {suggestedProduct ? (
                 <Link
@@ -732,6 +780,13 @@ function AdvisorSelectionCard({
                 className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-left text-sm"
               >
                 Explore alternatives
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmRemove(true)}
+                className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-left text-sm"
+              >
+                Remove from wardrobe plan
               </button>
               {suggestedProduct ? (
                 <Link

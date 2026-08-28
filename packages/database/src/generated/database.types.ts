@@ -20913,6 +20913,72 @@ export type Database = {
           },
         ];
       };
+      wardrobe_roadmap_gap_dispositions: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          disposition: string;
+          id: string;
+          retailer_id: string;
+          roadmap_gap_id: string;
+          roadmap_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id: string;
+          disposition?: string;
+          id?: string;
+          retailer_id: string;
+          roadmap_gap_id: string;
+          roadmap_id: string;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string;
+          disposition?: string;
+          id?: string;
+          retailer_id?: string;
+          roadmap_gap_id?: string;
+          roadmap_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "wardrobe_roadmap_gap_dispositions_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_roadmap_gap_dispositions_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "wardrobe_roadmap_gap_dispositions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_roadmap_gap_dispositions_roadmap_gap_id_fkey";
+            columns: ["roadmap_gap_id"];
+            isOneToOne: false;
+            referencedRelation: "wardrobe_roadmap_gaps";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_roadmap_gap_dispositions_roadmap_id_fkey";
+            columns: ["roadmap_id"];
+            isOneToOne: false;
+            referencedRelation: "wardrobe_roadmaps";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       wardrobe_roadmap_gaps: {
         Row: {
           category_code: string | null;

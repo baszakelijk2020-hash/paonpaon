@@ -402,6 +402,54 @@ export class WardrobeRoadmapRepository {
     return this.hydrate(data);
   }
 
+  /**
+   * Advisor-selection gap ids the customer has removed from their own
+   * wardrobe-plan presentation (Phase 20.17). Reads only the customer-
+   * scoped `wardrobe_roadmap_gap_dispositions` rows the caller's RLS
+   * session can see; the advisor-authored roadmap/gap/stage rows are never
+   * mutated or deleted.
+   */
+  async listRemovedGapIdsForCustomer(
+    customerId: CustomerId,
+  ): Promise<readonly string[]> {
+    const { data, error } = await this.client
+      .from("wardrobe_roadmap_gap_dispositions")
+      .select("roadmap_gap_id")
+      .eq("customer_id", customerId)
+      .eq("disposition", "removed_from_plan");
+    if (error) throw error;
+    return data.map((row) => row.roadmap_gap_id);
+  }
+
+  /**
+   * Record that the customer removed one advisor selection (an approved
+   * roadmap's open gap) from their wardrobe plan. Idempotent: a repeated
+   * removal of the same gap by the same customer is a no-op. The database
+   * BEFORE INSERT trigger + INSERT RLS policy independently verify that the
+   * gap belongs to this customer's own approved roadmap in this retailer.
+   * Nothing on the advisor-authored roadmap is changed or deleted.
+   */
+  async removeAdvisorSelectionFromPlan(input: {
+    readonly roadmapGapId: string;
+    readonly roadmapId: WardrobeRoadmapId;
+    readonly retailerId: RetailerId;
+    readonly customerId: CustomerId;
+  }): Promise<void> {
+    const { error } = await this.client
+      .from("wardrobe_roadmap_gap_dispositions")
+      .upsert(
+        {
+          roadmap_gap_id: input.roadmapGapId,
+          roadmap_id: input.roadmapId,
+          retailer_id: input.retailerId,
+          customer_id: input.customerId,
+          disposition: "removed_from_plan",
+        },
+        { onConflict: "roadmap_gap_id,customer_id", ignoreDuplicates: true },
+      );
+    if (error) throw error;
+  }
+
   private async hydrate(row: RoadmapRow): Promise<WardrobeRoadmap> {
     const roadmapId = row.id;
     const [goalsResult, gapsResult, stagesResult] = await Promise.all([

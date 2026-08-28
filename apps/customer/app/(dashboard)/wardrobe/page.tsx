@@ -160,8 +160,17 @@ export default async function WardrobePage() {
       const approvedRoadmap = roadmaps.find(
         (roadmap) => roadmap.status === "approved",
       );
+      // Phase 20.17 — a customer can remove an advisor selection from their
+      // own wardrobe plan. The advisor-authored roadmap is untouched; the
+      // removed gap is simply filtered out of the wardrobe presentation.
+      const removedGapIds = approvedRoadmap
+        ? new Set(await roadmapRepo.listRemovedGapIdsForCustomer(customer.id))
+        : new Set<string>();
       const openGaps = (approvedRoadmap?.gaps ?? []).filter(
-        (gap) => !gap.filledByProductId && !gap.filledByWardrobeItemId,
+        (gap) =>
+          !gap.filledByProductId &&
+          !gap.filledByWardrobeItemId &&
+          !removedGapIds.has(gap.id),
       );
       const suggestedProductIdByGapId: Record<string, string> = {};
       for (const stage of approvedRoadmap?.stages ?? []) {
