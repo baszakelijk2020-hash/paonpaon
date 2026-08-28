@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { createSupabaseAdminClient } from "@paon/database";
 import { expect, test, type Page } from "@playwright/test";
 
-import { TEST_CUSTOMER_EMAIL } from "./fixtures";
+import { TEST_CUSTOMER_EMAIL, TEST_RETAILER_SLUG } from "./fixtures";
 
 /**
  * PHASE 20.20 — Customer Alteration Choices V3.
@@ -162,4 +162,84 @@ test("'I know exactly what needs changing' moves forward, not to a dead end", as
   ).toBeVisible();
 
   expect(consoleErrors, consoleErrors.join("\n")).toEqual([]);
+});
+
+test("'Assess in store' persists the branch-tagged note into the retailer work order", async ({
+  page,
+}) => {
+  const consoleErrors: string[] = [];
+  page.on("console", (m) => {
+    if (m.type() === "error") consoleErrors.push(m.text());
+  });
+
+  const url = process.env["NEXT_PUBLIC_SUPABASE_URL"];
+  const key = process.env["SUPABASE_SERVICE_ROLE_KEY"];
+  if (!url || !key) throw new Error("requires local Supabase.");
+  const admin = createSupabaseAdminClient(url, key);
+
+  const { data: retailer } = await admin
+    .from("retailers")
+    .select("id")
+    .eq("slug", TEST_RETAILER_SLUG)
+    .single();
+  if (!retailer) throw new Error("fixture retailer missing");
+  const { data: customer } = await admin
+    .from("customers")
+    .select("id")
+    .eq("retailer_id", retailer.id)
+    .eq("email", TEST_CUSTOMER_EMAIL)
+    .single();
+  if (!customer) throw new Error("fixture customer missing");
+
+  const noteText = `Sleeves a touch long ${Date.now()}`;
+  let createdId: string | undefined;
+
+  try {
+    await page.setViewportSize({ width: 1512, height: 982 });
+    await openAlterationFlow(page);
+    await page
+      .getByRole("button", { name: "Assess in store", exact: true })
+      .click();
+
+    await page
+      .getByRole("textbox", { name: "What should we look at? (a short note)" })
+      .fill(noteText);
+    await page.getByRole("textbox", { name: "Garment" }).fill("Navy blazer");
+    await page.getByRole("button", { name: "Continue" }).click();
+
+    // Pickup + return: office both ways. Never "store" for the return — a
+    // store return mints a QR receipt, which is out of this lane's scope.
+    await page.getByRole("button", { name: "office pickup" }).click();
+    await page.getByRole("button", { name: "office delivery" }).click();
+
+    // Review -> payment -> confirm.
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: "Pay at pickup" }).click();
+    await page.getByRole("button", { name: "Confirm" }).click();
+
+    await expect(page.getByText("Care request booked")).toBeVisible();
+
+    // The persisted work order carries the branch prefix AND the customer's
+    // own words — the retailer reads the chosen decision path from it.
+    const { data: booking } = await admin
+      .from("paid_care_bookings")
+      .select("id, notes, service_kind, status")
+      .eq("customer_id", customer.id)
+      .eq("retailer_id", retailer.id)
+      .eq("service_kind", "alteration")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+    expect(booking, "a paid_care_bookings row was created").not.toBeNull();
+    createdId = booking!.id;
+    expect(booking!.status).toBe("requested");
+    expect(booking!.notes).toContain("[Assess in store]");
+    expect(booking!.notes).toContain(noteText);
+
+    expect(consoleErrors, consoleErrors.join("\n")).toEqual([]);
+  } finally {
+    if (createdId) {
+      await admin.from("paid_care_bookings").delete().eq("id", createdId);
+    }
+  }
 });
