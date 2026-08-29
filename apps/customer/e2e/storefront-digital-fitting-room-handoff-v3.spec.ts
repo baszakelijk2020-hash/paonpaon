@@ -1,7 +1,11 @@
 import { createSupabaseAdminClient } from "@paon/database";
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
 import { TEST_CUSTOMER_EMAIL, TEST_RETAILER_SLUG } from "./fixtures";
+
+type PageWithErrors = Page & {
+  __errors?: { consoleErrors: string[]; pageErrors: string[] };
+};
 
 test.describe("Storefront → Digital Fitting Room handoff (V3)", () => {
   test.beforeEach(async ({ page }) => {
@@ -24,12 +28,11 @@ test.describe("Storefront → Digital Fitting Room handoff (V3)", () => {
     };
 
     // Store collected errors for cleanup
-    (page as any).__errors = { consoleErrors, pageErrors };
+    (page as PageWithErrors).__errors = { consoleErrors, pageErrors };
   });
 
   test("authenticated storefront loads + selects real product + DFR module visible + CTA navigates to real DFR + back button restores state (desktop)", async ({
     page,
-    context,
   }) => {
     // Sign in using admin magic link
     const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
@@ -169,14 +172,13 @@ test.describe("Storefront → Digital Fitting Room handoff (V3)", () => {
     expect(failedRequests).toEqual([]);
 
     // Verify no unfiltered console errors
-    const errors = (page as any).__errors;
-    expect(errors.consoleErrors).toEqual([]);
-    expect(errors.pageErrors).toEqual([]);
+    const errors = (page as PageWithErrors).__errors;
+    expect(errors?.consoleErrors).toEqual([]);
+    expect(errors?.pageErrors).toEqual([]);
   });
 
   test("authenticated storefront → product selection → DFR module → navigation flow (mobile)", async ({
     page,
-    context,
   }) => {
     // Apply mobile viewport
     await page.setViewportSize({ width: 375, height: 667 });
@@ -213,7 +215,6 @@ test.describe("Storefront → Digital Fitting Room handoff (V3)", () => {
     await expect(gridCards.first()).toBeVisible();
 
     const firstCard = gridCards.first();
-    const productId = await firstCard.getAttribute("data-product-id");
 
     await firstCard.click();
     await page.waitForLoadState("networkidle");
@@ -306,8 +307,8 @@ test.describe("Storefront → Digital Fitting Room handoff (V3)", () => {
     // Get first product's CTA link
     const dfrModule = page.locator("#paon-dfr-module");
     await expect(dfrModule).toBeVisible();
-    let cta = dfrModule.locator(".paon-dfr-module-cta");
-    let firstHref = await cta.getAttribute("href");
+    const cta = dfrModule.locator(".paon-dfr-module-cta");
+    const firstHref = await cta.getAttribute("href");
     expect(firstHref).toContain(firstProductId);
 
     // Navigate back to grid
