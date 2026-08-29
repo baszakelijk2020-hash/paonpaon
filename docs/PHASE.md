@@ -2413,7 +2413,7 @@ replacement of human advice for uncertain high-value decisions.
     retailer pause + eligible-product allowlist, cron enqueue from the exact
     selection via existing notification/email outbox path.
 
-- [ ] **4.6 Virtual Wardrobe Studio — shared foundation**
+- [x] **4.6 Virtual Wardrobe Studio — shared foundation**
   - **Requirement IDs:** `VWS-001`, `VWS-002`, `VWS-003`.
   - **Dependencies:** `4.2`; ADR-033, ADR-061, ADR-063, ADR-074.
   - **Owner boundary:** wardrobe/AI-integration domain, forward migration/RLS,
