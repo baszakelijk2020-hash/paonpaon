@@ -1,11 +1,27 @@
 {
   "phaseItemId": "20.1",
   "requirementIds": ["UNAV-001"],
-  "status": "verified_local",
-  "title": "codex-frontier-navigation — architecture and acceptance",
-  "evidence": {
-    "spec": "scripts/fleet/paon-fleet status",
-    "notes": "Stage 20 unified storefront + customer navigation; see docs/evidence/atelier-demo-baseline/ and docs/plans/ATELIER_DEMO_PARITY_TEST_PLAN.md"
+  "status": "implemented_unverified",
+  "title": "Unified-navigation architecture and acceptance",
+  "applicability": {
+    "domain": "n_a", "persistence": "n_a", "service": "n_a", "origin_ui": "n_a", "receiver_ui": "n_a", "rls": "n_a", "exceptions": "required", "browser": "n_a", "operations": "required", "live_gap": "n_a"
   },
+  "evidence": {
+    "domain": "No new domain rule: this is an architecture and acceptance boundary.",
+    "persistence": "No persistence change: this item authorizes no schema or data mutation.",
+    "service": "No service change: implementation belongs to independently scoped Stage 20 lanes.",
+    "origin_ui": "No origin UI: this item is not a user-facing surface.",
+    "receiver_ui": "No receiver UI: this item is not a user-facing surface.",
+    "rls": "No RLS change: this item authorizes no policy change.",
+    "exceptions": "docs/PHASE.md Stage 20.1 prohibits concurrent feature-file edits and requires independent verification before integration.",
+    "browser": "No browser proof applies to an architecture-only record; it remains implemented_unverified.",
+    "operations": "scripts/fleet/paon-fleet; docs/PHASE.md Stage 20.1.",
+    "live_gap": "No hosted-provider gap: this record intentionally makes no verified product claim."
+  },
+  "uiChecklist": {
+    "loading": "n_a", "empty": "n_a", "error": "n_a", "denied": "n_a", "stale": "n_a", "conflict": "n_a", "success": "n_a", "role_orientation": "n_a", "task_continuation": "n_a", "phone": "n_a", "tablet": "n_a", "desktop": "n_a", "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "",
+  "browserProofSpec": "",
   "assertedAt": "2026-08-26T07:45:00Z"
 }

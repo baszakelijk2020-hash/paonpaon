@@ -1,7 +1,7 @@
 {
   "phaseItemId": "21.2",
-  "gitSha": "ebd0d091ea6dede05b4cf17cdbc90d9222c978ab",
+  "gitSha": "25ade3afc1ab667f665ee35cbc690ae047827c58",
   "spec": "apps/customer/e2e/storefront-dashboard-roundtrip.spec.ts",
   "status": "passed",
-  "timestamp": "2026-08-26T08:40:00Z"
+  "timestamp": "2026-08-29T17:29:18.316Z"
 }

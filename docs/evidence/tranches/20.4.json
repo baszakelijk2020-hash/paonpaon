@@ -1,11 +1,27 @@
 {
   "phaseItemId": "20.4",
   "requirementIds": ["UNAV-004"],
-  "status": "verified_local",
-  "title": "deepseek-storefront-inventory — read-only parity inventory",
-  "evidence": {
-    "spec": "docs/reports/atelier-demo-storefront-inventory.md",
-    "notes": "Stage 20 unified storefront + customer navigation; see docs/evidence/atelier-demo-baseline/ and docs/plans/ATELIER_DEMO_PARITY_TEST_PLAN.md"
+  "status": "implemented_unverified",
+  "title": "Read-only Atelier Demo storefront parity inventory",
+  "applicability": {
+    "domain": "n_a", "persistence": "n_a", "service": "n_a", "origin_ui": "required", "receiver_ui": "n_a", "rls": "n_a", "exceptions": "required", "browser": "n_a", "operations": "required", "live_gap": "n_a"
   },
+  "evidence": {
+    "domain": "No domain rule: this item inventories the existing raw storefront.",
+    "persistence": "No persistence change: the inventory is read-only.",
+    "service": "No new service: docs/reports/atelier-demo-storefront-inventory.md records existing data substitutions only.",
+    "origin_ui": "apps/customer/app/r/[slug]/route.ts; docs/reports/atelier-demo-storefront-inventory.md.",
+    "receiver_ui": "No receiving UI: this is a one-way source inventory.",
+    "rls": "No RLS change: the inventory creates no data access path.",
+    "exceptions": "docs/PHASE.md Stage 20.4 requires read-only investigation and prohibits code or architecture changes.",
+    "browser": "No executable browser proof applies to a static source inventory; it remains implemented_unverified.",
+    "operations": "docs/reports/atelier-demo-storefront-inventory.md; docs/PHASE.md Stage 20.4.",
+    "live_gap": "No hosted-provider gap: this record intentionally makes no verified product claim."
+  },
+  "uiChecklist": {
+    "loading": "n_a", "empty": "n_a", "error": "n_a", "denied": "n_a", "stale": "n_a", "conflict": "n_a", "success": "n_a", "role_orientation": "n_a", "task_continuation": "n_a", "phone": "n_a", "tablet": "n_a", "desktop": "n_a", "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "",
+  "browserProofSpec": "",
   "assertedAt": "2026-08-26T07:45:00Z"
 }

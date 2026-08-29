@@ -3,9 +3,25 @@
   "requirementIds": ["UNAV-003"],
   "status": "verified_local",
   "title": "claude-storefront-baseline — immutable Atelier Demo evidence",
-  "evidence": {
-    "spec": "apps/customer/e2e/atelier-demo-baseline.spec.ts",
-    "notes": "Stage 20 unified storefront + customer navigation; see docs/evidence/atelier-demo-baseline/ and docs/plans/ATELIER_DEMO_PARITY_TEST_PLAN.md"
+  "applicability": {
+    "domain": "n_a", "persistence": "n_a", "service": "n_a", "origin_ui": "required", "receiver_ui": "n_a", "rls": "n_a", "exceptions": "required", "browser": "required", "operations": "required", "live_gap": "n_a"
   },
+  "evidence": {
+    "domain": "No new domain rule: this is an immutable visual and interaction baseline.",
+    "persistence": "No persistence mutation: the proof seeds disposable local demo data only.",
+    "service": "No new service: the baseline exercises the existing raw storefront route.",
+    "origin_ui": "apps/customer/app/r/[slug]/route.ts; docs/evidence/atelier-demo-baseline/v1-2026-08-26/BASELINE.md.",
+    "receiver_ui": "No receiving UI: this is a raw storefront baseline capture.",
+    "rls": "No RLS change: the capture is read-only after the disposable local demo seed.",
+    "exceptions": "apps/customer/e2e/atelier-demo-baseline.spec.ts fails when local Supabase variables or required storefront pages are unavailable.",
+    "browser": "apps/customer/e2e/atelier-demo-baseline.spec.ts; docs/evidence/runs/20.3.json status=passed.",
+    "operations": "docs/evidence/atelier-demo-baseline/README.md; docs/plans/ATELIER_DEMO_PARITY_TEST_PLAN.md.",
+    "live_gap": "No hosted-provider claim: this is a local production-build baseline capture."
+  },
+  "uiChecklist": {
+    "loading": "n_a", "empty": "n_a", "error": "n_a", "denied": "n_a", "stale": "n_a", "conflict": "n_a", "success": "proven", "role_orientation": "n_a", "task_continuation": "n_a", "phone": "proven", "tablet": "n_a", "desktop": "proven", "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "demo-seed:atelier-demo",
+  "browserProofSpec": "apps/customer/e2e/atelier-demo-baseline.spec.ts",
   "assertedAt": "2026-08-26T07:45:00Z"
 }

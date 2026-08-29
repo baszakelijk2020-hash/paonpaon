@@ -3,6 +3,9 @@
   "requirementIds": ["UNAV-006"],
   "status": "verified_local",
   "title": "one-platform seam - storefront <-> dashboard",
+  "applicability": {
+    "domain": "n_a", "persistence": "required", "service": "required", "origin_ui": "required", "receiver_ui": "required", "rls": "required", "exceptions": "required", "browser": "required", "operations": "required", "live_gap": "n_a"
+  },
   "acceptance": {
     "storefrontUntouched": "proven",
     "warmNavP95AtOrUnder200ms": "proven",
@@ -15,11 +18,21 @@
     "apps/customer/app/globals.css"
   ],
   "evidence": {
-    "roundTripSpec": "apps/customer/e2e/storefront-dashboard-roundtrip.spec.ts",
-    "regression": "customer-navigation-performance.spec.ts p95<=200ms; atelier-demo-baseline.spec.ts 2/2 unchanged",
-    "mechanism": "bidirectional document prefetch + cross-document @view-transition (reduced-motion guarded, progressive) + bfcache preserved",
-    "decision": "docs/DECISIONS.md ADR-046 addendum"
+    "domain": "No new domain rule: the seam preserves existing customer identity and cart semantics.",
+    "persistence": "packages/database/src/repositories/order-repository.ts; the proof verifies the existing cart remains available across the document boundary.",
+    "service": "apps/customer/app/r/[slug]/api/cart-add/route.ts; apps/customer/app/r/[slug]/api/cart-summary/route.ts.",
+    "origin_ui": "apps/customer/app/r/[slug]/route.ts.",
+    "receiver_ui": "apps/customer/app/(dashboard)/layout.tsx; apps/customer/app/(dashboard)/dashboard/page.tsx.",
+    "rls": "supabase/migrations/20260730020000_add_shopping_cart.sql; the proof authenticates a real seeded customer and asserts identity survives the seam.",
+    "exceptions": "apps/customer/e2e/storefront-dashboard-roundtrip.spec.ts rejects missing local credentials, demo data, product variants, failed cart API responses, and console errors.",
+    "browser": "apps/customer/e2e/storefront-dashboard-roundtrip.spec.ts; docs/evidence/runs/21.2.json status=passed.",
+    "operations": "docs/DECISIONS.md ADR-046 addendum; docs/PHASE.md Stage 21.2.",
+    "live_gap": "No hosted-provider claim: this proof runs against local Supabase and a production build."
   },
+  "uiChecklist": {
+    "loading": "n_a", "empty": "n_a", "error": "n_a", "denied": "n_a", "stale": "n_a", "conflict": "n_a", "success": "proven", "role_orientation": "proven", "task_continuation": "proven", "phone": "n_a", "tablet": "n_a", "desktop": "proven", "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "demo-seed:atelier-demo",
   "browserProofSpec": "apps/customer/e2e/storefront-dashboard-roundtrip.spec.ts",
   "assertedAt": "2026-08-26T08:40:00Z"
 }
