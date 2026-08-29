@@ -2,6 +2,8 @@ import { createSupabaseAdminClient } from "@paon/database";
 import { seedDemoData } from "@paon/database/demo-seed";
 import { expect, test } from "@playwright/test";
 
+import { writeBrowserProofRun } from "./write-browser-proof-run";
+
 const CUSTOMER_ROUTES = [
   ["/dashboard", "Overview"],
   ["/wardrobe", "Wardrobe"],
@@ -11,6 +13,19 @@ const CUSTOMER_ROUTES = [
   ["/loyalty", "Rewards & Referrals"],
   ["/account", "My Profile"],
 ] as const;
+
+const PHASE_ITEM_ID = "20.2";
+const BROWSER_PROOF_SPEC =
+  "apps/customer/e2e/customer-navigation-performance.spec.ts";
+let proofPassed = false;
+
+test.afterAll(async () => {
+  await writeBrowserProofRun({
+    phaseItemId: PHASE_ITEM_ID,
+    spec: BROWSER_PROOF_SPEC,
+    status: proofPassed ? "passed" : "failed",
+  });
+});
 
 test("customer top-menu warm navigation stays under 200ms p95", async ({
   page,
@@ -135,4 +150,5 @@ test("customer top-menu warm navigation stays under 200ms p95", async ({
   expect(consoleErrors).toEqual([]);
   expect(failedResponses).toEqual([]);
   expect(p95).toBeLessThanOrEqual(200);
+  proofPassed = true;
 });
