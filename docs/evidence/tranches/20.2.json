@@ -3,6 +3,9 @@
   "requirementIds": ["UNAV-002"],
   "status": "verified_local",
   "title": "claude-customer-navigation — persistent warm customer shell",
+  "applicability": {
+    "domain": "n_a", "persistence": "n_a", "service": "required", "origin_ui": "required", "receiver_ui": "required", "rls": "n_a", "exceptions": "required", "browser": "required", "operations": "required", "live_gap": "n_a"
+  },
   "acceptance": {
     "clientNavigationAllSevenDestinations": "proven",
     "shellIdentityPersists": "proven",
@@ -35,15 +38,21 @@
     "fix": "moved /dashboard favorites map + morning-routine daily-look off the blocking RSC render into React Suspense boundaries (commit 58c3e82); prior commit 61708bd batched the buildVariantIdByProductSlug N+1"
   },
   "evidence": {
-    "spec": "apps/customer/e2e/customer-navigation-performance.spec.ts",
-    "implementation": [
-      "apps/customer/app/(dashboard)/dashboard/page.tsx",
-      "apps/customer/app/(dashboard)/customer-navigation-lifecycle.tsx",
-      "apps/customer/app/(dashboard)/account-top-tabs.tsx",
-      "apps/customer/app/(dashboard)/intent-prefetch-link.tsx"
-    ],
-    "checks": "pnpm --filter @paon/customer typecheck && lint && build all green; focused Playwright perf spec passes"
+    "domain": "No new domain rule: this is a customer-shell navigation performance guard.",
+    "persistence": "No persistence mutation: the proof seeds disposable local demo data only.",
+    "service": "apps/customer/app/(dashboard)/customer-navigation-lifecycle.tsx; apps/customer/app/(dashboard)/intent-prefetch-link.tsx.",
+    "origin_ui": "apps/customer/app/(dashboard)/account-top-tabs.tsx.",
+    "receiver_ui": "apps/customer/app/(dashboard)/dashboard/page.tsx and the six other customer-shell destinations exercised by the proof.",
+    "rls": "No RLS change: the proof authenticates a seeded customer only to exercise the existing shell.",
+    "exceptions": "apps/customer/e2e/customer-navigation-performance.spec.ts fails on document requests, console errors, failed responses, missing navigation events, lost shell identity, or p95 above 200ms.",
+    "browser": "apps/customer/e2e/customer-navigation-performance.spec.ts; docs/evidence/runs/20.2.json status=passed.",
+    "operations": "docs/PHASE.md Stage 20.2; the Playwright attachment records p50/p95 samples.",
+    "live_gap": "No hosted-provider claim: this is a local production-build performance proof."
   },
+  "uiChecklist": {
+    "loading": "n_a", "empty": "n_a", "error": "n_a", "denied": "n_a", "stale": "n_a", "conflict": "n_a", "success": "proven", "role_orientation": "proven", "task_continuation": "proven", "phone": "n_a", "tablet": "n_a", "desktop": "proven", "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "demo-seed:atelier-demo",
   "browserProofSpec": "apps/customer/e2e/customer-navigation-performance.spec.ts",
   "assertedAt": "2026-08-26T07:05:00Z"
 }
