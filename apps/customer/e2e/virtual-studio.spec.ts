@@ -140,8 +140,8 @@ test("a customer builds a Style Portrait, composes a look, and enqueues generati
   try {
     await signIn(page, admin);
 
-    // --- Style Portrait onboarding (on /account, alongside StyleProfile) ---
-    await page.goto("/account");
+    // --- Style Portrait onboarding (in Digital Fitting Room) ---
+    await page.goto("/digital-fitting-room");
     await expect(
       page.getByRole("heading", { name: /Style Portrait/ }),
     ).toBeVisible();
@@ -258,12 +258,6 @@ test("a customer builds a Style Portrait, composes a look, and enqueues generati
     ).toBeVisible();
 
     await page.getByRole("button", { name: "Approve" }).click();
-    await expect(
-      page.getByText(
-        "Your Style Portrait is approved and ready for the Virtual Studio.",
-      ),
-    ).toBeVisible();
-
     const { data: approvedPortrait } = await admin
       .from("style_portraits")
       .select("status")
@@ -271,31 +265,43 @@ test("a customer builds a Style Portrait, composes a look, and enqueues generati
       .single();
     expect(approvedPortrait?.status).toBe("approved");
 
-    // --- Compose and enqueue a look (on /wardrobe) ---
-    await page.goto("/wardrobe");
+    // --- Compose and enqueue a look (in Digital Fitting Room) ---
+    await page.goto("/digital-fitting-room?step=avatar");
     await expect(
-      page.getByRole("heading", { name: /Virtual Studio/ }),
+      page.getByRole("heading", {
+        name: "Your portrait is ready. Create a considered look.",
+      }),
     ).toBeVisible();
 
-    await page.getByLabel(`Include ${fixtureItem.displayName}`).check();
-    await page.getByLabel("Look title").fill("E2E Client Dinner Look");
+    await page
+      .getByRole("button", { name: new RegExp(fixtureItem.displayName) })
+      .click();
     await page.getByRole("button", { name: "Create look" }).click();
 
-    // Wait for the round trip to land (revalidated server data rendering
-    // the new outfit) before querying for it — same race the fit-archetype
-    // step above and silhouette-analysis.spec.ts's own comment document.
-    await expect(page.getByText("E2E Client Dinner Look")).toBeVisible();
-
+    await expect
+      .poll(async () => {
+        const { data } = await admin
+          .from("outfits")
+          .select("id, title, created_by_customer_id, created_by_staff_id")
+          .eq("customer_id", customerRow.id)
+          .eq("created_by_customer_id", customerRow.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        return data?.id ?? null;
+      })
+      .not.toBeNull();
     const { data: outfitAfterCreate } = await admin
       .from("outfits")
       .select("id, title, created_by_customer_id, created_by_staff_id")
       .eq("customer_id", customerRow.id)
+      .eq("created_by_customer_id", customerRow.id)
       .order("created_at", { ascending: false })
       .limit(1)
       .single();
     if (!outfitAfterCreate) throw new Error("outfit was not created");
     outfitIds.push(outfitAfterCreate.id);
-    expect(outfitAfterCreate.title).toBe("E2E Client Dinner Look");
+    expect(outfitAfterCreate.title).toBe("My look");
     expect(outfitAfterCreate.created_by_customer_id).toBe(customerRow.id);
     expect(outfitAfterCreate.created_by_staff_id).toBeNull();
 
@@ -303,12 +309,9 @@ test("a customer builds a Style Portrait, composes a look, and enqueues generati
     // preset both exist, so this must reach the queue, not a
     // "not configured" error.
     await page
-      .locator("li", { hasText: "E2E Client Dinner Look" })
-      .getByRole("button", { name: "Create look" })
+      .getByRole("button", { name: "Generate this look" })
       .click();
-    await expect(
-      page.locator("li", { hasText: "E2E Client Dinner Look" }),
-    ).toContainText(/Queued|Generating/);
+    await expect(page.getByText("Queued")).toBeVisible();
 
     const { data: jobAfterEnqueue } = await admin
       .from("wardrobe_visualization_jobs")

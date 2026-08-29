@@ -282,9 +282,9 @@ test("batch-enqueues saved looks deterministically, bulk-cancels them, and feeds
 
   try {
     await signIn(page, admin);
-    await page.goto("/wardrobe");
-    await expect(page.getByText(outfitOne.title)).toBeVisible();
-    await expect(page.getByText(outfitTwo.title)).toBeVisible();
+    await page.goto("/digital-fitting-room?step=avatar");
+    await expect(page.getByText(outfitOne.title).first()).toBeVisible();
+    await expect(page.getByText(outfitTwo.title).first()).toBeVisible();
 
     // --- Batch enqueue: "Create all saved looks" ---
     await page.getByRole("button", { name: "Create all saved looks" }).click();
@@ -384,9 +384,12 @@ test("batch-enqueues saved looks deterministically, bulk-cancels them, and feeds
     readyJobId = readyJobRow.id;
 
     await page.reload();
-    const lookOneCard = page.locator("li", { hasText: outfitOne.title });
-    await expect(lookOneCard).toBeVisible();
-    await lookOneCard.getByRole("button", { name: "Love it" }).click();
+    await page
+      .getByRole("button", { name: new RegExp(outfitOne.title) })
+      .click();
+    const loveIt = page.getByRole("button", { name: "Love it" });
+    await expect(loveIt).toBeVisible();
+    await loveIt.click();
 
     await expect
       .poll(async () => {
@@ -430,7 +433,7 @@ test("batch-enqueues saved looks deterministically, bulk-cancels them, and feeds
     // "Not for me" on the same ready look flips the evidence to a second,
     // distinct row rather than mutating the first — real evidence history,
     // not an overwrite.
-    await lookOneCard.getByRole("button", { name: "Not for me" }).click();
+    await page.getByRole("button", { name: "Not for me" }).click();
     await expect
       .poll(async () => {
         const { data } = await admin
