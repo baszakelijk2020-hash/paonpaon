@@ -147,8 +147,8 @@ test("customer top-menu warm navigation stays under 200ms p95", async ({
   });
 
   expect(documentRequests).toBe(0);
-  expect(consoleErrors).toEqual([]);
   expect(failedResponses).toEqual([]);
+  expect(consoleErrors).toEqual([]);
   expect(p95).toBeLessThanOrEqual(200);
   proofPassed = true;
 });
