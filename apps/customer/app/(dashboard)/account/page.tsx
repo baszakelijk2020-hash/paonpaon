@@ -85,7 +85,7 @@ export default async function AccountPage() {
         ))
       )}
 
-      <section className="customer-panel flex items-center justify-between gap-4 px-6 py-5">
+      <section className="customer-panel flex items-center justify-between gap-4 px-6 py-5 sm:hidden">
         <div>
           <p className="customer-kicker text-[var(--color-stone-500)]">
             Session
@@ -94,7 +94,10 @@ export default async function AccountPage() {
             Sign out of your account on this device.
           </p>
         </div>
-        <SignOutButton className="inline-flex shrink-0 rounded-[var(--customer-radius)] border border-[var(--customer-border)] px-4 py-2" />
+        <SignOutButton
+          className="inline-flex shrink-0 rounded-[15px] bg-[var(--customer-moss)] px-4 py-2"
+          testId="customer-signout-mobile"
+        />
       </section>
     </div>
   );

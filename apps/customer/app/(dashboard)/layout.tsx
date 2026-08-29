@@ -73,7 +73,10 @@ export default async function DashboardLayout({
         <AccountTopTabs
           tabs={ACCOUNT_TABS}
           trailing={
-            <SignOutButton className="flex h-full w-full items-stretch" />
+            <SignOutButton
+              className="flex h-full w-full items-stretch"
+              testId="customer-signout-desktop"
+            />
           }
         />
         <main className="mx-auto w-full max-w-[92rem] px-4 py-6 sm:px-7 sm:py-8 lg:px-10 xl:px-14">
