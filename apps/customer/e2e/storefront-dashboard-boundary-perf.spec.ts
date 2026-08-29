@@ -2,6 +2,8 @@ import { createSupabaseAdminClient } from "@paon/database";
 import { seedDemoData } from "@paon/database/demo-seed";
 import { expect, test } from "@playwright/test";
 
+import { writeBrowserProofRun } from "./write-browser-proof-run";
+
 /**
  * Stage 21.6 — storefront -> dashboard boundary performance budget.
  *
@@ -14,6 +16,18 @@ import { expect, test } from "@playwright/test";
  */
 const SAMPLES = 8;
 const P95_CEILING_MS = 2000;
+const PHASE_ITEM_ID = "21.6";
+const BROWSER_PROOF_SPEC =
+  "apps/customer/e2e/storefront-dashboard-boundary-perf.spec.ts";
+let proofPassed = false;
+
+test.afterAll(async () => {
+  await writeBrowserProofRun({
+    phaseItemId: PHASE_ITEM_ID,
+    spec: BROWSER_PROOF_SPEC,
+    status: proofPassed ? "passed" : "failed",
+  });
+});
 
 test("storefront -> dashboard boundary hop stays within budget", async ({
   page,
@@ -81,4 +95,5 @@ test("storefront -> dashboard boundary hop stays within budget", async ({
   });
 
   expect(p95).toBeLessThanOrEqual(P95_CEILING_MS);
+  proofPassed = true;
 });

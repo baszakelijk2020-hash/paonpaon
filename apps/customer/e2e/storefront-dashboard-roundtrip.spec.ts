@@ -2,6 +2,8 @@ import { createSupabaseAdminClient } from "@paon/database";
 import { seedDemoData } from "@paon/database/demo-seed";
 import { expect, test } from "@playwright/test";
 
+import { writeBrowserProofRun } from "./write-browser-proof-run";
+
 /**
  * Stage 21.2 one-platform seam — shared-state round trip.
  *
@@ -12,6 +14,18 @@ import { expect, test } from "@playwright/test";
  * §3.1). The seam does not add cart plumbing — storefront and dashboard already
  * share the same Supabase + cookies; this locks that in.
  */
+const PHASE_ITEM_ID = "21.2";
+const BROWSER_PROOF_SPEC = "apps/customer/e2e/storefront-dashboard-roundtrip.spec.ts";
+let proofPassed = false;
+
+test.afterAll(async () => {
+  await writeBrowserProofRun({
+    phaseItemId: PHASE_ITEM_ID,
+    spec: BROWSER_PROOF_SPEC,
+    status: proofPassed ? "passed" : "failed",
+  });
+});
+
 test("cart and auth survive a storefront -> dashboard -> storefront round trip", async ({
   page,
 }) => {
@@ -96,4 +110,5 @@ test("cart and auth survive a storefront -> dashboard -> storefront round trip",
   expect(summaryAfter.count).toBe(summaryBefore.count);
 
   expect(consoleErrors).toEqual([]);
+  proofPassed = true;
 });

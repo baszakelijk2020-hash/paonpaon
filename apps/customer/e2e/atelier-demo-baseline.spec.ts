@@ -4,6 +4,8 @@ import path from "node:path";
 import { seedDemoData } from "@paon/database/demo-seed";
 import { chromium, expect, test } from "@playwright/test";
 
+import { writeBrowserProofRun } from "./write-browser-proof-run";
+
 /**
  * PHASE 20.3 — immutable Atelier Demo storefront baseline.
  *
@@ -15,6 +17,9 @@ import { chromium, expect, test } from "@playwright/test";
  */
 
 const SLUG = "atelier-demo";
+const PHASE_ITEM_ID = "20.3";
+const BROWSER_PROOF_SPEC = "apps/customer/e2e/atelier-demo-baseline.spec.ts";
+let passedCaptures = 0;
 // Playwright runs with cwd = apps/customer
 const OUT = path.resolve(
   process.cwd(),
@@ -51,6 +56,14 @@ test.beforeAll(async () => {
   }
   await seedDemoData({ supabaseUrl, anonKey, serviceRoleKey });
   mkdirSync(OUT, { recursive: true });
+});
+
+test.afterAll(async () => {
+  await writeBrowserProofRun({
+    phaseItemId: PHASE_ITEM_ID,
+    spec: BROWSER_PROOF_SPEC,
+    status: passedCaptures === 2 ? "passed" : "failed",
+  });
 });
 
 test("Atelier Demo desktop baseline", async () => {
@@ -94,6 +107,7 @@ test("Atelier Demo desktop baseline", async () => {
   expect(
     capture.shots.filter((s) => s.viewport === "desktop").length,
   ).toBeGreaterThanOrEqual(7);
+  passedCaptures += 1;
 });
 
 test("Atelier Demo mobile baseline", async () => {
@@ -134,4 +148,5 @@ test("Atelier Demo mobile baseline", async () => {
   expect(
     capture.shots.filter((s) => s.viewport === "mobile").length,
   ).toBeGreaterThanOrEqual(7);
+  passedCaptures += 1;
 });
