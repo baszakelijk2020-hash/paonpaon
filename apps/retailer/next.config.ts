@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  distDir: process.env["PAON_NEXT_DIST_DIR"] ?? ".next",
   reactStrictMode: true,
   transpilePackages: [
     "@paon/ui",

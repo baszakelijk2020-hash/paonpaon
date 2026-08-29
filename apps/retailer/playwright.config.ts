@@ -1,5 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const e2ePort = Number(process.env["PAON_E2E_PORT"] ?? "3001");
+const e2eBaseUrl = `http://localhost:${e2ePort}`;
+
 // The Faden lifecycle proof signs its own fixture webhook. Keep the value
 // local to Playwright: it is not a provider credential and production still
 // requires an explicitly managed secret reference.
@@ -21,19 +24,19 @@ export default defineConfig({
   timeout: 120_000,
   expect: { timeout: 20_000 },
   use: {
-    baseURL: "http://localhost:3001",
+    baseURL: e2eBaseUrl,
     trace: "on-first-retry",
     actionTimeout: 30_000,
     navigationTimeout: 45_000,
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    command: "pnpm start",
+    command: `pnpm start -p ${e2ePort}`,
     // `next start` sets NODE_ENV=production even for this disposable local
     // acceptance server. Make its deployment tier explicit so the real
     // production demo-password guard remains enabled only in production.
     env: { ...process.env, VERCEL_ENV: "development" },
-    url: "http://localhost:3001",
+    url: e2eBaseUrl,
     reuseExistingServer: !process.env.CI,
   },
 });
