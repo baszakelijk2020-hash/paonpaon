@@ -7,6 +7,15 @@ const nextConfig: NextConfig = {
     // Domain limit is 10 MB; leave room for multipart field overhead.
     serverActions: { bodySizeLimit: "11mb" },
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "www.nebelspiegel.com",
+        pathname: "/images/**",
+      },
+    ],
+  },
   transpilePackages: [
     "@paon/ui",
     "@paon/domain",
