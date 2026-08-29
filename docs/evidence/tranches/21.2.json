@@ -23,7 +23,7 @@
     "service": "apps/customer/app/r/[slug]/api/cart-add/route.ts; apps/customer/app/r/[slug]/api/cart-summary/route.ts.",
     "origin_ui": "apps/customer/app/r/[slug]/route.ts.",
     "receiver_ui": "apps/customer/app/(dashboard)/layout.tsx; apps/customer/app/(dashboard)/dashboard/page.tsx.",
-    "rls": "supabase/migrations/20260730020000_add_shopping_cart.sql; the proof authenticates a real seeded customer and asserts identity survives the seam.",
+    "rls": "supabase/migrations/20260720000009_create_persisted_cart_checkout.sql; the proof authenticates a real seeded customer and asserts identity survives the seam.",
     "exceptions": "apps/customer/e2e/storefront-dashboard-roundtrip.spec.ts rejects missing local credentials, demo data, product variants, failed cart API responses, and console errors.",
     "browser": "apps/customer/e2e/storefront-dashboard-roundtrip.spec.ts; docs/evidence/runs/21.2.json status=passed.",
     "operations": "docs/DECISIONS.md ADR-046 addendum; docs/PHASE.md Stage 21.2.",
