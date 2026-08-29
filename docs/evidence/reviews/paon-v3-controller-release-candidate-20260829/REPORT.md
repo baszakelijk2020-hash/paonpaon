@@ -1,7 +1,7 @@
 # PAON V3 integrated release-candidate gate
 
 Candidate branch: `integration/paon-v3-controller-final-20260829`
-Candidate SHA: `6570556b08ec618a60a2efb5a84a241f5b4b2f75`
+Candidate source SHA: `ccd0e20344b0125922301fa3d5b9bb2666787b17`
 Release base: `ee3397024469cad0f9d1a2e8e593c49809fb6724`
 Gate date: 2026-08-29
 
@@ -20,19 +20,20 @@ The protected `/Users/nguyen/Projects/PAON` worktree was not modified during thi
 
 ## Current-SHA verification
 
-All commands ran from isolated worktrees at candidate SHA `6570556` against the local Supabase stack only.
+All commands ran from a disposable worktree at candidate source SHA `ccd0e20` against the local Supabase stack only. Its dependencies were installed locally with `pnpm install --frozen-lockfile`; no dependency tree was symlinked from another worktree.
 
 | Gate | Result |
 | --- | --- |
 | `pnpm --filter @paon/customer lint` | pass |
 | `pnpm --filter @paon/customer typecheck` | pass |
 | `pnpm --filter @paon/customer build` | pass |
-| Full focused V3 Playwright sequence | 27/27 passed |
+| Full focused V3 Playwright sequence | 30/30 passed |
 
-The Playwright gate used a unique server port (`3624`), a unique Next output directory (`.next-e2e-controller-full-3624`), and `PAON_E2E_WEBSERVER_TIMEOUT_MS=420000`. It executed these current-tip specs:
+The Playwright gate used a unique server port (`3631`), a unique Next output directory (`.next-e2e-clean-gate-3631`), and `PAON_E2E_WEBSERVER_TIMEOUT_MS=420000`. It executed these current-tip specs:
 
 - `appointments-booking-wizard-v3.spec.ts`
 - `customer-signout-v3.spec.ts`
+- `dashboard-hydration-regression-v3.spec.ts`
 - `digital-fitting-room-first-run.spec.ts`
 - `digital-fitting-room-start-creating-reproof-v3.spec.ts`
 - `digital-fitting-room-supported-actions-proof-v3.spec.ts`
@@ -44,11 +45,11 @@ The Playwright gate used a unique server port (`3624`), a unique Next output dir
 - `storefront-digital-fitting-room-handoff-v3.spec.ts`
 - `wardrobe-removal-v3.spec.ts`
 
-The passing run completed in 2.9 minutes. Its tests retain their own current-route/browser/database assertions, including the existing zero-console/page-error checks.
+The passing run completed in 2.6 minutes. Its tests retain their own current-route/browser/database assertions, including the existing zero-console/page-error checks.
 
 ## Hydration note
 
-Earlier full-suite attempts intermittently observed React error #418 on different routes. The final fresh full run passed all 27 tests, and a separate fresh sign-out desktop run passed 1/1. No unproven source-level hydration patch was applied and no zero-error assertion was weakened. This candidate records the passing gate while retaining the dedicated regression coverage added by the C3 review lane.
+Earlier full-suite attempts intermittently observed React error #418 on different routes. Investigation identified the common test-environment flaw: those runs used cross-worktree dependency symlinks and contaminated build outputs. The final gate used an independent dependency tree and passed all 30 tests. No speculative product-source hydration patch was applied and no zero-error assertion was weakened. The dedicated regression coverage added by the C3 review lane is included in this gate.
 
 ## Acceptance boundary
 
