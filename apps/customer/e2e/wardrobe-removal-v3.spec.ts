@@ -35,7 +35,7 @@ import {
  */
 
 const EVIDENCE_SUBPATH =
-  "../../../docs/evidence/runs/customer-v3-wardrobe-removal";
+  "../../../docs/evidence/runs/20.17-customer-wardrobe-removal-v3";
 
 function admin() {
   const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
