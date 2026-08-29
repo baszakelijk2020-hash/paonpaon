@@ -23,9 +23,9 @@ test.describe("Storefront → Digital Fitting Room handoff (V3)", () => {
       pageErrors.push(error.message);
     });
 
-    page.context().extraHTTPHeaders = {
+    await page.context().setExtraHTTPHeaders({
       "X-E2E-Test": "storefront-dfr-handoff-v3",
-    };
+    });
 
     // Store collected errors for cleanup
     (page as PageWithErrors).__errors = { consoleErrors, pageErrors };
