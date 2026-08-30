@@ -75,5 +75,5 @@
   },
   "linkedSeedId": "demo-seed:atelier-demo",
   "browserProofSpec": "apps/customer/e2e/customer-navigation-performance.spec.ts",
-  "assertedAt": "2026-08-26T07:05:00Z"
+  "assertedAt": "2026-08-30T06:26:59.790Z"
 }
