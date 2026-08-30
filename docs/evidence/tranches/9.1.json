@@ -44,5 +44,5 @@
   },
   "linkedSeedId": "e2e-retailer-workspace",
   "browserProofSpec": "apps/retailer/e2e/migration-write-through.spec.ts",
-  "assertedAt": "2026-07-30T11:40:36.437Z"
+  "assertedAt": "2026-08-30T04:37:06.000Z"
 }
