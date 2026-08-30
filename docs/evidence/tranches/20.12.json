@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.12",
+  "requirementIds": ["CENV-ORDERS-001"],
+  "status": "verified_local",
+  "title": "claude-customer-orders-v3 — pending orders, history, and real actions",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "No new domain rule: order data access is unchanged.",
+    "persistence": "No persistence mutation: the proof seeds disposable local demo data only.",
+    "service": "apps/customer/app/(dashboard)/orders/page.tsx and apps/customer/app/(dashboard)/orders/[id]/page.tsx",
+    "origin_ui": "apps/customer/app/(dashboard)/orders/** Pending Orders first, then Order History. Each order/item exposes Order again, Complete the look, Ask a question, Request service, View order/invoice actions. Complete the look centres owned source item in 70x70 squircle above real-suggestion carousel.",
+    "receiver_ui": "No receiving UI: orders is customer-only.",
+    "rls": "No RLS change: orders render existing purchase records to authenticated customers.",
+    "exceptions": "apps/customer/e2e/orders-v3-presentation.spec.ts passes desktop/mobile pending orders and history with real actions.",
+    "browser": "apps/customer/e2e/orders-v3-presentation.spec.ts; docs/evidence/runs/20.12.json status=passed.",
+    "operations": "docs/PHASE.md Stage 20.12; focused E2E test validates order layout and actions.",
+    "live_gap": "No hosted-provider claim: this is a local production-build proof."
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "n_a",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "demo-seed:atelier-demo",
+  "browserProofSpec": "apps/customer/e2e/orders-v3-presentation.spec.ts",
+  "assertedAt": "2026-08-30T12:39:27.472Z"
+}

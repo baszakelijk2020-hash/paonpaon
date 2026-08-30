@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.18",
+  "requirementIds": ["CENV-ORDERS-ACTIONS-001"],
+  "status": "verified_local",
+  "title": "claude-customer-orders-actions-v3 — real order action row and supporting modules",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "No new domain rule: order action access is unchanged.",
+    "persistence": "No persistence mutation: the proof seeds disposable local demo data only.",
+    "service": "apps/customer/app/(dashboard)/orders/page.tsx",
+    "origin_ui": "apps/customer/app/(dashboard)/orders/** V3 Orders item action row with Order again, Complete the look, Ask a question, Request service, View order/invoice. Complete the look centres owned source item in 70x70 squircle above carousel of real suggestions. Supporting modules compact without overlapping products on one viewport.",
+    "receiver_ui": "No receiving UI: orders is customer-only.",
+    "rls": "No RLS change: order actions render existing action capabilities.",
+    "exceptions": "apps/customer/e2e/orders-actions-v3.spec.ts passes desktop/mobile real action success/failure paths.",
+    "browser": "apps/customer/e2e/orders-actions-v3.spec.ts; docs/evidence/runs/20.18.json status=passed.",
+    "operations": "docs/PHASE.md Stage 20.18; focused E2E test validates order actions.",
+    "live_gap": "No hosted-provider claim: this is a local production-build proof."
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "n_a",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "demo-seed:atelier-demo",
+  "browserProofSpec": "apps/customer/e2e/orders-actions-v3.spec.ts",
+  "assertedAt": "2026-08-30T12:40:09.648Z"
+}

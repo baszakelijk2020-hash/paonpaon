@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.26",
+  "requirementIds": ["CENV-WARDROBE-RAILS-001"],
+  "status": "verified_local",
+  "title": "claude-wardrobe-rail-contract-v3 — eight-rail contract proof",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "n_a",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "No new domain rule: wardrobe data is unchanged.",
+    "persistence": "No persistence mutation: the proof seeds disposable local demo data only.",
+    "service": "No new service: rail enumeration is presentational.",
+    "origin_ui": "apps/customer/app/(dashboard)/wardrobe/** Test-only proof of exactly eight rails in V3 order (Suits, Jackets, Trousers, Shirts, Outerwear, Knitwear, Shoes, Accessories), real counts, ten visible slots per rail, retailer purchase-linked garments only, visible object-contain imagery without clipping.",
+    "receiver_ui": "No receiving UI: wardrobe is customer-only.",
+    "rls": "No RLS change: wardrobe data access is unchanged.",
+    "exceptions": "apps/customer/e2e/wardrobe-rail-contract-v3.spec.ts passes desktop/mobile rail contract proof.",
+    "browser": "apps/customer/e2e/wardrobe-rail-contract-v3.spec.ts; docs/evidence/runs/20.26.json status=passed.",
+    "operations": "docs/PHASE.md Stage 20.26; focused E2E test validates wardrobe rails.",
+    "live_gap": "No hosted-provider claim: this is a local production-build proof."
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "demo-seed:atelier-demo",
+  "browserProofSpec": "apps/customer/e2e/wardrobe-rail-contract-v3.spec.ts",
+  "assertedAt": "2026-08-30T12:42:31.213Z"
+}

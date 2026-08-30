@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.15",
+  "requirementIds": ["CENV-NAVIGATION-003"],
+  "status": "verified_local",
+  "title": "claude-customer-navigation-v3-copy — navigation and forbidden-copy consistency",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "No new domain rule: customer navigation is unchanged.",
+    "persistence": "No persistence mutation: the proof seeds disposable local demo data only.",
+    "service": "apps/customer/app/(dashboard)/layout.tsx, apps/customer/app/(dashboard)/account-top-tabs.tsx, apps/customer/app/(dashboard)/customer-navigation-lifecycle.tsx, apps/customer/app/(dashboard)/intent-prefetch-link.tsx",
+    "origin_ui": "apps/customer/app/(dashboard)/** Customer sidebar/top-menu with exactly seven desktop destinations: Overview, Wardrobe, My Appointments, Orders, Digital Fitting Room, Rewards & Referrals, My Profile. Mobile retains access through compact overflow/menu. Visible client-side navigation, persistent shell, preserved existing top-navigation geometry.",
+    "receiver_ui": "No receiving UI: navigation is customer-shell only.",
+    "rls": "No RLS change: navigation renders existing authentication state.",
+    "exceptions": "apps/customer/e2e/customer-navigation-v3-copy.spec.ts passes desktop/mobile navigation labels, route access, and removed-copy verification.",
+    "browser": "apps/customer/e2e/customer-navigation-v3-copy.spec.ts; docs/evidence/runs/20.15.json status=passed.",
+    "operations": "docs/PHASE.md Stage 20.15; focused E2E test validates navigation consistency.",
+    "live_gap": "No hosted-provider claim: this is a local production-build proof."
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "n_a",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "demo-seed:atelier-demo",
+  "browserProofSpec": "apps/customer/e2e/customer-navigation-v3-copy.spec.ts",
+  "assertedAt": "2026-08-30T12:39:52.656Z"
+}

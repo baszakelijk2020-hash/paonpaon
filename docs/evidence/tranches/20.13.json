@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.13",
+  "requirementIds": ["CENV-PROFILE-001"],
+  "status": "verified_local",
+  "title": "claude-customer-profile-v3 — profile cleanup and clarification",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "No new domain rule: profile data access is unchanged.",
+    "persistence": "No persistence mutation: the proof seeds disposable local demo data only.",
+    "service": "apps/customer/app/(dashboard)/account/**",
+    "origin_ui": "apps/customer/app/(dashboard)/account/** My Profile route. Removed House Memory panel and all house-facing copy. Removed style-discovery quiz and Style Portrait/avatar setup. Clarified remaining real profile controls without generic outlined-card AI styling.",
+    "receiver_ui": "No receiving UI: profile is customer-only.",
+    "rls": "No RLS change: profile renders existing customer data to authenticated users.",
+    "exceptions": "apps/customer/e2e/account-v3-profile.spec.ts passes desktop/mobile profile without House Memory or style-discovery UI.",
+    "browser": "apps/customer/e2e/account-v3-profile.spec.ts; docs/evidence/runs/20.13.json status=passed.",
+    "operations": "docs/PHASE.md Stage 20.13; focused E2E test validates profile cleanup.",
+    "live_gap": "No hosted-provider claim: this is a local production-build proof."
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "n_a",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "demo-seed:atelier-demo",
+  "browserProofSpec": "apps/customer/e2e/account-v3-profile.spec.ts",
+  "assertedAt": "2026-08-30T12:39:35.124Z"
+}

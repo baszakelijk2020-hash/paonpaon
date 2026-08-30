@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.9",
+  "requirementIds": ["CENV-WARDROBE-001"],
+  "status": "verified_local",
+  "title": "claude-customer-wardrobe-v3 — Customer Wardrobe V3 presentation",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "No new domain rule: wardrobe data access is unchanged.",
+    "persistence": "No persistence mutation: the proof seeds disposable local demo data only.",
+    "service": "apps/customer/app/(dashboard)/wardrobe/**",
+    "origin_ui": "apps/customer/app/(dashboard)/wardrobe/** Customer Wardrobe V3 presentation with eight category rails, ten visible slots per rail, retailer purchase-linked garments only. Product images use object-contain and are never clipped. Cards use progressive-blur information overlay with title, purchased-on date, days-owned. Actions+ card replaces Garment Details.",
+    "receiver_ui": "No receiving UI: wardrobe is customer-only.",
+    "rls": "No RLS change: the wardrobe renders existing purchase-linked garments to authenticated customers.",
+    "exceptions": "apps/customer/e2e/wardrobe-v3-presentation.spec.ts passes wardrobe contract (eight rails, real counts, ten visible slots, object-contain imagery, progressive-blur overlay, Actions+).",
+    "browser": "apps/customer/e2e/wardrobe-v3-presentation.spec.ts; docs/evidence/runs/20.9.json status=passed.",
+    "operations": "docs/PHASE.md Stage 20.9; focused E2E test validates UI contract.",
+    "live_gap": "No hosted-provider claim: this is a local production-build proof."
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "n_a",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "demo-seed:atelier-demo",
+  "browserProofSpec": "apps/customer/e2e/wardrobe-v3-presentation.spec.ts",
+  "assertedAt": "2026-08-30T12:38:23.546Z"
+}

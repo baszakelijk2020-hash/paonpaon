@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.11",
+  "requirementIds": ["CENV-OVERVIEW-002"],
+  "status": "verified_local",
+  "title": "claude-customer-overview-v3-daily-return — dashboard daily-return composition",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "No new domain rule: dashboard composition is unchanged.",
+    "persistence": "No persistence mutation: the proof seeds disposable local demo data only.",
+    "service": "apps/customer/app/(dashboard)/dashboard/** and apps/customer/app/(dashboard)/morning-routine/local-widgets.tsx",
+    "origin_ui": "apps/customer/app/(dashboard)/dashboard/** dashboard route with daily MorningRoutine suit/jacket image in rightmost green context-strip cell. Desktop local-context strip no taller than 100px preserves date, local weather, local time, work-address save, personal-distance estimate, world clocks. Rightmost area shows real MorningRoutine daily selection.",
+    "receiver_ui": "No receiving UI: dashboard is customer-only.",
+    "rls": "No RLS change: dashboard renders existing daily routine to authenticated customers.",
+    "exceptions": "apps/customer/e2e/dashboard-v3-daily-return.spec.ts passes desktop/mobile daily-return composition with real morning-routine imagery.",
+    "browser": "apps/customer/e2e/dashboard-v3-daily-return.spec.ts; docs/evidence/runs/20.11.json status=passed.",
+    "operations": "docs/PHASE.md Stage 20.11; focused E2E test validates dashboard composition.",
+    "live_gap": "No hosted-provider claim: this is a local production-build proof."
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "n_a",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "demo-seed:atelier-demo",
+  "browserProofSpec": "apps/customer/e2e/dashboard-v3-daily-return.spec.ts",
+  "assertedAt": "2026-08-30T12:39:05.850Z"
+}

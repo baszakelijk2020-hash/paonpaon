@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.22",
+  "requirementIds": ["CENV-WARDROBE-EXTERNAL-001"],
+  "status": "verified_local",
+  "title": "claude-wardrobe-external-write-removal-v3 — remove dormant external garment write path",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "No new domain rule: wardrobe data access is unchanged.",
+    "persistence": "No persistence mutation: the proof seeds disposable local demo data only.",
+    "service": "apps/customer/app/(dashboard)/wardrobe/actions.ts",
+    "origin_ui": "apps/customer/app/(dashboard)/wardrobe/** No customer path can create external garment. Preserves retailer purchase-linked garments and every real tenant-safe owned-garment action.",
+    "receiver_ui": "No receiving UI: wardrobe is customer-only.",
+    "rls": "No RLS change: wardrobe access remains unchanged.",
+    "exceptions": "apps/customer/e2e/wardrobe-no-external-entry-v3.spec.ts proves no external-garment entry form, button, or copy on wardrobe page.",
+    "browser": "apps/customer/e2e/wardrobe-no-external-entry-v3.spec.ts; docs/evidence/runs/20.22.json status=passed.",
+    "operations": "docs/PHASE.md Stage 20.22; focused E2E test proves external-entry removal.",
+    "live_gap": "No hosted-provider claim: this is a local production-build proof."
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "demo-seed:atelier-demo",
+  "browserProofSpec": "apps/customer/e2e/wardrobe-no-external-entry-v3.spec.ts",
+  "assertedAt": "2026-08-30T12:41:23.111Z"
+}

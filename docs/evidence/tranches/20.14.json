@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.14",
+  "requirementIds": ["CENV-REWARDS-001"],
+  "status": "verified_local",
+  "title": "claude-customer-loyalty-v3 — Rewards & Referrals exposure",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "No new domain rule: loyalty data access is unchanged.",
+    "persistence": "No persistence mutation: the proof seeds disposable local demo data only.",
+    "service": "apps/customer/app/(dashboard)/loyalty/**",
+    "origin_ui": "apps/customer/app/(dashboard)/loyalty/** Rewards & Referrals route rendering existing loyalty implementation. Preserves real loyalty and referral actions and tenant-safe data paths.",
+    "receiver_ui": "No receiving UI: loyalty is customer-only.",
+    "rls": "No RLS change: loyalty renders existing rewards and referral data to authenticated customers.",
+    "exceptions": "apps/customer/e2e/loyalty-v3-presentation.spec.ts passes desktop/mobile loyalty with real reward/referral controls.",
+    "browser": "apps/customer/e2e/loyalty-v3-presentation.spec.ts; docs/evidence/runs/20.14.json status=passed.",
+    "operations": "docs/PHASE.md Stage 20.14; focused E2E test validates loyalty exposure.",
+    "live_gap": "No hosted-provider claim: this is a local production-build proof."
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "n_a",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "demo-seed:atelier-demo",
+  "browserProofSpec": "apps/customer/e2e/loyalty-v3-presentation.spec.ts",
+  "assertedAt": "2026-08-30T12:39:43.108Z"
+}

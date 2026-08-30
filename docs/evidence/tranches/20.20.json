@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.20",
+  "requirementIds": ["CENV-ALTERATION-CHOICES-001"],
+  "status": "verified_local",
+  "title": "claude-customer-alteration-choices-v3 — service decision branches",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "No new domain rule: alteration options are unchanged.",
+    "persistence": "No persistence mutation: the proof seeds disposable local demo data only.",
+    "service": "apps/customer/app/(dashboard)/appointments/paid-care-flow.tsx",
+    "origin_ui": "apps/customer/app/(dashboard)/appointments/paid-care-flow.tsx V3 customer decision branches: I know exactly what needs changing, Ask advisor with self-scan, Assess in store. Assess in store accepts service note, requests item be brought, shows folded price list without forcing product choice.",
+    "receiver_ui": "No receiving UI: appointments is customer-only.",
+    "rls": "No RLS change: alteration choices render existing service options.",
+    "exceptions": "apps/customer/e2e/appointments-alteration-choices-v3.spec.ts passes desktop/mobile real success/failure flow.",
+    "browser": "apps/customer/e2e/appointments-alteration-choices-v3.spec.ts; docs/evidence/runs/20.20.json status=passed.",
+    "operations": "docs/PHASE.md Stage 20.20; focused E2E test validates alteration decision flow.",
+    "live_gap": "No hosted-provider claim: this is a local production-build proof."
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "n_a",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "demo-seed:atelier-demo",
+  "browserProofSpec": "apps/customer/e2e/appointments-alteration-choices-v3.spec.ts",
+  "assertedAt": "2026-08-30T12:40:23.906Z"
+}
