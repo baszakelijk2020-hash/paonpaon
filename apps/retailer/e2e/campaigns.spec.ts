@@ -87,7 +87,18 @@ test("campaign: manager clones library, adds audience/products, activates, custo
     page.getByRole("button", { name: /Clone library package/ }),
   ).toBeVisible();
   await page.getByRole("button", { name: /Clone library package/ }).click();
-  await page.waitForLoadState("networkidle");
+  await expect
+    .poll(async () => {
+      const { data } = await admin
+        .from("campaigns")
+        .select("id")
+        .eq("retailer_id", retailerId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data?.id ?? null;
+    })
+    .not.toBeNull();
 
   // Identify the exact campaign row just cloned by id (not by title text —
   // every clone from this fixed library entry shares the same title, so
