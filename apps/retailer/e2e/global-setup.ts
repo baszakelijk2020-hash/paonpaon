@@ -51,11 +51,17 @@ async function globalSetup(): Promise<void> {
   // Seed that canonical graph once before Playwright starts parallel workers;
   // asking each worker to race through the same auth-user creation makes a
   // clean database depend on which test happens to win the first insert.
-  const proof = await ensureProgrammeProofSeed({
-    supabaseUrl,
-    anonKey: supabaseAnonKey,
-    serviceRoleKey,
-  });
+  // Some focused retailer journeys do not use the programme-proof graph at
+  // all. Allow those isolated proofs to avoid touching unrelated local demo
+  // users, while preserving the canonical seed for the default suite.
+  const proof =
+    process.env["PAON_SKIP_PROGRAMME_PROOF_SEED"] === "1"
+      ? null
+      : await ensureProgrammeProofSeed({
+          supabaseUrl,
+          anonKey: supabaseAnonKey,
+          serviceRoleKey,
+        });
 
   const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
   const retailerRepo = new RetailerRepository(admin);
@@ -86,7 +92,11 @@ async function globalSetup(): Promise<void> {
   // Both shared e2e houses intentionally exercise the complete platform.
   // New production retailers receive modules through plans/add-ons instead.
   const moduleRepository = new PlatformModuleRepository(admin);
-  for (const retailerId of [proof.retailerId as RetailerId, retailer.id]) {
+  const moduleRetailerIds: RetailerId[] = [retailer.id];
+  if (proof) {
+    moduleRetailerIds.unshift(proof.retailerId as RetailerId);
+  }
+  for (const retailerId of moduleRetailerIds) {
     for (const platformModule of PLATFORM_MODULES) {
       await moduleRepository.configure({
         retailerId,
