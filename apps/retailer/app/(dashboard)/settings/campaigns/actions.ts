@@ -207,6 +207,7 @@ export async function cloneCampaignFromLibrary(): Promise<void> {
  * Creates a new draft with the same audience rules, target products, and library pin.
  */
 export async function cloneCampaignForCorrection(
+  _previous: CampaignFormState,
   formData: FormData,
 ): Promise<CampaignFormState> {
   const session = await requireModuleSession("commerce_growth");

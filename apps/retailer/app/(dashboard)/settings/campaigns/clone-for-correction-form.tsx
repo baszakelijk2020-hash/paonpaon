@@ -12,13 +12,7 @@ interface CloneForCorrectionFormProps {
 export function CloneForCorrectionForm({
   campaignId,
 }: CloneForCorrectionFormProps) {
-  const [state, formAction] = useActionState(
-    cloneCampaignForCorrection as unknown as (
-      state: unknown,
-      formData: FormData,
-    ) => Promise<unknown>,
-    {},
-  );
+  const [state, formAction] = useActionState(cloneCampaignForCorrection, {});
 
   return (
     <form action={formAction} className="flex flex-col gap-2">

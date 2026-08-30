@@ -1,7 +1,7 @@
 {
   "phaseItemId": "18.8",
   "gitSha": "1a7c2c031bb113e999cee57b211af7e2c3fb3783",
-  "spec": "apps/retailer/e2e/corporate-service-desk.spec.ts",
+  "spec": "apps/customer/e2e/employee-portal.spec.ts",
   "status": "passed",
-  "timestamp": "2026-08-30T13:12:32.109Z"
+  "timestamp": "2026-08-30T13:12:30.234Z"
 }
