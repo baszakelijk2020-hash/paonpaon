@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "12.1",
+  "requirementIds": ["FIT-101", "FIT-102", "FIT-103"],
+  "status": "verified_local",
+  "title": "MeasurementMonitor decision gate",
+  "applicability": {
+    "domain": "required",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/fit/measurement-monitor.ts",
+    "persistence": "supabase/migrations/20260801000007_add_measurement_monitor_gate.sql; 20260811020000_add_customer_measurement_candidate_self_insert.sql",
+    "service": "packages/database/src/repositories/measurement-monitor-repository.ts",
+    "origin_ui": "apps/retailer/app/(dashboard)/staff/measurements/page.tsx",
+    "receiver_ui": "apps/customer/app/(dashboard)/measurements/page.tsx",
+    "rls": "supabase/migrations/20260801000007_add_measurement_monitor_gate.sql (customer_measurement_candidates and customer_measurement_versions immutable: no UPDATE/DELETE to any role; decision_rule_version stamped on every result)",
+    "exceptions": "packages/domain/src/fit/measurement-monitor.ts (self-scan never silently overwrites approved measurement — enforced as a grant not convention; new version required for any change; sub-millimetre input rejected before request; written review note required for scan-derived approval; deletion recomputes candidates via FK cascade while approved versions survive)",
+    "browser": "apps/retailer/e2e/measurement-monitor.spec.ts (advisor cannot approve scan-derived measurement without writing why; empty/space-only note rejected; sub-millimetre value rejected; written decision stamps new version with note; candidate resolved and removed from queue) — re-run and passing at this exact commit (docs/evidence/runs/12.1.json status=passed); apps/customer/e2e/measurement-capture.spec.ts (customer completes guided capture form, submits self-scan with valid measurements) — re-run and passing at this exact commit (docs/evidence/runs/12.1-measurement-capture.json status=passed)",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "Model-assisted measurement extraction remains blocked_external; structured review is complete with manual guided capture"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "proven",
+    "denied": "proven",
+    "stale": "n_a",
+    "conflict": "proven",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/measurement-monitor.spec.ts",
+  "assertedAt": "2026-08-30T20:24:35Z"
+}

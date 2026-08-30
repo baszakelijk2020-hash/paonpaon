@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "18.8",
+  "requirementIds": ["BD-108"],
+  "status": "verified_local",
+  "title": "Corporate service desk",
+  "applicability": {
+    "domain": "required",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/corporate/service-desk.ts",
+    "persistence": "supabase/migrations/20260804190000_add_corporate_service_desk.sql; 20260805220000_add_wearer_exception_event_insert_policy.sql",
+    "service": "packages/database/src/repositories/corporate-repository.ts",
+    "origin_ui": "apps/retailer/app/(dashboard)/corporate/[programmeId]/page.tsx",
+    "receiver_ui": "apps/customer/app/employee/page.tsx",
+    "rls": "supabase/migrations/20260804190000_add_corporate_service_desk.sql (corporate_exceptions scoped to programme; corporate_exception_events append-only with insert-only grant); 20260805220000_add_wearer_exception_event_insert_policy.sql (wearer-scoped insert via corporate_wearer account-link join)",
+    "exceptions": "packages/domain/src/corporate/service-desk.ts (SLA enforcement: isExceptionOverdue explicitly false once resolved regardless of due date; priority change and assignment each recorded in audit trail; all state changes audited)",
+    "browser": "apps/retailer/e2e/corporate-service-desk.spec.ts (ticket SLA backdated to simulate time passing; Overdue badge appears; assigning and reprioritizing both verified against corporate_exception_events in order: created, assigned, priority_changed, resolved) — re-run and passing at this exact commit (docs/evidence/runs/18.8.json status=passed); apps/customer/e2e/employee-portal.spec.ts (employee selects kind, fills detail, submits; new ticket appears in Issued to you with Open badge; middleware fix ensures signed-in wearer session survives font-serving) — re-run and passing at this exact commit (docs/evidence/runs/18.8-employee-portal.json status=passed)",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "No external ticketing system integration required for this tranche"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "proven",
+    "denied": "proven",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/corporate-service-desk.spec.ts",
+  "assertedAt": "2026-08-30T20:24:55Z"
+}

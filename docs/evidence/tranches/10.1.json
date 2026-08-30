@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "10.1",
+  "requirementIds": ["CMP-101", "CMP-102", "CMP-103", "CMP-104"],
+  "status": "verified_local",
+  "title": "Versioned campaign library",
+  "applicability": {
+    "domain": "required",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/campaign/campaign.ts; packages/domain/src/campaign/campaign-library.ts",
+    "persistence": "supabase/migrations/20260730330000_add_versioned_campaign_library.sql; 20260801000000_add_campaign_mission_opportunities.sql",
+    "service": "packages/database/src/campaign-activation-orchestrator.ts; supabase/migrations/20260801000001_add_campaign_rehearsal_and_activation_tracking.sql",
+    "origin_ui": "apps/retailer/app/(dashboard)/settings/campaigns/page.tsx",
+    "receiver_ui": "apps/customer/app/(dashboard)/private-offers/page.tsx",
+    "rls": "supabase/migrations/20260730330000_add_versioned_campaign_library.sql (RLS for campaigns, campaign_audience_rules, campaign_target_products scoped to retailer; clienteling_opportunities reuse via campaign_id)",
+    "exceptions": "packages/domain/src/campaign/campaign.ts (version pin prevents silent reinterpretation after activation; outcome linking via campaign_id reuses existing mission outcome machinery)",
+    "browser": "apps/retailer/e2e/campaigns.spec.ts (manager clones library campaign, maps audience rules and target products, activates to staff missions; customer's own signed-in session places order linking outcome_order_id; post-activation edit refused; clone-for-correction produces new draft) — re-run and passing at this exact commit (docs/evidence/runs/10.1.json status=passed)",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "External channel credentials block only sending; no channel UI integration required for this tranche"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "proven",
+    "denied": "n_a",
+    "stale": "proven",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/campaigns.spec.ts",
+  "assertedAt": "2026-08-30T20:24:15Z"
+}
