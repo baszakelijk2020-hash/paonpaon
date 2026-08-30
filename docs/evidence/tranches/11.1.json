@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "11.1",
+  "requirementIds": ["WFM-101", "WFM-102"],
+  "status": "verified_local",
+  "title": "Time approval and payroll package",
+  "applicability": {
+    "domain": "required",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/workforce/payroll-period.ts",
+    "persistence": "supabase/migrations/20260811160000_add_authoritative_payroll_backend.sql through 20260811230000_snapshot_payroll_schedule_exceptions.sql",
+    "service": "packages/database/src/repositories/payroll-period-repository.ts",
+    "origin_ui": "apps/retailer/app/(dashboard)/staff/payroll/page.tsx with actions.ts and payroll-forms.tsx",
+    "receiver_ui": "apps/retailer/app/(dashboard)/staff/payroll/page.tsx (exception resolution, correction, and approval UI)",
+    "rls": "supabase/tests/payroll_backend_test.sql; supabase/tests/payroll_exception_refresh_test.sql; supabase/tests/payroll_approval_denial_contract_test.sql; supabase/tests/payroll_schedule_exception_test.sql; packages/database/src/repositories/payroll-period-repository.test.ts (tenant and staff role enforcement)",
+    "exceptions": "packages/domain/src/workforce/payroll-period.ts detectPayrollExceptions (missing clock-out, overtime anomalies); supabase/tests/payroll_approval_denial_contract_test.sql (self-approval denial); packages/database/src/repositories/payroll-period-repository.test.ts (tenant/staff constraints)",
+    "browser": "apps/retailer/e2e/payroll.spec.ts (manager resolves time exception and creates correction version); apps/retailer/e2e/payroll-export.spec.ts (manager downloads export, advisor and foreign access denied by RLS) — both re-run and passing at this exact commit (docs/evidence/runs/11.1*.json status=passed)",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "No external payroll provider adapter required for this tranche (accepted blocker)"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "proven",
+    "denied": "proven",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/payroll.spec.ts",
+  "assertedAt": "2026-08-30T05:24:36.000Z"
+}
