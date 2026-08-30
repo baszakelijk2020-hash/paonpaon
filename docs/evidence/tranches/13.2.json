@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "13.2",
+  "requirementIds": ["INV-104", "INV-105"],
+  "status": "verified_local",
+  "title": "Loss prevention and RFID pilot",
+  "applicability": {
+    "domain": "required",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "blocked_external"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/inventory/loss-prevention.ts; assessAdjustmentRisk takes only transaction properties (no staff id, returns risk assessment), summarizeRiskCoverage reports adjustments and locations (not per-person totals), reconcileSweep returns postsBalanceChange: false (RFID never posts balance directly)",
+    "persistence": "supabase/migrations with loss_prevention_flags table (flag has null ledger_entry_id until approval writes it, self-approval and non-manager approval refused by CHECK constraint), rfid_sweep_observations table with unique(sweep_id, epc, kind) constraint (prevents duplicate reads on retry), no risk_score or incident_count column anywhere",
+    "service": "packages/database/src/repositories/loss-prevention-repository.ts; LossPreventionRepository.raiseFlagForAdjustment, approveFlagAndPostBalance (writes ledger entry), reconcileSweepForObservations (groups repeated tag reads to one garment, marks unread tags as unobserved not missing)",
+    "origin_ui": "apps/retailer/app/(dashboard)/inventory/risk/page.tsx displays unapproved risk flags requiring independent manager approval; RFID sweep reconciliation surface shows observation count (deduplicated), confidence levels, and unresolved discrepancies",
+    "receiver_ui": "/inventory/risk page shows pending flags with approval workflow; sweep reconciliation displays deduplicated tag reads, low-confidence flags, and expected-but-unread tags (labeled 'Expected here, not read' not 'missing')",
+    "rls": "supabase/migrations — risk flags visible to managers/admins, sweeps scoped to location; approval transition enforces approver is different person and manager (both table CHECK and domain validation), posting ledger entry referenced by flag audit trail",
+    "exceptions": "packages/domain/src/inventory/loss-prevention.ts refuses self-approval (identity checked first before count-open check), refuses non-manager approval, refuses second approval on same flag, validates sweep deduplication on retry (unique constraint), refuses discrepancy closure without written note, RFID reconciliation groups repeated reads to prevent double-counting",
+    "browser": "apps/retailer/e2e/loss-prevention.spec.ts proves high-risk write-off raises flag with null ledger_entry_id (no stock movement), second signature (manager) approves and posts ledger entry (flag now cites entry), RFID sweep with four reads of one tag shows '3 found' (deduplicated, not 6), expected-but-unread tag labelled 'Expected here, not read' (not 'missing'), closing discrepancy without note refused, with note succeeds — passing at this exact commit",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts; loss-prevention-live.integration.test.ts provides 7 live assertions against cloud Postgres",
+    "live_gap": "RFID reader hardware remains blocked_external (same pattern as 8.4, 9.1 — acceptance verified locally, pilot deployment blocked on vendor)"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "proven",
+    "denied": "proven",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/loss-prevention.spec.ts",
+  "assertedAt": "2026-08-30T21:55:00.000Z"
+}

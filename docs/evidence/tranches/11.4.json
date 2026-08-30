@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "11.4",
+  "requirementIds": ["WFM-107"],
+  "status": "verified_local",
+  "title": "Internal community, contribution and support",
+  "applicability": {
+    "domain": "required",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/workforce/internal-community.ts; checkSupportResource refuses direct-booking claims, summarizeCommunityReach scoped to one announcement returns unread list (not per-person rates), no access-logging function on support resources (structural privacy guarantee). Budget requests cap per-request and refuse self-approval in both CHECK constraint and domain layer.",
+    "persistence": "supabase/migrations/20260801000006_add_internal_community.sql (staff_announcements with branch/role audiences and read receipts, versioned moderated learning contributions, cross-location learning sessions, service-recovery budget requests, support-resource catalogue with no usage-tracking table); SUPPORT_RESOURCE_PRIVACY_NOTE documents the non-observable-usage guarantee",
+    "service": "packages/database/src/repositories/internal-community-repository.ts; listSubmittedContributions, listContributionsByAuthor, listBudgetRequests methods and full CRUD for announcements, contributions, budgets",
+    "origin_ui": "apps/retailer/app/(dashboard)/staff/announcements/page.tsx (publish announcements), /staff/learning (submit + moderate learning contributions), /staff/service-recovery (request + approve a budget), /staff/support (read-only resource catalogue) with forms and actions",
+    "receiver_ui": "announcement feed with per-person read receipt tracking (once-only, append-only enforced at DB grant level), contribution dashboard with moderation status, budget request status, support resource discovery",
+    "rls": "supabase/migrations/20260801000006_add_internal_community.sql — announcements scoped by branch/role audience; read receipts unique per person per announcement with no UPDATE/DELETE grant; contributions hidden from floor until approved (visible to author and moderators); budget requests visible to requester and managers only; support resources read-only to staff (insert/update grant to service_role only for seeding)",
+    "exceptions": "packages/domain/src/workforce/internal-community.ts checkSupportResource refuses directBookingAvailable claim (real contract blocker); budget requests refuse self-approval, require customer or order attachment; contributions require approval before floor visibility; rejection requires written reason in schema",
+    "browser": "apps/retailer/e2e/staff-announcements.spec.ts proves read receipt is a record (DELETE and UPDATE refuse, second insert refused so reach cannot claim two people read when one did), reach display shows '1 of N'; apps/retailer/e2e/internal-community.spec.ts proves advisor submits learning contribution pending moderation, manager approves/rejects with reason, employee requests service recovery budget, manager approves/denies budget, staff discovers support resources in catalogue — both passing at this exact commit",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "No external discussion-thread provider or cross-location session scheduler required for this tranche"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "proven",
+    "denied": "proven",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/staff-announcements.spec.ts and apps/retailer/e2e/internal-community.spec.ts",
+  "assertedAt": "2026-08-30T21:50:00.000Z"
+}

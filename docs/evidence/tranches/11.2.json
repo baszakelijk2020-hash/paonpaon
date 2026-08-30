@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "11.2",
+  "requirementIds": ["WFM-103", "WFM-104"],
+  "status": "verified_local",
+  "title": "Today, closeout, I AM and extra mile",
+  "applicability": {
+    "domain": "required",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/workforce/staff-recognition.ts and staff-closeout.ts; summarizeRecognitionCoverage (returns unrecognized list not rankings), checkRecognitionReview (blocks self-review and double-review, requires coaching note), checkSaleCompletable enforces shift/day isolation",
+    "persistence": "supabase/migrations/20260801000004_add_staff_recognition_acts.sql (staff_recognition_acts table with no count/score/rank columns, insert policy pins author to caller); staff_shift_closeouts table (upsert on conflict, required promises_note and what_worked_note, optional extra_mile_act_id FK validated to same retailer/staff)",
+    "service": "packages/database/src/repositories/staff-recognition-repository.ts and staff-closeout-repository.ts; create act, list acts, approve/coach acts; createCloseout, findCloseoutForDay methods",
+    "origin_ui": "apps/retailer/app/(dashboard)/staff/recognition/page.tsx and closeout/page.tsx with staff-recognition-forms.tsx and staff-closeout-forms.tsx (employee logs act through form at /staff/recognition, manager acknowledges/coaches; employee submits ten-minute closeout at /staff/closeout with promises and learnings)",
+    "receiver_ui": "apps/retailer/app/(dashboard)/staff/profile/page.tsx displays evidence-linked employee profile; recognition and closeout surfaces render submitted states",
+    "rls": "supabase/migrations/20260801000004_add_staff_recognition_acts.sql — insert policy pins author to calling user; SELECT policy scoped to caller's staff view for review/coaching; staff_shift_closeouts SELECT scoped per-staff (staff sees own only, managers/owners/admins see team), UPDATE policy enforces caller is owner or manager",
+    "exceptions": "packages/domain/src/workforce/staff-recognition.ts refuses self-review, double-review, coaching with no note; closeout rejects submission without required fields; domain layer validates extra_mile_act_id belongs to same retailer/staff before FK write",
+    "browser": "apps/retailer/e2e/staff-recognition.spec.ts proves owner logs act, thin narrative refused with readable reason, self-review guard fires (fixture has one staff member), coaching with no note refused, coaching with note moves act to recognized list, acted entry leaves review queue; apps/retailer/e2e/staff-closeout.spec.ts proves closeout submission with promises and learnings, persistence on revisit, manager visibility — both passing at this exact commit",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "No external recognition/coaching system integration required for this tranche"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "proven",
+    "denied": "proven",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/staff-recognition.spec.ts and apps/retailer/e2e/staff-closeout.spec.ts",
+  "assertedAt": "2026-08-30T21:45:00.000Z"
+}
