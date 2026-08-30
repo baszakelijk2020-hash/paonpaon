@@ -44,5 +44,5 @@
   },
   "linkedSeedId": "e2e-retailer-workspace",
   "browserProofSpec": "apps/customer/e2e/employee-portal-linked-customer.spec.ts",
-  "assertedAt": "2026-08-30T06:25:49.743Z"
+  "assertedAt": "2026-08-10T01:25:00.000Z"
 }

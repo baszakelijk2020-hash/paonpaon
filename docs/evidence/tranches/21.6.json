@@ -56,5 +56,5 @@
   },
   "linkedSeedId": "demo-seed:atelier-demo",
   "browserProofSpec": "apps/customer/e2e/storefront-dashboard-boundary-perf.spec.ts",
-  "assertedAt": "2026-08-30T06:31:36.114Z"
+  "assertedAt": "2026-08-26T08:50:00Z"
 }
