@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "12.2",
+  "requirementIds": ["INV-103"],
+  "status": "verified_local",
+  "title": "Garment production and serialized pieces",
+  "applicability": {
+    "domain": "required",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/production/production.ts",
+    "persistence": "supabase/migrations/20260801000008_add_serialized_production.sql",
+    "service": "packages/database/src/repositories/production-piece-repository.ts",
+    "origin_ui": "apps/retailer/app/(dashboard)/production/page.tsx",
+    "receiver_ui": "n_a",
+    "rls": "supabase/migrations/20260801000008_add_serialized_production.sql (RLS policies for production_pieces table)",
+    "exceptions": "packages/domain/src/production/production.ts checkStageTransition, checkOrderDispatch, checkPostCutAmendment; service_recovery_budget_requests integration from PHASE 11.4",
+    "browser": "apps/retailer/e2e/production.spec.ts — full suit fixture (jacket/trousers), independent barcode scans, stage transitions (cutting through dispatch with rework path), post-cut amendments with reason/cost, outworker ticket whitelist projection (initials not full name), delayed-piece detection and service-recovery action creation",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "Automated factory submission via external write API remains blocked_external"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "proven",
+    "denied": "proven",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/production.spec.ts",
+  "assertedAt": "2026-08-30T00:00:00.000Z"
+}

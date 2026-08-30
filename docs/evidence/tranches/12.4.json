@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "12.4",
+  "requirementIds": ["MTM-101"],
+  "status": "verified_local",
+  "title": "Supplier/atelier intelligence and support operations",
+  "applicability": {
+    "domain": "required",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/production/supplier-intelligence.ts",
+    "persistence": "supabase/migrations/20260801000010_add_supplier_intelligence.sql",
+    "service": "packages/database/src/repositories/supplier-intelligence-repository.ts",
+    "origin_ui": "apps/retailer/app/(dashboard)/supplier-intelligence/page.tsx",
+    "receiver_ui": "n_a",
+    "rls": "supabase/migrations/20260801000010_add_supplier_intelligence.sql (RLS policies for supplier_facts, fabric_button_rules, supply_exceptions, supply_complaint_cases tables)",
+    "exceptions": "packages/domain/src/production/supplier-intelligence.ts resolveSupplierFact (authority validation, conflict detection, staleness handling), checkCreateSupplyException (owner/citation requirements), checkUpdateComplaintCase (state-machine enforcement); append-only design for facts and corrections",
+    "browser": "apps/retailer/e2e/supplier-intelligence.spec.ts — supplier fact logging, versioned material data updates, supply-exception creation with cited facts, exception refusal without citations, complaint lifecycle (raised → investigating → supplier_notified → customer_recovered → closed), refusal of supplier-notify without evidence, no factory write-back mentions",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "Live supplier API sync remains blocked_external"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "proven",
+    "denied": "proven",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/supplier-intelligence.spec.ts",
+  "assertedAt": "2026-08-30T00:00:00.000Z"
+}

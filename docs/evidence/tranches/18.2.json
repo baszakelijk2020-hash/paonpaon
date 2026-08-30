@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "18.2",
+  "requirementIds": ["BD-102"],
+  "status": "verified_local",
+  "title": "Tender and Pitch Builder",
+  "applicability": {
+    "domain": "required",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/corporate/tender.ts",
+    "persistence": "supabase/migrations/20260804140000_add_corporate_tenders.sql",
+    "service": "packages/database/src/repositories/corporate-tender-repository.ts",
+    "origin_ui": "apps/retailer/app/(dashboard)/business-development/[opportunityId]/page.tsx (Tenders card)",
+    "receiver_ui": "n_a",
+    "rls": "supabase/migrations/20260804140000_add_corporate_tenders.sql (RLS policies for corporate_tenders, corporate_tender_versions, corporate_tender_approvals tables)",
+    "exceptions": "packages/domain/src/corporate/tender.ts checkCreateTender (refuses lost opportunity), checkCreateTenderVersion (refuses blank summary or all-blank garment-concepts); database-enforced version immutability (no update/delete grant on corporate_tender_versions), unique constraint on corporate_tender_approvals.tender_version_id preventing double-approval; Postgres constraint violation (23505) caught and typed as already_approved",
+    "browser": "apps/retailer/e2e/corporate-tender.spec.ts — tender creation against live opportunity, version authoring with summary and garment concepts, version immutability (each new version increments), approval action making version approved, unapproved versions showing Approve button, approved versions hiding button, second approval attempt refused by database constraint (23505 error asserted directly), migration bug fix during build (RLS INSERT grant added to tender tables)",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "No external visibility without explicit approval (18.3 scope for public share)"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "proven",
+    "denied": "proven",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/corporate-tender.spec.ts",
+  "assertedAt": "2026-08-30T00:00:00.000Z"
+}

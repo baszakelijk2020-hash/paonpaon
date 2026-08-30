@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "18.12",
+  "requirementIds": ["BD-112"],
+  "status": "verified_local",
+  "title": "Relationship cross-referencing and opportunity scoring from existing customers",
+  "applicability": {
+    "domain": "required",
+    "persistence": "n_a",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/corporate/business-development.ts (existing addSignal)",
+    "persistence": "n_a (no new migration; reuses existing customer_facts table from PHASE 7.3)",
+    "service": "packages/database/src/repositories/customer-fact-repository.ts (findByFactTypeAndValue case-insensitive match scoped to retailer_id)",
+    "origin_ui": "apps/retailer/app/(dashboard)/business-development/[opportunityId]/page.tsx (Existing customer match card, add as signal via same existing addSignal action)",
+    "receiver_ui": "n_a",
+    "rls": "Existing customer_facts RLS (PHASE 7.3); no new policies needed",
+    "exceptions": "CustomerFactRepository.findByFactTypeAndValue restricts to retailer_id (no cross-tenant leakage); signal detail cites specific customer_facts row id (no automatic score bump, never a parallel write path)",
+    "browser": "apps/retailer/e2e/corporate-relationship-crossref.spec.ts — existing client's employer fact surfaces with citable basis on opportunity page, adding it as signal moves score by exactly existing_customer_link weight (30), matching employer fact seeded under different fixture retailer (e2e-customer-workspace) never appears on first retailer's page (cross-tenant-leakage prevention)",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "Automated discovery from external signals (18.11 scope) not yet built; only manually entered existing_customer_link case covered here"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "proven",
+    "denied": "proven",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/corporate-relationship-crossref.spec.ts",
+  "assertedAt": "2026-08-30T00:00:00.000Z"
+}

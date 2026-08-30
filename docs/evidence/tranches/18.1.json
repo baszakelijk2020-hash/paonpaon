@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "18.1",
+  "requirementIds": ["BD-101"],
+  "status": "verified_local",
+  "title": "Corporate business-development opportunities (InsiderTailoring pipeline model)",
+  "applicability": {
+    "domain": "required",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/corporate/business-development.ts",
+    "persistence": "supabase/migrations/20260804130000_add_corporate_opportunities.sql",
+    "service": "packages/database/src/repositories/corporate-opportunity-repository.ts",
+    "origin_ui": "apps/retailer/app/(dashboard)/business-development/page.tsx and apps/retailer/app/(dashboard)/business-development/[opportunityId]/page.tsx",
+    "receiver_ui": "n_a",
+    "rls": "supabase/migrations/20260804130000_add_corporate_opportunities.sql (RLS policies for corporate_opportunities and corporate_opportunity_signals tables)",
+    "exceptions": "packages/domain/src/corporate/business-development.ts checkOpportunityStageTransition (explicit allow-list per stage, no implicit fallback), checkCreateOpportunity, checkAddSignal, scoreOpportunity (fixed weights, capped at 100, returns breakdown); CHECK constraint refusing stage='won' without linked_account_id",
+    "browser": "apps/retailer/e2e/business-development.spec.ts — opportunity creation, signal addition, score computation from live signal set with exact expected breakdown, stage progression via explicit allow-list (skipping ahead refused), win action creating real corporate_accounts row via CorporateRepository.createAccount (not duplicate table insert)",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "No external commercial-signal discovery yet (18.11 scope)"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "proven",
+    "denied": "proven",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/business-development.spec.ts",
+  "assertedAt": "2026-08-30T00:00:00.000Z"
+}
