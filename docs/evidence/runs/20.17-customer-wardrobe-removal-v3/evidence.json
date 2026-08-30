@@ -1,0 +1,76 @@
+{
+  "phase": "20.17",
+  "commit": "4daa18c",
+  "route": "/wardrobe",
+  "persona": "authenticated E2E Customer Workspace fixture against the local Supabase stack",
+  "summary": "Customer removal of an advisor selection from the wardrobe plan — advisor-owned roadmap gap rendering as a customer-removable selection card in the wardrobe. Remove updates real roadmap/selection state and requires confirmation.",
+  "checks": {
+    "focused_playwright": "1 passed: wardrobe-removal-v3.spec.ts (customer removes advisor selection with confirmation, state persists across reload)",
+    "database_rls": "passed (wardrobe_roadmap_gap_dispositions tenant isolation and authorization)",
+    "customer_lint": "passed",
+    "customer_typecheck": "passed",
+    "console": "no console error messages observed by the authenticated desktop/mobile browser capture"
+  },
+  "screenshots": [
+    {
+      "file": "desktop-advisor-card.png",
+      "viewport": "1512x982",
+      "note": "Advisor selection card in wardrobe view",
+      "sha256": "bab1fb8411e93f7ff475378785f4247da2499e59817248aae720bae7559edacc"
+    },
+    {
+      "file": "desktop-remove-confirm.png",
+      "viewport": "1512x982",
+      "note": "Confirmation dialog after clicking Remove",
+      "sha256": "f4d6b6e50b965dca992492c97d8aa443130476b6e1e37be35708b27e0d9c6254"
+    },
+    {
+      "file": "desktop-removed.png",
+      "viewport": "1512x982",
+      "note": "Advisor selection removed from wardrobe view",
+      "sha256": "5d77cc777fd1ae5b80a0d48c018ad69dae14c7d25a28f1246016eb53be999452"
+    },
+    {
+      "file": "desktop-removed-after-reload.png",
+      "viewport": "1512x982",
+      "note": "Advisor selection remains removed after page reload (state persisted)",
+      "sha256": "614abe6e98246ae46ddaad41be21261ffee41686d498b198130901427e6a32c7"
+    },
+    {
+      "file": "desktop-cancel-kept.png",
+      "viewport": "1512x982",
+      "note": "Clicking cancel in confirmation preserves the advisor selection",
+      "sha256": "2d55cec78f78403d55da7ee9853a76e97c772daa2c173599a8339edbe96fa664"
+    },
+    {
+      "file": "mobile-advisor-card.png",
+      "viewport": "390x844",
+      "note": "Advisor selection card on mobile",
+      "sha256": "d6a77a0038e3e3595ea346711f8ed0aa93566a17eee3f26a794d3d146d5d397a"
+    },
+    {
+      "file": "mobile-remove-confirm.png",
+      "viewport": "390x844",
+      "note": "Mobile confirmation dialog",
+      "sha256": "328f314801c45e22aa4a2f4d70b7f64aec5dcfb1635c01e9739477c57e0b6d89"
+    },
+    {
+      "file": "mobile-removed.png",
+      "viewport": "390x844",
+      "note": "Mobile view after removal",
+      "sha256": "ded8addfab820eea79bba020bdb042d0b9429a257f93abbb3c3c5d384d795fe0"
+    },
+    {
+      "file": "mobile-removed-after-reload.png",
+      "viewport": "390x844",
+      "note": "Mobile view after removal with reload",
+      "sha256": "4c6d0d8938051c2a39fcb7cccbd8be4715cc14e33e2b20a9317cd5104e99a406"
+    },
+    {
+      "file": "mobile-cancel-kept.png",
+      "viewport": "390x844",
+      "note": "Mobile cancel in confirmation",
+      "sha256": "de9c0cb32ff99a5125f9f42e27b88a0d0703992109fe190cb551d14a88baeb29"
+    }
+  ]
+}
