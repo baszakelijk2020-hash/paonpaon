@@ -44,5 +44,5 @@
   },
   "linkedSeedId": "demo-seed:atelier-demo",
   "browserProofSpec": "apps/customer/e2e/customer-navigation-v3-copy.spec.ts",
-  "assertedAt": "2026-08-30T12:39:52.656Z"
+  "assertedAt": "2026-08-30T13:50:39.000Z"
 }

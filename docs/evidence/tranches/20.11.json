@@ -44,5 +44,5 @@
   },
   "linkedSeedId": "demo-seed:atelier-demo",
   "browserProofSpec": "apps/customer/e2e/dashboard-v3-daily-return.spec.ts",
-  "assertedAt": "2026-08-30T12:39:05.850Z"
+  "assertedAt": "2026-08-30T13:50:39.000Z"
 }

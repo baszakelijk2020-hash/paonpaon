@@ -44,5 +44,5 @@
   },
   "linkedSeedId": "demo-seed:atelier-demo",
   "browserProofSpec": "apps/customer/e2e/wardrobe-no-external-entry-v3.spec.ts",
-  "assertedAt": "2026-08-30T12:41:23.111Z"
+  "assertedAt": "2026-08-30T13:50:39.000Z"
 }
