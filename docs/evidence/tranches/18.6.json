@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "18.6",
+  "requirementIds": ["BD-106"],
+  "status": "verified_local",
+  "title": "Measurement and fitting rollout planning",
+  "applicability": {
+    "domain": "required",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/corporate/rollout-planning.ts; checkAssignWearerToDay (capacity enforcement, site scoping), planNoShowReslot (reslot to earliest eligible day or report unslottable)",
+    "persistence": "supabase/migrations/20260804180000_add_corporate_rollout_planning.sql (corporate_rollout_days, corporate_rollout_slots with capacity/wearer tracking) and 20260805140000_add_corporate_rollout_site_scoping.sql (site_key scoping, unique index on wearer_id where status='planned' for one-live-slot enforcement)",
+    "service": "packages/database/src/repositories/corporate-rollout-repository.ts; CorporateRolloutRepository.createDay, assignWearer, markNoShowAndReslot methods",
+    "origin_ui": "apps/retailer/app/(dashboard)/corporate/[programmeId]/page.tsx with Fitting rollout card (add day, assign unassigned wearer, mark completed/no-show, reslot UI)",
+    "receiver_ui": "apps/retailer/app/(dashboard)/corporate/[programmeId]/page.tsx (day capacity display, no-show awaiting reslot panel, per-day wearer assignments)",
+    "rls": "supabase/migrations/20260805140000_add_corporate_rollout_site_scoping.sql — corporate_rollout_slots unique(wearer_id where status='planned') enforces at DB level, not application alone; site_key matching enforced in checkAssignWearerToDay and planNoShowReslot before write",
+    "exceptions": "packages/domain/src/corporate/rollout-planning.ts refuses over-capacity assignment (DB-level), refuses cross-site assignment/reslot, never silently drops no-show (reslots to earliest open day or reports unslottable); original no-show row stays on record, fresh planned row on new day",
+    "browser": "apps/retailer/e2e/corporate-rollout.spec.ts proves: (1) full day refuses assignment (DB assertion), (2) no-show on full day reslots to earlier open day (two rows: no_show on original, planned on new), (3) site-scoped day dropdown excludes different-site wearer, direct repo assignment for mismatched wearer refused with site_mismatch error — both tests passing at this exact commit",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "No external calendar/booking system integration required for this local tranche"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "proven",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/corporate-rollout.spec.ts",
+  "assertedAt": "2026-08-30T21:16:00.000Z"
+}

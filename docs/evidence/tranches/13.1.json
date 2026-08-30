@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "13.1",
+  "requirementIds": ["INV-101", "INV-102"],
+  "status": "verified_local",
+  "title": "Stock ledger, reservations, barcode receiving and counts",
+  "applicability": {
+    "domain": "required",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/inventory/stock-ledger.ts; projectBalance (on-hand/reserved/available), reversal/idempotency, variance/adjustment validation, scan mode isolation",
+    "persistence": "supabase/migrations/20260801000018_make_inventory_quantity_a_ledger_projection.sql through 20260801175205_harden_stock_tenant_boundaries.sql; stock_ledger_entries enforces no UPDATE/DELETE grant on any role (service_role included)",
+    "service": "packages/database/src/repositories/stock-ledger-repository.ts; entry creation, location balance query, reversal workflow",
+    "origin_ui": "apps/retailer/app/(dashboard)/inventory/page.tsx with inventory-forms.tsx and actions.ts (receive, hold, blind count, adjustment UI at /inventory)",
+    "receiver_ui": "apps/retailer/app/(dashboard)/inventory/page.tsx (ledger receipt display, available/reserved/on-hand balance projections)",
+    "rls": "supabase/migrations/20260801000018_make_inventory_quantity_a_ledger_projection.sql — stock_ledger_entries has no UPDATE/DELETE grant for any role; balance integrity is a database constraint, not application logic",
+    "exceptions": "packages/domain/src/inventory/stock-ledger.ts oversell guard checks _available_ (not on-hand), reversal signs derived from original entry (caller cannot mis-sign), idempotency collapse on read+write prevents partition double-count, blind count reports uncounted variants as uncounted never as zero, adjustment requires count session origin and reason validation",
+    "browser": "apps/retailer/e2e/inventory.spec.ts proves all four Acceptance clauses: (1) purchase receipt receive + hold, (2) sale reservation, (3) blind count reconcile with variance, (4) transfer between locations with available-check refusal — both tests passing at this exact commit",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "No external barcode scanner/RFID hardware required for this local tranche"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "proven",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/inventory.spec.ts",
+  "assertedAt": "2026-08-30T21:15:00.000Z"
+}
