@@ -334,9 +334,48 @@ test("manager downloads the persisted payroll handoff while advisor and foreign 
     expect(csv.headers()["content-disposition"]).toBe(
       `attachment; filename="payroll-export-${payrollExport.id}.csv"`,
     );
-    expect(await csv.text()).toBe(
-      `staff_id,earning_code,hours\n${owner.id},regular,8\n${advisor.id},overtime,1.5\n${advisor.id},regular,8`,
+
+    // Parse CSV and verify sorted order. Export sorts by staffId then earningCode,
+    // which is non-deterministic when one staffId is randomly generated.
+    const csvText = await csv.text();
+    const csvLines = csvText.trim().split("\n");
+    expect(csvLines[0]).toBe("staff_id,earning_code,hours"); // header
+
+    const csvRows = csvLines.slice(1).map((line) => {
+      const [staffId, earningCode, hours] = line.split(",") as [
+        string,
+        string,
+        string,
+      ];
+      return {
+        staffId,
+        earningCode,
+        hours: parseFloat(hours),
+      };
+    });
+
+    // Create expected rows with actual IDs and sort them by staffId then earningCode
+    // (matching the export's deterministic sort order)
+    const expectedRows = [
+      { staffId: owner.id, earningCode: "regular", hours: 8 },
+      { staffId: advisor.id, earningCode: "overtime", hours: 1.5 },
+      { staffId: advisor.id, earningCode: "regular", hours: 8 },
+    ].sort((a, b) =>
+      a.staffId === b.staffId
+        ? a.earningCode.localeCompare(b.earningCode)
+        : a.staffId.localeCompare(b.staffId),
     );
+
+    // Verify actual rows are sorted (identical to export's sort contract)
+    const sortedCsvRows = [...csvRows].sort((a, b) =>
+      a.staffId === b.staffId
+        ? a.earningCode.localeCompare(b.earningCode)
+        : a.staffId.localeCompare(b.staffId),
+    );
+    expect(csvRows).toEqual(sortedCsvRows);
+
+    // Verify all expected rows are present with correct values
+    expect(csvRows).toEqual(expectedRows);
 
     const json = await page.context().request.get(jsonPath);
     expect(json.status()).toBe(200);
