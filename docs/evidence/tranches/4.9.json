@@ -20,10 +20,10 @@
     "persistence": "supabase/migrations/20260806100000_add_virtual_wardrobe_studio_foundation.sql; supabase/migrations/20260809140000_allow_advisor_visualization_cancellation.sql",
     "service": "packages/database/src/repositories/outfit-repository.ts (findByRoadmap); packages/database/src/repositories/wardrobe-visualization-job-repository.ts",
     "origin_ui": "apps/retailer/app/(dashboard)/customers/[id]/visual-roadmap-card.tsx; apps/retailer/app/(dashboard)/customers/[id]/visual-roadmap-actions.ts (advisor composes up to twelve roadmap-linked Outfits, enqueues one or all, cancels queued)",
-    "receiver_ui": "apps/customer/app/(dashboard)/wardrobe/roadmap-panel.tsx; apps/customer/app/(dashboard)/wardrobe/roadmap-actions.ts (customer reviews one ready look at a time with Love it/Maybe/Not for me/written change request attached to the exact visualization job)",
+    "receiver_ui": "apps/customer/app/(dashboard)/digital-fitting-room/fitting-room-studio.tsx; apps/customer/app/(dashboard)/wardrobe/roadmap-actions.ts (customer reviews one ready look at a time with Love it/Maybe/Not for me/written change request attached to the exact visualization job)",
     "rls": "supabase/tests/wardrobe_visualization_enqueue_test.sql (188 pgTAP assertions covering the queue/consent/module boundary this item composes with)",
     "exceptions": "packages/domain/src/wardrobe/virtual-studio.test.ts; the same-House advisor cancellation boundary added by 14235c8 (an authorized same-House advisor may cancel after module suspension/consent withdrawal; a cross-House advisor is refused)",
-    "browser": "apps/retailer/e2e/visual-roadmap.spec.ts + docs/evidence/runs/4.9.json status=passed (advisor composes/enqueues a roadmap look); apps/customer/e2e/roadmap-look-review.spec.ts (customer reviews a roadmap-linked look with Love it/Maybe/Request change) — both pass against the ledger-approved disposable local Supabase target at the current commit.",
+    "browser": "apps/retailer/e2e/visual-roadmap.spec.ts + docs/evidence/runs/4.9.json status=passed (advisor composes/enqueues a roadmap look); apps/customer/e2e/roadmap-approval-rls-v3.spec.ts (customer reviews a roadmap-linked look with Love it/Maybe/Request change) — both pass against the ledger-approved disposable local Supabase target at the current commit.",
     "operations": "packages/domain/scripts/validate-completion-evidence.ts; packages/domain/package.json (validate:completion)",
     "live_gap": "Live rendered-image proof still requires the configured provider credential named by 4.6 (OPENAI_API_KEY); local queue/review proof is complete without it."
   },
@@ -44,5 +44,5 @@
   },
   "linkedSeedId": "e2e-retailer-workspace",
   "browserProofSpec": "apps/retailer/e2e/visual-roadmap.spec.ts",
-  "assertedAt": "2026-08-09T12:38:36.000Z"
+  "assertedAt": "2026-08-30T12:28:28.000Z"
 }

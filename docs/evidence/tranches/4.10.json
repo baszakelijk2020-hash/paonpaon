@@ -44,5 +44,5 @@
   },
   "linkedSeedId": "e2e-retailer-workspace",
   "browserProofSpec": "apps/customer/e2e/virtual-studio-batch-and-feedback-evidence.spec.ts",
-  "assertedAt": "2026-08-09T12:38:36.000Z"
+  "assertedAt": "2026-08-30T12:28:28.000Z"
 }
