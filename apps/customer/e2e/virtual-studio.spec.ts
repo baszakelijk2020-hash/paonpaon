@@ -141,7 +141,12 @@ test("a customer builds a Style Portrait, composes a look, and enqueues generati
     await signIn(page, admin);
 
     // --- Style Portrait onboarding (in Digital Fitting Room) ---
+    // The first-run invitation is intentional: enter the real onboarding
+    // flow through its only customer-facing action rather than assuming the
+    // former direct panel route.
     await page.goto("/digital-fitting-room");
+    await page.getByRole("link", { name: /Start creating/ }).click();
+    await expect(page).toHaveURL(/\/digital-fitting-room\?step=avatar$/);
     await expect(
       page.getByRole("heading", { name: /Style Portrait/ }),
     ).toBeVisible();
@@ -258,12 +263,16 @@ test("a customer builds a Style Portrait, composes a look, and enqueues generati
     ).toBeVisible();
 
     await page.getByRole("button", { name: "Approve" }).click();
-    const { data: approvedPortrait } = await admin
-      .from("style_portraits")
-      .select("status")
-      .eq("id", portraitAfterUploads.id)
-      .single();
-    expect(approvedPortrait?.status).toBe("approved");
+    await expect
+      .poll(async () => {
+        const { data } = await admin
+          .from("style_portraits")
+          .select("status")
+          .eq("id", portraitAfterUploads.id)
+          .single();
+        return data?.status ?? null;
+      })
+      .toBe("approved");
 
     // --- Compose and enqueue a look (in Digital Fitting Room) ---
     await page.goto("/digital-fitting-room?step=avatar");
@@ -308,11 +317,21 @@ test("a customer builds a Style Portrait, composes a look, and enqueues generati
     // Generate — approved portrait + trigger-seeded retailer default
     // preset both exist, so this must reach the queue, not a
     // "not configured" error.
-    await page
-      .getByRole("button", { name: "Generate this look" })
-      .click();
+    await page.getByRole("button", { name: "Generate this look" }).click();
     await expect(page.getByText("Queued")).toBeVisible();
 
+    await expect
+      .poll(async () => {
+        const { data } = await admin
+          .from("wardrobe_visualization_jobs")
+          .select("id")
+          .eq("outfit_id", outfitAfterCreate.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        return data?.id ?? null;
+      })
+      .not.toBeNull();
     const { data: jobAfterEnqueue } = await admin
       .from("wardrobe_visualization_jobs")
       .select("id, status, outfit_id, customer_id")
