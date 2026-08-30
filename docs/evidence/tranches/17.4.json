@@ -44,5 +44,5 @@
   },
   "linkedSeedId": "e2e-retailer-workspace",
   "browserProofSpec": "apps/retailer/e2e/fabric-pairing.spec.ts",
-  "assertedAt": "2026-08-30T04:53:23.000Z"
+  "assertedAt": "2026-08-30T16:40:04.000Z"
 }
