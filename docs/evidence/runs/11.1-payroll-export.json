@@ -1,7 +1,7 @@
 {
   "phaseItemId": "11.1-payroll-export",
-  "gitSha": "c481dcdd59598dc9c682ed3004246d2450930c7f",
+  "gitSha": "c8794c6f1e989849a342bb223882831bdf8786b5",
   "spec": "apps/retailer/e2e/payroll-export.spec.ts",
   "status": "passed",
-  "timestamp": "2026-08-30T16:40:11.000Z"
+  "timestamp": "2026-08-30T12:14:24Z"
 }

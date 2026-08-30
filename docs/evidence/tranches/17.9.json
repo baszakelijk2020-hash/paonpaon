@@ -44,5 +44,5 @@
   },
   "linkedSeedId": "e2e-retailer-workspace",
   "browserProofSpec": "apps/retailer/e2e/channel-contact.spec.ts",
-  "assertedAt": "2026-08-30T16:40:08.000Z"
+  "assertedAt": "2026-08-30T12:14:24Z"
 }

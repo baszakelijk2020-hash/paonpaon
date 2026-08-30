@@ -44,5 +44,5 @@
   },
   "linkedSeedId": "e2e-retailer-workspace",
   "browserProofSpec": "apps/retailer/e2e/corporate-rollout.spec.ts",
-  "assertedAt": "2026-08-30T21:16:00.000Z"
+  "assertedAt": "2026-08-30T12:14:24Z"
 }
