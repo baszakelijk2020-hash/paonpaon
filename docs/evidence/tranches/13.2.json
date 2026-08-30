@@ -13,7 +13,7 @@
     "exceptions": "required",
     "browser": "required",
     "operations": "required",
-    "live_gap": "blocked_external"
+    "live_gap": "n_a"
   },
   "evidence": {
     "domain": "packages/domain/src/inventory/loss-prevention.ts; assessAdjustmentRisk takes only transaction properties (no staff id, returns risk assessment), summarizeRiskCoverage reports adjustments and locations (not per-person totals), reconcileSweep returns postsBalanceChange: false (RFID never posts balance directly)",
