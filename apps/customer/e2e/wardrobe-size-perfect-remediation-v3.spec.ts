@@ -150,9 +150,7 @@ async function seedFixtures(): Promise<{
 }
 
 async function openOrderAgain(page: Page, displayName: string) {
-  const card = page
-    .locator("article", { hasText: displayName })
-    .first();
+  const card = page.locator("article", { hasText: displayName }).first();
   await expect(card).toBeVisible();
   await card.getByRole("button", { name: "Actions +" }).click();
   await card.getByText("Order again", { exact: true }).click();
@@ -200,7 +198,8 @@ test("owned-card Order Again offers the real product route or the real advisor f
     // not silently redirected elsewhere.
     await sizePerfect.click();
     await page.waitForURL(
-      (u) => u.pathname === `/r/${TEST_RETAILER_SLUG}/products/${TEST_PRODUCT_SLUG}`,
+      (u) =>
+        u.pathname === `/r/${TEST_RETAILER_SLUG}/products/${TEST_PRODUCT_SLUG}`,
     );
     await expect(page.getByText(/page not found|404/i)).toHaveCount(0);
 

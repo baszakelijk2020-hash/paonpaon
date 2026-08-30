@@ -4,7 +4,16 @@
   "status": "verified_local",
   "title": "one-platform seam - storefront <-> dashboard",
   "applicability": {
-    "domain": "n_a", "persistence": "required", "service": "required", "origin_ui": "required", "receiver_ui": "required", "rls": "required", "exceptions": "required", "browser": "required", "operations": "required", "live_gap": "n_a"
+    "domain": "n_a",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
   },
   "acceptance": {
     "storefrontUntouched": "proven",
@@ -30,7 +39,19 @@
     "live_gap": "No hosted-provider claim: this proof runs against local Supabase and a production build."
   },
   "uiChecklist": {
-    "loading": "n_a", "empty": "n_a", "error": "n_a", "denied": "n_a", "stale": "n_a", "conflict": "n_a", "success": "proven", "role_orientation": "proven", "task_continuation": "proven", "phone": "n_a", "tablet": "n_a", "desktop": "proven", "keyboard_a11y": "n_a"
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
   },
   "linkedSeedId": "demo-seed:atelier-demo",
   "browserProofSpec": "apps/customer/e2e/storefront-dashboard-roundtrip.spec.ts",

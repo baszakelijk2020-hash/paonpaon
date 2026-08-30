@@ -4,7 +4,16 @@
   "status": "verified_local",
   "title": "storefront -> dashboard boundary performance budget",
   "applicability": {
-    "domain": "n_a", "persistence": "n_a", "service": "required", "origin_ui": "required", "receiver_ui": "required", "rls": "n_a", "exceptions": "required", "browser": "required", "operations": "required", "live_gap": "n_a"
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "n_a",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
   },
   "performance": {
     "direction": "storefront->dashboard",
@@ -31,7 +40,19 @@
     "live_gap": "No hosted-provider claim: this is a local production-build performance regression guard."
   },
   "uiChecklist": {
-    "loading": "n_a", "empty": "n_a", "error": "n_a", "denied": "n_a", "stale": "n_a", "conflict": "n_a", "success": "proven", "role_orientation": "n_a", "task_continuation": "proven", "phone": "n_a", "tablet": "n_a", "desktop": "proven", "keyboard_a11y": "n_a"
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
   },
   "linkedSeedId": "demo-seed:atelier-demo",
   "browserProofSpec": "apps/customer/e2e/storefront-dashboard-boundary-perf.spec.ts",

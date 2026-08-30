@@ -256,9 +256,7 @@ for (const [viewport, kind] of [
       });
 
       // Real click, real authenticated customer session.
-      await page
-        .getByRole("button", { name: "Approve", exact: true })
-        .click();
+      await page.getByRole("button", { name: "Approve", exact: true }).click();
 
       // DB postcondition, read via service role — inspection only.
       await expect

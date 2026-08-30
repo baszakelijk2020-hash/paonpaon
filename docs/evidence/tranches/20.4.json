@@ -4,7 +4,16 @@
   "status": "implemented_unverified",
   "title": "Read-only Atelier Demo storefront parity inventory",
   "applicability": {
-    "domain": "n_a", "persistence": "n_a", "service": "n_a", "origin_ui": "required", "receiver_ui": "n_a", "rls": "n_a", "exceptions": "required", "browser": "n_a", "operations": "required", "live_gap": "n_a"
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "n_a",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "required",
+    "browser": "n_a",
+    "operations": "required",
+    "live_gap": "n_a"
   },
   "evidence": {
     "domain": "No domain rule: this item inventories the existing raw storefront.",
@@ -19,7 +28,19 @@
     "live_gap": "No hosted-provider gap: this record intentionally makes no verified product claim."
   },
   "uiChecklist": {
-    "loading": "n_a", "empty": "n_a", "error": "n_a", "denied": "n_a", "stale": "n_a", "conflict": "n_a", "success": "n_a", "role_orientation": "n_a", "task_continuation": "n_a", "phone": "n_a", "tablet": "n_a", "desktop": "n_a", "keyboard_a11y": "n_a"
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "n_a",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "n_a",
+    "keyboard_a11y": "n_a"
   },
   "linkedSeedId": "",
   "browserProofSpec": "",

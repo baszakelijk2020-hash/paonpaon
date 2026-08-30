@@ -15,7 +15,8 @@ import { writeBrowserProofRun } from "./write-browser-proof-run";
  * share the same Supabase + cookies; this locks that in.
  */
 const PHASE_ITEM_ID = "21.2";
-const BROWSER_PROOF_SPEC = "apps/customer/e2e/storefront-dashboard-roundtrip.spec.ts";
+const BROWSER_PROOF_SPEC =
+  "apps/customer/e2e/storefront-dashboard-roundtrip.spec.ts";
 let proofPassed = false;
 
 test.afterAll(async () => {
