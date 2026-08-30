@@ -44,5 +44,5 @@
   },
   "linkedSeedId": "e2e-retailer-workspace",
   "browserProofSpec": "apps/retailer/e2e/appointment-brief.spec.ts",
-  "assertedAt": "2026-08-09T09:44:32.825Z"
+  "assertedAt": "2026-08-30T04:52:13.000Z"
 }

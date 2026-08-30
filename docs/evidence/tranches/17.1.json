@@ -44,5 +44,5 @@
   },
   "linkedSeedId": "e2e-retailer-workspace",
   "browserProofSpec": "apps/retailer/e2e/advisor-capture.spec.ts",
-  "assertedAt": "2026-08-09T09:32:15.606Z"
+  "assertedAt": "2026-08-30T04:50:51.000Z"
 }
