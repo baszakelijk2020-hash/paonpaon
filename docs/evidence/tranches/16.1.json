@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "16.1",
+  "requirementIds": ["KNW-101", "KNW-102", "KNW-103", "KNW-104"],
+  "status": "verified_local",
+  "title": "Consultancy, guided tiers and staff academy",
+  "applicability": {
+    "domain": "required",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "required"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/knowledge/academy-consultancy.ts (checkRoleplayGrade function); packages/domain/src/knowledge/academy-consultancy.test.ts (evidence ref citation validation, ungrounded-feedback refusal)",
+    "persistence": "supabase/migrations/20260805160000_add_academy_roleplay_personas.sql (academy_roleplay_grades table, append-only constraint)",
+    "service": "packages/database/src/repositories/academy-repository.ts (recordRoleplayGrade, getGradesForStaff)",
+    "origin_ui": "apps/retailer/app/(dashboard)/staff/learning/page.tsx (staff/learning page); apps/retailer/app/(dashboard)/staff/learning/learning-forms.tsx (RecordRoleplayGradeForm, self-grading prevention in picker)",
+    "receiver_ui": "apps/retailer/app/(dashboard)/staff/learning/page.tsx (advisor's own page shows received grades with evidence citations in full)",
+    "rls": "supabase/migrations/20260805160000_add_academy_roleplay_personas.sql (self-grading check); packages/database/src/repositories/academy-roleplay-security.test.ts (grader cannot grade themselves; staff only see their own grades)",
+    "exceptions": "packages/domain/src/knowledge/academy-consultancy.test.ts (ungrounded feedback refusal: no evidence ref or <10 char observed-behaviour string); self-grading check; cross-tenant grading refusal",
+    "browser": "apps/retailer/e2e/academy-roleplay.spec.ts (manager grades advisor citing evidence ref and observed behaviour, self-grading is absent from picker, advisor signs out/in and sees grade on own page) + docs/evidence/runs/16.1.json status=passed",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts; packages/domain/package.json (validate:completion)",
+    "live_gap": "No live gap — the roleplay grading loop is complete and self-contained. This item's owner boundary is five subsystems (separate customer/staff/owner/media libraries, guided MTM tiers, DailyBriefing, MunroMentor, and AMAM consultancy workflow) and only the roleplay grading exists; the knowledge libraries, guided tier UI, DailyBriefing, MunroMentor, and consultancy project workflow are domain-and-schema-only with no UI."
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "proven",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/academy-roleplay.spec.ts",
+  "assertedAt": "2026-08-30T04:58:55.000Z"
+}
