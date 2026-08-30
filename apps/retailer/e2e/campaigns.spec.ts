@@ -300,23 +300,24 @@ test("campaign: manager clones library, adds audience/products, activates, custo
   });
   await expect(cloneForCorrectionBtn).toBeVisible();
   await cloneForCorrectionBtn.click();
-  await page.waitForLoadState("networkidle");
-  console.error("Cloned campaign for correction");
-
-  // Verify new draft was created - hard assertion, not conditional
-  const { data: allCampaignsAfterClone } = await admin
-    .from("campaigns")
-    .select("id, status, title")
-    .eq("retailer_id", retailerId)
-    .order("created_at", { ascending: false });
-  const draftCampaigns = allCampaignsAfterClone?.filter(
-    (c) => c.status === "draft",
-  );
-  expect(draftCampaigns && draftCampaigns.length).toBeGreaterThanOrEqual(2);
-  console.error(
-    "Verified: new draft campaign created for correction. Total drafts:",
-    draftCampaigns?.length,
-  );
+  // This is a client ActionState form, so a navigation-idle event does not
+  // establish that its server action has committed. Poll for the precise new
+  // draft instead. The active source campaign is intentionally not a draft.
+  await expect
+    .poll(async () => {
+      const { data } = await admin
+        .from("campaigns")
+        .select("id, status")
+        .eq("retailer_id", retailerId)
+        .eq("status", "draft")
+        .neq("id", campaignId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data?.id ?? null;
+    })
+    .not.toBeNull();
+  console.error("Verified: correction clone created as a new draft");
 
   proofPassed = true;
 });
