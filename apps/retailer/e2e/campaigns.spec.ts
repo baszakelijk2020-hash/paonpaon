@@ -83,11 +83,17 @@ test("campaign: manager clones library, adds audience/products, activates, custo
   await page.waitForLoadState("networkidle");
 
   // Clone from library
+  const { data: campaignsBeforeClone, error: campaignsBeforeCloneError } =
+    await admin.from("campaigns").select("id").eq("retailer_id", retailerId);
+  if (campaignsBeforeCloneError) throw campaignsBeforeCloneError;
+  const existingCampaignIds = new Set(
+    (campaignsBeforeClone ?? []).map((campaign) => campaign.id),
+  );
   await expect(
     page.getByRole("button", { name: /Clone library package/ }),
   ).toBeVisible();
   await page.getByRole("button", { name: /Clone library package/ }).click();
-  await expect
+  const campaignId = await expect
     .poll(async () => {
       const { data } = await admin
         .from("campaigns")
@@ -96,28 +102,26 @@ test("campaign: manager clones library, adds audience/products, activates, custo
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      return data?.id ?? null;
+      return data && !existingCampaignIds.has(data.id) ? data.id : null;
     })
-    .not.toBeNull();
+    .not.toBeNull()
+    .then(async () => {
+      const { data } = await admin
+        .from("campaigns")
+        .select("id")
+        .eq("retailer_id", retailerId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+      if (!data || existingCampaignIds.has(data.id)) {
+        throw new Error("Library clone did not create a distinct campaign");
+      }
+      return data.id;
+    });
 
-  // Identify the exact campaign row just cloned by id (not by title text —
-  // every clone from this fixed library entry shares the same title, so
-  // after more than one test run several campaigns share identical text;
-  // scoping browser interactions by that text is ambiguous and can silently
-  // hit a stale campaign from an earlier run instead of this one).
-  const { data: latestCampaigns } = await admin
-    .from("campaigns")
-    .select("id, title")
-    .eq("retailer_id", retailerId)
-    .order("created_at", { ascending: false })
-    .limit(1);
-  if (!latestCampaigns || latestCampaigns.length === 0) {
-    throw new Error(
-      `No campaigns found in database for retailer ${retailerId}`,
-    );
-  }
-  const campaignId = latestCampaigns[0]!.id;
-  console.error("Cloned campaign:", latestCampaigns[0]);
+  // Scope browser interactions by the exact campaign created by this click,
+  // not a duplicate library title or a campaign retained from an earlier run.
+  console.error("Cloned campaign:", campaignId);
 
   // Scope every subsequent browser interaction to this exact campaign via
   // the hidden campaignId form field every action form in this section
