@@ -91,7 +91,7 @@ export default async function AccountPage() {
             Session
           </p>
           <p className="mt-1 text-base text-[var(--color-stone-600)]">
-            Sign out of your account on this device.
+            Sign out of your PAON account everywhere.
           </p>
         </div>
         <SignOutButton
