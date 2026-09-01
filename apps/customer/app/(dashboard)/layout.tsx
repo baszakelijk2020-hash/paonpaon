@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { AccountTopTabs, type AccountTab } from "./account-top-tabs";
+import { SignOutButton } from "./components/sign-out-button";
 import { CustomerNavigationLifecycle } from "./customer-navigation-lifecycle";
 import { GuestPortalPreview } from "./guest-portal-preview";
 import { ShopCategorySidebar } from "./shop-category-sidebar";
@@ -69,7 +70,15 @@ export default async function DashboardLayout({
       <ShopCategorySidebar />
       <div className="min-w-0">
         <CustomerNavigationLifecycle />
-        <AccountTopTabs tabs={ACCOUNT_TABS} />
+        <AccountTopTabs
+          tabs={ACCOUNT_TABS}
+          trailing={
+            <SignOutButton
+              className="flex h-full w-full items-stretch"
+              testId="customer-signout-desktop"
+            />
+          }
+        />
         <main className="mx-auto w-full max-w-[92rem] px-4 py-6 sm:px-7 sm:py-8 lg:px-10 xl:px-14">
           {children}
         </main>

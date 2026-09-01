@@ -18,6 +18,7 @@ import {
   isSavedLook,
 } from "@paon/domain";
 import type { Outfit, WardrobeVisualizationJob } from "@paon/domain";
+import Image from "next/image";
 import Link from "next/link";
 
 import type { ComposableItem } from "./fitting-room-studio";
@@ -182,16 +183,29 @@ export default async function DigitalFittingRoomPage({
     }),
   );
   const hasSavedOutfits = groups.some((group) => group.outfits.length > 0);
+  const invitationImage = groups
+    .flatMap((group) => [
+      group.portrait?.previewImageUrl,
+      group.portraitPreviewJob?.outputImageUrl,
+      ...group.outfits.map(
+        (outfit) => group.latestJobByOutfitId[outfit.id]?.status === "ready"
+          ? group.latestJobByOutfitId[outfit.id]?.outputImageUrl
+          : undefined,
+      ),
+      ...group.composableItems.map((item) => item.imageUrl),
+    ])
+    .find((imageUrl): imageUrl is string => Boolean(imageUrl));
 
   if (step !== "avatar") {
     return (
-      <div className="-mx-4 min-h-full bg-[linear-gradient(115deg,#283129_0%,#11150f_58%,#161510_100%)] px-4 py-8 text-white sm:-mx-7 sm:px-7 lg:-mx-10 lg:px-10 xl:-mx-14 xl:px-14">
-        <section className="mx-auto mt-4 max-w-2xl overflow-hidden rounded-[22px] bg-[linear-gradient(135deg,rgba(224,231,214,.16),rgba(255,255,255,.05))] p-1 shadow-[0_24px_80px_rgba(0,0,0,.28)]">
-          <div className="rounded-[19px] bg-[#12160f]/55 p-8 sm:p-12">
-            <p className="customer-kicker text-[#c5d0c0]">
+      <div className="-mx-4 min-h-full bg-[radial-gradient(circle_at_78%_22%,rgba(136,150,111,.18),transparent_30%),linear-gradient(115deg,#263027_0%,#11150f_58%,#161510_100%)] px-4 py-8 text-white sm:-mx-7 sm:px-7 lg:-mx-10 lg:px-10 xl:-mx-14 xl:px-14">
+        <section className="mx-auto mt-4 max-w-4xl overflow-hidden rounded-[28px] bg-[#151a12]/92 shadow-[0_32px_100px_rgba(0,0,0,.34)]">
+          <div className={invitationImage ? "grid lg:grid-cols-[1.1fr_.9fr]" : ""}>
+            <div className="p-8 sm:p-12 lg:p-14">
+            <p className="customer-kicker text-[#cfd8c6]">
               Digital Fitting Room
             </p>
-            <h1 className="font-display mt-5 max-w-xl text-4xl leading-[.96] text-white sm:text-6xl">
+            <h1 className="font-display mt-5 max-w-xl text-4xl leading-[.92] text-white sm:text-6xl">
               See a look take shape before you ask for it.
             </h1>
             <p className="mt-6 max-w-md text-base leading-7 text-white/70">
@@ -199,7 +213,7 @@ export default async function DigitalFittingRoomPage({
               considering, then create looks with your advisor. A visualisation
               is never a guarantee of physical fit.
             </p>
-            <ol className="mt-9 grid max-w-lg gap-3 sm:grid-cols-3">
+            <ol className="mt-10 grid max-w-lg gap-5 sm:grid-cols-3">
               {[
                 ["01", "Create your digital portrait"],
                 ["02", "Choose real pieces"],
@@ -207,7 +221,7 @@ export default async function DigitalFittingRoomPage({
               ].map(([number, label]) => (
                 <li
                   key={number}
-                  className="border-l border-white/20 pl-3 text-sm leading-5 text-white/75"
+                  className="border-l border-white/25 pl-3 text-sm leading-5 text-white/75"
                 >
                   <span className="block text-[10px] tracking-[0.16em] text-[#c5d0c0]">
                     {number}
@@ -216,10 +230,10 @@ export default async function DigitalFittingRoomPage({
                 </li>
               ))}
             </ol>
-            <div className="mt-10 space-y-4">
+            <div className="mt-11 space-y-4">
               <Link
                 href="/digital-fitting-room?step=avatar"
-                className="inline-block rounded-[15px] bg-[#dce3d6] px-6 py-4 text-sm font-medium text-[#182018] transition hover:bg-white"
+                className="inline-block rounded-[15px] bg-[#e4eadf] px-6 py-4 text-sm font-medium text-[#182018] shadow-[0_10px_24px_rgba(0,0,0,.2)] transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
               >
                 Start creating →
               </Link>
@@ -236,6 +250,12 @@ export default async function DigitalFittingRoomPage({
                 </p>
               )}
             </div>
+            </div>
+            {invitationImage ? (
+              <div className="relative min-h-[360px] overflow-hidden bg-[#22291d] lg:min-h-full">
+                <Image src={invitationImage} alt="" fill sizes="(min-width: 1024px) 36vw, 100vw" className="object-contain p-8" />
+              </div>
+            ) : null}
           </div>
         </section>
       </div>

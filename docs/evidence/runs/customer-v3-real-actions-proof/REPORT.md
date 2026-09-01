@@ -58,9 +58,18 @@ Navigation target also asserted: **"Book"** href =
 
 ---
 
-## Broken backing behaviour (rendered control, real handler, DB write fails)
+## RESOLVED — Roadmap review — "Approve" / "Request changes"
 
-### Roadmap review — "Approve" / "Request changes"
+**Update:** the defect this section originally documented is now repaired
+by candidate branch `agent/c2-roadmap-approval-rls`
+(`supabase/migrations/20260828155029_fix_wardrobe_roadmap_tenancy_update_author_recheck.sql`).
+See `docs/evidence/runs/customer-v3-roadmap-approval-rls/REPORT.md` for the
+full fix, pgTAP/E2E proof, and authorization guarantees. That candidate is
+**not merged into release** as of this writing — this section is left
+below as the original findings for history; the corrected E2E proof lives
+in `apps/customer/e2e/roadmap-approval-rls-v3.spec.ts` and the corrected
+`wardrobe-real-actions-v3.spec.ts` (no longer expects "Could not update
+roadmap." or a stuck `pending_approval` status).
 
 - **Control:** pending-approval banner on `/wardrobe`,
   `apps/customer/app/(dashboard)/wardrobe/wardrobe-panel.tsx:872-885`
@@ -71,27 +80,32 @@ Navigation target also asserted: **"Book"** href =
   `apps/customer/app/(dashboard)/wardrobe/roadmap-actions.ts:35`
   → `WardrobeRoadmapRepository.transition(..., { kind: "customer", ... })`,
   `packages/database/src/repositories/wardrobe-roadmap-repository.ts:335`.
-- **Symptom:** a real customer clicking "Approve" gets the form error
-  **"Could not update roadmap."**; the roadmap stays `pending_approval`.
-  Test 2 asserts exactly this (the failure is captured, never treated as a
-  pass).
+- **Original symptom (pre-fix):** a real customer clicking "Approve" got
+  the form error **"Could not update roadmap."**; the roadmap stayed
+  `pending_approval`.
 - **Root cause (reproduced directly in Postgres):** the
   `enforce_wardrobe_roadmap_tenancy()` trigger
   (`supabase/migrations/20260730170000_add_wardrobe_roadmap_outfits_sartorial.sql:421-445`)
-  is `BEFORE INSERT OR UPDATE` and, on every UPDATE, re-runs
+  was `BEFORE INSERT OR UPDATE` and, on every UPDATE, re-ran
   `select staff.retailer_id from public.retailer_staff_members where staff.id = new.authored_by_staff_id`.
   The function is `SECURITY INVOKER`, so under a customer session that
-  sub-select is filtered by RLS (customers cannot read
-  `retailer_staff_members`), returns 0 rows, and the trigger raises
-  `Roadmap author does not belong to the retailer`. The customer approve /
-  reject path therefore cannot succeed for any real customer.
-- **Missing / needed fix (out of this test-only task's scope):** either
-  make `enforce_wardrobe_roadmap_tenancy()` skip the author re-check on
-  UPDATE when the identity columns are unchanged (the immutability of
-  `authored_by_staff_id` is already enforced separately by
-  `protect_wardrobe_roadmap_identity()` at line 447-465), or make the
-  author lookup `SECURITY DEFINER` / schema-qualified so it is visible
-  regardless of the invoking role.
+  sub-select was filtered by RLS (customers cannot read
+  `retailer_staff_members`), returned 0 rows, and the trigger raised
+  `Roadmap author does not belong to the retailer`.
+- **Fix applied:** `enforce_wardrobe_roadmap_tenancy()` now runs the
+  `retailer_staff_members` lookup only on INSERT. `authored_by_staff_id`
+  and `retailer_id` are already immutable after creation
+  (`protect_wardrobe_roadmap_identity_on_update`, untouched), so an
+  UPDATE never needs to re-verify them — see
+  `customer-v3-roadmap-approval-rls/REPORT.md` for the full authorization
+  analysis (still explicit `security invoker`, never `security definer`;
+  no grant added on `retailer_staff_members`; every tenancy/ownership/
+  staff-authorization guarantee preserved and pgTAP-proven).
+- **Separately discovered, still open:** the "Request changes" control has
+  no note-input UI field — a customer can submit a rejection but cannot
+  type a reason through the current UI, even though the Server Action and
+  DB column both support one. See "Unsupported / recorded control" in
+  `customer-v3-roadmap-approval-rls/REPORT.md`.
 
 ### "Discuss with advisor" (advisor-selection card)
 
