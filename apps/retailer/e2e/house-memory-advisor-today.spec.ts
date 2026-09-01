@@ -156,12 +156,16 @@ test.describe("R0.4 House Memory and Advisor Today", () => {
 
       // Verify provenance sources are displayed
       await expect(page.getByText(/advisor observed/i)).toBeVisible();
-      await expect(page.getByText(/customer declared/i)).toBeVisible();
+      // Self-Portrait renders the customer_declared provenance as the label
+      // "Declared" (PROVENANCE_LABELS in customers/[id]/self-portrait.tsx),
+      // followed by " · <factType>".
+      await expect(page.getByText(/Declared ·/).first()).toBeVisible();
 
-      // Verify evidence is shown
-      await expect(
-        page.getByText("Client mentioned strong preference during last visit"),
-      ).toBeVisible();
+      // The Self-Portrait surface shows each fact's value plus its provenance
+      // class and fact type; the raw evidence note lives in the
+      // fact-correction / citation flow, not this read view. Assert the
+      // advisor-observed fact and its provenance render together here.
+      await expect(page.getByText(/Advisor observed ·/).first()).toBeVisible();
 
       // Step 4: Complete the opportunity and verify Today view updates
       await page.goto("/staff/today");
@@ -258,6 +262,10 @@ test.describe("R0.4 House Memory and Advisor Today", () => {
           email: staff1Email,
           full_name: `Test Staff 1 ${unique}`,
           role: "sales_associate" as const,
+          // Mark accepted so login lands on the dashboard instead of the
+          // "set your password" invite-acceptance screen (matches the
+          // pattern in apps/retailer/e2e/global-setup.ts).
+          accepted_at: new Date().toISOString(),
         },
       ])
       .select("id")
@@ -271,6 +279,7 @@ test.describe("R0.4 House Memory and Advisor Today", () => {
           email: staff2Email,
           full_name: `Test Staff 2 ${unique}`,
           role: "sales_associate" as const,
+          accepted_at: new Date().toISOString(),
         },
       ])
       .select("id")
