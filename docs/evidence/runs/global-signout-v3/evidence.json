@@ -1,0 +1,88 @@
+{
+  "phase": "global-signout-v3",
+  "founderDecision": "2026-09-01 GLOBAL sign-out",
+  "sourceCommit": "e6ffd9ff7dca4c258a8feb97b9e543b2e17363ef",
+  "apps": {
+    "customer": {
+      "spec": "apps/customer/e2e/customer-signout-v3.spec.ts",
+      "tests": { "passed": 2, "failed": 0 },
+      "flaky": 1,
+      "flakyNote": "Pre-existing, separately-tracked React #418 dashboard-hydration flake (agent/c3-dashboard-hydration-v3; documented in docs/evidence/runs/customer-v3-signout-local-session/REPORT.md). Fires on the first request to a cold `next start` server, landing on whichever test runs first. Not introduced by this diff (customer app-code change is: remove `{ scope: \"local\" }` arg + one copy string). Isolated 3x desktop repeat: 3/3 green. Absorbed by --retries=2 (the config's own CI value).",
+      "lint": "passed",
+      "typecheck": "passed"
+    },
+    "retailer": {
+      "spec": "apps/retailer/e2e/retailer-signout-v3.spec.ts",
+      "tests": { "passed": 3, "failed": 0 },
+      "flaky": 1,
+      "flakyNote": "Desktop cross-context test: `expect(pageA).toHaveURL(/\\/login$/)` after the sign-out click exceeds the 20s expect timeout on the first request to a cold `next start` server (~27s, POST already fired and asserted). Passes fully warm in ~7-8s including the cross-context 400 proof. Confirmed cold-start-only via a repeat run: warm iteration 7.7s green. Absorbed by --retries=2.",
+      "lint": "passed",
+      "typecheck": "passed",
+      "build": "passed"
+    },
+    "admin": {
+      "spec": "apps/admin/e2e/admin-signout-v3.spec.ts",
+      "tests": { "passed": 3, "failed": 0 },
+      "flaky": 1,
+      "flakyNote": "Same cold-start pattern as retailer: desktop `toHaveURL(/\\/login$/)` after sign-out exceeds 20s on the first request to a cold server (~27s), passes warm on retry #1 in ~7s with the full cross-context proof. Absorbed by --retries=2.",
+      "lint": "passed",
+      "typecheck": "passed",
+      "build": "passed"
+    }
+  },
+  "crossContextProof": {
+    "customer": "baseline 200 -> post-signout 400 confirmed (context B's refresh token, live before context A signs out, is revoked by context A's global sign-out)",
+    "retailer": "baseline 200 -> post-signout 400 confirmed (on the warm retry pass)",
+    "admin": "baseline 200 -> post-signout 400 confirmed (on the warm retry pass)"
+  },
+  "screenshots": [
+    {
+      "path": "docs/evidence/runs/global-signout-v3/admin/desktop-post-signout-login.png",
+      "sha256": "0001078f6cbfb1d4d62e1159fa7a30fab39e7eb60e3529b81fe2849919a34525"
+    },
+    {
+      "path": "docs/evidence/runs/global-signout-v3/admin/desktop-signed-in.png",
+      "sha256": "fb192ea459a25b8b635f54953e91533315963aac4cdfe9a2f8365cf3883e0f01"
+    },
+    {
+      "path": "docs/evidence/runs/global-signout-v3/admin/mobile-post-signout-login.png",
+      "sha256": "b42790d57675601d060f924e7e3788fe26379cc3ef402712d1bd9f0a6267d6a0"
+    },
+    {
+      "path": "docs/evidence/runs/global-signout-v3/admin/mobile-signed-in.png",
+      "sha256": "ed95c4b8597629d4e99d3af2898b6d8d3931cac766b6b085215a557c78abac6e"
+    },
+    {
+      "path": "docs/evidence/runs/global-signout-v3/customer/desktop-post-signout-login.png",
+      "sha256": "c84e1bb9f6a4be64a49a762893e31789529a83b0682ed56d6e386181b2fddecb"
+    },
+    {
+      "path": "docs/evidence/runs/global-signout-v3/customer/desktop-signed-in.png",
+      "sha256": "a209d699f727b4f7c4e3c9421faef467e597b2f8f00a77d3bb8cb6e592ded33c"
+    },
+    {
+      "path": "docs/evidence/runs/global-signout-v3/customer/mobile-post-signout-login.png",
+      "sha256": "da985b57da932205c909a01b1e379cbf9ec7abba295e0527c818c037085684ac"
+    },
+    {
+      "path": "docs/evidence/runs/global-signout-v3/customer/mobile-signed-in.png",
+      "sha256": "b89f1874e2ce2b7b4351af91257f7bcf512008088dfa7f92d83bacd4d53fdb99"
+    },
+    {
+      "path": "docs/evidence/runs/global-signout-v3/retailer/desktop-post-signout-login.png",
+      "sha256": "ea994ccb8a0a2d936adde33c9e383b131f99bee28180b2df1ca8b56526a7f7d5"
+    },
+    {
+      "path": "docs/evidence/runs/global-signout-v3/retailer/desktop-signed-in.png",
+      "sha256": "ebb46c3075e688cc9aac50c392361cdcd5ebb597d70774093771aff0f008b9b7"
+    },
+    {
+      "path": "docs/evidence/runs/global-signout-v3/retailer/mobile-post-signout-login.png",
+      "sha256": "a1af2980db80e76bf9bc3ff68af999fa64e5bb4d13ead8c5c6584794f609858a"
+    },
+    {
+      "path": "docs/evidence/runs/global-signout-v3/retailer/mobile-signed-in.png",
+      "sha256": "670f7beda9b850bd7fb3304a303ac8b61e2864216987ace5c52ed5c5505c387e"
+    }
+  ]
+}
