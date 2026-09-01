@@ -8366,7 +8366,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     owned path, then mark this fleet task done.
   - **Tests:** static evidence and Git-reference cross-check only.
 
-- [ ] **20.17 claude-customer-wardrobe-removal-v3 — advisor-selection removal flow**
+- [x] **20.17 claude-customer-wardrobe-removal-v3 — advisor-selection removal flow**
   - **Requirement IDs:** `CENV-WARDROBE-REMOVE-001`.
   - **Dependencies:** `20.9`.
   - **Fleet owned paths:** `apps/customer/app/(dashboard)/wardrobe/wardrobe-panel.tsx`,
