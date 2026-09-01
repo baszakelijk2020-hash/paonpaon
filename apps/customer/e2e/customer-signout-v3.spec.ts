@@ -2,17 +2,29 @@ import { createSupabaseAdminClient } from "@paon/database";
 import { expect, test } from "@playwright/test";
 import type { Browser, BrowserContext, Page, Request } from "@playwright/test";
 
+import {
+  applyExpiredSession,
+  refreshTokenFromSnapshot,
+  refreshTokenStatus,
+  requireSupabaseTestEnv,
+  snapshotAuthCookies,
+} from "./_signout-helpers";
 import { TEST_CUSTOMER_EMAIL, TEST_RETAILER_DISPLAY_NAME } from "./fixtures";
 
 /**
- * C3 — customer sign-out control (local-device scope).
+ * C3 — customer sign-out control (GLOBAL scope, founder decision
+ * 2026-09-01).
  *
- * The customer shell exposes the existing `signOut` server action
+ * The customer shell exposes the `signOut` server action
  * (apps/customer/app/(dashboard)/actions.ts) as a real "Sign out" control:
  * once in the desktop top-nav trailing slot, once inline on mobile /account
- * (each viewport shows exactly one). `scope: "local"` matches the "on this
- * device" copy — a second, independently authenticated browser context for
- * the same customer must stay signed in.
+ * (each viewport shows exactly one). `supabase.auth.signOut()` is called
+ * with NO `scope` argument — the default is `scope: "global"` — so signing
+ * out in one browser context revokes every refresh token for that customer
+ * everywhere, not just the device that clicked Sign out. This file proves
+ * both the local click (POST reaches the server, cookies clear, guest shell
+ * shows) and the cross-context revocation (a second, independently signed-in
+ * context is invalidated by the first context's sign-out).
  */
 
 function requireAdmin() {
@@ -69,10 +81,11 @@ function trackConsoleErrors(page: Page): string[] {
 }
 
 test.describe("desktop", () => {
-  test("signing out context A through the desktop control clears only that device's session; context B stays signed in", async ({
+  test("signing out context A through the desktop control clears that device's session and revokes context B's session everywhere (global scope)", async ({
     browser,
   }) => {
     const desktopViewport = { width: 1512, height: 982 };
+    const { supabaseUrl, anonKey } = requireSupabaseTestEnv();
     const { context: contextA, page: pageA } = await signInFreshContext(
       browser,
       desktopViewport,
@@ -93,6 +106,20 @@ test.describe("desktop", () => {
           })
           .first(),
       ).toBeVisible();
+      await pageB.goto("/account");
+      await expect(
+        pageB
+          .getByRole("heading", {
+            name: TEST_RETAILER_DISPLAY_NAME,
+            exact: true,
+          })
+          .first(),
+      ).toBeVisible();
+
+      // Snapshot B's session cookie now — see _signout-helpers.ts's doc
+      // comment on why a live re-read later can race the app's own client-
+      // side cleanup once its refresh token is revoked.
+      const sessionSnapshotB = await snapshotAuthCookies(contextB);
 
       const desktopControl = pageA.getByTestId("customer-signout-desktop");
       const signOutButton = desktopControl.getByRole("button", {
@@ -100,6 +127,18 @@ test.describe("desktop", () => {
       });
       await expect(signOutButton).toBeVisible();
       await expect(desktopControl.getByRole("button")).toHaveCount(1);
+      await pageA.screenshot({
+        path: "../../docs/evidence/runs/global-signout-v3/customer/desktop-signed-in.png",
+      });
+
+      // Baseline: context B's refresh token is still live before A signs out.
+      const refreshTokenB = refreshTokenFromSnapshot(sessionSnapshotB);
+      const baselineStatus = await refreshTokenStatus(
+        supabaseUrl,
+        anonKey,
+        refreshTokenB,
+      );
+      expect(baselineStatus).toBe(200);
 
       // Prove the click actually reaches the server — the historical defect
       // (docs/PHASE.md, 2026-08-19) was a click that registered in the DOM
@@ -116,6 +155,9 @@ test.describe("desktop", () => {
 
       await expect(pageA).toHaveURL(/\/login$/);
       expect(await authCookies(contextA)).toHaveLength(0);
+      await pageA.screenshot({
+        path: "../../docs/evidence/runs/global-signout-v3/customer/desktop-post-signout-login.png",
+      });
 
       await pageA.reload();
       await expect(pageA).toHaveURL(/\/login/);
@@ -150,18 +192,25 @@ test.describe("desktop", () => {
         pageA.getByRole("link", { name: "Customer Demo" }),
       ).toBeVisible();
 
-      // Context B was signed in independently and never touched signOut —
-      // scope: "local" must not have invalidated it.
-      await pageB.goto("/account");
-      await expect(pageB).toHaveURL(/\/account$/);
-      await expect(
-        pageB
-          .getByRole("heading", {
-            name: TEST_RETAILER_DISPLAY_NAME,
-            exact: true,
-          })
-          .first(),
-      ).toBeVisible();
+      // Core cross-context proof: context B's SAME refresh token, which
+      // worked a moment ago, is now revoked — global scope killed every
+      // session for this customer, not just context A's.
+      const postSignOutStatus = await refreshTokenStatus(
+        supabaseUrl,
+        anonKey,
+        refreshTokenB,
+      );
+      expect(postSignOutStatus).toBe(400);
+
+      // Context B is still holding a cached, not-yet-expired access token
+      // and has not itself talked to the server yet — simulate that access
+      // token expiring (as it eventually will) and reload: the app must
+      // attempt to refresh, fail (refresh token is revoked), and drop to
+      // the guest shell rather than keep coasting on stale client state.
+      await applyExpiredSession(contextB, sessionSnapshotB);
+      await pageB.reload();
+      await expect(pageB.locator("[data-customer-shell]")).toHaveCount(0);
+      await expect(pageB.getByText(TEST_CUSTOMER_EMAIL)).toHaveCount(0);
 
       expect(consoleErrorsA, consoleErrorsA.join("\n")).toEqual([]);
     } finally {
@@ -201,6 +250,9 @@ test.describe("mobile", () => {
       await expect(
         page.getByTestId("customer-signout-desktop"),
       ).not.toBeVisible();
+      await page.screenshot({
+        path: "../../docs/evidence/runs/global-signout-v3/customer/mobile-signed-in.png",
+      });
 
       const [postRequest] = await Promise.all([
         page.waitForRequest(
@@ -214,6 +266,9 @@ test.describe("mobile", () => {
 
       await expect(page).toHaveURL(/\/login$/);
       expect(await authCookies(context)).toHaveLength(0);
+      await page.screenshot({
+        path: "../../docs/evidence/runs/global-signout-v3/customer/mobile-post-signout-login.png",
+      });
 
       await page.goto("/dashboard");
       await expect(page).toHaveURL(/\/dashboard$/);
