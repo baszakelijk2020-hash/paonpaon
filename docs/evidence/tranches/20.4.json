@@ -3,9 +3,46 @@
   "requirementIds": ["UNAV-004"],
   "status": "verified_local",
   "title": "deepseek-storefront-inventory — read-only parity inventory",
-  "evidence": {
-    "spec": "docs/reports/atelier-demo-storefront-inventory.md",
-    "notes": "Stage 20 unified storefront + customer navigation; see docs/evidence/atelier-demo-baseline/ and docs/plans/ATELIER_DEMO_PARITY_TEST_PLAN.md"
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "n_a",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "n_a",
+    "browser": "n_a",
+    "operations": "required",
+    "live_gap": "n_a"
   },
+  "evidence": {
+    "domain": "no new domain logic; static inventory only",
+    "persistence": "no schema changes; read-only documentation",
+    "service": "no service implementation; static documentation only",
+    "origin_ui": "docs/reports/atelier-demo-storefront-inventory.md provides concise read-only inventory of atelier-demo storefront interactions, inline scripts, route/data substitutions (apps/customer/app/r/[slug]/route.ts), component boundaries, and parity checkpoints; no code changes to storefront source",
+    "receiver_ui": "no receiver UI; this is inventory documentation only",
+    "rls": "no RLS policy required",
+    "exceptions": "no exception handling required",
+    "browser": "no browser test required; this is static inventory cross-check only",
+    "operations": "source inventory cross-check at commit c9dc6be (docs/evidence/runs/20.4.json status=passed); confirms parity inventory against apps/customer/app/r/[slug]/route.ts without code/architecture change. Referenced browserProofSpec is atelier-demo-baseline.spec.ts, which provides the storefront baseline for inventory comparison.",
+    "live_gap": "no live system gap; read-only inventory documentation only"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "n_a",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "atelier-demo",
+  "browserProofSpec": "apps/customer/e2e/atelier-demo-baseline.spec.ts",
   "assertedAt": "2026-08-26T07:45:00Z"
 }

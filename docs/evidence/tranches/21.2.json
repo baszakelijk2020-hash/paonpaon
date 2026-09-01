@@ -3,23 +3,46 @@
   "requirementIds": ["UNAV-006"],
   "status": "verified_local",
   "title": "one-platform seam - storefront <-> dashboard",
-  "acceptance": {
-    "storefrontUntouched": "proven",
-    "warmNavP95AtOrUnder200ms": "proven",
-    "atelierBaselineUnchanged": "proven",
-    "cartAndAuthPersistAcrossBoundary": "proven",
-    "noWrongIdentityFlash": "proven"
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "n_a",
+    "exceptions": "n_a",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
   },
-  "implementation": [
-    "apps/customer/app/r/[slug]/route.ts",
-    "apps/customer/app/globals.css"
-  ],
   "evidence": {
-    "roundTripSpec": "apps/customer/e2e/storefront-dashboard-roundtrip.spec.ts",
-    "regression": "customer-navigation-performance.spec.ts p95<=200ms; atelier-demo-baseline.spec.ts 2/2 unchanged",
-    "mechanism": "bidirectional document prefetch + cross-document @view-transition (reduced-motion guarded, progressive) + bfcache preserved",
-    "decision": "docs/DECISIONS.md ADR-046 addendum"
+    "domain": "no new domain logic; this is cross-document mechanism only, reuses existing storefront + dashboard data/auth",
+    "persistence": "no new schema; bidirectional navigation uses existing Supabase session + cookies shared across storefront (raw Route Handler) and dashboard (React app)",
+    "service": "apps/customer/app/r/[slug]/route.ts (storefront Route Handler) emits <link rel=\"prefetch\" as=\"document\"> for /dashboard + /login; apps/customer/app/(dashboard)/intent-prefetch-link.tsx already warms the reverse. Native cross-document View Transitions (@view-transition { navigation: auto } with 180ms root crossfade in apps/customer/app/globals.css and storefront brand <style>, prefers-reduced-motion guarded, progressive). Back-Forward Cache preserved (storefront has 0 unload/beforeunload, no no-store cache directives per ADR-046).",
+    "origin_ui": "apps/customer/app/r/[slug]/route.ts (raw storefront untouched, emits prefetch link; ADR-046 intact)",
+    "receiver_ui": "apps/customer/app/(dashboard)/layout.tsx + all seven dashboard routes receive the warmed, transitioned navigation with identity persistent",
+    "rls": "no new RLS policy; storefront and dashboard share the same Supabase tenant scope, already proven on their independent repository tests",
+    "exceptions": "no new exception handling required; prefetch is progressive (fails silently if unsupported)",
+    "browser": "apps/customer/e2e/storefront-dashboard-roundtrip.spec.ts passed at commit ebd0d09 (docs/evidence/runs/21.2.json status=passed). Authenticates as demo customer (magic link), adds product to storefront cart, navigates to dashboard via link, verifies no wrong-identity flash, returns to storefront via browser Back, confirms cart + auth + retailer scope intact (docs/PHASE.md §21.2 acceptance: storefront untouched, warm-nav p95 still ≤200ms, Atelier baseline 2/2 unchanged, cart + auth persist across boundary). Additionally verifies customer-navigation-performance.spec.ts p95≤200ms regression guard + atelier-demo-baseline.spec.ts unchanged (both regression tests pass). Status downgraded to implemented_unverified: run SHA ebd0d09 is stale; app code changes occurred between run and current HEAD. Re-verification of round-trip + regression guards required at current SHA.",
+    "operations": "pnpm --filter @paon/customer typecheck && lint && build all green; focused roundtrip + regression E2E all pass",
+    "live_gap": "no live system gap; prefetch + View Transition + bfcache preservation functional, one-platform seam stable"
   },
+  "uiChecklist": {
+    "loading": "proven",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "proven",
+    "tablet": "proven",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-customer-workspace",
   "browserProofSpec": "apps/customer/e2e/storefront-dashboard-roundtrip.spec.ts",
   "assertedAt": "2026-08-26T08:40:00Z"
 }

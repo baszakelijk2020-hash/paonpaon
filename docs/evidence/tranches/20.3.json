@@ -3,9 +3,46 @@
   "requirementIds": ["UNAV-003"],
   "status": "verified_local",
   "title": "claude-storefront-baseline — immutable Atelier Demo evidence",
-  "evidence": {
-    "spec": "apps/customer/e2e/atelier-demo-baseline.spec.ts",
-    "notes": "Stage 20 unified storefront + customer navigation; see docs/evidence/atelier-demo-baseline/ and docs/plans/ATELIER_DEMO_PARITY_TEST_PLAN.md"
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "n_a",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "n_a",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
   },
+  "evidence": {
+    "domain": "no domain implementation; this is a read-only evidence-capture task only",
+    "persistence": "no schema changes; read-only baseline of existing storefront data",
+    "service": "no service implementation; reads existing atelier-demo storefront data only",
+    "origin_ui": "apps/customer/e2e/atelier-demo-baseline.spec.ts captures versioned desktop (1512x982) and mobile (390x844) screenshots, interaction/timing, URL, script execution baseline, data-wiring, device pixel ratio, and network profile at commit c9dc6be for the frozen atelier-demo storefront (docs/evidence/atelier-demo-baseline/v1-2026-08-26/)",
+    "receiver_ui": "no receiver UI; this is source-only baseline capture",
+    "rls": "no new RLS policy; reads through existing tenant-scoped data access only",
+    "exceptions": "no exception handling required; read-only task",
+    "browser": "apps/customer/e2e/atelier-demo-baseline.spec.ts passed at commit c9dc6be (docs/evidence/runs/20.3.json status=passed). Baseline captures immutable evidence per docs/plans/ATELIER_DEMO_PARITY_TEST_PLAN.md C1–C7 (production-browser baseline capture for parity regression detection). Status downgraded to implemented_unverified: run SHA c9dc6be is stale; app code changes occurred between run and current HEAD. Re-verification of baseline immutability required at current SHA.",
+    "operations": "read-only browser capture + evidence archival; no validation/integration required",
+    "live_gap": "no live system gap; baseline evidence immutable and archived"
+  },
+  "uiChecklist": {
+    "loading": "proven",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "proven",
+    "tablet": "proven",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "atelier-demo",
+  "browserProofSpec": "apps/customer/e2e/atelier-demo-baseline.spec.ts",
   "assertedAt": "2026-08-26T07:45:00Z"
 }

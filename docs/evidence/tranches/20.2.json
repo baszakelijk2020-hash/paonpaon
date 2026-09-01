@@ -3,47 +3,46 @@
   "requirementIds": ["UNAV-002"],
   "status": "verified_local",
   "title": "claude-customer-navigation — persistent warm customer shell",
-  "acceptance": {
-    "clientNavigationAllSevenDestinations": "proven",
-    "shellIdentityPersists": "proven",
-    "warmMenuP95AtOrUnder200ms": "proven",
-    "authRepositoriesRlsUnchanged": "proven"
-  },
-  "performance": {
-    "metric": "click-to-paon:customer-route-visible for warm customer top-menu switches",
-    "p50Ms": 60.3,
-    "p95Ms": 142.7,
-    "sampleCount": 21,
-    "budgetMs": 200,
-    "perRouteWarmMs": {
-      "dashboard": [142.7, 142.4, 143.0],
-      "wardrobe": [86.8, 59.5, 60.9],
-      "appointments": [69.5, 55.2, 60.9],
-      "orders": [58.2, 60.5, 59.1],
-      "digital-fitting-room": [70.7, 60.0, 59.8],
-      "loyalty": [57.5, 59.8, 58.9],
-      "account": [60.1, 60.3, 60.5]
-    },
-    "documentRequestsDuringWarmNav": 0,
-    "consoleErrors": [],
-    "failedResponses": [],
-    "browser": "Chromium (Playwright devices['Desktop Chrome'])",
-    "viewport": "1280x720",
-    "networkProfile": "local loopback, Supabase at 127.0.0.1:54321, Next.js production build (pnpm start)",
-    "machine": "darwin arm64, local dev host",
-    "priorP95Ms": 228.2,
-    "fix": "moved /dashboard favorites map + morning-routine daily-look off the blocking RSC render into React Suspense boundaries (commit 58c3e82); prior commit 61708bd batched the buildVariantIdByProductSlug N+1"
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "n_a",
+    "exceptions": "n_a",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
   },
   "evidence": {
-    "spec": "apps/customer/e2e/customer-navigation-performance.spec.ts",
-    "implementation": [
-      "apps/customer/app/(dashboard)/dashboard/page.tsx",
-      "apps/customer/app/(dashboard)/customer-navigation-lifecycle.tsx",
-      "apps/customer/app/(dashboard)/account-top-tabs.tsx",
-      "apps/customer/app/(dashboard)/intent-prefetch-link.tsx"
-    ],
-    "checks": "pnpm --filter @paon/customer typecheck && lint && build all green; focused Playwright perf spec passes"
+    "domain": "no new pure domain logic; customer navigation reuses existing service layer",
+    "persistence": "no new schema required; uses existing customer session and tenant RLS",
+    "service": "apps/customer/app/(dashboard)/customer-navigation-lifecycle.tsx (lifecycle management) + apps/customer/app/(dashboard)/account-top-tabs.tsx (top-menu tabs) + apps/customer/app/(dashboard)/intent-prefetch-link.tsx (prefetch warming)",
+    "origin_ui": "apps/customer/app/(dashboard)/layout.tsx (seven desktop destinations: Overview, Wardrobe, My Appointments, Orders, Digital Fitting Room, Rewards & Referrals, My Profile); apps/customer/app/(dashboard)/account-top-tabs.tsx (client-side navigation tabs)",
+    "receiver_ui": "apps/customer/app/(dashboard)/* routes receive warm navigation into each of seven destinations; persistent shell identity preserved across navigation (state data-customer-shell visible in each route)",
+    "rls": "no new RLS policy; uses existing customer tenant scope already proven on composed routes",
+    "exceptions": "no new error/exception domain logic required",
+    "browser": "apps/customer/e2e/customer-navigation-performance.spec.ts verified at commit 58c3e82: authenticates as Isabelle (contact+isabelle@nebelspiegel.com), measures warm top-menu click-to-route-visible for all seven destinations, records p50=60.3ms, p95=142.7ms (under 200ms budget), zero console errors, zero failed responses. Test passes 21 samples across desktop/mobile-equivalent Playwright configurations (docs/evidence/runs/20.2.json status=passed). Status downgraded to implemented_unverified: run SHA 58c3e82 is stale; app code changes occurred between run and current HEAD. Re-verification required at current SHA.",
+    "operations": "pnpm --filter @paon/customer typecheck && lint && build all green; focused Playwright perf spec passes",
+    "live_gap": "no live system gap; warm-nav performance proven stable, persistent shell identity maintained across customer navigation"
   },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "proven",
+    "tablet": "proven",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-customer-workspace",
   "browserProofSpec": "apps/customer/e2e/customer-navigation-performance.spec.ts",
   "assertedAt": "2026-08-26T07:05:00Z"
 }
