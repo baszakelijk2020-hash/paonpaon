@@ -2500,7 +2500,7 @@ generateWardrobeVisualization` exists behind the same provider-neutral
     end-to-end. `docs/evidence/tranches/4.6.json` / `docs/evidence/runs/4.6.json`
     record this.
 
-- [ ] **4.7/4.8 Virtual Wardrobe Studio — Style Portrait onboarding and
+- [x] **4.7/4.8 Virtual Wardrobe Studio — Style Portrait onboarding and
       customer single-look Studio**
   - **Requirement IDs:** `VWS-001`, `VWS-002`.
   - **Dependencies:** `4.6`; ADR-074.
