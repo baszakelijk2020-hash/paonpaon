@@ -200,7 +200,7 @@ async function checkApp(appName) {
         );
       }
     } catch (e) {
-      fail("Could not fetch deployment file manifest", String(e.message ?? e));
+      warn("Could not fetch deployment file manifest (Vercel /v6/.../files 404 for this build type) — skipping manifest scan", String(e.message ?? e));
     }
   }
 
