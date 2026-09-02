@@ -1,6 +1,6 @@
 {
   "phaseItemId": "FT-05",
-  "gitSha": "0278cbc56f412984b27a61c1e7ea481c10f7aeaa",
+  "gitSha": "4031a2d5de2dcd0103e0834fdbe611dc9a8a3381",
   "spec": "apps/retailer/e2e/workspace.spec.ts",
   "test": "advisor sees consented customer intelligence: interests, shortlist, evidence",
   "status": "passed",
