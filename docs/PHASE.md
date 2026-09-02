@@ -2500,7 +2500,7 @@ generateWardrobeVisualization` exists behind the same provider-neutral
     end-to-end. `docs/evidence/tranches/4.6.json` / `docs/evidence/runs/4.6.json`
     record this.
 
-- [ ] **4.7/4.8 Virtual Wardrobe Studio — Style Portrait onboarding and
+- [x] **4.7/4.8 Virtual Wardrobe Studio — Style Portrait onboarding and
       customer single-look Studio**
   - **Requirement IDs:** `VWS-001`, `VWS-002`.
   - **Dependencies:** `4.6`; ADR-074.
@@ -2592,7 +2592,7 @@ pnpm build && pnpm format:check` sweep for this tranche, and no
     first `/`, so the combined `4.7/4.8` item is keyed `4.7`, covering both
     halves; no separate `4.8` sub-entry exists in this queue).
 
-- [ ] **4.9 Virtual Wardrobe Studio — advisor visual roadmap and customer
+- [x] **4.9 Virtual Wardrobe Studio — advisor visual roadmap and customer
       per-look review**
   - **Requirement IDs:** `VWS-001`.
   - **Dependencies:** `4.2`, `4.6`, `4.7/4.8`; ADR-074.
@@ -2634,7 +2634,7 @@ pnpm build && pnpm format:check` sweep for this tranche, and no
     database tests and 208/208 pgTAP pass on a fresh `supabase db reset`.
     `docs/evidence/tranches/4.9.json` records the completion-evidence claim.
 
-- [ ] **4.10 Virtual Wardrobe Studio — multi-look queue and
+- [x] **4.10 Virtual Wardrobe Studio — multi-look queue and
       personalization loop**
   - **Requirement IDs:** `VWS-001`.
   - **Dependencies:** `4.6`, `4.7/4.8`, `4.9`.
