@@ -99,37 +99,116 @@ export default async function WeddingPartyDetailPage({
         nextYearlyOccurrence,
       })
     : null;
+  const completedMembers = members.filter(
+    (member) =>
+      member.fittingStatus === "completed" || member.fittingStatus === "fitted",
+  ).length;
+  const partyProgress = members.length
+    ? Math.round((completedMembers / members.length) * 100)
+    : 0;
 
   return (
-    <div className="flex flex-col gap-6">
-      <AmHouseHero
-        retailerName={retailer?.displayName ?? "Your atelier"}
-        eventDate={
-          party.eventDate
-            ? `${formatDate(party.eventDate, "en-US")}${
-                party.eventTime ? ` at ${party.eventTime}` : ""
-              }`
-            : undefined
-        }
-        venueName={party.fittingLocation ?? party.venueName}
-        organizerName={organizer?.name}
-        note={party.notes}
-        retailerSlug={retailer?.slug}
-        {...(party.coverPhotoUrl ? { coverPhotoUrl: party.coverPhotoUrl } : {})}
-      />
+    <div className="flex flex-col gap-8">
+      <section className="relative overflow-hidden rounded-[2rem] bg-[#171714] px-5 py-7 text-white shadow-[0_24px_70px_rgba(35,31,24,0.16)] sm:px-8">
+        <div className="pointer-events-none absolute -right-24 -top-28 h-72 w-72 rounded-full bg-[#cbb894]/15 blur-3xl" />
+        <div className="relative flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="mb-2 text-[10px] uppercase tracking-[0.22em] text-[#cbb894]">
+              Wedding party / {partyProgress}% ready
+            </p>
+            <h1 className="font-display text-3xl tracking-[-0.03em] sm:text-5xl">
+              {party.venueName ?? "Wedding party"}
+            </h1>
+            <p className="mt-2 max-w-xl text-sm text-white/60">
+              One shared room for fittings, outfit decisions, and the final
+              run-up to the day.
+            </p>
+          </div>
+          <Link
+            href="/messages"
+            className="rounded-full border border-white/20 px-4 py-2 text-xs text-white/80 transition hover:bg-white/10"
+          >
+            Open atelier chat <span aria-hidden>↗</span>
+          </Link>
+        </div>
+      </section>
+      <div id="planning" className="grid gap-4 sm:grid-cols-3">
+        {[
+          [
+            "01",
+            "Invite the party",
+            members.length ? `${members.length} joined` : "Waiting for guests",
+          ],
+          [
+            "02",
+            "Choose the date",
+            dateCandidates.length
+              ? `${dateCandidates.length} options`
+              : "Add an option",
+          ],
+          [
+            "03",
+            "Complete fittings",
+            `${completedMembers}/${members.length || 0} ready`,
+          ],
+        ].map(([step, title, detail]) => (
+          <div
+            key={step}
+            className="rounded-2xl border border-[var(--color-stone-200)] bg-white px-5 py-4 shadow-[var(--shadow-soft)]"
+          >
+            <span className="text-[10px] tracking-[0.18em] text-[var(--color-stone-400)]">
+              {step}
+            </span>
+            <p className="mt-2 text-sm font-medium">{title}</p>
+            <p className="mt-1 text-xs text-[var(--color-stone-500)]">
+              {detail}
+            </p>
+          </div>
+        ))}
+      </div>
+      <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-stretch">
+        <AmHouseHero
+          retailerName={retailer?.displayName ?? "Your atelier"}
+          eventDate={
+            party.eventDate
+              ? `${formatDate(party.eventDate, "en-US")}${
+                  party.eventTime ? ` at ${party.eventTime}` : ""
+                }`
+              : undefined
+          }
+          venueName={party.fittingLocation ?? party.venueName}
+          organizerName={organizer?.name}
+          note={party.notes}
+          retailerSlug={retailer?.slug}
+          {...(party.coverPhotoUrl
+            ? { coverPhotoUrl: party.coverPhotoUrl }
+            : {})}
+        />
 
-      <AmHouseOrbit
-        center={{
-          name: organizer?.name ?? "Organizer",
-          ...(organizer?.photoUrl ? { photoUrl: organizer.photoUrl } : {}),
-        }}
-        orbiters={members
-          .filter((member) => member.customerId !== party.organizerCustomerId)
-          .map((member) => ({
-            name: member.name,
-            ...(member.photoUrl ? { photoUrl: member.photoUrl } : {}),
-          }))}
-      />
+        <div className="rounded-[2rem] border border-[var(--color-stone-200)] bg-white px-5 py-6 shadow-[var(--shadow-soft)] lg:flex lg:flex-col lg:justify-center">
+          <p className="mb-1 text-[10px] uppercase tracking-[0.2em] text-[var(--color-stone-400)]">
+            The party room
+          </p>
+          <AmHouseOrbit
+            center={{
+              name: organizer?.name ?? "Organizer",
+              ...(organizer?.photoUrl ? { photoUrl: organizer.photoUrl } : {}),
+            }}
+            orbiters={members
+              .filter(
+                (member) => member.customerId !== party.organizerCustomerId,
+              )
+              .map((member) => ({
+                name: member.name,
+                ...(member.photoUrl ? { photoUrl: member.photoUrl } : {}),
+              }))}
+          />
+          <p className="mt-3 text-center text-xs leading-5 text-[var(--color-stone-500)]">
+            The circle moves with the people in the room; plans and fittings
+            remain below.
+          </p>
+        </div>
+      </section>
 
       {myCustomerIds.has(party.organizerCustomerId) && retailer ? (
         <Card className="paon-reveal">

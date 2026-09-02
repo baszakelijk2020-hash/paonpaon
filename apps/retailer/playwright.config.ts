@@ -29,6 +29,10 @@ export default defineConfig({
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
     command: "pnpm start",
+    // `next start` sets NODE_ENV=production even for this disposable local
+    // acceptance server. Make its deployment tier explicit so the real
+    // production demo-password guard remains enabled only in production.
+    env: { ...process.env, VERCEL_ENV: "development" },
     url: "http://localhost:3001",
     reuseExistingServer: !process.env.CI,
   },

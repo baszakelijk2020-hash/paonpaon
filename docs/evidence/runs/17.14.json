@@ -1,7 +1,7 @@
 {
   "phaseItemId": "17.14",
-  "gitSha": "42e27d722497654593f2ec13ed09971f9aaec577",
+  "gitSha": "7dacd95118cd972d45f620a05f78be95e1d92eba",
   "spec": "apps/retailer/e2e/prospect-ai-conversation.spec.ts",
-  "status": "passed",
-  "timestamp": "2026-08-19T13:21:43.843Z"
+  "status": "failed",
+  "timestamp": "2026-09-02T09:35:00.000Z"
 }

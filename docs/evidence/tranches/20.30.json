@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.30",
+  "requirementIds": ["CENV-EVIDENCE-001"],
+  "status": "verified_local",
+  "title": "evidence-phase-20-freshness \u2014 stale-SHA reconciliation",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "n_a",
+    "origin_ui": "n_a",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "n_a",
+    "browser": "n_a",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "n_a",
+    "origin_ui": "n_a",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "n_a",
+    "browser": "docs/evidence/reviews/20.30-phase-20-freshness/REVIEW.md \u2014 complete freshness matrix naming each stale Phase 20 item, expected SHA boundary, required rerun proof, and exact commands; identifies every completed Phase 20 item whose evidence SHA is stale and specifies rerun requirements",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "n_a",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "n_a",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-customer-workspace",
+  "browserProofSpec": "apps/customer/e2e/wardrobe-v3-presentation.spec.ts",
+  "assertedAt": "2026-09-02T08:50:00.000Z"
+}

@@ -47,7 +47,7 @@ export function AmHouseHero({
     coverPhotoUrl ?? "https://www.nebelspiegel.com/images/wed2027-poster.jpg";
 
   return (
-    <div className="paon-reveal aspect-344/735 max-w-105 relative mx-auto w-full overflow-hidden rounded-[54px] bg-black">
+    <div className="paon-reveal aspect-344/735 max-w-105 relative mx-auto w-full overflow-hidden rounded-[54px] bg-black lg:mx-0 lg:aspect-auto lg:h-full lg:min-h-[34rem] lg:max-w-none lg:rounded-[2rem]">
       <video
         autoPlay
         muted

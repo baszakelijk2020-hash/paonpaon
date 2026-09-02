@@ -37,4 +37,22 @@ test.describe("Login", () => {
       page.getByRole("complementary").getByText(TEST_OWNER_EMAIL),
     ).toBeVisible();
   });
+
+  test("canonical retailer-owner quick login lands on the demo dashboard", async ({
+    page,
+  }) => {
+    await page.goto("/login");
+    await page
+      .getByRole("button", {
+        name: "Retailer owner · Nebel & Spiegel",
+      })
+      .click();
+
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(
+      page
+        .getByRole("complementary")
+        .getByText("contact+atelier-demo-owner@nebelspiegel.com"),
+    ).toBeVisible();
+  });
 });

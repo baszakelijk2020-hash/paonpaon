@@ -54,10 +54,10 @@ export default function FounderPage() {
           </h2>
           <div className="flex flex-wrap gap-5 text-sm">
             <Link
-              href="/r/maison-dubois"
+              href="/r/atelier-demo"
               className="underline underline-offset-4"
             >
-              Open the live Maison Dubois store
+              Open the live Nebel & Spiegel store
             </Link>
             <Link href="/demo-request" className="underline underline-offset-4">
               View a personalized demonstration

@@ -1,0 +1,26 @@
+{
+  "phase": "20.20",
+  "commit": "fe91186",
+  "route": "/appointments",
+  "persona": "authenticated E2E Customer Workspace fixture (TEST_CUSTOMER_EMAIL magic-link sign-in) against the local Supabase stack",
+  "checks": {
+    "focused_playwright": "3 passed: appointments-alteration-choices-v3.spec.ts (three §6.1 branches offered; 'Assess in store' note + bring-the-item + folded price list + no forced operation; 'I know exactly' moves forward not to a dead end)",
+    "regression": "2 passed: appointments-alterations.spec.ts (existing appointment request + alteration status/pickup flow)",
+    "customer_lint": "passed",
+    "customer_typecheck": "passed",
+    "console": "no console error messages observed by the authenticated desktop/mobile browser capture"
+  },
+  "notes": "CUSTOMER_ENVIRONMENT_REBUILD_V3 §6.1. paid-care-flow.tsx gains an alteration decision-branch step, shown first whenever serviceKind === 'alteration', with the three verbatim branches: 'I know exactly what needs changing' -> the priced-operation list (or the garment/quantity step when the retailer has no customer-visible catalogue); 'Ask advisor with self-scan' -> a fit-description note then the standard flow; 'Assess in store' -> a short service note, a 'bring the garment to the store' instruction, and a folded (collapsed) price list, with NO operation selection forced. The chosen branch is tagged into the existing booking `notes` field (a '[Assess in store] …' / '[Advisor self-scan] …' prefix) so the retailer's work order records which path the customer took — no schema or server-action change; paid-care-actions.ts already accepts `notes`. The priced-catalogue path itself depends on the retailer having a customer-visible alteration price list (RLS + AlterationCatalogueRepository, outside this file's owner boundary); the branch UI and the folded-list fallback ('Your advisor confirms the price with you in store.') are proven here regardless.",
+  "screenshots": [
+    {
+      "file": "desktop-1512x982.png",
+      "viewport": "1512x982",
+      "sha256": "7f6e0df2323b7c26ca43a68363ee071baf44a01a00d75ee13e65507aa0a6ab7c"
+    },
+    {
+      "file": "mobile-390x844.png",
+      "viewport": "390x844",
+      "sha256": "cb5d2d0e50734b733305ad34901d3784af11b9717062e02f7e9ccc8cc30f1894"
+    }
+  ]
+}

@@ -50,10 +50,18 @@ test("a signed-in shopper requests an appointment", async ({ page }) => {
   await page.getByRole("button", { name: "Request appointment" }).click();
 
   await expect(page).toHaveURL(/\/appointments\/[0-9a-f-]+$/);
-  await expect(page.getByText("Requested", { exact: true })).toBeVisible();
+  // This copy is unique to a requested appointment, unlike the status badge
+  // and progress tracker labels that also read "Requested" on this page.
+  await expect(page.getByText(/follow up to confirm this time/)).toBeVisible();
 
   await page.goto("/appointments");
-  await expect(page.getByText(/^Fitting · /).first()).toBeVisible();
+  // The earliest offered appointment can land in collapsed history. Expand it
+  // when present before asserting the requested appointment is listed.
+  const historyDisclosure = page.getByText(/^Appointment history/);
+  if (await historyDisclosure.isVisible().catch(() => false)) {
+    await historyDisclosure.click();
+  }
+  await expect(page.getByText("Requested").first()).toBeVisible();
 });
 
 test("a shopper sees their alteration status and pickup readiness", async ({

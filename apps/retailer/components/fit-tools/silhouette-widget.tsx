@@ -101,12 +101,14 @@ const WIDGET_CSS = `
 }
 @font-face {
   font-family: 'nbs-gtbold3';
-  src: url('https://www.nebelspiegel.com/fonts/gtbold3.ttf') format('truetype');
+  src: url('/fonts/Munged-teVV8iw7A5.woff2') format('woff2');
+  font-weight: 700;
   font-display: swap;
 }
 @font-face {
   font-family: 'nbs-optima';
-  src: url('https://www.nebelspiegel.com/fonts/optima.ttf') format('truetype');
+  src: url('/fonts/TN_Web_Use_Only_2.woff2') format('woff2');
+  font-weight: 400;
   font-display: swap;
 }
 #nbs-silhouette-widget-a91k,

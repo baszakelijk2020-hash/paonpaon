@@ -1,0 +1,33 @@
+{
+  "phase": "20.14",
+  "commit": "ddf84e9",
+  "customer_app_code_sha": "3f1c88d",
+  "note": "Release-branch re-proof. Prior evidence recorded candidate SHA 4118202 (not an ancestor of release HEAD; see docs/evidence/reviews/phase-20-v3-release-audit/AUDIT.md). The /loyalty V3 frame ('Membership' kicker + 'Rewards & Referrals' heading) is integrated on the release branch at 1923565. apps/customer application code is unchanged since 3f1c88d.",
+  "route": "/loyalty",
+  "persona": "authenticated E2E Customer Workspace fixture (TEST_CUSTOMER_EMAIL magic-link sign-in) against the local Supabase stack (http://127.0.0.1:54321)",
+  "checks": {
+    "focused_playwright": "1 passed: loyalty-v3-presentation.spec.ts — 'the Rewards & Referrals page frames the real loyalty engine' (1.4s)",
+    "related_playwright": "2 passed: loyalty-badges.spec.ts — 'badges shelf shows all five built-in milestones, not-yet-earned by default' (0.7s); loyalty-referrals.spec.ts — 'a referral converts through signup and first delivered order' (5.6s), which exercises Join, Send invitation, referral state transitions (Invited -> Signed up -> Reward issued), a real +500 referral-points DB delta, and a real reward redemption (reward_redemptions row + -100 points DB delta)",
+    "customer_lint": "passed (pnpm --filter @paon/customer lint)",
+    "customer_typecheck": "passed (pnpm --filter @paon/customer typecheck)",
+    "console": "no console error messages observed by the authenticated desktop/mobile browser capture (spec asserts consoleErrors.toEqual([]))"
+  },
+  "asserted": [
+    "V3 page frame: 'Membership' kicker text and exact 'Rewards & Referrals' heading",
+    "the real LoyaltyRepository-backed engine renders here — 'Badges' shelf and 'Introduce a friend' referral invite — not a second bespoke rewards surface",
+    "no 'house memory' copy",
+    "desktop 1512x982 and mobile 390x844 captures, console-clean at both"
+  ],
+  "screenshots": [
+    {
+      "file": "desktop-1512x982.png",
+      "viewport": "1512x982",
+      "sha256": "8e8085cd521ddf246c681c6de1438e545bf4e8d5e760fbff5d76df979c9fd740"
+    },
+    {
+      "file": "mobile-390x844.png",
+      "viewport": "390x844",
+      "sha256": "7a70bc25ba47eed3529545cfe019635c55d15a2835aa2f4af4a4caf39d25852e"
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "dashboard--desktop": {
+    "http_status": 200,
+    "final_url": "http://localhost:3102/dashboard",
+    "console_errors": []
+  },
+  "wardrobe--desktop": {
+    "http_status": 200,
+    "final_url": "http://localhost:3102/wardrobe",
+    "console_errors": []
+  },
+  "appointments--desktop": {
+    "http_status": 200,
+    "final_url": "http://localhost:3102/appointments",
+    "console_errors": []
+  },
+  "orders--desktop": {
+    "http_status": 200,
+    "final_url": "http://localhost:3102/orders",
+    "console_errors": []
+  },
+  "rewards--desktop": {
+    "http_status": 200,
+    "final_url": "http://localhost:3102/loyalty",
+    "console_errors": []
+  },
+  "account--desktop": {
+    "http_status": 200,
+    "final_url": "http://localhost:3102/account",
+    "console_errors": []
+  },
+  "digital-fitting-room--desktop": {
+    "http_status": 200,
+    "final_url": "http://localhost:3102/digital-fitting-room",
+    "console_errors": []
+  },
+  "dashboard--mobile": {
+    "http_status": 200,
+    "final_url": "http://localhost:3102/dashboard",
+    "console_errors": []
+  },
+  "wardrobe--mobile": {
+    "http_status": 200,
+    "final_url": "http://localhost:3102/wardrobe",
+    "console_errors": []
+  },
+  "appointments--mobile": {
+    "http_status": 200,
+    "final_url": "http://localhost:3102/appointments",
+    "console_errors": []
+  },
+  "orders--mobile": {
+    "http_status": 200,
+    "final_url": "http://localhost:3102/orders",
+    "console_errors": []
+  },
+  "rewards--mobile": {
+    "http_status": 200,
+    "final_url": "http://localhost:3102/loyalty",
+    "console_errors": []
+  },
+  "account--mobile": {
+    "http_status": 200,
+    "final_url": "http://localhost:3102/account",
+    "console_errors": []
+  },
+  "digital-fitting-room--mobile": {
+    "http_status": 200,
+    "final_url": "http://localhost:3102/digital-fitting-room",
+    "console_errors": []
+  }
+}

@@ -3,6 +3,7 @@
 import type { ClientelingOpportunity } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
+import Link from "next/link";
 import { useActionState } from "react";
 
 import {
@@ -12,8 +13,10 @@ import {
 
 function AssignedOpportunity({
   opportunity,
+  customerName,
 }: {
   readonly opportunity: ClientelingOpportunity;
+  readonly customerName?: string | undefined;
 }) {
   const [state, action, pending] = useActionState<
     CompleteAssignedOpportunityResult | undefined,
@@ -22,13 +25,25 @@ function AssignedOpportunity({
 
   return (
     <li className="flex items-start justify-between gap-4 border-b border-[var(--color-stone-100)] pb-4 last:border-0">
-      <div>
-        <p className="text-sm font-medium text-[var(--color-stone-900)]">
-          {opportunity.whyNow}
-        </p>
-        <p className="mt-1 text-sm text-[var(--color-stone-600)]">
-          {opportunity.suggestedAction}
-        </p>
+      <div className="flex-1">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-[var(--color-stone-900)]">
+              {opportunity.whyNow}
+            </p>
+            <p className="mt-1 text-sm text-[var(--color-stone-600)]">
+              {opportunity.suggestedAction}
+            </p>
+          </div>
+          {customerName ? (
+            <Link
+              href={`/customers/${opportunity.customerId}`}
+              className="shrink-0 text-xs font-medium text-[var(--color-blue-600)] hover:underline"
+            >
+              House Memory →
+            </Link>
+          ) : null}
+        </div>
         {state?.status === "unavailable" ? (
           <p
             role="status"
@@ -50,8 +65,10 @@ function AssignedOpportunity({
 
 export function AssignedOpportunityList({
   opportunities,
+  customerNames = new Map(),
 }: {
   readonly opportunities: readonly ClientelingOpportunity[];
+  readonly customerNames?: Map<string, string>;
 }) {
   return (
     <Card>
@@ -64,6 +81,7 @@ export function AssignedOpportunityList({
             <AssignedOpportunity
               key={opportunity.id}
               opportunity={opportunity}
+              customerName={customerNames?.get(opportunity.customerId)}
             />
           ))}
         </ul>

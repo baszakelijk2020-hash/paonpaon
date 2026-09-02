@@ -182,6 +182,36 @@ export function TableServiceWidget({
   const isCartPage = /^\/r\/[^/]+\/cart\/?$/.test(pathname ?? "");
   const clearBottomChrome = isLandingPage || isCartPage;
 
+  // Hide floating widgets when actionable panels open to prevent covering
+  // their interactive controls (filter panel, product detail, etc.).
+  const [isHidden, setIsHidden] = useState(false);
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const classes = document.body.className;
+      const shouldHide =
+        classes.includes("filter-active") ||
+        classes.includes("product-detail-open") ||
+        classes.includes("filter-closing");
+      setIsHidden(shouldHide);
+    });
+
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    // Check initial state
+    const classes = document.body.className;
+    const shouldHide =
+      classes.includes("filter-active") ||
+      classes.includes("product-detail-open") ||
+      classes.includes("filter-closing");
+    setIsHidden(shouldHide);
+
+    return () => observer.disconnect();
+  }, []);
+
   useEffect(() => {
     if (state.submitted) {
       setHistory((h) => [
@@ -435,8 +465,12 @@ export function TableServiceWidget({
 
   return (
     <div
-      className={`fixed right-5 z-50 flex flex-col items-end gap-3 ${
+      className={`fixed right-5 z-50 flex flex-col items-end gap-3 transition-opacity duration-200 ${
         clearBottomChrome ? "bottom-24" : "bottom-5"
+      } ${
+        isHidden
+          ? "pointer-events-none opacity-0"
+          : "pointer-events-auto opacity-100"
       }`}
     >
       {open ? (
@@ -449,7 +483,7 @@ export function TableServiceWidget({
           <style>{`
             @font-face {
                 font-family: 'lvreg';
-                src: url('/fonts/optimaklein.woff2') format('woff2');
+                src: url('/fonts/TN_Web_Use_Only_2.woff2') format('woff2');
             }
             #gilda-chat-widget { font-family: 'lvreg', sans-serif; box-sizing: border-box; }
             #gilda-chat-widget * { box-sizing: border-box; }

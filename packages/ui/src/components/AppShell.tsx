@@ -28,7 +28,116 @@ export interface AppShellProps {
   navigation: AppShellNavGroup[];
   mobileDock?: AppShellNavItem[];
   signOutControl: ReactNode;
+  signOutControlMobile?: ReactNode;
   children: ReactNode;
+}
+
+function isItemActive(pathname: string, href: string): boolean {
+  return pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
+}
+
+function activeGroupFor(
+  groups: AppShellNavGroup[],
+  pathname: string,
+): AppShellNavGroup | undefined {
+  return groups.find((group) =>
+    group.items.some((item) => isItemActive(pathname, item.href)),
+  );
+}
+
+/** Left sidebar shows only the topic/category level — a group's own items
+ * are subdivided into the sticky horizontal SubTabs bar above the page
+ * body instead, so the sidebar stays short no matter how many pages a
+ * group grows to contain. */
+function SidebarGroups({
+  groups,
+  onNavigate,
+}: {
+  groups: AppShellNavGroup[];
+  onNavigate?: () => void;
+}) {
+  const pathname = usePathname();
+  const activeGroup = activeGroupFor(groups, pathname);
+
+  return (
+    <nav aria-label="Primary" className="flex flex-col gap-0.5">
+      {groups.map((group) => {
+        const active = group.label === activeGroup?.label;
+        const target = group.items[0]?.href ?? "#";
+        return (
+          <Link
+            key={group.label}
+            href={target}
+            {...(active ? { "aria-current": "page" as const } : {})}
+            {...(onNavigate ? { onClick: onNavigate } : {})}
+            className={cn(
+              "group relative rounded-[var(--radius-md)] px-3 py-2.5 text-[13px] transition-[background-color,color,transform] duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)]",
+              active
+                ? "bg-white/[0.09] text-white"
+                : "text-white/55 hover:translate-x-0.5 hover:bg-white/[0.04] hover:text-white/85",
+            )}
+          >
+            <span
+              aria-hidden="true"
+              className={cn(
+                "absolute inset-y-3 left-0 w-px bg-white transition-opacity",
+                active ? "opacity-70" : "opacity-0",
+              )}
+            />
+            <span className="font-display block uppercase tracking-[0.08em]">
+              {group.label}
+            </span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+/** Sticky sub-navigation for the active group's items — the "horizontal
+ * tab system" that subdivides the topic picked in the left sidebar. Only
+ * rendered when the active group actually has more than one page; a
+ * single-item group has nothing to subdivide. */
+function SubTabs({ groups }: { groups: AppShellNavGroup[] }) {
+  const pathname = usePathname();
+  const activeGroup = activeGroupFor(groups, pathname);
+  if (!activeGroup || activeGroup.items.length < 2) return null;
+
+  return (
+    <div className="bg-[var(--color-stone-50)]/95 sticky top-16 z-30 border-b border-black/[0.07] backdrop-blur lg:top-[4.5rem]">
+      <nav
+        aria-label={`${activeGroup.label} sections`}
+        className="mx-auto flex max-w-[92rem] gap-1 overflow-x-auto px-4 sm:px-7 lg:px-10 xl:px-14"
+      >
+        {activeGroup.items.map((item) => {
+          const active = isItemActive(pathname, item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              {...(active ? { "aria-current": "page" as const } : {})}
+              {...(item.description ? { title: item.description } : {})}
+              className={cn(
+                "relative shrink-0 whitespace-nowrap px-3 py-3 text-[13px] transition-colors",
+                active
+                  ? "text-[var(--color-stone-900)]"
+                  : "text-[var(--color-stone-500)] hover:text-[var(--color-stone-800)]",
+              )}
+            >
+              {item.label}
+              <span
+                aria-hidden="true"
+                className={cn(
+                  "absolute inset-x-3 -bottom-px h-px bg-[var(--color-stone-900)] transition-opacity",
+                  active ? "opacity-100" : "opacity-0",
+                )}
+              />
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
+  );
 }
 
 function NavGroups({
@@ -98,6 +207,7 @@ export function AppShell({
   navigation,
   mobileDock,
   signOutControl,
+  signOutControlMobile,
   children,
 }: AppShellProps) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -118,7 +228,7 @@ export function AppShell({
           </span>
         </Link>
         <div className="overflow-y-auto px-4 py-9">
-          <NavGroups groups={navigation} />
+          <SidebarGroups groups={navigation} />
         </div>
         <div className="border-t border-white/10 bg-black/10 px-7 py-6">
           <p className="font-accent text-[7px] uppercase tracking-[0.16em] text-white/35">
@@ -171,6 +281,8 @@ export function AppShell({
             </p>
           </div>
         </header>
+
+        <SubTabs groups={navigation} />
 
         <main
           className={cn(
@@ -267,7 +379,7 @@ export function AppShell({
               </p>
               <p className="mt-1 truncate text-[10px] text-white/40">{email}</p>
               <div className="mt-3 [&_button]:!h-8 [&_button]:!px-0 [&_button]:!text-white/55">
-                {signOutControl}
+                {signOutControlMobile ?? signOutControl}
               </div>
             </div>
           </aside>

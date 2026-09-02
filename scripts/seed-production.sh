@@ -73,4 +73,4 @@ SUPABASE_SERVICE_ROLE_KEY="$SERVICE_KEY" \
   pnpm --filter @paon/database seed:demo
 
 echo
-echo "Done. Open https://paonpaon-customer.vercel.app/r/maison-dubois"
+echo "Done. Open https://paonpaon-customer.vercel.app/r/atelier-demo"

@@ -2,12 +2,11 @@ import {
   CommercialProspectRepository,
   SubscriptionPlanRepository,
 } from "@paon/database";
-import { ConfirmSubmitButton } from "@paon/ui/components/ConfirmSubmitButton";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { setDemoPublication } from "./actions";
 import { BrandAssetUploader } from "./brand-asset-uploader";
+import { DemoPublicationForm } from "./demo-publication-form";
 import { EnvironmentPanel } from "./environment-panel";
 import { ProspectContactForm } from "./prospect-contact-form";
 import { StudioForm } from "./studio-form";
@@ -123,29 +122,10 @@ export default async function DemoStudioPage({
                 : "Publish after walking the live storefront and a seeded persona login."}
             </p>
           </div>
-          <form action={setDemoPublication}>
-            <input type="hidden" name="prospectId" value={prospect.id} />
-            <input
-              type="hidden"
-              name="publish"
-              value={environment.status === "published" ? "false" : "true"}
-            />
-            {environment.status === "published" ? (
-              <ConfirmSubmitButton
-                confirmMessage="Revoke this private demo? The link stops working immediately for the prospect."
-                className="min-h-11 rounded-[var(--radius-md)] bg-white px-5 text-sm text-black hover:bg-white/90"
-              >
-                Revoke private demo
-              </ConfirmSubmitButton>
-            ) : (
-              <button
-                type="submit"
-                className="min-h-11 rounded-[var(--radius-md)] bg-white px-5 text-sm text-black"
-              >
-                Publish private demo
-              </button>
-            )}
-          </form>
+          <DemoPublicationForm
+            prospectId={prospect.id}
+            status={environment.status}
+          />
         </section>
       ) : null}
     </div>

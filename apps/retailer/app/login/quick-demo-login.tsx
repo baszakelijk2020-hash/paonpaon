@@ -4,52 +4,29 @@ import {
   DEMO_CANONICAL_PERSONAS,
   DEMO_PASSWORD,
 } from "@paon/database/demo-seed";
-import { useSearchParams } from "next/navigation";
 
 import { signIn } from "./actions";
 
-const PROSPECT_ROLES = [
-  ["owner", "Owner"],
-  ["manager", "Manager"],
-  ["sales", "Sales"],
-] as const;
-
 /**
- * Dev-only one-click persona switcher — NODE_ENV-gated, never rendered
- * in a production build. Prefer ?email= from Demo Studio / private demo
- * so prospect tenants get their own owner/manager/sales buttons instead
- * of only the static Maison Dubois list.
+ * Dev-only one-click persona switcher — deployment-tier gated by its parent,
+ * never rendered in a real production environment. It deliberately exposes
+ * only the canonical roster;
+ * a URL parameter must never manufacture a login identity.
  */
 export function QuickDemoLogin({
   redirectTo,
 }: {
   redirectTo?: string | undefined;
 }) {
-  const searchParams = useSearchParams();
-  const emailParam = searchParams.get("email") ?? "";
-  const prospectSlug = prospectSlugFromEmail(emailParam);
-
-  const maisonPersonas = DEMO_CANONICAL_PERSONAS.filter(
+  const personas = DEMO_CANONICAL_PERSONAS.filter(
     (login) => login.app === "retailer",
   );
-
-  const prospectPersonas = prospectSlug
-    ? PROSPECT_ROLES.map(([role, label]) => ({
-        email: `contact+${prospectSlug}-${role}@nebelspiegel.com`,
-        persona: label,
-        retailer: prospectSlug,
-      }))
-    : [];
-
-  const personas =
-    prospectPersonas.length > 0 ? prospectPersonas : maisonPersonas;
   if (personas.length === 0) return null;
 
   return (
     <div className="mt-8 border-t border-dashed border-[var(--color-stone-300)] pt-6">
       <p className="mb-3 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-danger-500)]">
         Dev only — quick persona login
-        {prospectSlug ? ` · ${prospectSlug}` : ""}
       </p>
       <div className="flex flex-wrap gap-2">
         {personas.map((login) => (
@@ -73,16 +50,4 @@ export function QuickDemoLogin({
       </div>
     </div>
   );
-}
-
-function prospectSlugFromEmail(email: string): string | null {
-  const match =
-    /^contact\+([a-z0-9-]+)-(?:owner|manager|sales|workshop)@nebelspiegel\.com$/i.exec(
-      email.trim(),
-    );
-  if (!match?.[1]) return null;
-  const slug = match[1];
-  // Maison Dubois uses the same pattern — keep the static list for it.
-  if (slug === "maison-dubois") return null;
-  return slug;
 }

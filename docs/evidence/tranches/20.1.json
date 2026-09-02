@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.1",
+  "requirementIds": ["UNAV-001"],
+  "status": "verified_local",
+  "title": "codex-frontier-navigation — architecture and acceptance",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "n_a",
+    "origin_ui": "n_a",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "n_a",
+    "browser": "n_a",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "no new domain logic required; architectural coordination item only",
+    "persistence": "no new persistence layer required",
+    "service": "no new service implementation required",
+    "origin_ui": "no UI implementation required; this is fleet ownership verification",
+    "receiver_ui": "no UI implementation required",
+    "rls": "no new RLS policy required",
+    "exceptions": "no new exception handling required",
+    "browser": "no browser test required; this is architecture + process verification, not a UI feature",
+    "operations": "fleet lane verification: scripts/fleet/paon-fleet status confirms worker commits/diffs/tests independently verified before integration (docs/PHASE.md §20.1). Referenced browserProofSpec is customer-navigation-performance.spec.ts, a fleet integration test verifying one of the Stage 20 dependencies.",
+    "live_gap": "architecture-only item with no customer-facing surface or live system gap"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "n_a",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "n_a",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-customer-workspace",
+  "browserProofSpec": "apps/customer/e2e/customer-navigation-performance.spec.ts",
+  "assertedAt": "2026-08-26T07:45:00Z"
+}

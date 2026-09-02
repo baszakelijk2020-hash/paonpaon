@@ -9,15 +9,35 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 const STATUSES = ["new", "reviewed", "converted", "closed"] as const;
 
-export async function updateInquiryStatus(formData: FormData): Promise<void> {
+export interface InquiryStatusActionState {
+  formError?: string;
+  saved?: boolean;
+}
+
+export async function updateInquiryStatus(
+  _previous: InquiryStatusActionState,
+  formData: FormData,
+): Promise<InquiryStatusActionState> {
   requirePlatformOperator(await getSession());
   const id = String(formData.get("inquiryId") ?? "");
   const status = String(formData.get("status") ?? "");
   if (!id || !STATUSES.includes(status as (typeof STATUSES)[number])) {
-    return;
+    return { formError: "Invalid inquiry ID or status." };
   }
-  await new CommercialInquiryRepository(
-    await getSupabaseServerClient(),
-  ).updateStatus(id, status as (typeof STATUSES)[number]);
+
+  try {
+    await new CommercialInquiryRepository(
+      await getSupabaseServerClient(),
+    ).updateStatus(id, status as (typeof STATUSES)[number]);
+  } catch (error) {
+    return {
+      formError:
+        error instanceof Error
+          ? error.message
+          : "Could not update inquiry status.",
+    };
+  }
+
   revalidatePath("/inquiries");
+  return { saved: true };
 }

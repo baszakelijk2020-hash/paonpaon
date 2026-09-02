@@ -71,7 +71,7 @@ export default async function CapsulePage() {
           This week&rsquo;s capsule
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
-          A small, considered set — refreshed weekly by each house.
+          A small, considered set — refreshed weekly by your advisor.
         </p>
       </div>
 

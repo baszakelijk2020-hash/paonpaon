@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.34",
+  "requirementIds": ["CENV-REVIEW-MISC"],
+  "status": "verified_local",
+  "title": "evidence-review-orders-candidates \u2014 Orders action and history candidate review",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "n_a",
+    "origin_ui": "n_a",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "n_a",
+    "browser": "n_a",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "n_a",
+    "origin_ui": "n_a",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "n_a",
+    "browser": "docs/evidence/reviews/20.34-orders-candidates/REVIEW.md \u2014 review of candidates fe91186 and b49798b: exact changed files, V3 task scope, dependencies, test claims, evidence-SHA freshness, safe-integration verdict, and required release-branch verification",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "n_a",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "n_a",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-customer-workspace",
+  "browserProofSpec": "apps/customer/e2e/orders-actions-v3.spec.ts",
+  "assertedAt": "2026-09-02T08:50:00.000Z"
+}

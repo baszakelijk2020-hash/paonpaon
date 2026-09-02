@@ -28,7 +28,6 @@ import {
 } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Button } from "@paon/ui/components/Button";
-import { Card } from "@paon/ui/components/Card";
 import { DateTimePicker } from "@paon/ui/components/DateTimePicker";
 import { FormField } from "@paon/ui/components/FormField";
 import Link from "next/link";
@@ -127,16 +126,17 @@ export default async function CustomerServicesPage() {
   const careRecords = groups.flatMap((group) => group.care);
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
-          Preferred Tailoring &amp; HighMaintenance
+    <div className="customer-page flex flex-col gap-8">
+      <header className="customer-page-header flex-col items-start gap-2">
+        <p className="customer-kicker">Private client services</p>
+        <h1 className="font-display text-4xl text-[var(--customer-ink)] sm:text-5xl">
+          Preferred Tailoring &amp; High Maintenance
         </h1>
-        <p className="text-sm text-[var(--color-stone-500)]">
+        <p className="max-w-2xl text-[15px] leading-7 text-[var(--color-stone-600)]">
           Advisor-led wardrobe planning and ongoing care, pressing, repair, and
           collection — without payment on this surface.
         </p>
-      </div>
+      </header>
 
       <PreferredTailoringMonthGrid
         bookings={groups.flatMap((group) => group.bookings)}
@@ -148,10 +148,10 @@ export default async function CustomerServicesPage() {
       </div>
 
       {groups.every((group) => group.memberships.length === 0) ? (
-        <Card className="flex flex-col gap-2">
+        <div className="customer-panel flex flex-col gap-2 p-6">
           <p className="text-sm text-[var(--color-stone-700)]">
             No concierge memberships yet. Your house advisor can open Preferred
-            Tailoring or HighMaintenance for you.
+            Tailoring or High Maintenance for you.
           </p>
           <p className="text-sm text-[var(--color-stone-500)]">
             You can still book fittings from{" "}
@@ -160,7 +160,7 @@ export default async function CustomerServicesPage() {
             </Link>
             .
           </p>
-        </Card>
+        </div>
       ) : null}
 
       {groups.map(
@@ -179,13 +179,13 @@ export default async function CustomerServicesPage() {
           index,
         ) =>
           memberships.length === 0 ? null : (
-            <Card
+            <section
               key={customer.id}
-              className="paon-reveal flex flex-col gap-5"
+              className="customer-panel paon-reveal flex flex-col gap-6 p-6"
               style={{ animationDelay: `${index * 120}ms` }}
             >
               <div>
-                <p className="font-accent text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
+                <p className="customer-kicker">
                   {retailer?.displayName ?? "Retailer"}
                 </p>
               </div>
@@ -233,7 +233,7 @@ export default async function CustomerServicesPage() {
                   </ul>
                 </section>
               ) : null}
-            </Card>
+            </section>
           ),
       )}
     </div>
@@ -297,21 +297,21 @@ function CareJourney({
     return (
       <>
         <section
-          className="paon-reveal overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-[var(--color-stone-50)]"
+          className="customer-panel-dark paon-reveal overflow-hidden"
           aria-labelledby="highmaintenance-heading"
         >
-          <div className="grid min-h-72 items-end bg-[linear-gradient(135deg,#e7e2d8_0%,#f8f7f4_58%,#d3c9bb_100%)] p-6 sm:p-9">
+          <div className="grid min-h-72 items-end bg-[linear-gradient(135deg,#dbe2d8_0%,#cbd3c5_54%,#aebcaf_100%)] p-6 text-[var(--customer-ink)] sm:p-9">
             <div className="max-w-xl">
-              <p className="font-accent text-xs font-medium uppercase tracking-[0.2em] text-[var(--color-stone-600)]">
-                HighMaintenance
+              <p className="customer-kicker text-[var(--customer-ink)]">
+                High Maintenance
               </p>
               <h2
                 id="highmaintenance-heading"
-                className="font-display mt-3 text-3xl text-[var(--color-stone-900)] sm:text-4xl"
+                className="font-display mt-3 text-3xl text-[var(--customer-ink)] sm:text-4xl"
               >
                 Care keeps your wardrobe ready.
               </h2>
-              <p className="mt-3 max-w-lg text-sm leading-6 text-[var(--color-stone-700)]">
+              <p className="text-[var(--customer-ink)]/75 mt-3 max-w-lg text-sm leading-6">
                 When your house arranges care for a booking-linked garment, its
                 handoffs and return will appear here — without exposing the
                 operational notes behind the service.
@@ -327,9 +327,7 @@ function CareJourney({
   return (
     <section aria-labelledby="highmaintenance-heading" className="space-y-4">
       <div className="px-1">
-        <p className="font-accent text-xs font-medium uppercase tracking-[0.2em] text-[var(--color-stone-500)]">
-          HighMaintenance
-        </p>
+        <p className="customer-kicker">High Maintenance</p>
         <h2
           id="highmaintenance-heading"
           className="font-display mt-2 text-3xl text-[var(--color-stone-900)] sm:text-4xl"
@@ -350,12 +348,12 @@ function CareJourney({
           return (
             <article
               key={care.bookingId}
-              className="paon-reveal overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white shadow-[var(--shadow-elevated)]"
+              className="customer-panel-dark paon-reveal overflow-hidden"
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              <div className="grid min-h-64 gap-6 bg-[linear-gradient(120deg,#252521_0%,#575046_58%,#9b8978_100%)] p-6 text-white sm:grid-cols-[1.1fr_0.9fr] sm:p-9">
+              <div className="grid min-h-64 gap-6 bg-[linear-gradient(120deg,#272a25_0%,#4c564b_58%,#71806e_100%)] p-6 text-white sm:grid-cols-[1.1fr_0.9fr] sm:p-9">
                 <div className="flex flex-col justify-end">
-                  <p className="font-accent text-xs uppercase tracking-[0.2em] text-white/70">
+                  <p className="font-accent text-[11px] uppercase tracking-[0.18em] text-white/70">
                     {care.capability.replaceAll("_", " ")}
                   </p>
                   <h3 className="font-display mt-2 text-3xl sm:text-4xl">
@@ -374,13 +372,11 @@ function CareJourney({
                 </div>
               </div>
 
-              <div className="p-6 sm:p-8">
+              <div className="bg-[var(--customer-paper)] p-6 text-[var(--customer-ink)] sm:p-8">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="font-accent text-xs uppercase tracking-[0.16em] text-[var(--color-stone-500)]">
-                      Current care state
-                    </p>
-                    <p className="font-display mt-1 text-2xl text-[var(--color-stone-900)]">
+                    <p className="customer-kicker">Current care state</p>
+                    <p className="font-display mt-1 text-2xl text-[var(--customer-ink)]">
                       {state.label}
                     </p>
                   </div>
@@ -459,14 +455,12 @@ function CareOutcomeHistory({
 
   return (
     <section
-      className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-5 py-4"
+      className="customer-panel px-5 py-5"
       aria-labelledby="care-outcomes-heading"
     >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
-          <p className="font-accent text-xs uppercase tracking-[0.16em] text-[var(--color-stone-500)]">
-            HighMaintenance
-          </p>
+          <p className="customer-kicker">High Maintenance</p>
           <h3
             id="care-outcomes-heading"
             className="font-display mt-1 text-xl text-[var(--color-stone-900)]"
@@ -518,12 +512,12 @@ function MembershipPanel({
   const bookingKinds = BOOKING_KINDS_BY_SERVICE[plan.kind as ServiceKind];
   return (
     <section
-      className="flex flex-col gap-4 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-4 py-3"
+      className="customer-panel flex flex-col gap-5 p-5"
       aria-label={`${SERVICE_KIND_LABELS[plan.kind]} membership`}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="font-display text-xl text-[var(--color-stone-900)]">
+          <h2 className="font-display text-2xl text-[var(--customer-ink)]">
             {SERVICE_KIND_LABELS[plan.kind]}
           </h2>
           <p className="text-sm text-[var(--color-stone-500)]">
@@ -547,7 +541,7 @@ function MembershipPanel({
           {entitlements.map((entitlement) => (
             <li
               key={entitlement.id}
-              className="rounded border border-[var(--color-stone-100)] px-3 py-2 text-sm"
+              className="customer-list-row rounded-[var(--customer-radius)] px-3 py-3 text-sm"
             >
               {SERVICE_ENTITLEMENT_KIND_LABELS[entitlement.kind]}
               <span className="ml-2 font-medium">
@@ -572,7 +566,7 @@ function MembershipPanel({
             {weeklyPlans.map((weeklyPlan) => (
               <li
                 key={weeklyPlan.id}
-                className="rounded border border-[var(--color-stone-100)] px-3 py-3 text-sm"
+                className="customer-list-row rounded-[var(--customer-radius)] px-3 py-3 text-sm"
                 aria-label={`Weekly plan for ${weeklyPlan.weekStartDate}`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -623,7 +617,9 @@ function MembershipPanel({
                         value={weeklyPlan.id}
                       />
                       <input type="hidden" name="decision" value="accepted" />
-                      <Button type="submit">Accept this week</Button>
+                      <Button type="submit" className="customer-button">
+                        Accept this week
+                      </Button>
                     </form>
                     <form
                       action={decideWeeklyPlan}
@@ -639,9 +635,13 @@ function MembershipPanel({
                         name="declineReason"
                         placeholder="Optional reason"
                         maxLength={1000}
-                        className="rounded border border-[var(--color-stone-200)] px-2 py-1 text-sm"
+                        className="h-11 rounded-[var(--customer-radius)] border border-[var(--customer-border)] bg-white/70 px-3 text-sm"
                       />
-                      <Button type="submit" variant="secondary">
+                      <Button
+                        type="submit"
+                        variant="secondary"
+                        className="customer-button"
+                      >
                         Decline
                       </Button>
                     </form>
@@ -673,7 +673,7 @@ function MembershipPanel({
             <select
               name="kind"
               required
-              className="rounded border border-[var(--color-stone-200)] px-3 py-2"
+              className="h-12 rounded-[var(--customer-radius)] border border-[var(--customer-border)] bg-white/70 px-3"
               aria-label="Service booking kind"
             >
               {bookingKinds.map((kind) => (
@@ -686,7 +686,9 @@ function MembershipPanel({
               ))}
             </select>
           </label>
-          <Button type="submit">Request booking</Button>
+          <Button type="submit" className="customer-button">
+            Request booking
+          </Button>
           <div className="md:col-span-2">
             <FormField
               label="Preferred date & time (optional)"
@@ -705,7 +707,7 @@ function MembershipPanel({
               name="notes"
               maxLength={1000}
               rows={2}
-              className="rounded border border-[var(--color-stone-200)] px-3 py-2"
+              className="min-h-16 rounded-[var(--customer-radius)] border border-[var(--customer-border)] bg-white/70 px-3 py-3"
             />
           </label>
         </form>
@@ -719,7 +721,7 @@ function MembershipPanel({
           {bookings.map((booking) => (
             <li
               key={booking.id}
-              className="flex flex-wrap items-center justify-between gap-2 rounded border border-[var(--color-stone-100)] px-3 py-2 text-sm"
+              className="customer-list-row flex flex-wrap items-center justify-between gap-2 rounded-[var(--customer-radius)] px-3 py-3 text-sm"
             >
               <span>
                 {SERVICE_BOOKING_KIND_LABELS[booking.kind]}

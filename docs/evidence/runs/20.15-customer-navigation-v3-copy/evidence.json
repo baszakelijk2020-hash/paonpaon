@@ -1,0 +1,33 @@
+{
+  "phase": "20.15",
+  "requirement": "CENV-NAVIGATION-003",
+  "release_code_sha": "bbc58ad5979a1ee94f75f0cd19cb924bfe765e05",
+  "verified_at": "2026-08-27",
+  "environment": "local Supabase authenticated Isabelle fixture",
+  "focused_e2e": {
+    "command": "pnpm --filter @paon/customer exec playwright test e2e/customer-navigation-v3-copy.spec.ts --reporter=line",
+    "result": "8 passed (1.8m)",
+    "coverage": [
+      "desktop exact seven labels and hrefs",
+      "desktop and mobile client-side persistent-shell navigation",
+      "desktop and mobile forbidden customer-facing house-copy absence",
+      "mobile compact overflow reachability",
+      "desktop and mobile warm-navigation console error absence"
+    ]
+  },
+  "quality_gates": {
+    "lint": "passed",
+    "typecheck": "passed"
+  },
+  "browser_proof": {
+    "desktop_viewport": "1280x800",
+    "mobile_viewport": "390x844",
+    "console_errors": 0,
+    "screenshots": "No screenshot artifact was produced by this focused release run; none is claimed."
+  },
+  "scope": {
+    "integrated_candidate": "8b40562",
+    "changed_release_file": "apps/customer/e2e/customer-navigation-v3-copy.spec.ts",
+    "blocked_work_untouched": ["phase-20.17", "phase-20.21"]
+  }
+}

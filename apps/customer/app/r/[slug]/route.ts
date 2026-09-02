@@ -7,23 +7,28 @@ import {
   CustomerRepository,
   ProductRepository,
   ProductVariantRepository,
-  RetailerRepository,
   WardrobeRepository,
   WeddingPartyRepository,
 } from "@paon/database";
+import { CANONICAL_DEMO_RETAILER_SLUG } from "@paon/database/demo-seed";
 import type { Product, ProductVariant } from "@paon/domain";
 import { formatMoney } from "@paon/utils";
 import { NextResponse } from "next/server";
 
 import {
+  CANONICAL_CATEGORIES,
+  canonicalCategoryFor,
+} from "./canonical-category";
+import {
   loadStorefrontCatalogueByProduct,
   preferCatalogueFacetValue,
-  serializeStorefrontCatalogueJson,
 } from "./serialize-storefront-catalogue";
+import { loadStorefrontKnowledgeByProduct } from "./serialize-storefront-knowledge";
+import { getStorefrontRetailer } from "./storefront-context";
 import {
-  loadStorefrontKnowledgeByProduct,
-  serializeStorefrontKnowledgeJson,
-} from "./serialize-storefront-knowledge";
+  serializeStorefrontPage,
+  type StorefrontPageData,
+} from "./storefront-page-data";
 
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -62,15 +67,12 @@ async function loadTemplate(): Promise<string> {
     "app/r/[slug]/paon-template.html",
   );
   const raw = await readFile(templatePath, "utf8");
-  // The table-service widget's embedded <style> still points at the
-  // founder's own domain for this one font. That host sends no
-  // Access-Control-Allow-Origin, so the browser silently fails the fetch
-  // and falls back to a system font — same CORS issue globals.css already
-  // works around via app/fonts/[filename]/route.ts, which serves this exact
-  // file same-origin. Confirmed broken in production before this fix.
+  // The table-service widget's embedded style originally pointed at the
+  // founder's own domain. Use the same local Google Flex face as the rest
+  // of the storefront, avoiding a cross-origin font request.
   const html = raw.replaceAll(
-    "https://www.nebelspiegel.com/fonts/optimaklein.woff2",
-    "/fonts/optimaklein.woff2",
+    "/fonts/TN_Web_Use_Only_2.woff2",
+    "/fonts/TN_Web_Use_Only_2.woff2",
   );
   templateCache = html;
   return html;
@@ -163,135 +165,10 @@ function deriveSeason(name: string, collectionSeason?: string): string {
   return "unknown";
 }
 
-const CANONICAL_CATEGORIES = [
-  "Suits",
-  "Jackets",
-  "Pants",
-  "Knits",
-  "Shoes",
-  "Shirts",
-  "Outerwear",
-  "Evening",
-  "Wedding",
-] as const;
-
-const CATEGORY_KEYWORDS: Record<
-  (typeof CANONICAL_CATEGORIES)[number],
-  readonly string[]
-> = {
-  // "suit" only — weave-pattern words (twill/houndstooth/glencheck/mélange)
-  // used to live here too, but those describe jacket fabrics just as often
-  // as suit fabrics (see the id-range fallback below), so keeping them
-  // here was mis-sorting real jacket fabrics into Suits by coincidence of
-  // wording, not garment type.
-  Suits: ["suit"],
-  Jackets: ["jacket", "blazer", "sport coat", "sportcoat"],
-  // "broek" still matches trouser slugs (`…-broek1`); display names follow
-  // the product photography (e.g. "Khaki Cotton Trousers").
-  Pants: ["pant", "trouser", "chino", "broek"],
-  // "cashmere" used to live here too, but that's a fiber, not a garment —
-  // a cashmere-blend SUITING fabric (e.g. "Silk, Wool & Cashmere
-  // Glencheck") was winning this check before the id-range fallback ever
-  // ran, mis-sorting real suit/jacket fabrics into Knits by coincidence
-  // of material, not garment type. Same class of bug the "mélange" removal
-  // above already fixed once.
-  Knits: [
-    "knit",
-    "sweater",
-    "cardigan",
-    "jumper",
-    "roll neck",
-    "rollneck",
-    "turtleneck",
-    "crew",
-    "polo",
-    "merino",
-    "quarter-zip",
-    "cable",
-  ],
-  Shoes: ["shoe", "loafer", "oxford", "derby", "boot", "sneaker"],
-  Shirts: ["shirt"],
-  Outerwear: ["overcoat", "parka", "topcoat"],
-  Evening: ["tuxedo", "evening", "black tie", "dinner jacket"],
-  Wedding: ["wedding", "groom"],
-};
-
-/** Categories with an unambiguous name-keyword — checked before the
- * Suits/Jackets id-range fallback so an explicit garment word (e.g. a
- * "Sport Coat" or "Overcoat" that happens to reuse a suit fabric's own
- * product photo) always wins over which numbered fabric photo it reuses. */
-const UNAMBIGUOUS_CATEGORY_ORDER = CANONICAL_CATEGORIES.filter(
-  (category) => category !== "Suits",
-);
-
-/** Names with no real garment type at all (accessories) shouldn't fall
- * into the Suits/Jackets id-range guess just because they reuse one of
- * those fabrics' product photography. */
-const NON_GARMENT_NAME_HINTS = [
-  "pocket square",
-  "tie",
-  "cufflink",
-  "belt",
-  "briefcase",
-  "bag",
-  "wallet",
-  "satchel",
-  "tote",
-  "pouch",
-  "watch",
-  "sunglasses",
-  "hat",
-  "scarf",
-];
-
-/**
- * The founder's own real catalog (`paon.html`) numbers suit fabrics
- * below 8000 and jacket fabrics at or above it (its own `getCat()`:
- * `parseInt(id) < 8000 ? 'Suits' : 'Jackets'`) — the demo seed reuses
- * those exact numbered photos (`smaller/9177.webp`, etc.) for several
- * products, some of which are misleadingly named "X Suiting Fabric"
- * even when the numbered photo is actually a jacket fabric (id ≥ 8000).
- * No keyword list can recover the right category from a name that says
- * "Suiting Fabric" on a jacket fabric — only the founder's own id
- * scheme can, so it's consulted directly as a fallback once no explicit
- * garment word settles it.
- */
-function suitOrJacketFromImageId(imagePath: string): string | null {
-  const match = /(\d{4})\.\w+(?:$|\?)/.exec(imagePath);
-  if (!match?.[1]) return null;
-  const id = Number(match[1]);
-  if (id < 6000 || id > 9999) return null; // outside the founder's fabric-id range entirely
-  return id < 8000 ? "Suits" : "Jackets";
-}
-
-/** Maps to the template's fixed filter taxonomy — "" is that taxonomy's
- * own catch-all bucket, not a made-up fallback. */
-function canonicalCategoryFor(
-  productName: string,
-  collectionName: string | undefined,
-  imagePath: string,
-): string {
-  const haystack = `${productName} ${collectionName ?? ""}`.toLowerCase();
-
-  for (const category of UNAMBIGUOUS_CATEGORY_ORDER) {
-    if (
-      CATEGORY_KEYWORDS[category].some((keyword) => haystack.includes(keyword))
-    ) {
-      return category;
-    }
-  }
-
-  if (!NON_GARMENT_NAME_HINTS.some((hint) => haystack.includes(hint))) {
-    const byImageId = suitOrJacketFromImageId(imagePath);
-    if (byImageId) return byImageId;
-  }
-
-  if (CATEGORY_KEYWORDS.Suits.some((keyword) => haystack.includes(keyword))) {
-    return "Suits";
-  }
-
-  return "";
-}
+// CANONICAL_CATEGORIES, CATEGORY_KEYWORDS and canonicalCategoryFor moved to
+// ./canonical-category.ts so the account-side shop sidebar (a plain React
+// component, not a Route Handler — route.ts can only export HTTP method
+// handlers) can compute the exact same populated-category list.
 
 const DISPLAY_FONTS: Record<string, string> = {
   paon_editorial: "var(--font-display)",
@@ -311,17 +188,18 @@ const CORNERS: Record<string, string> = {
 };
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params;
+  const requestedCategory = new URL(request.url).searchParams.get("category");
   const supabase = await getSupabaseServerClient();
   const { data: authData } = await supabase.auth.getUser();
   const tableServiceSignedIn = authData.user
     ? resolveAppSession(authData.user).accountType === "customer"
     : false;
 
-  const retailer = await new RetailerRepository(supabase).findBySlug(slug);
+  const retailer = await getStorefrontRetailer(slug);
   if (!retailer || retailer.status !== "active") {
     return new NextResponse("Not found", { status: 404 });
   }
@@ -364,10 +242,62 @@ export async function GET(
   const activeProducts = allProducts.filter((p) => p.status === "active");
   const collectionNameById = new Map(collections.map((c) => [c.id, c.name]));
 
-  const variantsByProduct = await variantRepo.findByProducts(
-    activeProducts.map((product) => product.id),
+  // The sidebar's category list must reflect the retailer's whole active
+  // catalogue, never just whichever slice a `?category=` request happens to
+  // load below (that slice exists purely to skip paying for the full
+  // catalogue's downstream projections on a scoped request — it must not
+  // also narrow what the nav shows, or clicking a category link collapses
+  // the sidebar to that one category instead of highlighting it within the
+  // full list).
+  const allActiveCategoryNames = new Set(
+    activeProducts.map((product) => {
+      const collectionName = product.collectionIds
+        .map((id) => collectionNameById.get(id))
+        .find((name): name is string => Boolean(name));
+      return canonicalCategoryFor(
+        product.name,
+        collectionName,
+        product.primaryImageUrl ?? "",
+      );
+    }),
   );
-  const productsWithVariants = activeProducts.map((product) => ({
+
+  // Resolve the intent from the retailer-scoped product catalogue before
+  // loading variants and metadata. A category request must not pay for the
+  // full catalogue's expensive downstream projections.
+  const requestedCategoryHasProducts =
+    !!requestedCategory &&
+    activeProducts.some((product) => {
+      const collectionName = product.collectionIds
+        .map((id) => collectionNameById.get(id))
+        .find((name): name is string => Boolean(name));
+      return (
+        canonicalCategoryFor(
+          product.name,
+          collectionName,
+          product.primaryImageUrl ?? "",
+        ) === requestedCategory
+      );
+    });
+  const productsForRequest = requestedCategoryHasProducts
+    ? activeProducts.filter((product) => {
+        const collectionName = product.collectionIds
+          .map((id) => collectionNameById.get(id))
+          .find((name): name is string => Boolean(name));
+        return (
+          canonicalCategoryFor(
+            product.name,
+            collectionName,
+            product.primaryImageUrl ?? "",
+          ) === requestedCategory
+        );
+      })
+    : activeProducts;
+
+  const variantsByProduct = await variantRepo.findByProducts(
+    productsForRequest.map((product) => product.id),
+  );
+  const productsWithVariants = productsForRequest.map((product) => ({
     product,
     variants: variantsByProduct.get(product.id) ?? [],
   }));
@@ -451,8 +381,14 @@ export async function GET(
       (countByCategory.get(entry.category) ?? 0) + 1,
     );
   }
-  const defaultCategory =
-    [...countByCategory.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "";
+  // An explicit `?category=` (from the account-side shop sidebar) wins
+  // over the most-populated-category default, but only if that category
+  // actually has products — otherwise a click into an empty category
+  // would silently render nothing instead of falling back to a real one.
+  const defaultCategory = requestedCategoryHasProducts
+    ? requestedCategory!
+    : ([...countByCategory.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ??
+      "");
 
   const theme = retailer.brandTheme;
   const accent = safeHex(theme.accentColor) ?? "#1a1a1a";
@@ -467,11 +403,222 @@ export async function GET(
   const bodyFont = BODY_FONTS[theme.bodyFont] ?? BODY_FONTS.quiet_sans;
   const radius = CORNERS[theme.cornerStyle] ?? CORNERS.tailored;
 
+  // Store/My PAON context switcher: only for a signed-in customer (an
+  // anonymous shopper has no "My PAON" to switch to, and must see zero
+  // change to the founder's storefront). Injected purely via this existing
+  // __PAON_BRAND_HEAD__ placeholder — paon-template.html is never touched
+  // (ADR-046). Desktop only: it mounts as a sibling of #sidebar-logo inside
+  // <aside>, which the template's own `@media (max-width: 850px) { aside {
+  // display: none } }` rule already hides — the same pre-existing boundary
+  // that hides .cat-grid's category rail on mobile.
+  const contextSwitcherScript = tableServiceSignedIn
+    ? `<script id="paon-context-switcher-inject">
+(function() {
+  if (document.getElementById("paon-context-switcher")) return;
+  function init() {
+    const logoEl = document.getElementById("sidebar-logo");
+    if (!logoEl) return;
+
+    const currentPathname = location.pathname + location.search;
+
+    const switcherEl = document.createElement("div");
+    switcherEl.id = "paon-context-switcher";
+    switcherEl.className = "paon-context-switcher";
+    switcherEl.innerHTML = \`
+      <style>
+        #paon-context-switcher {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: center;
+          gap: 16px;
+          background: linear-gradient(to right, rgba(255,255,255,.045), rgba(255,255,255,0)), linear-gradient(to right, #262626, #1d1d1d);
+          padding: 14px 25px;
+          margin: 0;
+        }
+        .pcs-store, .pcs-mypaon {
+          position: relative;
+          display: inline-block;
+          padding: 0;
+          margin: 0;
+          text-decoration: none;
+          font-family: GTBold3, Arial, sans-serif;
+          font-size: 7px;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          background: transparent;
+          border: none;
+          cursor: pointer;
+        }
+        .pcs-inactive {
+          color: #8a8a87;
+          opacity: 0.7;
+        }
+        .pcs-active {
+          color: #d9d9d9;
+          opacity: 1;
+        }
+        .pcs-active::after {
+          content: '';
+          position: absolute;
+          bottom: -4px;
+          left: 0;
+          right: 0;
+          height: 2px;
+          background-color: rgba(217,217,217,.72);
+        }
+        #paon-context-switcher .pcs-divider {
+          width: 1px;
+          height: 14px;
+          background-color: rgba(255,255,255,.18);
+        }
+      </style>
+      <span class="pcs-store pcs-active">Store</span>
+      <span class="pcs-divider"></span>
+      <a href="/dashboard?returnTo=\${encodeURIComponent(currentPathname)}" class="pcs-mypaon pcs-inactive">My PAON</a>
+    \`;
+
+    logoEl.insertAdjacentElement("afterend", switcherEl);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init, { once: true });
+  } else {
+    init();
+  }
+})();
+</script>`
+    : "";
+
+  const dfrHandoffScript = `<script id="paon-dfr-handoff-inject">
+(function() {
+  function initDfrModule() {
+    const infoCardsFlow = document.getElementById('paon-info-cards-flow');
+    if (!infoCardsFlow || document.getElementById('paon-dfr-module')) return;
+
+    const dfrModule = document.createElement('div');
+    dfrModule.id = 'paon-dfr-module';
+    dfrModule.className = 'paon-dfr-module';
+    dfrModule.innerHTML = \`
+      <style>
+        .paon-dfr-module {
+          margin: 24px 0;
+          padding: 20px;
+          background: linear-gradient(135deg, rgba(220, 227, 214, 0.08), rgba(255, 255, 255, 0.04));
+          border-radius: 12px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .paon-dfr-module-heading {
+          font-size: 16px;
+          font-weight: 600;
+          margin: 0 0 16px 0;
+          line-height: 1.3;
+          letter-spacing: 0.01em;
+        }
+        .paon-dfr-module-steps {
+          list-style: none;
+          margin: 0 0 20px 0;
+          padding: 0;
+        }
+        .paon-dfr-module-step {
+          margin: 0 0 12px 0;
+          padding: 0 0 0 24px;
+          position: relative;
+          font-size: 13px;
+          line-height: 1.5;
+          color: rgba(255, 255, 255, 0.75);
+        }
+        .paon-dfr-module-step::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 2px;
+          width: 6px;
+          height: 6px;
+          background: rgba(220, 227, 214, 0.6);
+          border-radius: 50%;
+        }
+        .paon-dfr-module-cta {
+          display: inline-block;
+          padding: 10px 20px;
+          background: #dce3d6;
+          color: #182018;
+          text-decoration: none;
+          border: none;
+          border-radius: 15px;
+          font-size: 13px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: background-color 200ms ease;
+        }
+        .paon-dfr-module-cta:hover {
+          background: white;
+        }
+      </style>
+      <div class="paon-dfr-module-heading">Try in Digital Fitting Room</div>
+      <ol class="paon-dfr-module-steps">
+        <li class="paon-dfr-module-step">Upload two reference photos to create your digital portrait.</li>
+        <li class="paon-dfr-module-step">Select this piece and compose it with other items you own or are considering.</li>
+        <li class="paon-dfr-module-step">See how the look takes shape before you ask your advisor to make it real.</li>
+      </ol>
+      <a href="#" class="paon-dfr-module-cta" id="paon-dfr-cta">Start creating</a>
+    \`;
+
+    infoCardsFlow.parentNode.insertBefore(dfrModule, infoCardsFlow.nextSibling);
+  }
+
+  function updateDfrLink(productSlug) {
+    const ctaLink = document.getElementById('paon-dfr-cta');
+    if (ctaLink) {
+      ctaLink.href = '/digital-fitting-room?productSlug=' + encodeURIComponent(productSlug);
+    }
+  }
+
+  function init() {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initDfrModule);
+    } else {
+      initDfrModule();
+    }
+
+    // Hook into openDetail to update the DFR link
+    const originalOpenDetail = window.openDetail;
+    if (typeof originalOpenDetail === 'function' && !originalOpenDetail.__paonDfrBound) {
+      window.openDetail = function(id) {
+        const result = originalOpenDetail.apply(this, arguments);
+        if (typeof products !== 'undefined') {
+          const product = products.find(p => String(p.id) === String(id));
+          if (product) {
+            updateDfrLink(product.id);
+          }
+        }
+        return result;
+      };
+      window.openDetail.__paonDfrBound = true;
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>`;
+
   const brandHead = [
     logoUrl || heroUrl
       ? `<link rel="preload" as="image" href="${escapeHtml(logoUrl ?? heroUrl!)}"/>`
       : "",
     faviconUrl ? `<link rel="icon" href="${escapeHtml(faviconUrl)}"/>` : "",
+    // Stage 21.2 one-platform seam: warm the customer dashboard + login
+    // documents in the HTTP cache so the storefront -> app hop paints
+    // instantly. Reverse of the app -> storefront `IntentPrefetchLink`
+    // warming. `<link rel=prefetch>` is already lowest-priority and the
+    // browser skips it under data-saver.
+    `<link rel="prefetch" as="document" href="/dashboard"/>`,
+    `<link rel="prefetch" as="document" href="/login"/>`,
+    dfrHandoffScript,
     `<style id="paon-retailer-brand">
 :root {
   --paon-accent: ${accent};
@@ -512,7 +659,22 @@ ${
 }`
     : ""
 }
+/* Stage 21.2 one-platform seam: opt this document into the native
+   cross-document view transition shared with the customer dashboard
+   (apps/customer/app/globals.css). Both sides must set navigation: auto. */
+@view-transition { navigation: auto; }
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 180ms;
+  animation-timing-function: ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) { animation: none !important; }
+}
 </style>`,
+    contextSwitcherScript,
   ]
     .filter(Boolean)
     .join("\n");
@@ -526,7 +688,7 @@ ${
     : "";
 
   const usesSharedCataloguePhotography =
-    slug !== "maison-dubois" &&
+    slug !== CANONICAL_DEMO_RETAILER_SLUG &&
     entries.length > 0 &&
     entries.every(
       (entry) => !entry.img || entry.img.includes("nebelspiegel.com/images/"),
@@ -566,11 +728,16 @@ ${
   // so reusing it for the sidebar nav meant Suits could never appear there
   // no matter how many suit products existed.
   const categoryNames = CANONICAL_CATEGORIES.filter((category) =>
-    entries.some((entry) => entry.category === category),
+    allActiveCategoryNames.has(category),
   );
   const resolvedCategories =
     categoryNames.length > 0 ? categoryNames : [...CANONICAL_CATEGORIES];
-  const landOnGrid = slug !== "maison-dubois";
+  // An explicit category click (account-side shop sidebar, or any other
+  // "take me to this category" link) is unambiguous shopping intent — it
+  // always lands on the grid, even for the canonical demo retailer whose
+  // organic visits open on the curated story/gate page first.
+  const landOnGrid =
+    slug !== CANONICAL_DEMO_RETAILER_SLUG || requestedCategoryHasProducts;
   const ogTitle = storyLine
     ? `${safeName} — ${escapeHtml(storyLine)}`
     : safeName;
@@ -580,53 +747,59 @@ ${
     entries.find((entry) => entry.img)?.img ??
     "https://www.nebelspiegel.com/images/smaller/6088.webp";
 
-  const html = template
-    .replaceAll("__PAON_SLUG__", slug)
-    .replaceAll("__PAON_RETAILER_ID__", retailer.id)
-    .replaceAll(
-      "__PAON_TABLESERVICE_SIGNED_IN__",
-      tableServiceSignedIn ? "true" : "false",
-    )
-    .replaceAll("__PAON_WEDDING_PARTIES_JSON__", JSON.stringify(weddingParties))
-    .replaceAll("__PAON_GARMENTS_JSON__", JSON.stringify(garments))
-    .replaceAll("__PAON_RETAILER_NAME__", safeName)
-    .replaceAll("__PAON_OG_TITLE__", ogTitle)
-    .replaceAll("__PAON_OG_DESCRIPTION__", ogDescription)
-    .replaceAll("__PAON_OG_IMAGE__", escapeHtml(ogImage))
-    .replaceAll("__PAON_BRAND_HEAD__", brandHead)
-    .replaceAll("__PAON_BRAND_MARK__", brandMark)
-    .replaceAll(
-      "__PAON_HERO_HTML__",
-      heroHtml + storyHtml + catalogueNoteHtml + configHonestyNoteHtml,
-    )
-    .replaceAll("__PAON_PRODUCTS_JSON__", JSON.stringify(entries))
-    .replaceAll(
-      "__PAON_DEFAULT_CATEGORY_JSON__",
-      JSON.stringify(defaultCategory),
-    )
-    .replaceAll(
-      "__PAON_CATEGORY_NAMES_JSON__",
-      JSON.stringify(resolvedCategories),
-    )
-    .replaceAll("__PAON_LAND_ON_GRID__", landOnGrid ? "true" : "false")
-    .replaceAll("__PAON_STORES_JSON__", JSON.stringify(stores))
-    .replaceAll(
-      "__PAON_KNOWLEDGE_BY_PRODUCT_JSON__",
-      serializeStorefrontKnowledgeJson(knowledgeByProduct),
-    )
-    .replaceAll(
-      "__PAON_CATALOGUE_BY_PRODUCT_JSON__",
-      serializeStorefrontCatalogueJson(catalogueByProduct),
-    );
+  const footerYear = new Date().getFullYear();
+  const footerCities = [...new Set(stores.map((store) => store.city))].slice(
+    0,
+    4,
+  );
+  const footerHtml = `<footer style="margin-top:64px;background:linear-gradient(160deg,#1a1a1a 0%,#2b2b2b 100%);color:rgba(255,255,255,.72);font-family:var(--font-retailer-body),system-ui,sans-serif;">
+<div style="max-width:1240px;margin:0 auto;padding:56px 24px 28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:32px;">
+<div>
+<p style="margin:0 0 14px;font-family:var(--font-retailer-display),Georgia,serif;font-size:20px;letter-spacing:.03em;color:#fff;">${safeName}</p>
+<p style="margin:0;font-size:12px;line-height:1.7;color:rgba(255,255,255,.5);">Tailored pieces, made to measure and kept by one house.</p>
+</div>
+<div>
+<p style="margin:0 0 12px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.4);">Client Services</p>
+<p style="margin:0 0 8px;font-size:13px;"><a href="/r/${slug}/appointments" style="color:inherit;text-decoration:none;">Book an appointment</a></p>
+<p style="margin:0 0 8px;font-size:13px;"><a href="#gilda-chat-widget" style="color:inherit;text-decoration:none;">Table service</a></p>
+<p style="margin:0;font-size:13px;"><a href="/dashboard" style="color:inherit;text-decoration:none;">Your account</a></p>
+</div>
+${
+  footerCities.length > 0
+    ? `<div>
+<p style="margin:0 0 12px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.4);">Ateliers</p>
+${footerCities.map((city) => `<p style="margin:0 0 8px;font-size:13px;">${escapeHtml(city)}</p>`).join("\n")}
+<p style="margin:8px 0 0;font-size:13px;"><a href="/r/${slug}/locations" style="color:inherit;text-decoration:none;">All locations</a></p>
+</div>`
+    : ""
+}
+</div>
+<div style="max-width:1240px;margin:0 auto;padding:20px 24px;border-top:1px solid rgba(255,255,255,.1);font-size:11px;letter-spacing:.04em;color:rgba(255,255,255,.35);">© ${footerYear} ${safeName}. All rights reserved.</div>
+</footer>`;
 
-  if (html.includes("__PAON_")) {
-    const leftovers = [...html.matchAll(/__PAON_[A-Z0-9_]+__/g)].map(
-      (match) => match[0],
-    );
-    throw new Error(
-      `Storefront template still contains unsubstituted placeholders: ${[...new Set(leftovers)].join(", ")}`,
-    );
-  }
+  const pageData: StorefrontPageData = {
+    slug,
+    retailerId: retailer.id,
+    tableServiceSignedIn,
+    weddingParties,
+    garments,
+    retailerName: safeName,
+    ogTitle,
+    ogDescription,
+    ogImage: escapeHtml(ogImage),
+    brandHead,
+    brandMark,
+    heroHtml: heroHtml + storyHtml + catalogueNoteHtml + configHonestyNoteHtml,
+    entries,
+    defaultCategory,
+    categoryNames: resolvedCategories,
+    landOnGrid,
+    stores,
+    knowledgeByProduct,
+    catalogueByProduct,
+    footerHtml,
+  };
+  const html = serializeStorefrontPage(template, pageData);
 
   return new NextResponse(html, {
     headers: { "content-type": "text/html; charset=utf-8" },
@@ -712,7 +885,7 @@ async function appointmentStoresFor(
     imageUrl?: string;
   }>,
 ): Promise<Array<{ city: string; address: string; img: string }>> {
-  if (retailer.slug === "maison-dubois") {
+  if (retailer.slug === CANONICAL_DEMO_RETAILER_SLUG) {
     return [...MAISON_APPOINTMENT_STORES];
   }
 

@@ -1,7 +1,7 @@
 {
   "phaseItemId": "11.3",
-  "gitSha": "35440d9dd8bd2c3685c2169745357a41c2e0afcb",
+  "gitSha": "b49bbb048eea750dac77af37ed1402d20a8a71a3",
   "spec": "apps/retailer/e2e/staff-coverage.spec.ts",
-  "status": "passed",
-  "timestamp": "2026-08-15T06:48:39.805Z"
+  "status": "failed",
+  "timestamp": "2026-08-20T12:38:59.762Z"
 }

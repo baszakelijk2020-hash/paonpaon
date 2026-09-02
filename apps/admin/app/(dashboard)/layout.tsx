@@ -1,8 +1,7 @@
 import type { AppShellNavGroup } from "@paon/ui/components/AppShell";
 import { AppShell } from "@paon/ui/components/AppShell";
-import { Button } from "@paon/ui/components/Button";
 
-import { signOut } from "./actions";
+import { SignOutButton } from "./components/sign-out-button";
 
 import { requireSession } from "@/lib/session";
 
@@ -109,13 +108,8 @@ export default async function DashboardLayout({
         { href: "/retailers", label: "Retailers" },
         { href: "/billing", label: "Billing" },
       ]}
-      signOutControl={
-        <form action={signOut}>
-          <Button type="submit" variant="ghost" size="sm">
-            Sign out
-          </Button>
-        </form>
-      }
+      signOutControl={<SignOutButton testId="admin-signout-desktop" />}
+      signOutControlMobile={<SignOutButton testId="admin-signout-mobile" />}
     >
       {children}
     </AppShell>

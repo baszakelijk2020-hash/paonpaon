@@ -309,8 +309,8 @@ export function rankKnowledgeDiscovery(
 ): KnowledgeDiscoveryResult[] {
   const minResults = request.minResults ?? DEFAULT_MIN_RESULTS;
   const maxResults = request.maxResults ?? DEFAULT_MAX_RESULTS;
-  if (minResults < 1 || maxResults < minResults || maxResults > 6) {
-    throw new Error("Discovery must return between one and six cards");
+  if (minResults < 0 || maxResults < minResults || maxResults > 6) {
+    throw new Error("Discovery must return between zero and six cards");
   }
 
   const acceptedProductConceptIds = new Set(

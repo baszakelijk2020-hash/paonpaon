@@ -1,0 +1,26 @@
+{
+  "phase": "20.21",
+  "commit": "e1bad67",
+  "route": "/r/[slug]",
+  "persona": "authenticated E2E Customer Workspace fixture against real Supabase stack",
+  "summary": "Raw storefront → Digital Fitting Room handoff module V3. Injected DFR module into raw storefront product detail view with heading, three instructional steps, and CTA button linking to /digital-fitting-room?productSlug={slug}. Real product slug passed via query param, module dynamically populated on product selection.",
+  "checks": {
+    "focused_playwright": "4 passed: storefront-digital-fitting-room-handoff-v3.spec.ts (desktop/mobile product selection, DFR link, back button state, category filtering)",
+    "customer_lint": "passed",
+    "customer_typecheck": "passed",
+    "console": "no console error messages observed by authenticated browser tests",
+    "template_integrity": "byte-identical to original paon-template.html (ADR-046)"
+  },
+  "spec_file": "apps/customer/e2e/storefront-digital-fitting-room-handoff-v3.spec.ts",
+  "requirements": {
+    "module_visible": "Heading 'Try in Digital Fitting Room' visible on real product selection",
+    "three_steps": "Three instructional steps about creating digital portrait and composing looks",
+    "cta_button": "CTA button 'Start creating' with 15px border-radius",
+    "product_handoff": "Real product slug passed via ?productSlug query param to /digital-fitting-room",
+    "dfr_integration": "DFR page receives and displays correct real product",
+    "state_preservation": "Back button restores product state and DFR module visibility",
+    "raw_storefront": "Preserves raw storefront behavior, URLs, rendering, cart, navigation",
+    "responsive": "Authenticated desktop and mobile viewport coverage",
+    "no_errors": "Zero console errors, zero page errors during e2e tests"
+  }
+}

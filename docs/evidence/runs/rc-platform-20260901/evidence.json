@@ -1,0 +1,246 @@
+{
+  "run": "rc-platform-20260901",
+  "purpose": "Prove the already-integrated platform release candidate (steps 6-10 of the RC checklist: build/verify/prove, then commit evidence). The two integration merges were performed and security-reviewed earlier; they were NOT redone here.",
+  "provedAt": "2026-09-02T00:00:00Z",
+  "branch": "rc/platform-20260901",
+  "headSha": "932a8ac4e5b47e185ff07cd48aace4c0aa6a56cb",
+  "merges": [
+    {
+      "mergeCommit": "2cb28dad9eeca99f1e998bb81c98ca0d5e026cae",
+      "subject": "merge(rc): integrate V3 controller candidate e17236b (accepted)",
+      "parents": [
+        "ec84ac5b03a299f0d469eeb1bdd53781b88daac1",
+        "e17236badc6de2da8bad14e0b49c0cc203b5446c"
+      ],
+      "candidate": "e17236badc6de2da8bad14e0b49c0cc203b5446c",
+      "conflicts": 0,
+      "securityReview": "ACCEPT (performed earlier, not repeated)"
+    },
+    {
+      "mergeCommit": "932a8ac4e5b47e185ff07cd48aace4c0aa6a56cb",
+      "subject": "merge(rc): integrate global sign-out candidate 9a777cc (accepted)",
+      "parents": [
+        "2cb28dad9eeca99f1e998bb81c98ca0d5e026cae",
+        "9a777ccc8df00352ff669a74c69577567be0d3b5"
+      ],
+      "candidate": "9a777ccc8df00352ff669a74c69577567be0d3b5",
+      "conflicts": 0,
+      "securityReview": "ACCEPT (performed earlier, not repeated)"
+    }
+  ],
+  "toolVersions": {
+    "node": "v22.20.0",
+    "supabaseCli": "2.115.0",
+    "supabaseCliLatestAvailable": "2.116.0"
+  },
+  "step1_install": {
+    "command": "pnpm install",
+    "result": "PASS",
+    "detail": "Lockfile up to date, 'Already up to date', exit 0. git status --porcelain clean afterwards."
+  },
+  "step2_lint_typecheck": {
+    "lint": {
+      "@paon/customer": "PASS",
+      "@paon/retailer": "PASS",
+      "@paon/admin": "PASS",
+      "@paon/database": "PASS",
+      "@paon/domain": "PASS",
+      "@paon/ui": "PASS",
+      "detail": "eslint . --max-warnings 0, all exit 0"
+    },
+    "typecheck": {
+      "@paon/customer": "PASS",
+      "@paon/retailer": "PASS",
+      "@paon/admin": "PASS",
+      "@paon/database": "PASS",
+      "@paon/domain": "PASS",
+      "@paon/ui": "PASS",
+      "detail": "tsc --noEmit, all exit 0"
+    }
+  },
+  "step3_db_reset_and_types": {
+    "supabaseDbReset": {
+      "result": "PASS",
+      "lastMigrationApplied": "20260828185506_add_wardrobe_roadmap_gap_dispositions.sql",
+      "seed": "Seeding data from supabase/seed.sql — ran",
+      "final": "Finished supabase db reset on branch main / Reset local database. exit 0"
+    },
+    "databaseTypesRegen": {
+      "command": "pnpm --filter @paon/database run generate-types (= supabase gen types typescript --local)",
+      "gitDiffStat": "packages/database/src/generated/database.types.ts | 47221 lines, 23633 insertions(+), 23588 deletions(-)",
+      "natureOfDiff": "Whole-file rewrite. Every changed line is trailing-semicolon removal / whitespace. No schema/type-shape difference. Installed CLI v2.115.0 emits semicolon-less type members; the committed hand-authored file uses trailing ';'.",
+      "cliMismatch": "supabase CLI reports v2.115.0 installed, v2.116.0 available.",
+      "decision": "case (c): huge unrelated CLI-version churn. Ran `git checkout -- packages/database/src/generated/database.types.ts` — kept the hand-authored (reviewed schema-accurate) entry. Confirmed it already contains the wardrobe_roadmap_gap_dispositions table (Row/Insert/Update/Relationships, 6 refs).",
+      "changed": false,
+      "keptRegen": false,
+      "postRevertTypecheck": {
+        "@paon/database": "PASS (tsc --noEmit exit 0)",
+        "@paon/domain": "PASS (tsc --noEmit exit 0)"
+      }
+    }
+  },
+  "step4_pgtap": {
+    "command": "supabase test db",
+    "summary": "Files=51, Tests=559, 0 failed",
+    "result": "PASS",
+    "failingFiles": [],
+    "roadmap_approval_rls_test.sql": "ok",
+    "roadmap_gap_disposition_rls_test.sql": "ok"
+  },
+  "step5_build": {
+    "@paon/customer": "PASS (exit 0, no errors, route table printed)",
+    "@paon/retailer": "PASS (exit 0, no errors)",
+    "@paon/admin": "PASS (exit 0, no errors)",
+    "warnings": "none surfaced"
+  },
+  "step6_e2e": {
+    "retries": 2,
+    "portsClearedBeforeEachApp": [3000, 3001, 3002, 3399],
+    "customer": {
+      "env": "PAON_E2E_PORT=3399 PAON_NEXT_DIST_DIR=.next-e2e-rc-3399",
+      "totals": "11 passed, 1 flaky, 0 failed (2.5m)",
+      "specs": {
+        "e2e/customer-signout-v3.spec.ts": "PASS (desktop global-scope test flaky: attempt 1 failed in signInFreshContext helper on magic-link race -> login?error=invalid_invite; passed retry #1. mobile + other desktop tests passed clean)",
+        "e2e/wardrobe-removal-v3.spec.ts": "PASS (desktop + mobile)",
+        "e2e/storefront-digital-fitting-room-handoff-v3.spec.ts": "PASS (4 tests: desktop, mobile, product-nav, category-filter)",
+        "e2e/roadmap-approval-rls-v3.spec.ts": "PASS (4 tests: approve + request-changes, desktop + mobile)"
+      }
+    },
+    "retailer": {
+      "totals": "3 passed, 2 flaky, 0 failed (47.7s)",
+      "specs": {
+        "e2e/retailer-signout-v3.spec.ts": "PASS (desktop global-scope test flaky: attempt 1 toHaveURL(/login/) saw /dashboard; passed retry)",
+        "e2e/corporate-tender.spec.ts": "PASS (author/approve/refuse test flaky: attempt 1 getByLabel('Tender title') not ready; passed retry)"
+      }
+    },
+    "admin": {
+      "totals": "2 passed, 1 flaky, 0 failed (36.9s)",
+      "specs": {
+        "e2e/admin-signout-v3.spec.ts": "PASS (desktop global-scope test flaky: attempt 1 toHaveURL(/login/) saw /retailers; passed retry #1)"
+      }
+    },
+    "regressionAssessment": "No stop-worthy regression. The only repeated flake is the 'desktop global-scope sign-out' test present identically in all three apps: first attempt after a cold server boot times out (20s) waiting for page-A to redirect after remote revocation, then passes deterministically on retry #1 every time. This is a test-harness cold-start propagation-timing characteristic, not tied to either merged candidate. All specs ultimately GREEN."
+  },
+  "step7_validate_completion": {
+    "command": "pnpm --filter @paon/domain validate:completion",
+    "exitCode": 1,
+    "expectedRed": true,
+    "behaviour": "The script ABORTS with an unhandled throw at docs/evidence/tranches/20.1.json ('Completion evidence missing applicability/evidence/ui' — parseCompletionEvidenceRecord, completion-evidence.ts:420). 20.1.json has an 'evidence' block but no 'applicability' and no 'evidence.ui'. Because the throw is uncaught, the run never reaches the PHASE-item 'missing evidence file' gate, so a full failing-item enumeration is not obtainable from the tool in its current state.",
+    "perFileFailuresEmittedBeforeAbort": [
+      "17.1.json  — browserProofRun.gitSha b49bbb048eea750dac77af37ed1402d20a8a71a3 not current",
+      "17.3.json  — browserProofRun.gitSha b49bbb0... not current",
+      "17.4.json  — browserProofRun.gitSha b49bbb0... not current",
+      "17.5.json  — browserProofRun.gitSha b49bbb0... not current",
+      "17.6.json  — browserProofRun.gitSha b49bbb0... not current",
+      "17.8.json  — browserProofRun.status verified requires run status=passed (got failed); gitSha b49bbb0... not current",
+      "17.9.json  — browserProofRun.status verified requires run status=passed (got failed); gitSha b49bbb0... not current",
+      "17.14.json — browserProofRun.gitSha b49bbb0... not current",
+      "18.5.json  — browserProofRun.gitSha 42e27d722497654593f2ec13ed09971f9aaec577 not current"
+    ],
+    "baseline": {
+      "note": "Task-referenced docs/evidence/reviews/platform-reconciliation-20260901/REPORT.md DOES NOT EXIST on this branch. Used docs/GROUND_TRUTH.md section 3 (co-named in the task) as the known-failing baseline.",
+      "verified_local_only": [
+        "8.4",
+        "9.1",
+        "17.1",
+        "17.2",
+        "17.3",
+        "17.4",
+        "17.5",
+        "17.6",
+        "17.8",
+        "17.9",
+        "17.14",
+        "18.5"
+      ],
+      "stale_evidence_sha": ["4.9", "4.10", "8.4", "9.1"],
+      "checked_no_evidence_file": [
+        "10.1",
+        "11.1",
+        "11.2",
+        "11.3",
+        "11.4",
+        "12.1",
+        "12.2",
+        "12.4",
+        "13.1",
+        "13.2",
+        "18.1",
+        "18.2",
+        "18.6",
+        "18.8",
+        "18.12"
+      ]
+    },
+    "newlyFailingVsBaseline": "NONE",
+    "newlyFailingProof": [
+      "Every item in the emitted failure list (17.1/17.3-17.6/17.8/17.9/17.14/18.5) is inside GROUND_TRUTH section 3's known-failing set.",
+      "git diff --stat ec84ac5..2cb28da and 2cb28da..932a8ac touch NO file under docs/evidence/tranches/**, and NOT packages/domain/scripts/validate-completion-evidence.ts nor packages/domain/src/programme/completion-evidence.ts.",
+      "Validator script last changed eabc716; parser last changed f3c928b — both ancestors of the pre-merge base ec84ac5.",
+      "Crash-trigger docs/evidence/tranches/20.1.json last changed 2527fcc, confirmed ancestor of ec84ac5.",
+      "Therefore the identical abort and identical 9 per-file failures occur both before and after the RC integration."
+    ],
+    "trancheDispositions": {
+      "R0.4": {
+        "phaseCheckbox": "[ ] UNCHECKED (docs/PHASE.md line 1725)",
+        "gatedByValidator": false,
+        "runArtifact": "docs/evidence/runs/R0.4-golden-relationship-house-memory-advisor-today/evidence.json (added by ec84ac5, SHA c74bea2)",
+        "trancheFile": "docs/evidence/tranches/R0.4.json — ABSENT",
+        "validatesNow": false,
+        "stillNeeds": "PHASE.md checkbox set to [x] AND a docs/evidence/tranches/R0.4.json completion-evidence record (applicability + evidence + uiChecklist + browserProofSpec)."
+      },
+      "20.6": {
+        "phaseCheckbox": "[ ] UNCHECKED (docs/PHASE.md line 8122)",
+        "gatedByValidator": false,
+        "runArtifact": "docs/evidence/runs/20.6-customer-appointments-audit/evidence.json (SHA 8c8be81)",
+        "trancheFile": "ABSENT",
+        "validatesNow": false,
+        "stillNeeds": "checkbox [x] + docs/evidence/tranches/20.6.json."
+      },
+      "20.7": {
+        "phaseCheckbox": "[ ] UNCHECKED (docs/PHASE.md line 8142)",
+        "gatedByValidator": false,
+        "runArtifact": "docs/evidence/runs/20.7-digital-fitting-room/ (SHA 78193960)",
+        "trancheFile": "ABSENT",
+        "validatesNow": false,
+        "stillNeeds": "checkbox [x] + docs/evidence/tranches/20.7.json."
+      },
+      "20.17": {
+        "phaseCheckbox": "[ ] UNCHECKED (docs/PHASE.md line 8369)",
+        "gatedByValidator": false,
+        "runArtifact": "docs/evidence/runs/20.17-customer-wardrobe-removal-v3/ (REPORT.md + 10 screenshots + evidence.json SHA 4daa18c)",
+        "trancheFile": "ABSENT",
+        "validatesNow": false,
+        "stillNeeds": "checkbox [x] + docs/evidence/tranches/20.17.json. The underlying V3 removal flow is independently proven GREEN here (Step 6 wardrobe-removal-v3.spec.ts)."
+      },
+      "20.21": {
+        "phaseCheckbox": "[ ] UNCHECKED (docs/PHASE.md line 8444)",
+        "gatedByValidator": false,
+        "runArtifact": "docs/evidence/runs/20.21-storefront-dfr-handoff-v3/evidence.json (SHA e1bad67)",
+        "trancheFile": "ABSENT",
+        "validatesNow": false,
+        "stillNeeds": "checkbox [x] + docs/evidence/tranches/20.21.json. The underlying V3 handoff flow is independently proven GREEN here (Step 6 storefront-digital-fitting-room-handoff-v3.spec.ts)."
+      },
+      "4.6": {
+        "phaseCheckbox": "[x] CHECKED (docs/PHASE.md line 2416)",
+        "gatedByValidator": true,
+        "trancheFile": "docs/evidence/tranches/4.6.json — PRESENT, structurally valid (status verified_local; applicability + evidence + uiChecklist + browserProofSpec apps/customer/e2e/virtual-studio.spec.ts). Per-file validation PASSES (not in the abort's failure list).",
+        "runArtifact": "docs/evidence/runs/4.6.json — gitSha 42e27d722497654593f2ec13ed09971f9aaec577, status passed. This SHA is NOT current for HEAD 932a8ac.",
+        "validatesNow": "INDETERMINATE — the gate step that would flag 4.6's stale run SHA (same failure class as GROUND_TRUTH's 4.9/4.10/8.4/9.1) never executes because the script aborts at 20.1.json first. So the tool currently neither passes nor flags 4.6.",
+        "stillNeeds": "Re-generate docs/evidence/runs/4.6.json against a current HEAD SHA by re-running apps/customer/e2e/virtual-studio.spec.ts; and, separately, fix the 20.1.json parser-abort so the completion gate can actually evaluate 4.6."
+      },
+      "18.2": {
+        "phaseCheckbox": "[ ] UNCHECKED (docs/PHASE.md line 6846)",
+        "gatedByValidator": false,
+        "runArtifact": "docs/evidence/runs/18.2.json — gitSha 932a8ac (== HEAD), status passed, spec apps/retailer/e2e/corporate-tender.spec.ts (proven GREEN in Step 6). Run artifact is CURRENT.",
+        "trancheFile": "ABSENT",
+        "validatesNow": false,
+        "stillNeeds": "checkbox [x] + docs/evidence/tranches/18.2.json."
+      }
+    }
+  },
+  "realRegression": "none",
+  "notCompleted": [
+    "A full validate:completion failing-item enumeration could not be produced because the script aborts (uncaught throw) at the pre-existing malformed docs/evidence/tranches/20.1.json. This abort is present identically before the RC merges (20.1.json and the validator/parser are all unchanged in the RC range), so it is not a regression introduced by this integration. Everything the tool emitted before aborting is recorded above."
+  ]
+}

@@ -1,5 +1,5 @@
 begin;
-select plan(14);
+select plan(15);
 
 select has_column('public', 'message_attachments', 'purpose',
   'consultation attachments retain purpose');
@@ -17,6 +17,10 @@ select has_function(
 select ok(
   not has_table_privilege('anon', 'public.message_attachments', 'INSERT'),
   'anonymous callers cannot insert attachment metadata directly'
+);
+select ok(
+  not has_table_privilege('service_role', 'public.message_attachments', 'INSERT'),
+  'service role cannot bypass the attachment authorization command'
 );
 select ok(
   (select allowed_mime_types @> array['application/pdf']::text[]

@@ -2,8 +2,17 @@ import Link from "next/link";
 
 import { DemoLoginForm } from "./demo-login-form";
 import { MagicLinkForm } from "./magic-link-form";
-import { MasterDemoLogin } from "./master-demo-login";
 import { QuickDemoLogin } from "./quick-demo-login";
+
+/**
+ * Vercel sets VERCEL_ENV per deployment target (production/preview/
+ * development); NODE_ENV alone can't tell Preview apart from Production
+ * since Vercel Preview builds also report NODE_ENV=production. Falling
+ * back to NODE_ENV only applies off-Vercel (local dev, no VERCEL_ENV).
+ */
+const isRealProduction =
+  process.env["VERCEL_ENV"] === "production" ||
+  (!process.env["VERCEL_ENV"] && process.env.NODE_ENV === "production");
 
 const ERROR_MESSAGES: Record<string, string> = {
   invalid_invite: "That sign-in link is invalid or has expired.",
@@ -82,11 +91,7 @@ export default async function LoginPage({
             ) : null}
 
             <div className="mt-6">
-              {process.env.NODE_ENV !== "production" ||
-              process.env["NEXT_PUBLIC_DEMO_LOGIN"] === "1" ? (
-                <MasterDemoLogin redirectTo={redirectTo} />
-              ) : null}
-              {isDemo ? (
+              {isDemo && !isRealProduction ? (
                 <DemoLoginForm
                   redirectTo={redirectTo}
                   {...(prefilledEmail ? { email: prefilledEmail } : {})}
@@ -94,8 +99,7 @@ export default async function LoginPage({
               ) : (
                 <MagicLinkForm redirectTo={redirectTo} />
               )}
-              {process.env.NODE_ENV !== "production" ||
-              process.env["NEXT_PUBLIC_DEMO_LOGIN"] === "1" ? (
+              {!isRealProduction ? (
                 <QuickDemoLogin redirectTo={redirectTo} />
               ) : null}
             </div>

@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.14",
+  "requirementIds": ["CENV-REWARDS-001"],
+  "status": "verified_local",
+  "title": "claude-customer-loyalty-v3 \u2014 Rewards & Referrals exposure",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "no new domain logic; loyalty and referral data are existing domain objects",
+    "persistence": "no new migration; existing loyalty, referral, and reward tables unchanged",
+    "service": "apps/customer/app/(dashboard)/loyalty/page.tsx (Rewards & Referrals route; renders existing loyalty and referral engine; preserves real loyalty and referral actions and tenant-safe data paths; no new duplicate rewards engine)",
+    "origin_ui": "loyalty/page.tsx \u2014 render the existing /loyalty implementation; preserve real loyalty actions (points, tiers, status) and referral actions (share, earning tracking); no duplicate engine or dead buttons",
+    "receiver_ui": "all loyalty and referral actions are real and functional; no dead buttons or competing modules",
+    "rls": "no new RLS; existing customer-scoped loyalty and referral queries are unchanged",
+    "exceptions": "no new exception paths; customer can only read their own loyalty and referral data",
+    "browser": "apps/customer/e2e/loyalty-v3-presentation.spec.ts \u2014 authenticated E2E Customer Workspace persona; desktop 1512x982 + mobile 390x844; 1/1 passed at gitSha 6be179c (docs/evidence/runs/20.14.json). Rewards & Referrals page frames real loyalty engine; real loyalty and referral actions present; no duplicate engine; no console/page errors",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-customer-workspace",
+  "browserProofSpec": "apps/customer/e2e/loyalty-v3-presentation.spec.ts",
+  "assertedAt": "2026-09-02T08:47:00.000Z"
+}

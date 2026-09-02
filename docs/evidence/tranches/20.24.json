@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.24",
+  "requirementIds": ["CENV-PREFETCH-001"],
+  "status": "verified_local",
+  "title": "claude-customer-prefetch-guard-v3 \u2014 constrained-network prefetch proof",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "no domain logic; network constraints are browser capabilities",
+    "persistence": "no new migration; no persistent state change",
+    "service": "apps/customer/app/(dashboard)/intent-prefetch-link.tsx \u2014 emits document prefetch link for storefront when unconstrained; suppresses prefetch on Save-Data or 2G networks; normal navigation is unaffected on all network profiles",
+    "origin_ui": "intent-prefetch-link.tsx \u2014 conditionally render prefetch link based on navigator.connection.saveData and effectiveType; no prefetch on constrained networks; normal navigation UX unchanged",
+    "receiver_ui": "navigation works correctly on all network profiles; no prefetch on constrained networks does not break navigation",
+    "rls": "no new RLS; no persistent state change",
+    "exceptions": "Save-Data and 2G are detected and respected; normal navigation is not blocked",
+    "browser": "apps/customer/e2e/customer-prefetch-constrained-network-v3.spec.ts \u2014 authenticated E2E Customer Workspace persona; desktop 1512x982 + mobile 390x844; 3/3 passed at gitSha 6be179c (docs/evidence/runs/20.24.json). Unconstrained: document prefetch link injected; Save-Data on: no prefetch, navigation works; 2G: no prefetch, navigation works; no console/page errors",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-customer-workspace",
+  "browserProofSpec": "apps/customer/e2e/customer-prefetch-constrained-network-v3.spec.ts",
+  "assertedAt": "2026-09-02T08:47:00.000Z"
+}

@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.21",
+  "requirementIds": ["CENV-DFR-HANDOFF-001"],
+  "status": "verified_local",
+  "title": "claude-storefront-dfr-handoff-v3 — canonical raw PDP fitting-room module",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "n_a",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "n_a",
+    "exceptions": "n_a",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "n_a — no new pure domain logic; the handoff is a static storefront-side module plus a query-parameter link, with no rule or calculation",
+    "persistence": "n_a — no schema change; the module carries the real product slug through a URL query parameter, it stores nothing",
+    "service": "n_a — no server action or repository call; the CTA is a plain link and the receiving page reads the existing product by slug via its already-shipped read path",
+    "origin_ui": "apps/customer/app/r/[slug]/route.ts — injects the Digital Fitting Room handoff module into the raw storefront product-detail view: a 'Try in Digital Fitting Room' heading, three instructional steps, and a 15px-radius 'Start creating' CTA linking to /digital-fitting-room?productSlug={slug}; the module is populated from the real selected product slug and the raw storefront template stays byte-identical (ADR-046)",
+    "receiver_ui": "apps/customer/app/(dashboard)/digital-fitting-room/page.tsx — receives the productSlug query parameter and displays the corresponding real product on arrival",
+    "rls": "n_a — no table is read or written by this module; tenant scoping is inherited from the raw storefront route (/r/[slug]) and the authenticated DFR page, both already RLS-proven",
+    "exceptions": "n_a — no domain refusal path; an absent or unknown productSlug simply lands the DFR page in its normal empty/first-run state, which is 20.7's surface",
+    "browser": "apps/customer/e2e/storefront-digital-fitting-room-handoff-v3.spec.ts — authenticated E2E Customer Workspace persona against the local Supabase stack; 4/4 passed at gitSha 85962db (docs/evidence/runs/20.21.json): desktop product selection + DFR module visible + CTA navigates to the real DFR + back button restores state; mobile product-selection -> DFR flow; navigating between products updates the DFR link correctly; category filtering preserves product state and the module stays responsive. Zero console/page errors; template integrity preserved",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a — the feature is fully exercised locally; there is no provider or live-only surface"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "proven",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-customer-workspace",
+  "browserProofSpec": "apps/customer/e2e/storefront-digital-fitting-room-handoff-v3.spec.ts",
+  "assertedAt": "2026-09-02T03:20:00.000Z"
+}

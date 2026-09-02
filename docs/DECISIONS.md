@@ -1898,6 +1898,22 @@ language). See `docs/PROJECT_STATE.md`'s "paon.html verbatim + Mission
 Control/AM House Party/Morning Routine" entry for the fuller status and
 what's still open.
 
+### ADR-046 addendum (Stage 21.2): the storefront↔dashboard boundary is a smoothed document navigation, not a React port
+
+The raw `/r/[slug]` Route Handler remains canonical exactly as this ADR
+requires. "One platform" is delivered at the boundary without touching the
+storefront: bidirectional `<link rel="prefetch" as="document">`, a native
+cross-document View Transition (`@view-transition { navigation: auto }` on both
+documents, `prefers-reduced-motion` guarded, progressive), and Back-Forward
+Cache hygiene so Back restores the storefront frozen as left. Result: the
+storefront→dashboard hop paints instantly and animates; the storefront's own
+internal navigation stays full-page (its ~40 inline scripts require it) and is
+out of scope, per `CUSTOMER_ENVIRONMENT_REBUILD_V3.md` §13. A full JSX port of
+`paon-template.html` (which would reverse this ADR) is deferred and revisited
+only if the seam proves insufficient in real use. `dangerouslySetInnerHTML` is
+not an option — injected `<script>` never executes — and iframes are barred by
+§3.2.
+
 ## ADR-047: a real layout bug in `paon-template.html` was patched directly, and the founder-requested consumer lander was built as Customer Portal's own `/login`
 
 **Context.** Closing out ADR-046's two open items surfaced a genuine defect,
@@ -3521,3 +3537,90 @@ records, or eligibility/direct-debit capability is not authorized by this
 ADR and must be treated as a hard blocker requiring its own founder
 decision, per ADR-062's own rule that unresolved items block only the
 affected capability.
+
+## ADR-077: one-off OpenRouter DeepSeek evidence-only Customer Environment V3 audit
+
+**Status: accepted (2026-08-26).**
+
+**Context.** AGENTS.md prohibits using OpenRouter in PAON's default critical
+build path unless the founder explicitly authorizes an external-provider
+exception and records a corresponding policy decision. The founder has
+authorized exactly one OpenRouter DeepSeek worker to perform a read-only
+visual-compliance audit of the Customer Environment V3 contract.
+
+**Decision.** `phase-20.8` may use OpenRouter DeepSeek once, solely to inspect
+every customer route named by `docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md`
+at desktop and mobile viewports; mechanically compare the live UI against
+every V3 requirement; capture screenshots; and write one exact gap report.
+The worker may write only beneath
+`docs/evidence/customer-environment-v3-audit/`. It must not edit application
+code, `docs/PHASE.md`, fleet queue files, auth, RLS, migrations, Supabase,
+storefront, or any path owned by the active Claude lanes. It must not invent
+requirements, claim implementation, claim a fleet task, or use the provider
+for any other work.
+
+**Consequences.** This is a non-precedential evidence-only exception. OpenRouter
+remains outside PAON's default execution path. The resulting report is an
+audit artifact, not implementation proof or authorization for remediation.
+
+## ADR-078: one-off OpenRouter DeepSeek Customer Environment V3 static traceability audit
+
+**Status: accepted (2026-08-26).**
+
+**Context.** The founder has separately authorized one additional OpenRouter
+DeepSeek worker for a static, evidence-only traceability audit of the Customer
+Environment V3 contract. This is distinct from ADR-077's live visual audit.
+
+**Decision.** `phase-20.10` may use OpenRouter DeepSeek once, solely to read
+`docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md`, customer application source,
+existing customer E2E tests, and existing evidence files; and to write one
+complete requirement matrix beneath
+`docs/evidence/customer-environment-v3-static-audit/`. For every V3
+requirement, the matrix must identify route/component, existing test/evidence,
+status (`implemented`, `partial`, `missing`, or `unverifiable`), and the exact
+next bounded implementation task. The worker must not capture screenshots or
+perform image analysis; edit application code, `docs/PHASE.md`, queue files,
+auth, RLS, migrations, Supabase, or worker-owned files; or invent completion
+claims.
+
+**Consequences.** This is a non-precedential, evidence-only exception. The
+worker may commit only the audit report and mark `phase-20.10` done. OpenRouter
+remains outside PAON's default execution path.
+
+## ADR-079: one-off OpenRouter DeepSeek Customer Environment V3 proof-index audit
+
+**Status: accepted (2026-08-26).**
+
+**Context.** The founder has authorized one further OpenRouter DeepSeek task
+after the completed static traceability audit. The next useful bounded output
+is a current proof index for the V3 remediation lanes, not duplicate source
+analysis or implementation.
+
+**Decision.** `phase-20.16` may use OpenRouter DeepSeek once, solely to read
+the V3 contract, the completed static-audit artifacts, existing customer
+evidence metadata, and Git commit/SHA references; then write a proof-index
+report beneath `docs/evidence/customer-environment-v3-proof-index/`. The
+report must state, for each V3 remediation lane, the exact required proof,
+current artifact/commit reference, current status (`present`, `missing`,
+`stale`, or `unverifiable`), and the exact owner/task needed to close a gap.
+It must not capture screenshots, analyze images, rerun browser tests, inspect
+or edit application code, edit `docs/PHASE.md`, queue files, auth, RLS,
+migrations, Supabase, storefront, or Claude-owned paths, or invent completion
+claims.
+
+**Consequences.** This is a non-precedential, evidence-only exception. The
+worker may commit only its proof-index report and mark `phase-20.16` done.
+OpenRouter remains outside PAON's default execution path.
+
+## ADR-080: one-off OpenRouter DeepSeek Phase 20 text-only integration map
+
+**Status: accepted (2026-08-27).**
+
+**Decision.** `phase-20.31` may use OpenRouter DeepSeek once to map completed
+Phase 20 branches and commits to merge order, ancestor/duplicate status, and
+required independent review. It may write only beneath
+`docs/evidence/customer-environment-v3-integration-map/`; it may not use
+images, browser work, application edits, queue edits, or integration.
+
+**Consequences.** This is a non-precedential evidence-only exception. OpenRouter
+remains outside PAON's default execution path.

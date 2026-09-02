@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  distDir: process.env["PAON_NEXT_DIST_DIR"] ?? ".next",
   reactStrictMode: true,
   experimental: {
     // Domain limit is 10 MB; leave room for multipart field overhead.

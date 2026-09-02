@@ -1,0 +1,34 @@
+{
+  "phase": "20.26",
+  "commit": "dcca29a",
+  "customer_app_code_sha": "3f1c88d",
+  "note": "New test-only proof lane. The owned spec did not exist on the release branch; this adds apps/customer/e2e/wardrobe-rail-contract-v3.spec.ts and proves it against the release branch on the local Supabase stack. No application code changed. Deeper owned-card-face and Actions+ deck behaviour is proven separately by wardrobe-v3-presentation.spec.ts (20.9).",
+  "route": "/wardrobe",
+  "persona": "authenticated E2E Customer Workspace fixture (TEST_CUSTOMER_EMAIL magic-link sign-in) against the local Supabase stack (http://127.0.0.1:54321)",
+  "checks": {
+    "focused_playwright": "1 passed: wardrobe-rail-contract-v3.spec.ts — 'exactly eight rails in contract order, each with ten empty slots and an owned-only header count' (3.5s), desktop + mobile",
+    "customer_lint": "passed (eslint e2e/wardrobe-rail-contract-v3.spec.ts --max-warnings 0)",
+    "customer_typecheck": "passed (tsc --noEmit)",
+    "console": "no console error messages observed by the authenticated desktop/mobile browser capture (spec asserts consoleErrors.toEqual([]))"
+  },
+  "asserted": [
+    "exactly 8 [data-wardrobe-rail] elements",
+    "the eight level-3 rail headings are exactly [Suits, Jackets, Trousers, Shirts, Outerwear, Knitwear, Shoes, Accessories] in that order",
+    "every one of the eight rails carries exactly 10 [data-empty-slot] elements — including the seven that have no owned items",
+    "the Shoes rail header count reads exactly '1 piece' with one seeded retailer purchase-linked garment present — the ten empty slots do not inflate it",
+    "the seeded garment is created via WardrobeRepository.createCatalogueItem with a productId (retailer purchase-linked only); its foreground <img> computed object-fit is 'contain' (edge-to-edge, never clipped)",
+    "at mobile 390x844 the eight rails and the ten-slot contract still hold"
+  ],
+  "screenshots": [
+    {
+      "file": "desktop-1512x982.png",
+      "viewport": "1512x982",
+      "sha256": "838e7bd8bdf9954a1d7d2e927ad6fc1a7977b56abc6c36500a00e7d90411c84d"
+    },
+    {
+      "file": "mobile-390x844.png",
+      "viewport": "390x844",
+      "sha256": "b832faf10e112fcf983699989fb2722f25eee469461a19907685b63e489b1f10"
+    }
+  ]
+}

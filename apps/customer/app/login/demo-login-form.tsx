@@ -38,7 +38,7 @@ export function DemoLoginForm({
         />
       </FormField>
       <Button type="submit" size="lg" className="mt-2 w-full">
-        Enter the private client demo
+        Customer Demo
       </Button>
     </form>
   );

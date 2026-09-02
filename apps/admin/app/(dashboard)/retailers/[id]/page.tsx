@@ -12,8 +12,9 @@ import { notFound } from "next/navigation";
 
 import { RetailerStatusBadge } from "../status-badge";
 
-import { resendStaffInvite, setRetailerStatus } from "./actions";
 import { BillingPanel } from "./billing-panel";
+import { ResendInviteForm } from "./invite-form";
+import { RetailerStatusForm } from "./status-form";
 
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -59,28 +60,7 @@ export default async function RetailerDetailPage({
         <p className="text-sm text-[var(--color-stone-500)]">
           {retailer.legalName} · {retailer.slug}
         </p>
-        <form action={setRetailerStatus} className="mt-4 flex flex-wrap gap-2">
-          <input type="hidden" name="retailerId" value={retailer.id} />
-          {retailer.status === "active" ? (
-            <button
-              type="submit"
-              name="status"
-              value="suspended"
-              className="h-9 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 text-xs"
-            >
-              Suspend retailer
-            </button>
-          ) : (
-            <button
-              type="submit"
-              name="status"
-              value="active"
-              className="h-9 rounded-[var(--radius-md)] bg-[var(--color-stone-900)] px-3 text-xs text-white"
-            >
-              Activate retailer
-            </button>
-          )}
-        </form>
+        <RetailerStatusForm retailerId={retailer.id} status={retailer.status} />
       </div>
 
       <Card className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -148,20 +128,10 @@ export default async function RetailerDetailPage({
                     {member.acceptedAt ? "Active" : "Invited"}
                   </Badge>
                   {!member.acceptedAt ? (
-                    <form action={resendStaffInvite}>
-                      <input
-                        type="hidden"
-                        name="retailerId"
-                        value={retailer.id}
-                      />
-                      <input type="hidden" name="staffId" value={member.id} />
-                      <button
-                        type="submit"
-                        className="h-9 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 text-xs"
-                      >
-                        Resend invite
-                      </button>
-                    </form>
+                    <ResendInviteForm
+                      retailerId={retailer.id}
+                      staffId={member.id}
+                    />
                   ) : null}
                 </div>
               </div>

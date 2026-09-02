@@ -156,26 +156,65 @@ if [ -f "$PHASE" ]; then
       *parked\)|*Parked\)|*deleted\)|*Deleted\)) ambiguous_parked="true" ;;
     esac
 
-    # Infer REAL owned paths from the item's own text. Handing every task the
+    # A PHASE item may declare its exact lane boundary with:
+    #   - **Fleet owned paths:** `apps/customer/app/(dashboard)/**`, `apps/customer/e2e/**`
+    # This is authoritative over heuristic app/package inference. In
+    # particular, it lets independent tasks within one app coexist instead of
+    # both claiming the app-wide glob.
+    declared_paths="$(printf '%s\n' "$ctx" | awk '
+      /^[[:space:]]*-[[:space:]]+\*\*Fleet owned paths:\*\*/ {
+        sub(/^[[:space:]]*-[[:space:]]+\*\*Fleet owned paths:\*\*[[:space:]]*/, "")
+        value=$0
+        collecting=1
+        next
+      }
+      collecting && /^    / {
+        sub(/^[[:space:]]+/, "")
+        value=value " " $0
+        next
+      }
+      collecting {
+        print value
+        printed=1
+        exit
+      }
+      END {
+        if (collecting && !printed) print value
+      }
+    ')"
+
+    # Infer REAL owned paths from the item's own text only when the item has
+    # not declared an explicit fleet boundary. Handing every task the
     # generic ["packages/**","apps/**"] made every agent "own" everything,
     # so path isolation existed on paper only — and once the queue started
     # enforcing disjointness, it serialised the whole fleet onto one task.
     # Items almost always name their own app, so derive from that and fall
     # back to the broad claim only when nothing is nameable.
     paths=""
-    case "$ctx" in *apps/retailer*) paths="$paths\"apps/retailer/**\"," ;; esac
-    case "$ctx" in *apps/customer*) paths="$paths\"apps/customer/**\"," ;; esac
-    case "$ctx" in *apps/admin*)    paths="$paths\"apps/admin/**\","    ;; esac
-    case "$ctx" in *packages/domain*)   paths="$paths\"packages/domain/**\","   ;; esac
-    case "$ctx" in *packages/database*) paths="$paths\"packages/database/**\"," ;; esac
-    # If no real path could be inferred, do NOT fall back to the broad
-    # ["packages/**","apps/**"] claim. That pretends isolation exists while
-    # letting the task collide with everything. Emit it flagged so a human
-    # (or a frontier agent) scopes it before it can ever be claimed.
-    if [ -n "$paths" ]; then
-      paths="[${paths%,}]"; scope="false"
+    if [ -n "$declared_paths" ]; then
+      paths="$(printf '%s' "$declared_paths" | jq -Rsc '[scan("`([^`]+)`") | .[0]]')"
+      # An explicit declaration with no backtick-delimited paths is unsafe to
+      # claim: retain it as a visible needs-scope task rather than guessing.
+      if [ "$paths" = "[]" ]; then
+        scope="true"
+      else
+        scope="false"
+      fi
     else
-      paths='[]'; scope="true"
+      case "$ctx" in *apps/retailer*) paths="$paths\"apps/retailer/**\"," ;; esac
+      case "$ctx" in *apps/customer*) paths="$paths\"apps/customer/**\"," ;; esac
+      case "$ctx" in *apps/admin*)    paths="$paths\"apps/admin/**\","    ;; esac
+      case "$ctx" in *packages/domain*)   paths="$paths\"packages/domain/**\","   ;; esac
+      case "$ctx" in *packages/database*) paths="$paths\"packages/database/**\"," ;; esac
+      # If no real path could be inferred, do NOT fall back to the broad
+      # ["packages/**","apps/**"] claim. That pretends isolation exists while
+      # letting the task collide with everything. Emit it flagged so a human
+      # (or a frontier agent) scopes it before it can ever be claimed.
+      if [ -n "$paths" ]; then
+        paths="[${paths%,}]"; scope="false"
+      else
+        paths='[]'; scope="true"
+      fi
     fi
     # An ambiguously-parked title is unclaimable until a human resolves it.
     [ "$ambiguous_parked" = "true" ] && scope="true"

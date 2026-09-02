@@ -88,3 +88,74 @@ export async function decideWardrobeRoadmap(
   revalidatePath("/wardrobe");
   return { fieldErrors: {}, success: true };
 }
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Phase 20.17 — the customer removes one advisor selection (an approved
+ * wardrobe roadmap's open gap) from their own wardrobe-plan presentation.
+ * The advisor-authored roadmap, gaps, stages, and audit history are never
+ * deleted or mutated; a customer-scoped disposition row is recorded and the
+ * wardrobe page filters the gap out. Requires the real authenticated
+ * customer session and an existing relationship with the retailer; the
+ * database trigger + RLS policy independently re-verify ownership and that
+ * the gap is on this customer's own approved roadmap.
+ */
+export async function removeAdvisorSelectionFromPlan(
+  _prevState: CustomerRoadmapActionState,
+  formData: FormData,
+): Promise<CustomerRoadmapActionState> {
+  const session = await requireSession();
+  const roadmapGapId = String(formData.get("roadmapGapId") ?? "");
+  const retailerId = String(formData.get("retailerId") ?? "");
+  if (!UUID_RE.test(roadmapGapId) || !UUID_RE.test(retailerId)) {
+    return { fieldErrors: {}, formError: "Invalid advisor selection." };
+  }
+
+  const customer = await resolveCustomer(session.userId, retailerId);
+  if (!customer) {
+    return {
+      fieldErrors: {},
+      formError: "No relationship with this retailer.",
+    };
+  }
+
+  const supabase = await getSupabaseServerClient();
+  const repo = new WardrobeRoadmapRepository(supabase);
+  const roadmaps = await repo.findByCustomer(customer.id, {
+    customerVisibleOnly: true,
+  });
+  const approved = roadmaps.find((roadmap) => roadmap.status === "approved");
+  if (!approved) {
+    return { fieldErrors: {}, formError: "No approved wardrobe plan." };
+  }
+
+  const gap = approved.gaps.find((candidate) => candidate.id === roadmapGapId);
+  if (!gap) {
+    return {
+      fieldErrors: {},
+      formError: "That advisor selection is not on your plan.",
+    };
+  }
+
+  try {
+    await repo.removeAdvisorSelectionFromPlan({
+      roadmapGapId,
+      roadmapId: approved.id,
+      retailerId: customer.retailerId,
+      customerId: customer.id,
+    });
+  } catch (error) {
+    return {
+      fieldErrors: {},
+      formError:
+        error instanceof Error
+          ? error.message
+          : "Could not remove the selection.",
+    };
+  }
+
+  revalidatePath("/wardrobe");
+  return { fieldErrors: {}, success: true };
+}

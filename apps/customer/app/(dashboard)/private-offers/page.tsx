@@ -165,7 +165,7 @@ export default async function PrivateOffersPage() {
               className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-5 py-5"
             >
               <h2 className="font-display text-2xl text-[var(--color-stone-900)]">
-                {retailer?.displayName ?? "Your house"}
+                {retailer?.displayName ?? "Your retailer"}
               </h2>
               <p className="mt-1 text-sm text-[var(--color-stone-500)]">
                 Personalization: {consent.personalization.status}

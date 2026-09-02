@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.25",
+  "requirementIds": ["CENV-CTA-001"],
+  "status": "verified_local",
+  "title": "claude-customer-cta-squircle-v3 \u2014 CTA-system contract proof",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "no domain logic; CTA styling is a presentation contract",
+    "persistence": "no new migration; no persistent state change",
+    "service": "apps/customer/app \u2014 all customer CTAs (buttons, links, actions) use a single 15px squircle border-radius system; no generic outlined-card styling or vendor-specific CTA variants",
+    "origin_ui": "all customer UI components that render CTA controls use the 15px squircle system; consistent radius across desktop and mobile",
+    "receiver_ui": "CTA controls are visually consistent across all customer routes; no regression to generic outlined-card styling",
+    "rls": "no new RLS; no persistent state change",
+    "exceptions": "no new exception paths; all CTAs are styled consistently",
+    "browser": "apps/customer/e2e/customer-cta-squircle-v3.spec.ts \u2014 authenticated E2E Customer Workspace persona; desktop 1512x982 + mobile 390x844; 2/2 passed at gitSha 6be179c (docs/evidence/runs/20.25.json). Every customer CTA renders 15px squircle system on desktop and mobile; no generic outlined-card styling; no console/page errors",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-customer-workspace",
+  "browserProofSpec": "apps/customer/e2e/customer-cta-squircle-v3.spec.ts",
+  "assertedAt": "2026-09-02T08:47:00.000Z"
+}

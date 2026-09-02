@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, buttonVariants } from "@paon/ui/components/Button";
+import { cn } from "@paon/ui/lib/cn";
 import Image from "next/image";
 import Link from "next/link";
 import { useActionState } from "react";
@@ -119,6 +120,7 @@ function RecommendationActions({
             size="sm"
             variant="outline"
             disabled={actionPending}
+            className="rounded-[15px]"
           >
             Save
           </Button>
@@ -140,6 +142,7 @@ function RecommendationActions({
               size="sm"
               variant="outline"
               disabled={actionPending}
+              className="rounded-[15px]"
             >
               Mark reviewed
             </Button>
@@ -153,7 +156,10 @@ function RecommendationActions({
             />
             <button
               type="submit"
-              className={buttonVariants({ variant: "outline", size: "sm" })}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "rounded-[15px]",
+              )}
             >
               Ask advisor
             </button>
@@ -163,14 +169,20 @@ function RecommendationActions({
       {book?.available && book.href ? (
         <Link
           href={book.href}
-          className={buttonVariants({ variant: "outline", size: "sm" })}
+          className={cn(
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "rounded-[15px]",
+          )}
         >
           Book
         </Link>
       ) : (
         <Link
           href={`/r/${retailerSlug}/appointments`}
-          className={buttonVariants({ variant: "outline", size: "sm" })}
+          className={cn(
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "rounded-[15px]",
+          )}
         >
           Book
         </Link>
@@ -190,12 +202,20 @@ function RecommendationActions({
             name="productVariantId"
             value={buy.productVariantId}
           />
-          <Button type="submit" size="sm" disabled={actionPending}>
+          <Button
+            type="submit"
+            size="sm"
+            disabled={actionPending}
+            className="rounded-[15px]"
+          >
             Buy
           </Button>
         </form>
       ) : buy?.available && buy.href ? (
-        <Link href={buy.href} className={buttonVariants({ size: "sm" })}>
+        <Link
+          href={buy.href}
+          className={cn(buttonVariants({ size: "sm" }), "rounded-[15px]")}
+        >
           Buy
         </Link>
       ) : null}
@@ -220,7 +240,15 @@ export function MorningRoutinePanel({
     initial,
   );
 
-  const [featured, ...rest] = view?.recommendations ?? [];
+  const recommendations = view?.recommendations ?? [];
+  // Prefer a suit or jacket as the featured look when one is available —
+  // the founder's ask is "today's look", not an arbitrary category.
+  const preferredIndex = recommendations.findIndex((rec) =>
+    ["suit", "jacket"].includes(rec.categoryCode ?? ""),
+  );
+  const featuredIndex = preferredIndex >= 0 ? preferredIndex : 0;
+  const featured = recommendations[featuredIndex];
+  const rest = recommendations.filter((_, i) => i !== featuredIndex);
 
   return (
     <section
@@ -278,7 +306,6 @@ export function MorningRoutinePanel({
           {actionState.formError}
         </p>
       ) : null}
-
       {!view ? (
         <div
           className="px-5 py-10 text-center text-sm text-[var(--color-stone-500)]"

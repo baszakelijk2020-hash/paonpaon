@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.20",
+  "requirementIds": ["CENV-ALTERATION-CHOICES-001"],
+  "status": "verified_local",
+  "title": "claude-customer-alteration-choices-v3 \u2014 service decision branches",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "no new domain logic; alteration choices are existing service branches",
+    "persistence": "no new migration; existing appointment and alteration tables unchanged",
+    "service": "apps/customer/app/(dashboard)/appointments/paid-care-flow.tsx (exposes three V3 customer decision branches: 'I know exactly what needs changing', 'Ask advisor with self-scan', 'Assess in store'; progressive choices replace card face; Assess in store accepts service note, requests item be brought, shows folded price list without forcing product choice)",
+    "origin_ui": "paid-care-flow.tsx \u2014 render three decision branches; progressive choices replace card face, not appended forms; Assess in store takes note, shows price list, no product coercion",
+    "receiver_ui": "each branch leads to a valid path (form, advisor flow, or in-store assessment); no dead ends; all actions are real",
+    "rls": "no new RLS; existing customer-scoped appointment and alteration queries are unchanged",
+    "exceptions": "no new exception paths; customer can only access their own appointments",
+    "browser": "apps/customer/e2e/appointments-alteration-choices-v3.spec.ts \u2014 authenticated E2E Customer Workspace persona; desktop 1512x982 + mobile 390x844; 4/4 passed at gitSha 6be179c (docs/evidence/runs/20.20.json). Three branches open; Assess in store takes note, requests item, shows price list (no product force); 'I know' moves forward, no dead end; note persists to retailer work order; no console/page errors",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "proven",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "proven",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-customer-workspace",
+  "browserProofSpec": "apps/customer/e2e/appointments-alteration-choices-v3.spec.ts",
+  "assertedAt": "2026-09-02T08:47:00.000Z"
+}

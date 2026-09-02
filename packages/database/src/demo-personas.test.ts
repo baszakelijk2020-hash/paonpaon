@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { DEMO_CANONICAL_PERSONAS, getDemoPersona } from "./demo-seed";
+import {
+  DEMO_CANONICAL_PERSONAS,
+  getDemoPersona,
+  isCanonicalDemoEmail,
+} from "./demo-seed";
 
 describe("canonical demo personas", () => {
   it("has exactly one launcher identity for every active showcase role", () => {
@@ -38,7 +42,7 @@ describe("canonical demo personas", () => {
     expect(getDemoPersona("customer")).toMatchObject({
       app: "customer",
       role: "customer",
-      retailer: "Maison Dubois",
+      retailer: "Nebel & Spiegel",
       email: "contact+isabelle@nebelspiegel.com",
     });
 
@@ -52,8 +56,22 @@ describe("canonical demo personas", () => {
     ] as const) {
       expect(getDemoPersona(id)).toMatchObject({
         app: "retailer",
-        retailer: "Maison Dubois",
+        retailer: "Nebel & Spiegel",
       });
+      expect(getDemoPersona(id).email).toMatch(
+        /^contact\+atelier-demo-[a-z-]+@nebelspiegel\.com$/,
+      );
     }
+  });
+
+  it("keeps admin demo toggles scoped to canonical identities", () => {
+    expect(isCanonicalDemoEmail("contact+isabelle@nebelspiegel.com")).toBe(
+      true,
+    );
+    expect(isCanonicalDemoEmail("contact+unrelated@nebelspiegel.com")).toBe(
+      false,
+    );
+    expect(isCanonicalDemoEmail("contact+isabelle@example.com")).toBe(false);
+    expect(isCanonicalDemoEmail(undefined)).toBe(false);
   });
 });

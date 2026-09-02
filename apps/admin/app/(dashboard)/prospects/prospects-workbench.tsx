@@ -3,6 +3,7 @@
 import { SearchableCollection } from "@paon/ui/components/SearchableCollection";
 import { demoEnvironmentLabel } from "@paon/utils";
 import Link from "next/link";
+import { useActionState } from "react";
 
 import { updateProspectStage } from "./actions";
 
@@ -31,6 +32,51 @@ export type ProspectWorkbenchRow = {
   storefrontHref: string | null;
   privateDemoHref: string | null;
 };
+
+function ProspectStageCard({ prospect }: { prospect: ProspectWorkbenchRow }) {
+  const [state, action, pending] = useActionState(updateProspectStage, {});
+
+  return (
+    <form action={action} className="mt-4 flex flex-col gap-2 border-t pt-4">
+      <input type="hidden" name="prospectId" value={prospect.id} />
+      <div className="flex flex-wrap items-center gap-2">
+        <label className="sr-only" htmlFor={`stage-${prospect.id}`}>
+          Pipeline stage
+        </label>
+        <select
+          id={`stage-${prospect.id}`}
+          name="stage"
+          defaultValue={prospect.stage}
+          disabled={pending}
+          className="h-9 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-2 text-xs disabled:opacity-50"
+        >
+          {Object.entries(STAGE_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+        <button
+          type="submit"
+          disabled={pending}
+          className="h-9 rounded-[var(--radius-md)] bg-[var(--color-stone-900)] px-3 text-xs text-white disabled:opacity-50"
+        >
+          {pending ? "Updating…" : "Update stage"}
+        </button>
+      </div>
+      {state.formError ? (
+        <p role="alert" className="text-xs text-[var(--color-danger-500)]">
+          {state.formError}
+        </p>
+      ) : null}
+      {state.saved ? (
+        <p role="status" className="text-xs text-[var(--color-success-500)]">
+          Stage updated.
+        </p>
+      ) : null}
+    </form>
+  );
+}
 
 export function ProspectsWorkbench({ rows }: { rows: ProspectWorkbenchRow[] }) {
   return (
@@ -85,33 +131,7 @@ export function ProspectsWorkbench({ rows }: { rows: ProspectWorkbenchRow[] }) {
                   </p>
                 </div>
               </Link>
-              <form
-                action={updateProspectStage}
-                className="mt-4 flex flex-wrap items-center gap-2 border-t pt-4"
-              >
-                <input type="hidden" name="prospectId" value={prospect.id} />
-                <label className="sr-only" htmlFor={`stage-${prospect.id}`}>
-                  Pipeline stage
-                </label>
-                <select
-                  id={`stage-${prospect.id}`}
-                  name="stage"
-                  defaultValue={prospect.stage}
-                  className="h-9 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-2 text-xs"
-                >
-                  {Object.entries(STAGE_LABELS).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="submit"
-                  className="h-9 rounded-[var(--radius-md)] bg-[var(--color-stone-900)] px-3 text-xs text-white"
-                >
-                  Update stage
-                </button>
-              </form>
+              <ProspectStageCard prospect={prospect} />
               {prospect.retailerSlug || prospect.privateDemoHref ? (
                 <div className="mt-4 flex flex-wrap gap-3 border-t pt-4 text-xs">
                   {prospect.storefrontHref ? (

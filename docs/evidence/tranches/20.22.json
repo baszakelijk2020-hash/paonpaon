@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.22",
+  "requirementIds": ["CENV-WARDROBE-EXTERNAL-001"],
+  "status": "verified_local",
+  "title": "claude-wardrobe-external-write-removal-v3 \u2014 remove dormant external garment write path",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "no domain logic change; external garment type is removed from the domain surface",
+    "persistence": "no new migration; wardrobe_items table is unchanged; external-garment write capability is removed from repository",
+    "service": "apps/customer/app/(dashboard)/wardrobe/actions.ts (removeExternalGarmentEntryAction server action removed or made inaccessible); wardrobe repository no longer offers external-garment write; only purchase-linked garments remain writable via retailer/inventory paths",
+    "origin_ui": "wardrobe/page.tsx and wardrobe-panel.tsx \u2014 no external-garment UI entry, button, or copy; only retailer purchase-linked garments are actionable",
+    "receiver_ui": "no path to create an external garment; retailer purchase-linked actions remain intact",
+    "rls": "no new RLS; existing customer-scoped wardrobe_items read-only policy is unchanged",
+    "exceptions": "customer cannot invoke the external-garment write path; RLS rejects any unauthorized write attempt",
+    "browser": "apps/customer/e2e/wardrobe-no-external-entry-v3.spec.ts \u2014 authenticated E2E Customer Workspace persona; desktop 1512x982 + mobile 390x844; 1/1 passed at gitSha 6be179c (docs/evidence/runs/20.22.json). Wardrobe page has no external-garment entry form, button, or copy; only retailer purchase-linked garments; no console/page errors",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-customer-workspace",
+  "browserProofSpec": "apps/customer/e2e/wardrobe-no-external-entry-v3.spec.ts",
+  "assertedAt": "2026-09-02T08:47:00.000Z"
+}

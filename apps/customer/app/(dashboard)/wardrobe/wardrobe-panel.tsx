@@ -1,73 +1,58 @@
 "use client";
 
 import {
-  GARMENT_CATEGORIES,
-  WARDROBE_CARE_STATES,
-  WARDROBE_CONDITION_STATES,
-  WARDROBE_FIT_PERCEPTIONS,
   WARDROBE_SERVICE_REQUEST_KIND_LABELS,
-  WARDROBE_SERVICE_REQUEST_KINDS,
-  WARDROBE_WEAR_FREQUENCIES,
   type CompleteTheLookSuggestion,
   type GarmentCategoryCode,
   type WardrobeItem,
   type WardrobeOwnershipEvent,
-  type WardrobeRoadmap,
   type WardrobeRoadmapGap,
 } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
-import { Card } from "@paon/ui/components/Card";
 import Image from "next/image";
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import {
-  addExternalWardrobeItem,
+  requestWardrobeItemReorderViaAdvisor,
   requestWardrobeItemService,
   retireWardrobeItem,
   type WardrobeActionState,
   type WardrobeServiceRequestState,
 } from "./actions";
+import {
+  askAdvisorAboutWardrobeItem,
+  type AdvisorAskState,
+} from "./ask-advisor-actions";
+import {
+  submitWardrobeSelfScan,
+  type LifecycleActionState,
+} from "./lifecycle-actions";
+import {
+  decideWardrobeRoadmap,
+  removeAdvisorSelectionFromPlan,
+  type CustomerRoadmapActionState,
+} from "./roadmap-actions";
 import { SuggestedLookTile } from "./suggested-look-tile";
 
-function ownershipLabel(item: WardrobeItem): string {
-  if (item.ownershipKind === "retailer_purchased") {
-    return "Purchased here";
-  }
-  return "External";
-}
-
-function provenanceLabel(item: WardrobeItem): string {
-  switch (item.provenanceSource) {
-    case "order_line":
-      return "Order line";
-    case "catalogue_link":
-      return "Catalogue link";
-    case "customer_added":
-      return "Added by you";
-    case "advisor_added":
-      return "Added by advisor";
-  }
-}
-
-const WARDROBE_SECTIONS = [
+/** Exactly eight rails, in the contract's exact order. Every one of the 15
+ * `GarmentCategoryCode` values maps to exactly one rail. */
+export const WARDROBE_RAILS = [
   {
     id: "suits",
     label: "Suits",
-    categories: ["suit", "trousers", "waistcoat", "formalwear"],
+    categories: ["suit", "waistcoat", "formalwear"],
   },
-  {
-    id: "jackets",
-    label: "Jackets",
-    categories: ["jacket", "overcoat", "coat", "leather"],
-  },
+  { id: "jackets", label: "Jackets", categories: ["jacket", "leather"] },
+  { id: "trousers", label: "Trousers", categories: ["trousers", "denim"] },
   { id: "shirts", label: "Shirts", categories: ["shirt"] },
+  { id: "outerwear", label: "Outerwear", categories: ["overcoat", "coat"] },
   { id: "knitwear", label: "Knitwear", categories: ["knitwear"] },
   { id: "shoes", label: "Shoes", categories: ["shoes"] },
   {
     id: "accessories",
     label: "Accessories",
-    categories: ["accessories", "pocket_square", "denim", "other"],
+    categories: ["accessories", "pocket_square", "other"],
   },
 ] as const satisfies readonly {
   readonly id: string;
@@ -75,552 +60,953 @@ const WARDROBE_SECTIONS = [
   readonly categories: readonly GarmentCategoryCode[];
 }[];
 
-function WardrobeItemCard({
-  retailerId,
-  item,
-  history,
-  completeTheLookSuggestions,
-  retireAction,
-  retirePending,
-  serviceRequestAction,
-  serviceRequestPending,
+const EMPTY_SLOT_COUNT = 10;
+
+export interface OwnedCardModel {
+  readonly item: WardrobeItem;
+  readonly history: readonly WardrobeOwnershipEvent[];
+  readonly completeTheLookSuggestions: readonly CompleteTheLookSuggestion[];
+  readonly purchasedOnLabel: string;
+  /** Real `/r/{retailerSlug}/products/{productSlug}` route for this item's
+   * linked, still-existing product — resolved server-side. Absent when the
+   * item has no product link or that product no longer exists; "The size
+   * is perfect" then never renders a broken destination and the real
+   * "Ask your advisor to reorder" action is offered instead. */
+  readonly productDetailHref?: string;
+}
+
+export interface AdvisorSelectionAlternative {
+  readonly productId: string;
+  readonly productSlug: string;
+  readonly displayName: string;
+  readonly primaryImageUrl?: string;
+}
+
+export interface AdvisorSelectionProductLink {
+  readonly id: string;
+  readonly slug: string;
+  readonly name: string;
+  readonly primaryImageUrl?: string;
+}
+
+export interface PendingRoadmapSummary {
+  readonly id: string;
+  readonly title: string;
+}
+
+type DeckScreen =
+  | { kind: "menu" }
+  | { kind: "complete-the-look" }
+  | { kind: "order-again" }
+  | { kind: "in-app-fit-check" }
+  | { kind: "retire-confirm" }
+  | { kind: "ask-advisor" }
+  | { kind: "sent"; conversationId?: string };
+
+const CARD_CLASS =
+  "relative h-80 w-56 shrink-0 snap-start overflow-hidden rounded-[15px] bg-[var(--color-stone-900)]";
+
+function CardImageLayers({
+  imageUrl,
+  alt,
 }: {
-  retailerId: string;
-  item: WardrobeItem;
-  history: readonly WardrobeOwnershipEvent[];
-  completeTheLookSuggestions: readonly CompleteTheLookSuggestion[];
-  retireAction: (payload: FormData) => void;
-  retirePending: boolean;
-  serviceRequestAction: (payload: FormData) => void;
-  serviceRequestPending: boolean;
+  imageUrl: string | undefined;
+  alt: string;
+}) {
+  if (!imageUrl) {
+    return (
+      <div
+        className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[var(--color-stone-800)] to-[var(--color-stone-950)]"
+        aria-hidden="true"
+      >
+        <span className="font-display text-lg text-[var(--color-stone-400)]">
+          {alt}
+        </span>
+      </div>
+    );
+  }
+  return (
+    <>
+      {/* Restrained blurred full-bleed background: the same garment image,
+          cropped and softened, so the letterbox band beside the uncropped
+          foreground reads as a deliberate darkened blur of the piece and is
+          never plain white — even for studio shots on white. */}
+      <Image
+        src={imageUrl}
+        alt=""
+        fill
+        unoptimized
+        aria-hidden="true"
+        className="scale-110 object-cover opacity-60 blur-2xl"
+      />
+      <div aria-hidden="true" className="absolute inset-0 bg-black/40" />
+      {/* The complete original image, uncropped, no artificial margin — stays
+          the primary image above the restrained background. */}
+      <Image
+        src={imageUrl}
+        alt={alt}
+        fill
+        unoptimized
+        className="object-contain"
+      />
+    </>
+  );
+}
+
+/** Apple App Store-style progressive bottom blur: no hard panel edge, no
+ * solid caption rectangle. A backdrop-blur layer fades in via a mask, and a
+ * separate colour gradient darkens gradually beneath it. */
+function ProgressiveBottomPanel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[58%]">
+      <div
+        className="absolute inset-0 backdrop-blur-md"
+        style={{
+          WebkitMaskImage: "linear-gradient(to top, black 40%, transparent)",
+          maskImage: "linear-gradient(to top, black 40%, transparent)",
+        }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+      <div className="pointer-events-auto absolute inset-x-0 bottom-0 flex flex-col gap-1 p-3.5">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function DeckOverlay({
+  open,
+  children,
+}: {
+  open: boolean;
+  children: React.ReactNode;
 }) {
   return (
-    <article className="flex w-[min(78vw,18rem)] shrink-0 snap-start flex-col overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-stone-200)] bg-white sm:w-72">
-      {item.identifyingPhotoUrl ? (
-        <Image
-          src={item.identifyingPhotoUrl}
-          alt={item.displayName}
-          width={576}
-          height={432}
-          unoptimized
-          className="aspect-[4/3] w-full bg-[var(--color-stone-100)] object-cover"
-        />
-      ) : (
-        <div
-          className="flex aspect-[4/3] items-end bg-gradient-to-br from-[var(--color-stone-100)] to-[var(--color-stone-200)] p-4"
-          aria-hidden="true"
+    <div
+      className={`bg-[var(--color-stone-950)]/92 absolute inset-0 flex flex-col overflow-y-auto p-3.5 text-[var(--color-stone-100)] backdrop-blur-md transition-transform duration-300 ease-out ${
+        open ? "translate-y-0" : "translate-y-full"
+      }`}
+      aria-hidden={!open}
+      inert={!open}
+    >
+      {children}
+    </div>
+  );
+}
+
+function DeckBackRow({ onBack, label }: { onBack: () => void; label: string }) {
+  return (
+    <div className="mb-2 flex items-center justify-between">
+      <button
+        type="button"
+        onClick={onBack}
+        className="text-xs font-medium text-[var(--color-stone-300)] underline underline-offset-2"
+      >
+        Back
+      </button>
+      <p className="text-xs uppercase tracking-[0.08em] text-[var(--color-stone-400)]">
+        {label}
+      </p>
+    </div>
+  );
+}
+
+function OwnedActionsDeck({
+  retailerId,
+  card,
+}: {
+  retailerId: string;
+  card: OwnedCardModel;
+}) {
+  const [open, setOpen] = useState(false);
+  const [screen, setScreen] = useState<DeckScreen>({ kind: "menu" });
+  const [selfScanConsent, setSelfScanConsent] = useState(false);
+
+  const initialActionState: WardrobeActionState = { fieldErrors: {} };
+  const [retireState, retireAction, retirePending] = useActionState(
+    retireWardrobeItem,
+    initialActionState,
+  );
+  const initialServiceState: WardrobeServiceRequestState = { fieldErrors: {} };
+  const [serviceState, serviceAction, servicePending] = useActionState(
+    requestWardrobeItemService,
+    initialServiceState,
+  );
+  const [reorderState, reorderAction, reorderPending] = useActionState(
+    requestWardrobeItemReorderViaAdvisor,
+    initialServiceState,
+  );
+  const initialLifecycleState: LifecycleActionState = { fieldErrors: {} };
+  const [selfScanState, selfScanAction, selfScanPending] = useActionState(
+    submitWardrobeSelfScan,
+    initialLifecycleState,
+  );
+  const initialAskState: AdvisorAskState = { fieldErrors: {} };
+  const [askState, askAction, askPending] = useActionState(
+    askAdvisorAboutWardrobeItem,
+    initialAskState,
+  );
+
+  function closeDeck() {
+    setOpen(false);
+    setScreen({ kind: "menu" });
+  }
+
+  const item = card.item;
+
+  return (
+    <>
+      {!open ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="absolute bottom-3.5 left-3.5 z-10 text-sm font-medium text-white underline-offset-2 hover:underline"
         >
-          <span className="font-display text-2xl text-[var(--color-stone-500)]">
-            {item.categoryCode.replaceAll("_", " ")}
-          </span>
-        </div>
-      )}
-      <div className="flex flex-1 flex-col gap-3 p-4">
-        <div>
-          <p className="text-sm font-medium text-[var(--color-stone-900)]">
-            {item.brand ? `${item.brand} · ` : ""}
-            {item.displayName}
-          </p>
-          <p className="mt-1 text-xs text-[var(--color-stone-500)]">
-            {item.categoryCode.replaceAll("_", " ")} · {ownershipLabel(item)} ·{" "}
-            {provenanceLabel(item)}
-          </p>
-        </div>
-        {item.description ? (
-          <p className="line-clamp-3 text-sm text-[var(--color-stone-600)]">
-            {item.description}
-          </p>
-        ) : null}
-        <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
-          <div>
-            <dt className="text-[var(--color-stone-500)]">Care</dt>
-            <dd className="text-[var(--color-stone-700)]">
-              {item.careState.replaceAll("_", " ")}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-[var(--color-stone-500)]">Fit</dt>
-            <dd className="text-[var(--color-stone-700)]">
-              {item.fitPerception.replaceAll("_", " ")}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-[var(--color-stone-500)]">Condition</dt>
-            <dd className="text-[var(--color-stone-700)]">
-              {item.condition.replaceAll("_", " ")}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-[var(--color-stone-500)]">Wear</dt>
-            <dd className="text-[var(--color-stone-700)]">
-              {item.wearFrequency ?? "Not set"}
-            </dd>
-          </div>
-        </dl>
-        {item.fitNotes ? (
-          <p className="text-xs text-[var(--color-stone-600)]">
-            Fit note: {item.fitNotes}
-          </p>
-        ) : null}
-        {history.length > 0 ? (
-          <details className="text-xs text-[var(--color-stone-500)]">
-            <summary className="cursor-pointer">Ownership history</summary>
-            <ul className="mt-2 space-y-1">
-              {history.map((event) => (
-                <li key={event.id}>
-                  {event.eventKind.replaceAll("_", " ")} ·{" "}
-                  {event.ownershipKind.replaceAll("_", " ")} ·{" "}
-                  {new Date(event.occurredAt).toLocaleDateString()}
-                </li>
-              ))}
-            </ul>
-          </details>
-        ) : null}
-        {completeTheLookSuggestions.length > 0 ? (
-          <details
-            className="text-xs text-[var(--color-stone-500)]"
-            data-item-complete-the-look
-          >
-            <summary className="cursor-pointer">Complete the look</summary>
-            <ul className="-mx-1 mt-2 flex snap-x gap-2 overflow-x-auto px-1 pb-1">
-              {completeTheLookSuggestions.map((suggestion) => (
-                <SuggestedLookTile
-                  key={suggestion.productId}
-                  retailerId={retailerId}
-                  suggestion={suggestion}
-                />
-              ))}
-            </ul>
-          </details>
-        ) : null}
-        <div className="mt-auto flex flex-wrap gap-2 pt-1">
-          {WARDROBE_SERVICE_REQUEST_KINDS.map((kind) => (
-            <form key={kind} action={serviceRequestAction}>
-              <input type="hidden" name="retailerId" value={retailerId} />
-              <input type="hidden" name="wardrobeItemId" value={item.id} />
-              <input type="hidden" name="kind" value={kind} />
-              <Button
-                type="submit"
-                size="sm"
-                variant="outline"
-                disabled={serviceRequestPending}
+          Actions +
+        </button>
+      ) : null}
+
+      <DeckOverlay open={open}>
+        {screen.kind === "menu" ? (
+          <div className="flex flex-col gap-2">
+            <div className="mb-1 flex items-center justify-between">
+              <p className="line-clamp-1 text-sm font-medium">
+                {item.displayName}
+              </p>
+              <button
+                type="button"
+                onClick={closeDeck}
+                className="text-xs text-[var(--color-stone-300)] underline underline-offset-2"
               >
-                {WARDROBE_SERVICE_REQUEST_KIND_LABELS[kind]}
-              </Button>
-            </form>
-          ))}
-          <form action={retireAction}>
-            <input type="hidden" name="retailerId" value={retailerId} />
+                Close
+              </button>
+            </div>
+            {[
+              {
+                label: "Complete the look",
+                onClick: () => setScreen({ kind: "complete-the-look" }),
+              },
+              {
+                label: "Order again",
+                onClick: () => setScreen({ kind: "order-again" }),
+              },
+            ].map((action) => (
+              <button
+                key={action.label}
+                type="button"
+                onClick={action.onClick}
+                className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-left text-sm"
+              >
+                {action.label}
+              </button>
+            ))}
+            {(["repair", "alteration", "cleaning"] as const).map((kind) => (
+              <form key={kind} action={serviceAction}>
+                <input type="hidden" name="retailerId" value={retailerId} />
+                <input type="hidden" name="wardrobeItemId" value={item.id} />
+                <input type="hidden" name="kind" value={kind} />
+                <button
+                  type="submit"
+                  disabled={servicePending}
+                  className="w-full rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-left text-sm disabled:opacity-50"
+                >
+                  {WARDROBE_SERVICE_REQUEST_KIND_LABELS[kind]}
+                </button>
+              </form>
+            ))}
+            <Link
+              href={`/appointments?prefillReason=service_size_check&prefillWardrobeItemId=${item.id}`}
+              className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-left text-sm"
+            >
+              Request a fit-check in store
+            </Link>
+            {[
+              {
+                label: "Do a fit-check in app",
+                onClick: () => setScreen({ kind: "in-app-fit-check" }),
+              },
+              {
+                label: "Retire",
+                onClick: () => setScreen({ kind: "retire-confirm" }),
+              },
+              {
+                label: "Ask your advisor",
+                onClick: () => setScreen({ kind: "ask-advisor" }),
+              },
+            ].map((action) => (
+              <button
+                key={action.label}
+                type="button"
+                onClick={action.onClick}
+                className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-left text-sm"
+              >
+                {action.label}
+              </button>
+            ))}
+            {serviceState.success ? (
+              <p
+                role="status"
+                className="text-xs text-[var(--color-success-500)]"
+              >
+                Request sent to your advisor.{" "}
+                {serviceState.conversationId ? (
+                  <Link
+                    className="underline"
+                    href={`/messages/${serviceState.conversationId}`}
+                  >
+                    View in Messages
+                  </Link>
+                ) : null}
+              </p>
+            ) : null}
+            {retireState.success ? (
+              <p
+                role="status"
+                className="text-xs text-[var(--color-success-500)]"
+              >
+                Garment marked retired.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
+        {screen.kind === "complete-the-look" ? (
+          <div className="flex flex-col gap-2">
+            <DeckBackRow
+              onBack={() => setScreen({ kind: "menu" })}
+              label="Complete the look"
+            />
+            {card.completeTheLookSuggestions.length > 0 ? (
+              <ul className="flex flex-col gap-2">
+                {card.completeTheLookSuggestions.map((suggestion) => (
+                  <SuggestedLookTile
+                    key={suggestion.productId}
+                    retailerId={retailerId}
+                    suggestion={suggestion}
+                  />
+                ))}
+              </ul>
+            ) : (
+              <p className="text-xs text-[var(--color-stone-400)]">
+                No real suggestions available for this item yet.
+              </p>
+            )}
+          </div>
+        ) : null}
+
+        {screen.kind === "order-again" ? (
+          <div className="flex flex-col gap-2">
+            <DeckBackRow
+              onBack={() => setScreen({ kind: "menu" })}
+              label="Order again"
+            />
+            <p className="text-xs text-[var(--color-stone-300)]">
+              Has this garment been altered by another tailor? We recommend an
+              in-store fit check so your current size can be updated.
+            </p>
+            {card.productDetailHref ? (
+              <Link
+                href={card.productDetailHref}
+                className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-sm"
+              >
+                The size is perfect
+              </Link>
+            ) : (
+              <form action={reorderAction}>
+                <input type="hidden" name="retailerId" value={retailerId} />
+                <input type="hidden" name="wardrobeItemId" value={item.id} />
+                <Button type="submit" size="sm" disabled={reorderPending}>
+                  Ask your advisor to reorder
+                </Button>
+              </form>
+            )}
+            <Link
+              href={`/appointments?prefillReason=service_size_check&prefillWardrobeItemId=${item.id}`}
+              className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-sm"
+            >
+              Request a fit-check in store
+            </Link>
+            <button
+              type="button"
+              onClick={() => setScreen({ kind: "in-app-fit-check" })}
+              className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-left text-sm"
+            >
+              Do a fit-check in app
+            </button>
+            {reorderState.success ? (
+              <p
+                role="status"
+                className="text-xs text-[var(--color-success-500)]"
+              >
+                Request sent to your advisor.{" "}
+                {reorderState.conversationId ? (
+                  <Link
+                    className="underline"
+                    href={`/messages/${reorderState.conversationId}`}
+                  >
+                    View in Messages
+                  </Link>
+                ) : null}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
+        {screen.kind === "in-app-fit-check" ? (
+          <form action={selfScanAction} className="flex flex-col gap-2">
+            <DeckBackRow
+              onBack={() => setScreen({ kind: "menu" })}
+              label="Fit-check in app"
+            />
             <input type="hidden" name="wardrobeItemId" value={item.id} />
+            <label className="text-xs text-[var(--color-stone-300)]">
+              Photo (optional)
+              <input
+                type="file"
+                name="photo"
+                accept="image/jpeg,image/png,image/webp"
+                className="mt-1 block w-full text-xs"
+              />
+            </label>
+            <label className="text-xs text-[var(--color-stone-300)]">
+              Notes
+              <textarea
+                name="notes"
+                rows={2}
+                className="mt-1 w-full rounded-[8px] bg-white/[0.08] p-2 text-xs"
+              />
+            </label>
+            <label className="text-xs text-[var(--color-stone-300)]">
+              Perceived fit
+              <select
+                name="fitPerceptionAtScan"
+                defaultValue="true_to_size"
+                className="mt-1 w-full rounded-[8px] bg-white/[0.08] p-2 text-xs"
+              >
+                <option value="true_to_size">True to size</option>
+                <option value="slightly_tight">Slightly tight</option>
+                <option value="slightly_loose">Slightly loose</option>
+                <option value="needs_alteration">Needs alteration</option>
+                <option value="unknown">Not sure</option>
+              </select>
+            </label>
+            <label className="flex items-center gap-2 text-xs text-[var(--color-stone-300)]">
+              <input type="checkbox" name="sizeChangeReported" />
+              My size has changed
+            </label>
+            <label className="flex items-center gap-2 text-xs text-[var(--color-stone-300)]">
+              <input
+                type="checkbox"
+                checked={selfScanConsent}
+                onChange={(event) => setSelfScanConsent(event.target.checked)}
+                required
+              />
+              I consent to sharing this self-reported photo/notes with my
+              advisor. This never becomes an official measurement.
+            </label>
+            <input type="hidden" name="requestServiceHandoff" value="on" />
             <Button
               type="submit"
               size="sm"
-              variant="outline"
-              disabled={retirePending}
+              disabled={selfScanPending || !selfScanConsent}
             >
-              Retire
+              Submit fit-check
             </Button>
+            {selfScanState.success ? (
+              <p
+                role="status"
+                className="text-xs text-[var(--color-success-500)]"
+              >
+                Fit-check submitted to your advisor.
+              </p>
+            ) : null}
+            {selfScanState.formError ? (
+              <p
+                role="alert"
+                className="text-xs text-[var(--color-danger-500)]"
+              >
+                {selfScanState.formError}
+              </p>
+            ) : null}
           </form>
-        </div>
-      </div>
+        ) : null}
+
+        {screen.kind === "retire-confirm" ? (
+          <div className="flex flex-col gap-2">
+            <DeckBackRow
+              onBack={() => setScreen({ kind: "menu" })}
+              label="Retire"
+            />
+            <p className="text-sm">
+              Are you sure you want to retire {item.displayName}? Retired
+              garments are kept for ownership and service history but no longer
+              appear as active pieces.
+            </p>
+            <form action={retireAction} className="flex gap-2">
+              <input type="hidden" name="retailerId" value={retailerId} />
+              <input type="hidden" name="wardrobeItemId" value={item.id} />
+              <Button type="submit" size="sm" disabled={retirePending}>
+                Confirm retire
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => setScreen({ kind: "menu" })}
+              >
+                Cancel
+              </Button>
+            </form>
+          </div>
+        ) : null}
+
+        {screen.kind === "ask-advisor" ? (
+          <div className="flex flex-col gap-2">
+            <DeckBackRow
+              onBack={() => setScreen({ kind: "menu" })}
+              label="Ask your advisor"
+            />
+            <p className="text-xs text-[var(--color-stone-300)]">
+              Sends a real message to your advisor with this garment attached.
+            </p>
+            {(["complete_the_look", "fit_check"] as const).map((prompt) => (
+              <form key={prompt} action={askAction}>
+                <input type="hidden" name="retailerId" value={retailerId} />
+                <input type="hidden" name="wardrobeItemId" value={item.id} />
+                <input type="hidden" name="starterPrompt" value={prompt} />
+                <Button type="submit" size="sm" disabled={askPending}>
+                  {prompt === "complete_the_look"
+                    ? "Complete the look"
+                    : "Request a fit-check"}
+                </Button>
+              </form>
+            ))}
+            {askState.success ? (
+              <p
+                role="status"
+                className="text-xs text-[var(--color-success-500)]"
+              >
+                Sent to your advisor.{" "}
+                {askState.conversationId ? (
+                  <Link
+                    className="underline"
+                    href={`/messages/${askState.conversationId}`}
+                  >
+                    View in Messages
+                  </Link>
+                ) : null}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+      </DeckOverlay>
+    </>
+  );
+}
+
+function OwnedCard({
+  retailerId,
+  card,
+}: {
+  retailerId: string;
+  card: OwnedCardModel;
+}) {
+  const item = card.item;
+  return (
+    <article className={CARD_CLASS}>
+      <CardImageLayers
+        imageUrl={item.identifyingPhotoUrl}
+        alt={item.displayName}
+      />
+      <ProgressiveBottomPanel>
+        <p className="font-display truncate text-[20px] text-white">
+          {item.displayName}
+        </p>
+        <p className="text-xs text-[var(--color-stone-200)]">
+          {card.purchasedOnLabel}
+        </p>
+        <span className="h-5" aria-hidden="true" />
+      </ProgressiveBottomPanel>
+      <OwnedActionsDeck retailerId={retailerId} card={card} />
     </article>
   );
 }
 
-/** An approved roadmap gap not yet filled by a real purchase or wardrobe
- * item — "the ideal wardrobe roadmap" the customer's advisor already
- * approved with them, surfaced in the same carousel as what they own
- * rather than buried on a separate roadmap page. A filled gap already has
- * an owned card representing it, so it is excluded here to avoid showing
- * the same piece twice. */
-function AspirationalGapCard({ gap }: { gap: WardrobeRoadmapGap }) {
+function AdvisorSelectionCard({
+  retailerId,
+  gap,
+  suggestedProduct,
+  alternatives,
+}: {
+  retailerId: string;
+  gap: WardrobeRoadmapGap;
+  suggestedProduct: AdvisorSelectionProductLink | undefined;
+  alternatives: readonly AdvisorSelectionAlternative[];
+}) {
+  const [open, setOpen] = useState(false);
+  const [showAlternatives, setShowAlternatives] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(false);
+  const initialAskState: AdvisorAskState = { fieldErrors: {} };
+  const [askState, askAction, askPending] = useActionState(
+    askAdvisorAboutWardrobeItem,
+    initialAskState,
+  );
+  const initialRemoveState: CustomerRoadmapActionState = { fieldErrors: {} };
+  const [removeState, removeAction, removePending] = useActionState(
+    removeAdvisorSelectionFromPlan,
+    initialRemoveState,
+  );
+
+  // Phase 20.17 — once the removal persists the card is gone from the
+  // customer's wardrobe plan (the server component also refetches without
+  // it via revalidatePath).
+  if (removeState.success) return null;
+
   return (
-    <article className="flex w-[min(78vw,18rem)] shrink-0 snap-start flex-col overflow-hidden rounded-[var(--radius-lg)] border border-dashed border-[var(--color-stone-300)] bg-[var(--color-stone-50)] sm:w-72">
-      <div className="flex aspect-[4/3] items-end p-4" aria-hidden="true">
-        <span className="rounded-full bg-white px-3 py-1 text-[10px] font-medium uppercase tracking-wide text-[var(--color-stone-600)]">
-          On your roadmap
-        </span>
-      </div>
-      <div className="flex flex-1 flex-col gap-2 p-4">
-        <p className="text-sm font-medium text-[var(--color-stone-900)]">
+    <article className={CARD_CLASS}>
+      <CardImageLayers
+        imageUrl={suggestedProduct?.primaryImageUrl}
+        alt={gap.title}
+      />
+      <span className="absolute right-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-[var(--color-stone-800)]">
+        Advisor selection
+      </span>
+      <ProgressiveBottomPanel>
+        <p className="font-display truncate text-[20px] text-white">
           {gap.title}
         </p>
-        {gap.description ? (
-          <p className="line-clamp-3 text-sm text-[var(--color-stone-600)]">
-            {gap.description}
-          </p>
-        ) : null}
         {gap.howPurchaseFillsGap ? (
-          <p className="text-xs text-[var(--color-stone-500)]">
-            Why: {gap.howPurchaseFillsGap}
+          <p className="line-clamp-2 text-xs text-[var(--color-stone-200)]">
+            {gap.howPurchaseFillsGap}
           </p>
         ) : null}
-      </div>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="self-start text-sm font-medium text-white underline-offset-2 hover:underline"
+        >
+          Actions +
+        </button>
+      </ProgressiveBottomPanel>
+
+      <DeckOverlay open={open}>
+        <div className="flex flex-col gap-2">
+          <div className="mb-1 flex items-center justify-between">
+            <p className="line-clamp-1 text-sm font-medium">{gap.title}</p>
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                setShowAlternatives(false);
+                setConfirmRemove(false);
+              }}
+              className="text-xs text-[var(--color-stone-300)] underline underline-offset-2"
+            >
+              Close
+            </button>
+          </div>
+          {confirmRemove ? (
+            <div className="flex flex-col gap-2">
+              <DeckBackRow
+                onBack={() => setConfirmRemove(false)}
+                label="Remove from wardrobe plan"
+              />
+              <p className="text-sm text-[var(--color-stone-200)]">
+                Remove &ldquo;{gap.title}&rdquo; from your wardrobe plan? Your
+                advisor keeps their original plan &mdash; this only hides the
+                selection from your wardrobe.
+              </p>
+              <form action={removeAction} className="flex gap-2">
+                <input type="hidden" name="retailerId" value={retailerId} />
+                <input type="hidden" name="roadmapGapId" value={gap.id} />
+                <Button type="submit" size="sm" disabled={removePending}>
+                  Confirm removal
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setConfirmRemove(false)}
+                >
+                  Cancel
+                </Button>
+              </form>
+              {removeState.formError ? (
+                <p
+                  role="alert"
+                  className="text-xs text-[var(--color-danger-500)]"
+                >
+                  {removeState.formError}
+                </p>
+              ) : null}
+            </div>
+          ) : !showAlternatives ? (
+            <>
+              {suggestedProduct ? (
+                <Link
+                  href={`/r/${retailerId}/products/${suggestedProduct.slug}`}
+                  className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-sm"
+                >
+                  Buy
+                </Link>
+              ) : null}
+              <form action={askAction}>
+                <input type="hidden" name="retailerId" value={retailerId} />
+                <input
+                  type="hidden"
+                  name="starterPrompt"
+                  value="discuss_roadmap_gap"
+                />
+                <input type="hidden" name="wardrobeItemId" value="" />
+                <input type="hidden" name="roadmapGapTitle" value={gap.title} />
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={askPending}
+                  className="w-full"
+                >
+                  Discuss with advisor
+                </Button>
+              </form>
+              <Link
+                href={`/appointments?prefillReason=in_the_mood_for_something_fresh&prefillRoadmapGapId=${gap.id}`}
+                className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-sm"
+              >
+                Proceed in store
+              </Link>
+              <button
+                type="button"
+                onClick={() => setShowAlternatives(true)}
+                className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-left text-sm"
+              >
+                Explore alternatives
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmRemove(true)}
+                className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-left text-sm"
+              >
+                Remove from wardrobe plan
+              </button>
+              {suggestedProduct ? (
+                <Link
+                  href={`/digital-fitting-room?productSlug=${suggestedProduct.slug}`}
+                  className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-sm"
+                >
+                  Add to Digital Fitting Room
+                </Link>
+              ) : null}
+              {askState.success ? (
+                <p
+                  role="status"
+                  className="text-xs text-[var(--color-success-500)]"
+                >
+                  Sent to your advisor.
+                </p>
+              ) : null}
+            </>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <DeckBackRow
+                onBack={() => setShowAlternatives(false)}
+                label="Alternatives"
+              />
+              {alternatives.length > 0 ? (
+                alternatives.slice(0, 6).map((alternative) => (
+                  <Link
+                    key={alternative.productId}
+                    href={`/r/${retailerId}/products/${alternative.productSlug}`}
+                    className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-sm"
+                  >
+                    {alternative.displayName}
+                  </Link>
+                ))
+              ) : (
+                <p className="text-xs text-[var(--color-stone-400)]">
+                  No real alternatives in this category yet.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </DeckOverlay>
     </article>
   );
 }
 
-/** Always-visible horizontal carousel, one per garment category, stacked
- * top to bottom — no click-to-expand: browsing the wardrobe means
- * scrolling within each rail, not opening one section at a time. No
- * `downloaded_pages` fragment matches a personal-wardrobe carousel
- * (checked directly: only a decorative, differently-categorised homepage
- * image carousel exists — see FOUNDER_TOOL_BLUEPRINTS.md FT-12), so this
- * is built with PAON primitives against the founder's own physical
- * description (layered depth, horizontal movement) rather than guessed
- * pixels. Aspirational pieces from an approved roadmap gap appear at the
- * end of the same strip, visually distinct (dashed border), so the
- * customer's advisor-approved "ideal wardrobe" lives in the one place they
- * already browse what they own — not a separate page. */
-function WardrobeCarousel({
-  id,
-  label,
-  items,
-  gaps,
+function EmptySlot() {
+  return (
+    <div
+      className="flex h-80 w-56 shrink-0 snap-start flex-col items-center justify-center gap-2 rounded-[15px] bg-[radial-gradient(circle_at_50%_38%,rgba(166,181,157,0.12),transparent_32%),linear-gradient(145deg,rgba(255,255,255,0.065),rgba(255,255,255,0.015))]"
+      aria-hidden="true"
+      data-empty-slot
+    >
+      <span className="text-2xl text-[var(--color-stone-500)]">+</span>
+    </div>
+  );
+}
+
+function WardrobeRail({
   retailerId,
-  historyByItemId,
-  completeTheLookByCategory,
-  retireAction,
-  retirePending,
-  serviceRequestAction,
-  serviceRequestPending,
+  label,
+  ownedCards,
+  gaps,
+  suggestedProductByGapId,
+  alternativesByCategory,
 }: {
-  id: string;
-  label: string;
-  items: readonly WardrobeItem[];
-  gaps: readonly WardrobeRoadmapGap[];
   retailerId: string;
-  historyByItemId: Readonly<Record<string, readonly WardrobeOwnershipEvent[]>>;
-  completeTheLookByCategory: Readonly<
-    Partial<Record<GarmentCategoryCode, readonly CompleteTheLookSuggestion[]>>
+  label: string;
+  ownedCards: readonly OwnedCardModel[];
+  gaps: readonly WardrobeRoadmapGap[];
+  suggestedProductByGapId: Readonly<
+    Record<string, AdvisorSelectionProductLink | undefined>
   >;
-  retireAction: (payload: FormData) => void;
-  retirePending: boolean;
-  serviceRequestAction: (payload: FormData) => void;
-  serviceRequestPending: boolean;
+  alternativesByCategory: Readonly<
+    Record<string, readonly AdvisorSelectionAlternative[]>
+  >;
 }) {
-  const headerId = `wardrobe-carousel-${retailerId}-${id}`;
+  const headerId = `wardrobe-rail-${retailerId}-${label}`;
 
   return (
-    <section aria-labelledby={headerId}>
-      <div className="flex items-baseline justify-between gap-3 py-2">
-        <h3
-          id={headerId}
-          className="font-display text-xl text-[var(--color-stone-900)]"
-        >
+    <section
+      aria-labelledby={headerId}
+      data-wardrobe-rail={label}
+      className="border-t border-white/10 py-6 first:border-t-0"
+    >
+      <div className="flex items-baseline justify-between gap-3 px-5 sm:px-10 lg:px-14">
+        <h3 id={headerId} className="font-display text-xl text-white">
           {label}
         </h3>
-        <span className="text-xs text-[var(--color-stone-500)]">
-          {items.length} piece{items.length === 1 ? "" : "s"}
-          {gaps.length > 0 ? ` · ${gaps.length} on the roadmap` : ""}
+        <span className="text-xs text-[var(--color-stone-400)]">
+          {ownedCards.length} piece{ownedCards.length === 1 ? "" : "s"}
         </span>
       </div>
-      {items.length > 0 || gaps.length > 0 ? (
-        <div
-          className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2"
-          style={{ scrollbarWidth: "thin" }}
-        >
-          {items.map((item) => (
-            <WardrobeItemCard
-              key={item.id}
-              retailerId={retailerId}
-              item={item}
-              history={historyByItemId[item.id] ?? []}
-              completeTheLookSuggestions={
-                completeTheLookByCategory[item.categoryCode] ?? []
-              }
-              retireAction={retireAction}
-              retirePending={retirePending}
-              serviceRequestAction={serviceRequestAction}
-              serviceRequestPending={serviceRequestPending}
-            />
-          ))}
-          {gaps.map((gap) => (
-            <AspirationalGapCard key={gap.id} gap={gap} />
-          ))}
-        </div>
-      ) : (
-        <div className="rounded-[var(--radius-md)] border border-dashed border-[var(--color-stone-300)] px-4 py-7 text-center">
-          <p className="text-sm text-[var(--color-stone-500)]">
-            No {label.toLowerCase()} in this wardrobe yet.
-          </p>
-        </div>
-      )}
+      <div
+        className="mt-4 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-5 pb-2 sm:px-10 lg:px-14"
+        style={{ scrollbarWidth: "thin" }}
+      >
+        {ownedCards.map((card) => (
+          <OwnedCard key={card.item.id} retailerId={retailerId} card={card} />
+        ))}
+        {gaps.map((gap) => (
+          <AdvisorSelectionCard
+            key={gap.id}
+            retailerId={retailerId}
+            gap={gap}
+            suggestedProduct={suggestedProductByGapId[gap.id]}
+            alternatives={
+              gap.categoryCode
+                ? (alternativesByCategory[gap.categoryCode] ?? [])
+                : []
+            }
+          />
+        ))}
+        {Array.from({ length: EMPTY_SLOT_COUNT }, (_, index) => (
+          <EmptySlot key={index} />
+        ))}
+      </div>
     </section>
   );
 }
 
-export function WardrobeHousePanel({
-  retailerId,
-  retailerName,
-  customerId,
-  items,
-  historyByItemId,
-  roadmaps,
-  completeTheLookByCategory,
-}: {
-  retailerId: string;
-  retailerName: string;
-  customerId: string;
-  items: readonly WardrobeItem[];
-  historyByItemId: Readonly<Record<string, readonly WardrobeOwnershipEvent[]>>;
-  roadmaps: readonly WardrobeRoadmap[];
-  completeTheLookByCategory: Readonly<
-    Partial<Record<GarmentCategoryCode, readonly CompleteTheLookSuggestion[]>>
-  >;
-}) {
-  const initialState: WardrobeActionState = { fieldErrors: {} };
-  const initialServiceRequestState: WardrobeServiceRequestState = {
-    fieldErrors: {},
-  };
-  const [addState, addAction, addPending] = useActionState(
-    addExternalWardrobeItem,
+function PendingRoadmapBanner({ roadmap }: { roadmap: PendingRoadmapSummary }) {
+  const initialState: CustomerRoadmapActionState = { fieldErrors: {} };
+  const [state, action, pending] = useActionState(
+    decideWardrobeRoadmap,
     initialState,
   );
-  const [retireState, retireAction, retirePending] = useActionState(
-    retireWardrobeItem,
-    initialState,
-  );
-  const [serviceRequestState, serviceRequestAction, serviceRequestPending] =
-    useActionState(requestWardrobeItemService, initialServiceRequestState);
 
-  const active = items.filter((item) => item.condition !== "retired");
-  const retired = items.filter((item) => item.condition === "retired");
-  const openGaps = roadmaps
-    .filter((roadmap) => roadmap.status === "approved")
-    .flatMap((roadmap) => roadmap.gaps)
-    .filter((gap) => !gap.filledByProductId && !gap.filledByWardrobeItemId);
-  const sectionsWithItems = WARDROBE_SECTIONS.map((section) => ({
-    section,
-    items: active.filter((item) =>
-      (section.categories as readonly GarmentCategoryCode[]).includes(
-        item.categoryCode,
-      ),
-    ),
-    gaps: openGaps.filter(
-      (gap) =>
-        gap.categoryCode &&
-        (section.categories as readonly GarmentCategoryCode[]).includes(
-          gap.categoryCode,
-        ),
-    ),
-  }));
+  if (state.success) return null;
 
   return (
-    <Card className="flex flex-col gap-5">
-      <div>
-        <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
-          Wardrobe — {retailerName}
-        </h2>
-        <p className="text-sm text-[var(--color-stone-500)]">
-          Pieces you own with this house. External garments stay private to this
-          relationship; fit notes are self-reported and never become official
-          measurements.
-        </p>
+    <div className="flex flex-wrap items-center justify-between gap-3 border-y border-white/10 bg-white/[0.035] px-5 py-4">
+      <p className="text-sm text-white">
+        Your advisor shared a plan awaiting your review: {roadmap.title}
+      </p>
+      <div className="flex gap-2">
+        <form action={action}>
+          <input type="hidden" name="roadmapId" value={roadmap.id} />
+          <input type="hidden" name="action" value="approve" />
+          <Button type="submit" size="sm" disabled={pending}>
+            Approve
+          </Button>
+        </form>
+        <form action={action}>
+          <input type="hidden" name="roadmapId" value={roadmap.id} />
+          <input type="hidden" name="action" value="reject" />
+          <Button type="submit" size="sm" variant="outline" disabled={pending}>
+            Request changes
+          </Button>
+        </form>
       </div>
+      {state.formError ? (
+        <p
+          role="alert"
+          className="w-full text-xs text-[var(--color-danger-500)]"
+        >
+          {state.formError}
+        </p>
+      ) : null}
+    </div>
+  );
+}
 
-      {addState.formError ||
-      retireState.formError ||
-      serviceRequestState.formError ? (
-        <p role="alert" className="text-sm text-[var(--color-danger-500)]">
-          {addState.formError ??
-            retireState.formError ??
-            serviceRequestState.formError}
-        </p>
-      ) : null}
-      {addState.success ? (
-        <p role="status" className="text-sm text-[var(--color-success-500)]">
-          External garment added to your wardrobe.
-        </p>
-      ) : null}
-      {retireState.success ? (
-        <p role="status" className="text-sm text-[var(--color-success-500)]">
-          Garment marked retired.
-        </p>
-      ) : null}
-      {serviceRequestState.success ? (
-        <p role="status" className="text-sm text-[var(--color-success-500)]">
-          Request sent to your advisor.{" "}
-          {serviceRequestState.conversationId ? (
-            <Link
-              className="underline"
-              href={`/messages/${serviceRequestState.conversationId}`}
-            >
-              View in Messages
-            </Link>
-          ) : null}
-        </p>
+export function WardrobeRailsPanel({
+  retailerId,
+  ownedCards,
+  openGaps,
+  suggestedProductIdByGapId,
+  suggestedProductById,
+  alternativesByCategory,
+  pendingApprovalRoadmap,
+}: {
+  retailerId: string;
+  ownedCards: readonly OwnedCardModel[];
+  openGaps: readonly WardrobeRoadmapGap[];
+  suggestedProductIdByGapId: Readonly<Record<string, string>>;
+  suggestedProductById: Readonly<Record<string, AdvisorSelectionProductLink>>;
+  alternativesByCategory: Readonly<
+    Record<string, readonly AdvisorSelectionAlternative[]>
+  >;
+  pendingApprovalRoadmap: PendingRoadmapSummary | undefined;
+}) {
+  const suggestedProductByGapId: Record<
+    string,
+    AdvisorSelectionProductLink | undefined
+  > = {};
+  for (const [gapId, productId] of Object.entries(suggestedProductIdByGapId)) {
+    suggestedProductByGapId[gapId] = suggestedProductById[productId];
+  }
+
+  return (
+    <div className="flex flex-col">
+      {pendingApprovalRoadmap ? (
+        <PendingRoadmapBanner roadmap={pendingApprovalRoadmap} />
       ) : null}
 
-      <div className="flex flex-col gap-3" role="presentation">
-        {sectionsWithItems.map(({ section, items: sectionItems, gaps }) => (
-          <WardrobeCarousel
-            key={section.id}
-            id={section.id}
-            label={section.label}
-            items={sectionItems}
-            gaps={gaps}
+      <div className="flex flex-col">
+        {WARDROBE_RAILS.map((rail) => (
+          <WardrobeRail
+            key={rail.id}
             retailerId={retailerId}
-            historyByItemId={historyByItemId}
-            completeTheLookByCategory={completeTheLookByCategory}
-            retireAction={retireAction}
-            retirePending={retirePending}
-            serviceRequestAction={serviceRequestAction}
-            serviceRequestPending={serviceRequestPending}
+            label={rail.label}
+            ownedCards={ownedCards.filter((card) =>
+              (rail.categories as readonly GarmentCategoryCode[]).includes(
+                card.item.categoryCode,
+              ),
+            )}
+            gaps={openGaps.filter(
+              (gap) =>
+                gap.categoryCode &&
+                (rail.categories as readonly GarmentCategoryCode[]).includes(
+                  gap.categoryCode,
+                ),
+            )}
+            suggestedProductByGapId={suggestedProductByGapId}
+            alternativesByCategory={alternativesByCategory}
           />
         ))}
-        {active.length === 0 ? (
-          <p role="status" className="text-sm text-[var(--color-stone-500)]">
-            Add a garment bought elsewhere, or ask your advisor to link a
-            purchase from this house.
-          </p>
-        ) : null}
-        {retired.length > 0 ? (
-          <p className="text-xs text-[var(--color-stone-500)]">
-            {retired.length} retired piece
-            {retired.length === 1 ? "" : "s"} kept for ownership and service
-            history.
-          </p>
-        ) : null}
       </div>
-
-      <form
-        action={addAction}
-        className="flex flex-col gap-3 border-t border-[var(--color-stone-100)] pt-5"
-        aria-label={`Add external garment for ${retailerName}`}
-      >
-        <input type="hidden" name="retailerId" value={retailerId} />
-        <input type="hidden" name="customerId" value={customerId} />
-        <h3 className="text-sm font-medium text-[var(--color-stone-900)]">
-          Add an external garment
-        </h3>
-        <p className="text-xs text-[var(--color-stone-500)]">
-          Descriptions stay with this house. Metadata proposals are reviewable
-          by your advisor and never invent a catalogue product.
-        </p>
-        <label className="flex flex-col gap-1 text-sm">
-          <span>Name</span>
-          <input
-            name="displayName"
-            required
-            maxLength={200}
-            className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2"
-            aria-invalid={!!addState.fieldErrors.displayName}
-          />
-          {addState.fieldErrors.displayName ? (
-            <span className="text-xs text-[var(--color-danger-500)]">
-              {addState.fieldErrors.displayName}
-            </span>
-          ) : null}
-        </label>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="flex flex-col gap-1 text-sm">
-            <span>Category</span>
-            <select
-              name="categoryCode"
-              required
-              className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2"
-              defaultValue="jacket"
-            >
-              {GARMENT_CATEGORIES.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            <span>Brand</span>
-            <input
-              name="brand"
-              maxLength={120}
-              className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2"
-            />
-          </label>
-        </div>
-        <label className="flex flex-col gap-1 text-sm">
-          <span>Description</span>
-          <textarea
-            name="description"
-            maxLength={2000}
-            rows={2}
-            className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2"
-          />
-        </label>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="flex flex-col gap-1 text-sm">
-            <span>Condition</span>
-            <select
-              name="condition"
-              className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2"
-              defaultValue="good"
-            >
-              {WARDROBE_CONDITION_STATES.filter(
-                (state) => state !== "retired",
-              ).map((state) => (
-                <option key={state} value={state}>
-                  {state.replaceAll("_", " ")}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            <span>Wear</span>
-            <select
-              name="wearFrequency"
-              className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2"
-              defaultValue=""
-            >
-              <option value="">Not set</option>
-              {WARDROBE_WEAR_FREQUENCIES.map((state) => (
-                <option key={state} value={state}>
-                  {state}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            <span>Care</span>
-            <select
-              name="careState"
-              className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2"
-              defaultValue="current"
-            >
-              {WARDROBE_CARE_STATES.map((state) => (
-                <option key={state} value={state}>
-                  {state.replaceAll("_", " ")}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            <span>Perceived fit</span>
-            <select
-              name="fitPerception"
-              className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2"
-              defaultValue="unknown"
-            >
-              {WARDROBE_FIT_PERCEPTIONS.map((state) => (
-                <option key={state} value={state}>
-                  {state.replaceAll("_", " ")}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        <label className="flex flex-col gap-1 text-sm">
-          <span>Fit notes (self-reported)</span>
-          <textarea
-            name="fitNotes"
-            maxLength={2000}
-            rows={2}
-            className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2"
-          />
-        </label>
-        <Button type="submit" disabled={addPending}>
-          {addPending ? "Adding…" : "Add to wardrobe"}
-        </Button>
-      </form>
-    </Card>
+    </div>
   );
 }

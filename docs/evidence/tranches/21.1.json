@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "21.1",
+  "requirementIds": ["UNAV-005"],
+  "status": "verified_local",
+  "title": "shared storefront chrome \u2014 deferred (seam supersedes)",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "n_a",
+    "origin_ui": "n_a",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "n_a",
+    "browser": "n_a",
+    "operations": "n_a",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "n_a",
+    "origin_ui": "n_a",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "n_a",
+    "browser": "deferred per docs/PHASE.md entry: the cross-document View Transition in 21.2 covers the visual change at the boundary; forcing shared header/footer between shop storefront and account dashboard risks a C1 parity regression against frozen baseline for no user-visible gain; revisit only if a hard-cut (no transition) surface appears; not pursued",
+    "operations": "n_a",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "n_a",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "n_a",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-customer-workspace",
+  "browserProofSpec": "apps/customer/e2e/storefront-dashboard-roundtrip.spec.ts",
+  "assertedAt": "2026-09-02T08:50:00.000Z"
+}

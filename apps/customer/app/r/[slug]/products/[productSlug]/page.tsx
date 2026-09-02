@@ -193,6 +193,25 @@ export default async function StorefrontProductPage({
               .
             </p>
           </div>
+
+          {isSignedIn ? (
+            <div className="mt-6 rounded-[15px] bg-[var(--color-stone-900)] p-5 text-white">
+              <p className="font-display text-lg">
+                Try in Digital Fitting Room
+              </p>
+              <ol className="mt-2 list-decimal space-y-1 pl-4 text-sm text-[var(--color-stone-300)]">
+                <li>Approve your Style Portrait once.</li>
+                <li>This piece is added to your look automatically.</li>
+                <li>Generate a visualization of you wearing it.</li>
+              </ol>
+              <Link
+                href={`/digital-fitting-room?productSlug=${productSlug}`}
+                className="mt-4 inline-block rounded-[15px] bg-white px-4 py-2 text-sm font-medium text-[var(--color-stone-900)]"
+              >
+                Start creating
+              </Link>
+            </div>
+          ) : null}
         </div>
       </div>
     </main>

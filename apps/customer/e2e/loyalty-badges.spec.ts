@@ -61,7 +61,7 @@ test("badges shelf shows all five built-in milestones, not-yet-earned by default
 
   for (const label of [
     "First commission",
-    "Return to the house",
+    "A returning client",
     "New category explored",
     "Full-canvas craft",
     "Advanced cloth",
