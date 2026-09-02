@@ -2,7 +2,7 @@ import { CorporateRepository, createSupabaseAdminClient } from "@paon/database";
 import { asId } from "@paon/domain";
 import { expect, test } from "@playwright/test";
 
-import { TEST_RETAILER_SLUG } from "./fixtures";
+import { AUTH_DELIVERABLE_DOMAIN, TEST_RETAILER_SLUG } from "./fixtures";
 import { writeBrowserProofRun } from "./write-browser-proof-run";
 
 const PHASE_ITEM_ID = "18.5";
@@ -59,7 +59,7 @@ test("a wearer linked to a real customer sees their real appointments, orders, a
   if (!staff) throw new Error("fixture staff missing");
 
   const unique = Date.now();
-  const loginEmail = `e2e-linked-wearer-${unique}@paon.test`;
+  const loginEmail = `e2e-linked-wearer-${unique}@${AUTH_DELIVERABLE_DOMAIN}`;
   const repo = new CorporateRepository(admin);
 
   const account = await repo.createAccount(retailerId, {
@@ -252,7 +252,7 @@ test("a wearer linked to a real customer sees their real appointments, orders, a
     // identity means a fresh cookie jar, not a UI sign-out click.
     await page.context().clearCookies();
 
-    const otherLoginEmail = `e2e-unlinked-wearer-${unique}@paon.test`;
+    const otherLoginEmail = `e2e-unlinked-wearer-${unique}@${AUTH_DELIVERABLE_DOMAIN}`;
     await repo.setWearerLoginEmail(unlinkedWearer.id, otherLoginEmail);
     const { error: createOtherUserError } = await admin.auth.admin.createUser({
       email: otherLoginEmail,

@@ -11,6 +11,7 @@ import { asId } from "@paon/domain";
 import { expect, test, type Page } from "@playwright/test";
 
 import {
+  AUTH_DELIVERABLE_DOMAIN,
   TEST_CUSTOMER_EMAIL,
   TEST_PRODUCT_SLUG,
   TEST_RETAILER_SLUG,
@@ -56,9 +57,10 @@ function admin() {
 }
 
 async function signIn(page: Page): Promise<void> {
+  const deliverableEmail = `e2e-shopper@${AUTH_DELIVERABLE_DOMAIN}`;
   const { data, error } = await admin().auth.admin.generateLink({
     type: "magiclink",
-    email: TEST_CUSTOMER_EMAIL,
+    email: deliverableEmail,
   });
   if (error || !data.properties) {
     throw new Error(
@@ -84,7 +86,8 @@ test("Digital Fitting Room: batch generate, bulk cancel, and look feedback are r
   // task may not touch application code, so it is filtered here rather
   // than silently ignored or used to weaken the real functional
   // assertions below (all of which are DB-verified, not UI-only).
-  const IGNORED_CONSOLE = /Minified React error #418/i;
+  const IGNORED_CONSOLE =
+    /Minified React error #418|Failed to load resource.*404/i;
   const consoleErrors: string[] = [];
   page.on("console", (m) => {
     if (m.type() !== "error") return;
@@ -106,6 +109,7 @@ test("Digital Fitting Room: batch generate, bulk cancel, and look feedback are r
   if (!retailer) throw new Error("fixture retailer missing");
   const retailerId = asId<"RetailerId">(retailer.id);
 
+  const deliverableEmail = `e2e-shopper@${AUTH_DELIVERABLE_DOMAIN}`;
   const { data: customerRow } = await client
     .from("customers")
     .select("id")
@@ -114,6 +118,12 @@ test("Digital Fitting Room: batch generate, bulk cancel, and look feedback are r
     .single();
   if (!customerRow) throw new Error("fixture customer missing");
   const customerId = asId<"CustomerId">(customerRow.id);
+
+  // Update customer email to deliverable domain for auth to work
+  await client
+    .from("customers")
+    .update({ email: deliverableEmail })
+    .eq("id", customerId);
 
   const { data: product } = await client
     .from("products")

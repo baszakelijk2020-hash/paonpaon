@@ -10,7 +10,7 @@ import { NEUTRAL_SARTORIAL_RULE_FIXTURES, asId } from "@paon/domain";
 import { expect, test, type Page } from "@playwright/test";
 
 import {
-  TEST_CUSTOMER_EMAIL,
+  AUTH_DELIVERABLE_DOMAIN,
   TEST_PRODUCT_SLUG,
   TEST_RETAILER_SLUG,
 } from "./fixtures";
@@ -59,9 +59,10 @@ function attachUnfilteredConsole(page: Page): string[] {
 }
 
 async function signIn(page: Page): Promise<void> {
+  const deliverableEmail = `e2e-shopper@${AUTH_DELIVERABLE_DOMAIN}`;
   const { data, error } = await admin().auth.admin.generateLink({
     type: "magiclink",
-    email: TEST_CUSTOMER_EMAIL,
+    email: deliverableEmail,
   });
   if (error || !data.properties) {
     throw new Error(
@@ -88,13 +89,23 @@ async function resolveIdentity(): Promise<{
     .eq("slug", TEST_RETAILER_SLUG)
     .single();
   if (!retailer) throw new Error("fixture retailer missing");
-  const { data: customerRow } = await client
+  const deliverableEmail = `e2e-shopper@${AUTH_DELIVERABLE_DOMAIN}`;
+
+  // Find the fixture customer by retailer_id (there's typically only one fixture customer)
+  const { data: customerRows } = await client
     .from("customers")
     .select("id")
     .eq("retailer_id", retailer.id)
-    .eq("email", TEST_CUSTOMER_EMAIL)
-    .single();
+    .limit(1);
+
+  const customerRow = customerRows?.[0];
   if (!customerRow) throw new Error("fixture customer missing");
+
+  // Update customer email to deliverable domain for auth to work
+  await client
+    .from("customers")
+    .update({ email: deliverableEmail })
+    .eq("id", customerRow.id);
   const { data: staffRow } = await client
     .from("retailer_staff_members")
     .select("id")
