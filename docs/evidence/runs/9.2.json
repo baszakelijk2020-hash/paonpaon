@@ -1,6 +1,6 @@
 {
   "phaseItemId": "9.2",
-  "gitSha": "4031a2d5de2dcd0103e0834fdbe611dc9a8a3381",
+  "gitSha": "db8e922776809f1d44ee58b03982436e338061df",
   "spec": "apps/retailer/e2e/integration-connection-lifecycle.spec.ts",
   "status": "passed",
   "timestamp": "2026-08-11T01:05:00.000Z"

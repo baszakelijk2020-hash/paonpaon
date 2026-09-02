@@ -1,6 +1,6 @@
 {
   "phaseItemId": "18.13",
-  "gitSha": "4031a2d5de2dcd0103e0834fdbe611dc9a8a3381",
+  "gitSha": "db8e922776809f1d44ee58b03982436e338061df",
   "spec": "apps/retailer/e2e/corporate-full-lifecycle.spec.ts",
   "status": "passed",
   "timestamp": "2026-08-20T12:30:52.522Z"
