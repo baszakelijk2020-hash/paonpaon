@@ -211,6 +211,14 @@ by it.
     Checkbox unchanged: `lint`/`typecheck`/`build`/`format:check` are
     green, but the module-off e2e request this item asks for still has
     no local Docker/Supabase to run against.
+  - **Update (2026-09-02):** route-gating.spec.ts added at
+    `apps/retailer/e2e/route-gating.spec.ts`. Comprehensive e2e acceptance
+    test exercising the full requirement: `/production` and `/fabric-pairing`
+    block when `garment_service_operations` is off (200 when active),
+    `/concepts` (FT-03 deleted route) returns 404 even when `wardrobe_styling`
+    is active. `pnpm --filter retailer lint` and `typecheck` pass. Remains
+    `implemented_unverified` — proof requires Docker-backed e2e suite run
+    against seeded stack (unavailable this session). Checkbox unchecked.
 
 ### Full-Completion Execution Queue (2026-08-13)
 
