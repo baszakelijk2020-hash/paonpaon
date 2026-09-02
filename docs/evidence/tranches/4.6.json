@@ -23,7 +23,7 @@
     "receiver_ui": "n_a — see origin_ui; the receiving/approval UI belongs to 4.7/4.8.",
     "rls": "supabase/tests/wardrobe_visualization_enqueue_test.sql; packages/database/src/repositories/style-portrait-consent-security.test.ts",
     "exceptions": "packages/domain/src/wardrobe/virtual-studio.test.ts (author guard, tailoring-attribute derivation, transition/consistency checks); packages/ai/src/wardrobe-visualization-runner.test.ts (unsupported-type/oversized reference fail-closed paths)",
-    "browser": "ADR-068 point 8 — pure infrastructure may cite focused proof and its later consumer: apps/customer/e2e/virtual-studio.spec.ts is 4.7/4.8's connected proof that this foundation's queue/consent/provider wiring actually works end-to-end (consent grant, private uploads, fit-archetype declaration, queued enqueue through the exact RPC this foundation defines). docs/evidence/runs/4.6.json status=passed records the same run.",
+    "browser": "ADR-068 point 8 — pure infrastructure may cite focused proof and its later consumer: apps/customer/e2e/digital-fitting-room-start-creating-reproof-v3.spec.ts is the V3 re-proof (superseding the pre-relocation virtual-studio.spec.ts) that this foundation's Style-Portrait/consent/queue/provider wiring works end-to-end on the /digital-fitting-room surface — real approved Style Portrait, first-run card, in-place look-composer workflow, saved-drafts entry. 1/1 passed at gitSha 7dacd95; docs/evidence/runs/4.6.json records the run.",
     "operations": "packages/domain/scripts/validate-completion-evidence.ts; packages/domain/package.json (validate:completion)",
     "live_gap": "Live end-to-end image generation requires a configured provider credential (OPENAI_API_KEY, same posture as every other ai_generations-backed feature). Local queue, consent, RLS and provider-adapter (gpt-image-2 multi-image edit) behavior is independently verified without it."
   },
@@ -43,6 +43,6 @@
     "keyboard_a11y": "n_a"
   },
   "linkedSeedId": "e2e-retailer-workspace",
-  "browserProofSpec": "apps/customer/e2e/virtual-studio.spec.ts",
+  "browserProofSpec": "apps/customer/e2e/digital-fitting-room-start-creating-reproof-v3.spec.ts",
   "assertedAt": "2026-08-09T12:38:36.000Z"
 }

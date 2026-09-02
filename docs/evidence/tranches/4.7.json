@@ -22,8 +22,8 @@
     "origin_ui": "apps/customer/app/(dashboard)/digital-fitting-room/style-portrait-panel.tsx; apps/customer/app/(dashboard)/digital-fitting-room/style-portrait-actions.ts; apps/customer/app/(dashboard)/digital-fitting-room/fitting-room-studio.tsx; apps/customer/app/(dashboard)/digital-fitting-room/virtual-studio-actions.ts",
     "receiver_ui": "apps/admin/app/api/cron/process-wardrobe-visualizations (queue processor transitions the portrait/job to ready, private output storage); apps/customer/app/(dashboard)/digital-fitting-room/fitting-room-studio.tsx (customer sees queued/generating/ready status and cancels/gives feedback on the same object)",
     "rls": "supabase/tests/wardrobe_visualization_enqueue_test.sql; packages/database/src/repositories/style-portrait-consent-security.test.ts",
-    "exceptions": "packages/domain/src/wardrobe/virtual-studio.test.ts (refusal without approved portrait/preset/consent; idempotent re-enqueue); apps/customer/e2e/virtual-studio.spec.ts's consent-gate and re-enqueue-reuse assertions",
-    "browser": "apps/customer/e2e/virtual-studio.spec.ts + docs/evidence/runs/4.7.json status=passed \u2014 consent grant, private face/full-body upload, fit-archetype declaration, queued neutral-preview job fixture-completed to ready (no OPENAI_API_KEY in this sandbox), portrait approval, owned-item look composition, generation enqueue reaching a real queued WardrobeVisualizationJob.",
+    "exceptions": "packages/domain/src/wardrobe/virtual-studio.test.ts (refusal without approved portrait/preset/consent; idempotent re-enqueue); apps/customer/e2e/digital-fitting-room-start-creating-reproof-v3.spec.ts's gated-workflow assertions (the composer is only reachable with an approved Style Portrait)",
+    "browser": "apps/customer/e2e/digital-fitting-room-start-creating-reproof-v3.spec.ts + docs/evidence/runs/4.7.json status=passed (1/1 at gitSha 7dacd95) \u2014 the V3 re-proof, superseding the pre-relocation virtual-studio.spec.ts: a real approved Style Portrait, the first-run card, the in-place look-composer (FittingRoomStudio) workflow on /digital-fitting-room, and a usable saved-drafts entry. Generation enqueue reaches a real queued WardrobeVisualizationJob; rendered-image completion is the OPENAI_API_KEY live gap.",
     "operations": "packages/domain/scripts/validate-completion-evidence.ts; packages/domain/package.json (validate:completion)",
     "live_gap": "Live rendered-image proof requires the configured provider credential named by 4.6 (OPENAI_API_KEY); this sandbox fixture-completes the preview job to ready and only proves the outfit generation job reaches queued, not actual rendering."
   },
@@ -43,6 +43,6 @@
     "keyboard_a11y": "n_a"
   },
   "linkedSeedId": "e2e-retailer-workspace",
-  "browserProofSpec": "apps/customer/e2e/virtual-studio.spec.ts",
+  "browserProofSpec": "apps/customer/e2e/digital-fitting-room-start-creating-reproof-v3.spec.ts",
   "assertedAt": "2026-08-09T12:38:36.000Z"
 }
