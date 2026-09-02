@@ -19,10 +19,12 @@ import {
   createCorporateExceptionInputSchema,
   createCorporateProgrammeInputSchema,
   createCorporateWearerInputSchema,
+  planCorporateWearerImport,
   recordCorporateIssueInputSchema,
   wallTimeInZoneToUtcIso,
   type CorporateExceptionPriority,
   type CorporateOfficeVisitRequestStatus,
+  type ImportWearerRow,
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
@@ -176,6 +178,14 @@ export async function recordIssue(
   formData: FormData,
 ): Promise<void> {
   const session = await requireModuleSession("enterprise_verticals");
+
+  // Optional order lines (PHASE 14.1 CORP-103): if provided, place order first
+  const orderLinesJson = formData.get("orderLines") as string | null;
+  const orderLines: Array<{
+    productVariantId: string;
+    quantity: number;
+  }> | null = orderLinesJson ? JSON.parse(orderLinesJson) : null;
+
   const values = recordCorporateIssueInputSchema.parse({
     wearerId: formData.get("wearerId"),
     entitlementVersionId: formData.get("entitlementVersionId"),
@@ -184,7 +194,8 @@ export async function recordIssue(
     issuedOn: formData.get("issuedOn"),
   });
 
-  const repo = new CorporateRepository(await getSupabaseServerClient());
+  const supabase = await getSupabaseServerClient();
+  const repo = new CorporateRepository(supabase);
   const [programme, wearer, version, issues] = await Promise.all([
     repo.findProgrammeById(programmeId),
     repo.findWearerById(values.wearerId),
@@ -223,7 +234,23 @@ export async function recordIssue(
     throw new Error(reasonLabel[check.reason]);
   }
 
-  await repo.recordIssue(session.retailerId, values);
+  // PHASE 14.1 CORP-103: If order lines are provided, place the order first
+  let orderId: string | undefined;
+  if (orderLines && orderLines.length > 0) {
+    orderId = await repo.placeCorporateOrder({
+      retailerId: session.retailerId,
+      wearerId: values.wearerId,
+      lines: orderLines,
+      channel: "in_store",
+      currency: "GBP",
+    });
+  }
+
+  // Record the issue, now with optional orderId
+  await repo.recordIssue(session.retailerId, {
+    ...values,
+    orderId,
+  });
   revalidatePath(`/corporate/${programmeId}`);
 }
 
@@ -578,4 +605,60 @@ export async function setAccountManager(
     },
   );
   revalidatePath(`/corporate`);
+}
+
+/** PHASE 14.1 CORP-103: Batch import wearers via delta (create/update/deactivate).
+ * Accepts JSON array of import rows, plans the diff against existing wearers,
+ * and applies creates/updates/deactivations. */
+export async function importWearers(
+  programmeId: string,
+  formData: FormData,
+): Promise<void> {
+  const session = await requireModuleSession("enterprise_verticals");
+  const supabase = await getSupabaseServerClient();
+  const repo = new CorporateRepository(supabase);
+
+  const programme = await repo.findProgrammeById(programmeId);
+  if (!programme || programme.retailerId !== session.retailerId) {
+    throw new Error("Programme not found.");
+  }
+
+  const importJson = formData.get("importJson") as string;
+  if (!importJson || importJson.trim().length === 0) {
+    throw new Error("Please provide import data (JSON array).");
+  }
+
+  let importRows: ImportWearerRow[];
+  try {
+    const parsed = JSON.parse(importJson);
+    if (!Array.isArray(parsed)) {
+      throw new Error("Import data must be a JSON array.");
+    }
+    importRows = parsed;
+  } catch (e) {
+    throw new Error(
+      `Failed to parse import data: ${e instanceof Error ? e.message : "Invalid JSON"}`,
+    );
+  }
+
+  // Fetch existing wearers
+  const existingWearers = await repo.findWearersByProgramme(programmeId);
+
+  // Plan the delta
+  const plan = planCorporateWearerImport({
+    existingWearers: existingWearers.map((w) => ({
+      id: w.id,
+      employeeReference: w.employeeReference,
+      displayName: w.displayName,
+      roleKey: w.roleKey,
+      ...(w.siteKey ? { siteKey: w.siteKey } : {}),
+      active: w.active,
+      ...(w.loginEmail ? { loginEmail: w.loginEmail } : {}),
+    })),
+    importRows,
+  });
+
+  // Apply the plan
+  await repo.importWearersBatch(session.retailerId, programmeId, plan);
+  revalidatePath(`/corporate/${programmeId}`);
 }
