@@ -20,10 +20,18 @@ resp="$(
     -d "{\"name\":\"paonpaon-${APP}\",\"project\":\"${PROJECT_ID}\",\"target\":\"production\",\"gitSource\":{\"type\":\"github\",\"repoId\":${REPO_ID},\"ref\":\"main\"}}"
 )"
 
+# Don't let `set -e` abort on the parser's non-zero exit before we've printed
+# the error — capture status, echo the parsed output, then act on it.
+parse_status=0
 parse_output="$(python3 - "$resp" <<'PY'
 import json, sys
 
-d = json.loads(sys.argv[1])
+try:
+    d = json.loads(sys.argv[1])
+except Exception:
+    print("Vercel response was not JSON:")
+    print(sys.argv[1][:2000])
+    sys.exit(1)
 err = d.get("error")
 if not err:
     print(json.dumps({k: d.get(k) for k in ("id", "url", "readyState", "inspectorUrl") if k in d}, indent=2))
@@ -41,9 +49,13 @@ if code == "payment_required" and "api-deployments-free-per-day" in message:
     sys.exit(0)
 sys.exit(1)
 PY
-)"
+)" || parse_status=$?
 
 echo "${parse_output}"
+if [ "${parse_status}" -ne 0 ]; then
+  echo "Vercel deployment request was rejected (see error above)." >&2
+  exit 1
+fi
 if printf "%s\n" "${parse_output}" | grep -q "^QUOTA_BLOCKED=1$"; then
   reset_ms="$(printf "%s\n" "${parse_output}" | grep "^QUOTA_RESET_MS=" | cut -d= -f2-)"
   reset_human=""
