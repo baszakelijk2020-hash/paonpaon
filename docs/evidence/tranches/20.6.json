@@ -1,0 +1,49 @@
+{
+  "phaseItemId": "20.6",
+  "requirementIds": ["CENV-APPOINTMENTS-001"],
+  "status": "verified_local",
+  "title": "claude-customer-appointments — My Appointments visual and flow audit",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "n_a",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "no new domain logic — My Appointments is a presentation layer for existing appointment data",
+    "persistence": "no new persistence — appointment history is displayed from existing appointment tables via repository queries",
+    "service": "apps/customer/app/(dashboard)/appointments/page.tsx — renders the My Appointments page with title, seasonal inspiration cards (four predefined cards), appointment history section (collapsed initially), and booking launchers; apps/customer/app/(dashboard)/appointments/book-appointment-launcher.tsx, booking-flow.tsx, booking-actions.ts — existing real booking flow preserved",
+    "origin_ui": "apps/customer/app/(dashboard)/appointments/page.tsx — page title 'My Appointments' visible; four seasonal inspiration cards with titles (Fall/Winter Wardrobe Appointment, Spring/Summer 2027 Wardrobe Appointment, Summer Holiday 2027 Wardrobe Appointment, Holiday Season Look Appointment); book appointment button exists; history section collapsed initially. Desktop 1512x982 + mobile 390x844 screenshots captured during E2E.",
+    "receiver_ui": "apps/customer/app/(dashboard)/appointments/booking-flow.tsx — booking wizard entry point, launched from seasonal cards or plain book appointment button; preserves existing real appointment booking flow",
+    "rls": "no new RLS — authentication required before accessing My Appointments; customer-scoped appointment data access via existing RLS policies",
+    "exceptions": "no new exception cases — invalid auth state redirects to login before reaching My Appointments",
+    "browser": "apps/customer/e2e/appointments-audit-v3.spec.ts — authenticated E2E Customer Workspace persona against local Supabase; 2/2 passed at gitSha 8f54679 (docs/evidence/runs/20.6-customer-appointments-audit/evidence.json). Test verifies: page title 'My Appointments' visible; four seasonal inspiration cards present; history section collapsed initially; book appointment button exists; desktop and mobile viewport screenshots (1512x982, 390x844) captured; zero console errors",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-customer-workspace",
+  "browserProofSpec": "apps/customer/e2e/appointments-audit-v3.spec.ts",
+  "browserProofRunPath": "docs/evidence/runs/20.6-customer-appointments-audit/evidence.json",
+  "assertedAt": "2026-09-03T00:00:00.000Z"
+}
