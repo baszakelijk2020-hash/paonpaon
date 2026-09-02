@@ -1,7 +1,7 @@
 {
   "phaseItemId": "4.9-customer-roadmap-review",
-  "gitSha": "181eca6c2ab20cf6176320aae14f093d0dc9796b",
-  "spec": "apps/customer/e2e/roadmap-look-review.spec.ts",
+  "gitSha": "e6655c4580f25617f4550b35e8c826f98d8c381c",
+  "spec": "apps/customer/e2e/roadmap-approval-rls-v3.spec.ts",
   "status": "passed",
-  "timestamp": "2026-08-20T12:43:59.960Z"
+  "timestamp": "2026-09-02T12:41:32Z"
 }

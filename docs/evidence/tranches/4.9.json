@@ -44,5 +44,5 @@
   },
   "linkedSeedId": "e2e-retailer-workspace",
   "browserProofSpec": "apps/customer/e2e/roadmap-approval-rls-v3.spec.ts",
-  "assertedAt": "2026-08-09T12:38:36.000Z"
+  "assertedAt": "2026-09-02T12:41:55.758Z"
 }
