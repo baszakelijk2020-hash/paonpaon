@@ -187,7 +187,9 @@ async function seedApprovedPortraitAndOutfit(): Promise<{
         .from("style_portrait_consents")
         .delete()
         .eq("customer_id", customerId);
-      await client.storage.from("wardrobe-studio").remove([facePath, fullBodyPath]);
+      await client.storage
+        .from("wardrobe-studio")
+        .remove([facePath, fullBodyPath]);
       await client.from("style_portraits").delete().eq("id", portrait.id);
     },
   };

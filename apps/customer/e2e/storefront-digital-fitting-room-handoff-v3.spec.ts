@@ -106,13 +106,13 @@ test.describe("Storefront → Digital Fitting Room handoff (V3)", () => {
     const step3 = steps.nth(2);
 
     await expect(step1).toContainText(
-      "Upload two reference photos to create your digital portrait."
+      "Upload two reference photos to create your digital portrait.",
     );
     await expect(step2).toContainText(
-      "Select this piece and compose it with other items you own or are considering."
+      "Select this piece and compose it with other items you own or are considering.",
     );
     await expect(step3).toContainText(
-      "See how the look takes shape before you ask your advisor to make it real."
+      "See how the look takes shape before you ask your advisor to make it real.",
     );
 
     // Verify CTA button is visible
@@ -387,9 +387,9 @@ test.describe("Storefront → Digital Fitting Room handoff (V3)", () => {
       await expect(dfrModule).toBeVisible();
 
       // Verify all required elements
-      await expect(
-        dfrModule.locator(".paon-dfr-module-heading")
-      ).toHaveText("Try in Digital Fitting Room");
+      await expect(dfrModule.locator(".paon-dfr-module-heading")).toHaveText(
+        "Try in Digital Fitting Room",
+      );
       await expect(dfrModule.locator(".paon-dfr-module-step")).toHaveCount(3);
       await expect(dfrModule.locator(".paon-dfr-module-cta")).toBeVisible();
     }

@@ -123,7 +123,10 @@ test("Digital Fitting Room: batch generate, bulk cancel, and look feedback are r
     .single();
   if (!product) throw new Error("fixture product missing");
 
-  await new StylePortraitConsentRepository(client).grant(retailerId, customerId);
+  await new StylePortraitConsentRepository(client).grant(
+    retailerId,
+    customerId,
+  );
 
   const unique = Date.now();
   const facePath = `${retailerId}/${customerId}/references/e2e-dfr-actions-face-${unique}.png`;
@@ -275,7 +278,9 @@ test("Digital Fitting Room: batch generate, bulk cancel, and look feedback are r
     // job.
     await page
       .getByRole("button", {
-        name: new RegExp(outfitOne.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
+        name: new RegExp(
+          outfitOne.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+        ),
       })
       .click();
     const loveIt = page.getByRole("button", { name: "Love it" });
@@ -327,7 +332,9 @@ test("Digital Fitting Room: batch generate, bulk cancel, and look feedback are r
       .from("style_portrait_consents")
       .delete()
       .eq("customer_id", customerId);
-    await client.storage.from("wardrobe-studio").remove([facePath, fullBodyPath]);
+    await client.storage
+      .from("wardrobe-studio")
+      .remove([facePath, fullBodyPath]);
     await client.from("style_portraits").delete().eq("id", portrait.id);
   }
 });

@@ -14,12 +14,12 @@
 
 ## Duplicate and review gates
 
-| Commit | Disposition | Required gate |
-| --- | --- | --- |
-| `3325ee0`, `a256373`, `38a99dd` | ancestors of `4118202` | do not merge separately; refresh stale evidence |
-| `4118202` | candidate | 20.28 rejected it as exact-proof batch pending reruns |
-| `7819396` | ancestor of `d967434` | merge only `d967434` |
-| `5a087e0` + `b559653` | candidate pair | 20.29 review accepted for integration review; rerun on final SHA |
-| `6fa59c1`, `fd9c16b` | evidence only | retain as audit material, not product proof |
+| Commit                          | Disposition            | Required gate                                                    |
+| ------------------------------- | ---------------------- | ---------------------------------------------------------------- |
+| `3325ee0`, `a256373`, `38a99dd` | ancestors of `4118202` | do not merge separately; refresh stale evidence                  |
+| `4118202`                       | candidate              | 20.28 rejected it as exact-proof batch pending reruns            |
+| `7819396`                       | ancestor of `d967434`  | merge only `d967434`                                             |
+| `5a087e0` + `b559653`           | candidate pair         | 20.29 review accepted for integration review; rerun on final SHA |
+| `6fa59c1`, `fd9c16b`            | evidence only          | retain as audit material, not product proof                      |
 
 No integration is performed by this map.
