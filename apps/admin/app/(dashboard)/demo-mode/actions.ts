@@ -1,7 +1,7 @@
 "use server";
 
 import { createSupabaseAdminClient } from "@paon/database";
-import { seedDemoData } from "@paon/database/demo-seed";
+import { isCanonicalDemoEmail, seedDemoData } from "@paon/database/demo-seed";
 import { revalidatePath } from "next/cache";
 
 import { env } from "@/lib/env";
@@ -38,28 +38,53 @@ export async function runDemoSeed(
   }
 }
 
+export interface DemoLoginsActionState {
+  formError?: string;
+  saved?: boolean;
+}
+
 /** Reversible ban/unban of every @nebelspiegel.com demo auth user —
  * same shape as the standalone deactivate/reactivate-demo-logins
  * scripts, now reachable without a terminal. */
-export async function setDemoLoginsActive(active: boolean): Promise<void> {
+export async function setDemoLoginsActive(
+  _previous: DemoLoginsActionState,
+  formData: FormData,
+): Promise<DemoLoginsActionState> {
   const session = await requireSession();
   if (session.platformRole !== "platform_owner") {
-    throw new Error("Only a platform owner can toggle demo logins.");
+    return {
+      formError: "Only a platform owner can toggle demo logins.",
+    };
   }
 
-  const admin = createSupabaseAdminClient(
-    env.supabaseUrl,
-    env.supabaseServiceRoleKey,
-  );
-  const { data, error } = await admin.auth.admin.listUsers({ perPage: 1000 });
-  if (error) throw error;
-  const demoUsers = data.users.filter((u) =>
-    u.email?.endsWith("@nebelspiegel.com"),
-  );
-  for (const user of demoUsers) {
-    await admin.auth.admin.updateUserById(user.id, {
-      ban_duration: active ? "none" : "876000h",
+  const active = formData.get("active") === "true";
+
+  try {
+    const admin = createSupabaseAdminClient(
+      env.supabaseUrl,
+      env.supabaseServiceRoleKey,
+    );
+    const { data, error } = await admin.auth.admin.listUsers({
+      perPage: 1000,
     });
+    if (error) throw error;
+    const demoUsers = data.users.filter((user) =>
+      isCanonicalDemoEmail(user.email),
+    );
+    for (const user of demoUsers) {
+      await admin.auth.admin.updateUserById(user.id, {
+        ban_duration: active ? "none" : "876000h",
+      });
+    }
+  } catch (error) {
+    return {
+      formError:
+        error instanceof Error
+          ? error.message
+          : "Could not toggle demo logins.",
+    };
   }
+
   revalidatePath("/demo-mode");
+  return { saved: true };
 }

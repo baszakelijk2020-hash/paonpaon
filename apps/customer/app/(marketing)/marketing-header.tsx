@@ -9,7 +9,7 @@ const NAV_LINKS = [
   { href: "/discover/weddings-events", label: "Weddings" },
   { href: "/founder", label: "Founder" },
   { href: "/pricing", label: "Packages" },
-  { href: "/r/maison-dubois", label: "Live store" },
+  { href: "/r/atelier-demo", label: "Live store" },
 ] as const;
 
 export function MarketingHeader() {

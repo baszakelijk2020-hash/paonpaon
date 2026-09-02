@@ -11,9 +11,12 @@ import { NextResponse } from "next/server";
  * this is a Route Handler tied to that app's own origin.
  */
 const ALLOWED_FONTS = new Set([
-  "optimaklein.woff2",
-  "aviano.woff2",
-  "gtbold3.woff2",
+  "Munged-MZgX5NxJBs.woff2",
+  "Munged-teVV8iw7A5.woff2",
+  "TN_Web_Use_Only.woff2",
+  "TN_Web_Use_Only_1.woff2",
+  "TN_Web_Use_Only_2.woff2",
+  "TN_Web_Use_Only_3.woff2",
 ]);
 
 export async function GET(

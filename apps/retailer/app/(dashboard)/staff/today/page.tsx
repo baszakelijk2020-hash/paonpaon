@@ -1,6 +1,7 @@
 import {
   AppointmentRepository,
   ClientelingOpportunityRepository,
+  CustomerRepository,
   RetailerStaffRepository,
   ShiftCloseoutRepository,
   StaffRecognitionRepository,
@@ -67,6 +68,7 @@ export default async function StaffTodayPage() {
   const closeoutRepo = new ShiftCloseoutRepository(supabase);
   const recognitionRepo = new StaffRecognitionRepository(supabase);
   const opportunityRepo = new ClientelingOpportunityRepository(supabase);
+  const customerRepo = new CustomerRepository(supabase);
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -117,6 +119,20 @@ export default async function StaffTodayPage() {
           : Promise.resolve([]),
       ),
   ]);
+
+  // Fetch customer names for opportunities to enable House Memory navigation
+  const customerNamesByIdMap = new Map<string, string>();
+  if (assignedOpportunities.length > 0) {
+    const customerIds = [
+      ...new Set(assignedOpportunities.map((opp) => opp.customerId)),
+    ];
+    for (const customerId of customerIds) {
+      const customer = await customerRepo.findById(customerId);
+      if (customer) {
+        customerNamesByIdMap.set(customer.id, customer.fullName);
+      }
+    }
+  }
 
   if (!viewer) {
     throw new Error("Viewer staff record not found");
@@ -251,7 +267,10 @@ export default async function StaffTodayPage() {
         </Card>
       ) : null}
 
-      <AssignedOpportunityList opportunities={assignedOpportunities} />
+      <AssignedOpportunityList
+        opportunities={assignedOpportunities}
+        customerNames={customerNamesByIdMap}
+      />
 
       {/* Closeout Status */}
       <Card>

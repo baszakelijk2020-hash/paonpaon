@@ -34,7 +34,7 @@ const VIEWS = {
     title: "Your jacket is taking shape.",
     note: "The workroom has completed the fitting adjustments. Quality review is next.",
     metrics: [
-      ["Atelier", "Maison Dubois"],
+      ["Atelier", "Nebel & Spiegel"],
       ["Status", "In progress"],
       ["Advisor", "Camille"],
     ],
@@ -52,7 +52,7 @@ export function ExperiencePreview() {
     <div className="overflow-hidden rounded-[var(--radius-xl)] border border-black/10 bg-[#ededea] shadow-[0_20px_60px_rgba(0,0,0,.2)]">
       <p className="border-b border-black/10 px-4 py-2 text-[10px] uppercase tracking-[0.18em] text-black/45">
         Sample product story — illustrative metrics, not a live workspace.{" "}
-        <Link href="/r/maison-dubois" className="underline underline-offset-2">
+        <Link href="/r/atelier-demo" className="underline underline-offset-2">
           Open the live store
         </Link>
       </p>

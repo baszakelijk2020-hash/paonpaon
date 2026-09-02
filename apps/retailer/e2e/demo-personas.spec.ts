@@ -1,47 +1,62 @@
-import { DEMO_PASSWORD, seedDemoData } from "@paon/database/demo-seed";
+import {
+  DEMO_PASSWORD,
+  getDemoPersona,
+  seedDemoData,
+} from "@paon/database/demo-seed";
 import { expect, test, type Page } from "@playwright/test";
+
+// The canonical showcase roster is intentionally shared. Seed it once in a
+// single worker so parallel browser contexts cannot race to create the same
+// auth identity.
+test.describe.configure({ mode: "serial" });
 
 const retailerPersonas = [
   {
     name: "owner",
-    email: "contact+maison-dubois-owner@nebelspiegel.com",
-    visible: [/^Brief/, /^Clients/, /^Products/, /^Team/],
+    email: getDemoPersona("retailer-owner").email,
+    visible: [
+      /^Today$/,
+      /^Fitting room$/,
+      /^Relationships$/,
+      /^Merchandise$/,
+      /^Atelier$/,
+    ],
     hidden: [],
     brief: "The atelier, at a glance.",
   },
   {
     name: "manager",
-    email: "contact+maison-dubois-manager@nebelspiegel.com",
-    visible: [/^Brief/, /^Clients/, /^Products/, /^Performance/],
-    hidden: [/^Team/],
+    email: getDemoPersona("retailer-manager").email,
+    visible: [/^Today$/, /^Fitting room$/, /^Relationships$/, /^Merchandise$/],
+    hidden: [/^Atelier$/],
     brief: "Today on the floor.",
   },
   {
     name: "sales advisor",
-    email: "contact+maison-dubois-sales@nebelspiegel.com",
-    visible: [/^Brief/, /^Appointments/, /^Clients/, /^Alterations/],
-    hidden: [/^Products/, /^Team/],
+    email: getDemoPersona("sales-advisor").email,
+    visible: [/^Today$/, /^Fitting room$/, /^Relationships$/],
+    hidden: [/^Merchandise$/, /^Atelier$/],
     brief: "Make every client moment count.",
   },
   {
     name: "production specialist",
-    email: "contact+maison-dubois-operations@nebelspiegel.com",
-    visible: [/^Brief/, /^Orders/, /^Alterations/],
-    hidden: [/^Clients/, /^Products/, /^Team/],
+    email: getDemoPersona("production-staff").email,
+    visible: [/^Today$/, /^Fitting room$/],
+    hidden: [/^Relationships$/, /^Merchandise$/, /^Atelier$/],
     brief: "Promises in motion.",
   },
   {
     name: "workshop manager",
-    email: "contact+maison-dubois-workshop@nebelspiegel.com",
-    visible: [/^Work queue/, /^Workshop pricing/],
-    hidden: [/^Orders/, /^Clients/, /^Products/],
+    email: getDemoPersona("workshop-manager").email,
+    visible: [/^Today$/, /^Workshop floor$/],
+    hidden: [/^Relationships$/, /^Merchandise$/, /^Atelier$/],
     brief: "The workroom, in motion.",
   },
   {
     name: "alteration worker",
-    email: "contact+maison-dubois-alteration-worker@nebelspiegel.com",
-    visible: [/^Work queue/],
-    hidden: [/^Workshop pricing/, /^Orders/, /^Clients/, /^Products/],
+    email: getDemoPersona("alteration-worker").email,
+    visible: [/^Today$/, /^Workshop floor$/],
+    hidden: [/^Relationships$/, /^Merchandise$/, /^Atelier$/],
     brief: "Your bench, clearly.",
   },
 ] as const;
@@ -84,14 +99,43 @@ for (const persona of retailerPersonas) {
   });
 }
 
+test("sales advisors are redirected away from management-only routes", async ({
+  page,
+}) => {
+  await signIn(page, getDemoPersona("sales-advisor").email);
+
+  for (const [path, destination] of [
+    ["/staff", "/dashboard"],
+    ["/staff/new", "/dashboard"],
+    ["/settings/billing", "/dashboard"],
+    ["/products/new", "/products"],
+    ["/collections", "/products"],
+  ] as const) {
+    await page.goto(path);
+    await expect(page).toHaveURL(new RegExp(`${destination}(?:\\?|$)`));
+  }
+});
+
+test("alteration workers are redirected away from configuration routes", async ({
+  page,
+}) => {
+  await signIn(page, getDemoPersona("alteration-worker").email);
+
+  for (const path of [
+    "/alterations/new",
+    "/alterations/catalogue",
+    "/alterations/workshops",
+  ]) {
+    await page.goto(path);
+    await expect(page).toHaveURL(/\/alterations(?:\?|$)/);
+  }
+});
+
 test("mobile shell exposes the same worker-safe navigation in a drawer", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await signIn(
-    page,
-    "contact+maison-dubois-alteration-worker@nebelspiegel.com",
-  );
+  await signIn(page, getDemoPersona("alteration-worker").email);
   await page.getByRole("button", { name: "Open navigation" }).click();
   await expect(page.getByRole("link", { name: /^Work queue/ })).toBeVisible();
   await expect(page.getByRole("link", { name: /^Orders/ })).toHaveCount(0);

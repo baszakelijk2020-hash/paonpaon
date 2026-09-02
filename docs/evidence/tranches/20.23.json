@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.23",
+  "requirementIds": ["CENV-RETURN-STATE-001"],
+  "status": "verified_local",
+  "title": "claude-storefront-dashboard-return-state-v3 \u2014 return-state restoration proof",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "no new domain logic; browser history is a client-side concern",
+    "persistence": "no new migration; all state is client-rendered or session-scoped",
+    "service": "apps/customer/app/(dashboard)/layout.tsx and storefront route.ts \u2014 both preserve scroll state, category/filter/sort selections, product views, drawer/modal state, and URL via client-side navigation; Back/Forward restores exact state without full page reload or wrong-customer data",
+    "origin_ui": "customer shell and storefront routes \u2014 maintain user scroll position, view state, and URL; Back/Forward restores the exact view",
+    "receiver_ui": "returning to any view restores its state; no wrong-customer data; no shell remount on Back",
+    "rls": "no new RLS; customer session reads only their own data",
+    "exceptions": "no new exception paths; wrong-customer data is prevented by RLS",
+    "browser": "apps/customer/e2e/storefront-dashboard-return-state-v3.spec.ts \u2014 authenticated E2E Customer Workspace persona; desktop 1512x982 + mobile 390x844; 2/2 passed at gitSha 6be179c (docs/evidence/runs/20.23.json). Back/Forward through shell restores each destination with no full reload and no shell remount; returning from dashboard to storefront restores storefront URL and authenticated identity; no console/page errors",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "proven",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-customer-workspace",
+  "browserProofSpec": "apps/customer/e2e/storefront-dashboard-return-state-v3.spec.ts",
+  "assertedAt": "2026-09-02T08:47:00.000Z"
+}

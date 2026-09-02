@@ -54,6 +54,7 @@ export function WishlistToggle({
         variant="outline"
         size="sm"
         disabled={isPending || !variantId}
+        className="rounded-[15px]"
       >
         {isSaved ? "♥ Saved to wishlist" : "♡ Save to wishlist"}
       </Button>

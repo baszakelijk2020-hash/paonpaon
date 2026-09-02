@@ -1,0 +1,35 @@
+{
+  "phase": "20.23",
+  "commit": "e42ac9d",
+  "customer_app_code_sha": "3f1c88d",
+  "note": "New test-only proof lane. No prior evidence existed and the owned spec did not exist on the release branch; this adds apps/customer/e2e/storefront-dashboard-return-state-v3.spec.ts and proves it against the release branch on the local Supabase stack. No application code changed. The raw /r/[slug] storefront is only read, never modified (V3 §13).",
+  "route": "/dashboard, /wardrobe, /orders, /account, /r/e2e-customer-workspace",
+  "persona": "authenticated Isabelle customer fixture (contact+isabelle@nebelspiegel.com magic-link sign-in) against the local Supabase stack (http://127.0.0.1:54321)",
+  "checks": {
+    "focused_playwright": "2 passed: storefront-dashboard-return-state-v3.spec.ts — 'Back/Forward through the customer shell restores each destination with no full reload and no shell remount' (3.2s); 'returning from the customer dashboard to the raw storefront restores the storefront URL and the authenticated identity' (4.8s)",
+    "customer_lint": "passed (eslint e2e/storefront-dashboard-return-state-v3.spec.ts --max-warnings 0)",
+    "customer_typecheck": "passed (tsc --noEmit)",
+    "console": "no console error messages observed on any customer-shell view during warm navigation or Back/Forward (both tests assert consoleErrors.toEqual([]))"
+  },
+  "asserted": [
+    "warm hops Overview -> Wardrobe -> Orders -> My Profile via [data-customer-top-menu] links each land on the right URL and set [data-customer-navigation-ready] to that pathname",
+    "the persistent [data-customer-shell] node keeps its exact DOM identity across every warm hop AND across Back x2 + Forward — the shell never remounts",
+    "zero navigation-request document loads occur across all warm hops and all Back/Forward steps (documentRequests === 0) — no full page reload",
+    "Back restores /orders then /wardrobe; Forward restores /orders — each a warm restore with the ready sentinel matching",
+    "the raw storefront route /r/e2e-customer-workspace responds HTTP 200 and its URL is restored exactly when navigating Back from /dashboard",
+    "crossing storefront -> /dashboard -> Back -> Forward keeps the authenticated identity: the signed-in-only [data-customer-top-menu][href='/account'] control stays visible, and a direct navigation to /orders after the churn still resolves for this identity",
+    "desktop 1512x982 and mobile 390x844 captures of the restored shell"
+  ],
+  "screenshots": [
+    {
+      "file": "desktop-1512x982.png",
+      "viewport": "1512x982",
+      "sha256": "96bab1fafc4e54baa4cb28216b605f58d604808cdae608bca8b553d2663a01c8"
+    },
+    {
+      "file": "mobile-390x844.png",
+      "viewport": "390x844",
+      "sha256": "1db986432f7f97d77abcd3aa993b986bfca373910f4a1180d19bb9f911ce0c26"
+    }
+  ]
+}

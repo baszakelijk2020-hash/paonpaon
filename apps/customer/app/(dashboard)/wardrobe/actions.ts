@@ -6,10 +6,10 @@ import {
   WardrobeRepository,
 } from "@paon/database";
 import {
-  createExternalWardrobeItemInputSchema,
   requestWardrobeItemServiceInputSchema,
   retireWardrobeItemInputSchema,
   updateWardrobeItemStateInputSchema,
+  wardrobeReorderRequestMessage,
   wardrobeServiceRequestMessage,
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
@@ -34,58 +34,6 @@ async function resolveCustomer(userId: string, retailerId: string) {
     userId as never,
   );
   return customers.find((candidate) => candidate.retailerId === retailerId);
-}
-
-export async function addExternalWardrobeItem(
-  _prevState: WardrobeActionState,
-  formData: FormData,
-): Promise<WardrobeActionState> {
-  const session = await requireSession();
-  const parsed = createExternalWardrobeItemInputSchema.safeParse({
-    retailerId: formData.get("retailerId"),
-    customerId: formData.get("customerId"),
-    categoryCode: formData.get("categoryCode"),
-    displayName: formData.get("displayName"),
-    brand: optionalString(formData.get("brand")),
-    description: optionalString(formData.get("description")),
-    condition: formData.get("condition") || "good",
-    wearFrequency: optionalString(formData.get("wearFrequency")),
-    careState: formData.get("careState") || "current",
-    fitPerception: formData.get("fitPerception") || "unknown",
-    careNotes: optionalString(formData.get("careNotes")),
-    fitNotes: optionalString(formData.get("fitNotes")),
-  });
-
-  if (!parsed.success) {
-    return { fieldErrors: zodFieldErrors(parsed.error) };
-  }
-
-  const customer = await resolveCustomer(
-    session.userId,
-    parsed.data.retailerId,
-  );
-  if (!customer || customer.id !== parsed.data.customerId) {
-    return {
-      fieldErrors: {},
-      formError: "No relationship with this retailer.",
-    };
-  }
-
-  try {
-    const supabase = await getSupabaseServerClient();
-    await new WardrobeRepository(supabase).createExternalItem({
-      ...parsed.data,
-      customerId: customer.id,
-    });
-  } catch (error) {
-    return {
-      fieldErrors: {},
-      formError: error instanceof Error ? error.message : "Could not add item.",
-    };
-  }
-
-  revalidatePath("/wardrobe");
-  return { fieldErrors: {}, success: true };
 }
 
 export async function updateWardrobeItemState(
@@ -258,6 +206,75 @@ export async function requestWardrobeItemService(
       conversationId,
       wardrobeServiceRequestMessage({
         kind: parsed.data.kind,
+        itemDisplayName: item.displayName,
+        ...(item.brand ? { itemBrand: item.brand } : {}),
+      }),
+    );
+
+    return { fieldErrors: {}, success: true, conversationId };
+  } catch (error) {
+    return {
+      fieldErrors: {},
+      formError:
+        error instanceof Error ? error.message : "Could not send request.",
+    };
+  }
+}
+
+/**
+ * Order Again's fallback when a wardrobe item has no linked product/variant
+ * to repurchase directly — reuses the exact real conversation channel as
+ * {@link requestWardrobeItemService} rather than a broken repurchase link.
+ */
+export async function requestWardrobeItemReorderViaAdvisor(
+  _prevState: WardrobeServiceRequestState,
+  formData: FormData,
+): Promise<WardrobeServiceRequestState> {
+  const session = await requireSession();
+  const wardrobeItemId = z
+    .string()
+    .uuid()
+    .safeParse(formData.get("wardrobeItemId"));
+  const retailerId = z.string().uuid().safeParse(formData.get("retailerId"));
+
+  if (!wardrobeItemId.success || !retailerId.success) {
+    return {
+      fieldErrors: {
+        ...(!wardrobeItemId.success
+          ? { wardrobeItemId: "Invalid wardrobe item." }
+          : {}),
+        ...(!retailerId.success ? { retailerId: "Invalid retailer." } : {}),
+      },
+    };
+  }
+
+  const customer = await resolveCustomer(session.userId, retailerId.data);
+  if (!customer) {
+    return {
+      fieldErrors: {},
+      formError: "No relationship with this retailer.",
+    };
+  }
+
+  try {
+    const supabase = await getSupabaseServerClient();
+    const wardrobeRepo = new WardrobeRepository(supabase);
+    const item = await wardrobeRepo.findById(wardrobeItemId.data as never);
+    if (
+      !item ||
+      item.customerId !== customer.id ||
+      item.retailerId !== customer.retailerId
+    ) {
+      return { fieldErrors: {}, formError: "Wardrobe item not found." };
+    }
+
+    const messagingRepo = new MessagingRepository(supabase);
+    const conversationId = await messagingRepo.getOrCreateForCustomer(
+      customer.retailerId,
+    );
+    await messagingRepo.send(
+      conversationId,
+      wardrobeReorderRequestMessage({
         itemDisplayName: item.displayName,
         ...(item.brand ? { itemBrand: item.brand } : {}),
       }),

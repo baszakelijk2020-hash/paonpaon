@@ -14,7 +14,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/discover/engagement",
     "/discover/weddings-events",
     "/discover/roles",
-    "/r/maison-dubois",
+    "/r/atelier-demo",
   ];
   const lastModified = new Date();
   return paths.map((path) => ({

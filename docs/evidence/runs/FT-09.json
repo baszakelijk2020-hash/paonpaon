@@ -1,10 +1,10 @@
 {
   "phaseItemId": "FT-09",
-  "gitSha": "739f2b7e423498549fd776a5fff8d42ea32a660e",
+  "gitSha": "da72545d85ba64e0f5d876f1ebcb0b4d5ac76e00",
   "specs": ["apps/customer/e2e/consultation-outcome.spec.ts"],
-  "pgtap": "160/160 green (supabase test db full suite; migration applies cleanly)",
+  "pgtap": "501/501 green (supabase test db full suite; migration applies cleanly)",
   "status": "passed",
-  "runs": 1,
-  "note": "Consultation-to-appointment outcome journey — customer browser-driven spec proves: (1) signed-in customer navigates to conversation thread, (2) clicks 'Book appointment' button wired in UI, (3) fills datetime and type form, (4) submits via real Server Action (bookAppointmentFromConsultation), (5) receives success with appointment ID, (6) appointment created in DB with origin_message_thread_id set to conversation.id, (7) unauthorized customer cannot book for other customer's thread. RPC book_appointment_from_consultation() validates caller authorization and conversation ownership. AppointmentRepository.bookFromConsultation() calls RPC; Server Actions in both customer and retailer apps invoke it. Migration 20260806000000 adds FK and SECURITY DEFINER RPC following alteration_tasks provenance pattern. Full typecheck/lint clean; all domain/database/customer/retailer packages build successfully.",
-  "timestamp": "2026-08-06T01:15:00.000Z"
+  "runs": 3,
+  "note": "Consultation-to-appointment outcome journey — customer browser-driven spec proves: (1) signed-in customer navigates to conversation thread, (2) clicks 'Book appointment' button wired in UI, (3) fills datetime and type form, (4) submits via real Server Action (bookAppointmentFromConsultation), (5) receives success with appointment ID, (6) appointment created in DB with origin_message_thread_id set to conversation.id, (7) unauthorized customer cannot book for other customer's thread. RPC book_appointment_from_consultation() validates caller authorization and conversation ownership. Fixture corrected to authenticate as customer and route through record_consultation_attachment() RPC instead of insecure service_role raw insert (reverted migration 20260819120000). Full typecheck/lint clean; all domain/database/customer/retailer packages build successfully.",
+  "timestamp": "2026-08-23T22:46:00.000Z"
 }

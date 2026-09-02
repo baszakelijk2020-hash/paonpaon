@@ -1,0 +1,27 @@
+{
+  "phase": "20.6",
+  "commit": "8c8be81",
+  "route": "/appointments",
+  "persona": "authenticated E2E Customer Workspace fixture (TEST_CUSTOMER_EMAIL magic-link sign-in) against the local Supabase stack",
+  "summary": "My Appointments page visual and flow audit covering core requirements: page title visible, seasonal inspiration cards rendered, appointment history, real booking flow intact, no console errors on desktop and mobile viewports.",
+  "checks": {
+    "focused_playwright": "1 passed: appointments-audit-v3.spec.ts (authenticated browser verification)",
+    "customer_lint": "passed",
+    "customer_typecheck": "passed",
+    "console": "no console error messages observed by the authenticated desktop/mobile browser capture"
+  },
+  "screenshots": [
+    {
+      "file": "desktop-1512x982.png",
+      "viewport": "1512x982",
+      "note": "My Appointments page with seasonal inspiration cards",
+      "sha256": "d10b24687a3288791f89ad2c192ed1f589a5e79febb6dc0aeaaeb05987d1c855"
+    },
+    {
+      "file": "mobile-390x844.png",
+      "viewport": "390x844",
+      "note": "My Appointments page mobile view, same layout and cards",
+      "sha256": "0b3a76f9218030a17f137e36f3c22abbbf6474c39bd96ed6c71286d0b601c1a8"
+    }
+  ]
+}

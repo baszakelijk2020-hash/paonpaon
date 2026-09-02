@@ -550,3 +550,32 @@ export async function setContractValue(
   });
   revalidatePath(`/corporate/${programmeId}`);
 }
+
+/** Create a corporate account manager (PHASE 14.1 / BD-104) — the account
+ * administrator who runs the wardrobe programme day to day and has access
+ * to the Manager Portal. */
+export async function setAccountManager(
+  accountId: string,
+  formData: FormData,
+): Promise<void> {
+  const session = await requireModuleSession("enterprise_verticals");
+  const contactName = String(formData.get("contactName") ?? "").trim();
+  const loginEmail = String(formData.get("loginEmail") ?? "").trim();
+
+  if (!contactName) {
+    throw new Error("Enter the manager's name.");
+  }
+  if (!loginEmail) {
+    throw new Error("Enter the manager's email address.");
+  }
+
+  await new CorporateRepository(await getSupabaseServerClient()).createManager(
+    session.retailerId,
+    {
+      accountId,
+      contactName,
+      loginEmail,
+    },
+  );
+  revalidatePath(`/corporate`);
+}

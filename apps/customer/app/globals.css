@@ -1,5 +1,154 @@
 @import "@paon/ui/styles.css";
 
+@font-face {
+  font-family: "Customer Body";
+  src: url("/fonts/TN_Web_Use_Only_2.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Customer Display";
+  src: url("/fonts/Munged-MZgX5NxJBs.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Brand Display";
+  src: url("/fonts/aviano.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "GTBold3";
+  src: url("/fonts/gtbold3.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+
+/* The storefront template still names this family in a few isolated
+ * embedded widgets. Keep the name as an alias, never as a fallback. */
+@font-face {
+  font-family: "Google Flex";
+  src: url("/fonts/TN_Web_Use_Only_2.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+body {
+  font-family: "Customer Body", "TN Web Use Only", sans-serif;
+  background: #f4f2ed;
+  color: #171916;
+}
+
+h1,
+h2,
+h3 {
+  font-family: "Customer Display", "Munged", serif;
+}
+
+.font-display {
+  font-family: "Customer Display", "Munged", serif;
+}
+
+.font-brand {
+  font-family: "Brand Display", "Aviano", serif;
+}
+
+:root {
+  --customer-paper: #f4f2ed;
+  --customer-ink: #171916;
+  --customer-moss: #cbd3c5;
+  --customer-border: #ddd9d0;
+  --customer-radius: 12px;
+  /*
+   * Phase 20.25 CENV-CTA-001: customer CTA controls (Buy, Save, Book
+   * Appointment, and equivalents) use one 15px squircle system. This is
+   * intentionally distinct from --customer-radius (panels, inputs, list
+   * rows) so only action controls move.
+   */
+  --customer-cta-radius: 15px;
+}
+
+.customer-page {
+  min-height: 100%;
+  background: var(--customer-paper);
+  color: var(--customer-ink);
+}
+.customer-page-header {
+  display: flex;
+  gap: 1rem;
+  padding-block: 1.25rem 1.5rem;
+}
+.customer-kicker {
+  font-family: "GTBold3", Arial, sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+.customer-panel,
+.customer-panel-dark {
+  border: 1px solid var(--customer-border);
+  border-radius: var(--customer-radius);
+}
+.customer-panel {
+  background: rgba(255, 255, 255, 0.48);
+}
+.customer-panel-dark {
+  border-color: var(--customer-ink);
+  background: var(--customer-ink);
+  color: var(--customer-paper);
+}
+.customer-list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--customer-border);
+  padding: 0.875rem 1rem;
+}
+.customer-list-row:last-child {
+  border-bottom: 0;
+}
+.customer-text-link {
+  color: inherit;
+  text-underline-offset: 0.2em;
+  transition: color 150ms ease;
+}
+.customer-text-link:hover {
+  color: #596453;
+}
+.customer-button {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--customer-ink);
+  border-radius: var(--customer-cta-radius);
+  background: var(--customer-ink);
+  padding-inline: 1rem;
+  color: var(--customer-paper);
+  font-family: "Customer Body", "TN Web Use Only", sans-serif;
+  font-size: 0.875rem;
+  transition:
+    background 150ms ease,
+    color 150ms ease;
+}
+.customer-button:hover {
+  background: #596453;
+}
+.customer-button-light {
+  background: transparent;
+  color: var(--customer-ink);
+}
+.customer-button-light:hover {
+  background: rgba(23, 25, 22, 0.08);
+}
+
 /*
  * FT-14 Preferred Tailoring monthly grid: a subset of day cells show a
  * garment image that fades in with a per-day varied start delay and an
@@ -23,5 +172,29 @@
 @media (prefers-reduced-motion: reduce) {
   .preferred-tailoring-photo-fade {
     animation: none;
+  }
+}
+
+/*
+ * Stage 21.2 one-platform seam: smooth the storefront <-> customer-dashboard
+ * boundary (two same-origin documents) with a native cross-document view
+ * transition. The storefront's brand <style> block (route.ts) opts in on its
+ * side too; both documents must set `navigation: auto` for the transition to
+ * run. Progressive enhancement — unsupported browsers keep today's instant
+ * navigation unchanged.
+ */
+@view-transition {
+  navigation: auto;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 180ms;
+  animation-timing-function: ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }

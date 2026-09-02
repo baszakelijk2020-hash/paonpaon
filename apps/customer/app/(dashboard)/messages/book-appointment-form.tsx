@@ -165,7 +165,11 @@ export function BookAppointmentForm({
 
           {state.error && <p className="text-xs text-red-600">{state.error}</p>}
 
-          <Button type="submit" disabled={isPending} className="w-full">
+          <Button
+            type="submit"
+            disabled={isPending}
+            className="w-full rounded-[15px]"
+          >
             {isPending ? "Creating..." : "Book Appointment"}
           </Button>
         </form>

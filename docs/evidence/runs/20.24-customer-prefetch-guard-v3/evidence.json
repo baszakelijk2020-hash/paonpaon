@@ -1,0 +1,34 @@
+{
+  "phase": "20.24",
+  "commit": "6964da4",
+  "customer_app_code_sha": "3f1c88d",
+  "note": "New test-only proof lane. The owned spec did not exist on the release branch; this adds apps/customer/e2e/customer-prefetch-constrained-network-v3.spec.ts and proves it against the release branch on the local Supabase stack. No application code changed. The guard being proven is IntentPrefetchLink.isConstrainedConnection() in apps/customer/app/(dashboard)/intent-prefetch-link.tsx.",
+  "route": "/dashboard (left sidebar ShopCategorySidebar -> storefront prefetch), /wardrobe, /orders",
+  "persona": "authenticated Isabelle customer fixture (contact+isabelle@nebelspiegel.com magic-link sign-in) against the local Supabase stack (http://127.0.0.1:54321)",
+  "checks": {
+    "focused_playwright": "3 passed: customer-prefetch-constrained-network-v3.spec.ts — 'unconstrained: the customer sidebar eagerly warms the storefront with a document prefetch link' (1.0s); 'Save-Data on: no eager prefetch is injected, and normal navigation still works' (3.3s); '2G effective connection: no eager prefetch is injected, and normal navigation still works' (3.7s)",
+    "customer_lint": "passed (eslint e2e/customer-prefetch-constrained-network-v3.spec.ts --max-warnings 0)",
+    "customer_typecheck": "passed (tsc --noEmit)",
+    "console": "no console error messages observed in any of the three tests (each asserts consoleErrors.toEqual([]))"
+  },
+  "asserted": [
+    "unconstrained (real navigator.connection): with no user interaction the sidebar's IntentPrefetchLink eagerly injects <link rel=\"prefetch\" as=\"document\" href=\"/r/...\"> into <head> within the idle window",
+    "Save-Data on (navigator.connection.saveData = true, shadowed via addInitScript before app load): after 2.5s NO eager <link rel=\"prefetch\" as=\"document\"> is injected (count 0)",
+    "2G (navigator.connection.effectiveType = '2g'): after 2.5s NO eager prefetch link is injected (count 0)",
+    "guard does not change navigation correctness: with Save-Data on, clicking the /wardrobe top-nav link still lands on /wardrobe with [data-customer-navigation-ready] set; with 2G, clicking /orders still lands on /orders",
+    "the guard is surgical — only the eager path is gated: with Save-Data on, an explicit hover on a /r/atelier-demo sidebar link still injects the document prefetch link (intent-driven prefetch preserved)",
+    "desktop 1512x982 and mobile 390x844 captures"
+  ],
+  "screenshots": [
+    {
+      "file": "desktop-1512x982.png",
+      "viewport": "1512x982",
+      "sha256": "0f1b3fd2c08dea65d06412f96ed95bcfe1966002c871a0cbde19a162ed024e83"
+    },
+    {
+      "file": "mobile-390x844.png",
+      "viewport": "390x844",
+      "sha256": "9ee8a4e21f3be7fab8b157dc784bc68541683a8efcb0834094b81f922627634d"
+    }
+  ]
+}

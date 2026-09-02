@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.12",
+  "requirementIds": ["CENV-ORDERS-001"],
+  "status": "verified_local",
+  "title": "claude-customer-orders-v3 \u2014 pending orders, history, and real actions",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "no new domain logic; ordering and filtering are client-side presentation of existing order data",
+    "persistence": "no new migration; existing orders and order_items tables unchanged",
+    "service": "apps/customer/app/(dashboard)/orders/page.tsx (renders Pending Orders first, then Order History; each order/item exposes real existing actions: Order again, Complete the Look, Ask a question, Request service, View order/invoice); Complete the Look centres the owned source item in a 70x70 squircle above a real-suggestion carousel; no duplicate product on one viewport",
+    "origin_ui": "orders/page.tsx \u2014 render Pending Orders first, then complete Order History; each order/item shows real existing actions; Complete the Look module renders a 70x70 squircle for the source item; no duplicated or overlapping products on one viewport; no QR/payment/email/Mission Control",
+    "receiver_ui": "all actions are real routes carrying the order context; no dead buttons or duplicate modules; complete order history is visible and persistent",
+    "rls": "no new RLS; existing customer-scoped orders and order_items queries are unchanged",
+    "exceptions": "no new exception paths; RLS guards all read access",
+    "browser": "apps/customer/e2e/orders-v3-presentation.spec.ts \u2014 authenticated E2E Customer Workspace persona; desktop 1512x982 + mobile 390x844; 2/2 passed at gitSha 6be179c (docs/evidence/runs/20.12.json). Pending Orders first, then History; each item shows real actions (Order again, Complete the Look, Ask a question, Request service, View order/invoice); Complete the Look 70x70 squircle + carousel; no duplicate products; no console/page errors",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-customer-workspace",
+  "browserProofSpec": "apps/customer/e2e/orders-v3-presentation.spec.ts",
+  "assertedAt": "2026-09-02T08:47:00.000Z"
+}

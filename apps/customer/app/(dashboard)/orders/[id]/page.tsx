@@ -2,6 +2,7 @@ import {
   HoneymoonProgrammeRepository,
   OrderRepository,
   PaymentRepository,
+  ProductRepository,
   ProductVariantRepository,
   RetailerRepository,
 } from "@paon/database";
@@ -9,11 +10,13 @@ import { asId, ORDER_STATUS_LABELS } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate, formatMoney } from "@paon/utils";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { HoneymoonProgrammeCard } from "./honeymoon-programme-card";
 import { PayPanel } from "./pay-panel";
 
+import { env } from "@/lib/env";
 import { requireSession } from "@/lib/session";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -46,6 +49,27 @@ export default async function OrderDetailPage({
   const variants = await Promise.all(
     lines.map((line) => variantRepo.findById(line.productVariantId)),
   );
+
+  const firstVariant = variants.find((variant) => variant !== null) ?? null;
+  const firstProduct = firstVariant
+    ? await new ProductRepository(supabase).findById(firstVariant.productId)
+    : null;
+
+  // §7 per-order real actions. Each target is a shipped customer route —
+  // nothing here fabricates a flow. "View order / invoice" is the itemised
+  // block below, so it is not repeated as a link on the order's own page.
+  const reorderHref =
+    retailer?.slug && firstProduct
+      ? `/r/${retailer.slug}/products/${firstProduct.slug}`
+      : retailer?.slug
+        ? `/r/${retailer.slug}`
+        : `/orders/${order.id}`;
+  const orderActions = [
+    { label: "Order again", href: reorderHref },
+    { label: "Complete the look", href: "/orders#complete-the-look" },
+    { label: "Ask a question", href: "/messages" },
+    { label: "Request service", href: "/services" },
+  ];
 
   // Order-to-delivery tracker (PHASE 10.2 / CMP-106). Recomputed on every
   // view from the order's current status and each variant's real
@@ -89,9 +113,28 @@ export default async function OrderDetailPage({
           {retailer?.displayName ?? "Unknown retailer"} ·{" "}
           {formatDate(order.createdAt, "en-US")}
         </p>
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--color-stone-500)]">
+          {orderActions.map((action) => (
+            <Link
+              key={action.label}
+              href={action.href}
+              className="underline underline-offset-2 hover:text-[var(--color-stone-900)]"
+            >
+              {action.label}
+            </Link>
+          ))}
+        </div>
       </div>
 
       <Card className="paon-reveal divide-y divide-[var(--color-stone-100)] p-0">
+        <div className="flex items-center justify-between px-6 py-3">
+          <p className="customer-kicker text-[var(--color-stone-500)]">
+            Invoice
+          </p>
+          <p className="text-xs text-[var(--color-stone-500)]">
+            {order.orderNumber}
+          </p>
+        </div>
         {lines.map((line, index) => {
           const variant = variants[index];
           return (
@@ -116,13 +159,19 @@ export default async function OrderDetailPage({
       </Card>
 
       <Card
-        className="paon-reveal flex items-center justify-between"
+        className="paon-reveal flex flex-col gap-2"
         style={{ animationDelay: "120ms" }}
       >
-        <p className="font-medium text-[var(--color-stone-900)]">Total</p>
-        <p className="font-medium text-[var(--color-stone-900)]">
-          {formatMoney(order.total, "en-US")}
-        </p>
+        <div className="flex items-center justify-between text-sm text-[var(--color-stone-600)]">
+          <p>Subtotal</p>
+          <p>{formatMoney(order.subtotal, "en-US")}</p>
+        </div>
+        <div className="flex items-center justify-between">
+          <p className="font-medium text-[var(--color-stone-900)]">Total</p>
+          <p className="font-medium text-[var(--color-stone-900)]">
+            {formatMoney(order.total, "en-US")}
+          </p>
+        </div>
       </Card>
 
       {lines.some(
@@ -162,6 +211,8 @@ export default async function OrderDetailPage({
             paymentCanceled={payment === "canceled"}
             payAtDelivery={honeymoonProgramme.payAtDelivery}
             canOfferPayAtDelivery={!honeymoonProgramme.payAtDelivery}
+            demoPaymentsEnabled={env.demoPaymentsEnabled}
+            stripeConfigured={Boolean(env.stripeSecretKey)}
           />
         )
       ) : paymentRecord?.status === "captured" ? (

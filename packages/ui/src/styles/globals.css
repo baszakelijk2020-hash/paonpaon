@@ -25,28 +25,68 @@
  * `app/fonts/[filename]/route.ts`.
  */
 @font-face {
+  font-family: "Munged";
+  src: url("/fonts/Munged-MZgX5NxJBs.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Munged";
+  src: url("/fonts/Munged-teVV8iw7A5.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "TN Web Use Only";
+  src: url("/fonts/TN_Web_Use_Only_3.woff2") format("woff2");
+  font-weight: 300;
+  font-display: swap;
+}
+@font-face {
+  font-family: "TN Web Use Only";
+  src: url("/fonts/TN_Web_Use_Only_2.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "TN Web Use Only";
+  src: url("/fonts/TN_Web_Use_Only.woff2") format("woff2");
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: "TN Web Use Only";
+  src: url("/fonts/TN_Web_Use_Only_1.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+/* Compatibility aliases keep isolated legacy widgets on the house faces
+ * while their markup is gradually simplified. */
+@font-face {
   font-family: "OptimaKlein";
-  src: url("/fonts/optimaklein.woff2") format("woff2");
+  src: url("/fonts/TN_Web_Use_Only_2.woff2") format("woff2");
+  font-weight: 400;
   font-display: swap;
 }
 @font-face {
   font-family: "GTBold3";
-  src: url("/fonts/gtbold3.woff2") format("woff2");
+  src: url("/fonts/Munged-teVV8iw7A5.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Aviano";
+  src: url("/fonts/Munged-MZgX5NxJBs.woff2") format("woff2");
+  font-weight: 400;
   font-display: swap;
 }
 
 @theme {
-  /* Typography — taken from paon-template.html, which sets
-   * `font-family: OptimaKlein, serif` on `html, body`. OptimaKlein is the
-   * body face, not only the display face. An earlier version of this file
-   * routed body text to Inter on the judgement that the serif was "not
-   * legible at paragraph size"; that judgement is not the founder's, and
-   * substituting a different typeface for the whole product is the single
-   * largest reason the portals did not look like the design. Do not
-   * reintroduce it — see docs/DESIGN_PORTS.md and ADR-052. */
-  --font-display: "OptimaKlein", "Fraunces", ui-serif, Georgia, serif;
-  --font-accent: "GTBold3", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "OptimaKlein", "Fraunces", ui-serif, Georgia, serif;
+  /* Nebel & Spiegel's supplied webfont system: Munged carries headings;
+   * TN Web Use Only carries readable interface and body copy. */
+  --font-display: "Munged", ui-serif, Georgia, serif;
+  --font-accent: "Munged", ui-serif, Georgia, serif;
+  --font-sans: "TN Web Use Only", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 
   /* Neutral scale — the founder's actual `:root` from
@@ -152,6 +192,8 @@
 
   body {
     background-color: var(--color-stone-50);
+    /* The house body face keeps dense operational screens readable while
+     * display treatments remain reserved for hierarchy. */
     /* paon-template.html sets body colour to `--text` (#2a2925), a soft
      * warm near-black, not the hard `--black` (#111110) it reserves for
      * headlines and emphasis. Using the hard black for body copy is what

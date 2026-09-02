@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.7",
+  "requirementIds": ["CENV-FITTING-ROOM-001"],
+  "status": "verified_local",
+  "title": "claude-digital-fitting-room — first-run experience",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "n_a",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "no new domain logic — first-run experience is a presentation layer wrapping the existing avatar/portrait workflow",
+    "persistence": "no new persistence — the first-run invitation card is stateless UI; avatar/portrait workflows persist via existing tables",
+    "service": "apps/customer/app/(dashboard)/digital-fitting-room/page.tsx — conditionally renders the one-card first-run entry or delegates to the real avatar/portrait workflow (fitting-room-studio.tsx, style-portrait-panel.tsx); apps/customer/app/(dashboard)/digital-fitting-room/virtual-studio-actions.ts and style-portrait-actions.ts — real workflow server actions unchanged",
+    "origin_ui": "apps/customer/app/(dashboard)/digital-fitting-room/page.tsx — renders one calm card on first visit with invitation heading, three concise steps (Create portrait, Choose pieces, Create look), and one prominent 'Start creating' link. Card is replaced on action click by the real avatar/portrait workflow. Desktop 1512x982 + mobile 390x844 screenshots captured during E2E.",
+    "receiver_ui": "apps/customer/app/(dashboard)/digital-fitting-room/fitting-room-studio.tsx — avatar/portrait workflow entry point that replaces the first-run card; receives control flow from the 'Start creating' action via step=avatar URL param",
+    "rls": "no new RLS — authentication required before entering Digital Fitting Room; customer-scoped data access inherited from existing avatar/portrait workflow RLS",
+    "exceptions": "no new exception cases — invalid auth state redirects to login before reaching the first-run card",
+    "browser": "apps/customer/e2e/digital-fitting-room-first-run.spec.ts — authenticated E2E Customer Workspace persona against local Supabase; 1/1 passed at gitSha 2c4a627 (docs/evidence/runs/20.7.json). Test verifies: one calm card visible with invitation heading, three steps, and one prominent 'Start creating' action; no decorative wardrobe panel (old hero); starting creates leads to avatar step and replaces the entry card; desktop and mobile viewport screenshots (1512x982, 390x844) captured; zero console errors",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "proven",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-customer-workspace",
+  "browserProofSpec": "apps/customer/e2e/digital-fitting-room-first-run.spec.ts",
+  "assertedAt": "2026-09-02T00:00:00.000Z"
+}

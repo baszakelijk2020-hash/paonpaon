@@ -1,28 +1,147 @@
 import {
+  AlterationCatalogueRepository,
   AppointmentRepository,
   CustomerRepository,
+  PaidCareServicePriceRepository,
+  RetailerBranchRepository,
   RetailerRepository,
+  WardrobeRepository,
+  WardrobeRoadmapRepository,
 } from "@paon/database";
-import { APPOINTMENT_TYPE_LABELS } from "@paon/domain";
-import { buttonVariants } from "@paon/ui/components/Button";
-import { Card } from "@paon/ui/components/Card";
+import {
+  APPOINTMENT_TYPE_LABELS,
+  type PaidCareServiceKind,
+} from "@paon/domain";
 import { formatDate } from "@paon/utils";
 import Link from "next/link";
+import { z } from "zod";
 
+import { RelatedLinks } from "../related-links";
+
+import { BookAppointmentLauncher } from "./book-appointment-launcher";
+import type { BookableBranch } from "./booking-flow";
+import { APPOINTMENT_REASONS } from "./booking-reasons";
+import type { PricedOperation } from "./paid-care-flow";
+import { PaidCareLauncher } from "./paid-care-launcher";
 import { AppointmentStatusBadge } from "./status-badge";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
-export default async function AppointmentsPage() {
+const prefillParamsSchema = z.object({
+  prefillReason: z.enum(
+    APPOINTMENT_REASONS.map((r) => r.value) as [string, ...string[]],
+  ),
+  prefillWardrobeItemId: z.string().uuid().optional(),
+  prefillRoadmapGapId: z.string().uuid().optional(),
+});
+
+interface ResolvedBookingPrefill {
+  readonly initialReason: (typeof APPOINTMENT_REASONS)[number]["value"];
+  readonly purpose: string;
+  readonly wardrobeItemId?: string;
+  readonly roadmapGapId?: string;
+}
+
+/**
+ * DeepSeek remediation Cards 1-2: Wardrobe's "Request a fit-check in
+ * store" / "Proceed in store" actions link here with typed, allowlisted
+ * query params for the garment/context they're about. Anything that
+ * doesn't resolve to real data this customer actually owns — bad reason,
+ * missing/retired/cross-tenant garment or roadmap gap, malformed ids —
+ * fails closed to `null`: the page renders the normal, un-prefilled
+ * booking flow exactly as if no query params were present at all.
+ */
+async function resolveBookingPrefill(
+  supabase: Awaited<ReturnType<typeof getSupabaseServerClient>>,
+  customerId: string,
+  searchParams: Record<string, string | string[] | undefined>,
+): Promise<ResolvedBookingPrefill | null> {
+  const firstOf = (value: string | string[] | undefined) =>
+    Array.isArray(value) ? value[0] : value;
+  const parsed = prefillParamsSchema.safeParse({
+    prefillReason: firstOf(searchParams["prefillReason"]),
+    prefillWardrobeItemId: firstOf(searchParams["prefillWardrobeItemId"]),
+    prefillRoadmapGapId: firstOf(searchParams["prefillRoadmapGapId"]),
+  });
+  if (!parsed.success) return null;
+  const initialReason = parsed.data
+    .prefillReason as ResolvedBookingPrefill["initialReason"];
+
+  if (parsed.data.prefillWardrobeItemId) {
+    const item = await new WardrobeRepository(supabase).findById(
+      parsed.data.prefillWardrobeItemId as never,
+    );
+    if (!item || item.customerId !== customerId || item.retiredAt) {
+      return null;
+    }
+    return {
+      initialReason,
+      purpose: `Fit-check: ${item.displayName}`,
+      wardrobeItemId: parsed.data.prefillWardrobeItemId,
+    };
+  }
+
+  if (parsed.data.prefillRoadmapGapId) {
+    const roadmaps = await new WardrobeRoadmapRepository(
+      supabase,
+    ).findByCustomer(customerId as never, { customerVisibleOnly: true });
+    const gap = roadmaps
+      .flatMap((roadmap) => roadmap.gaps)
+      .find((candidate) => candidate.id === parsed.data.prefillRoadmapGapId);
+    if (!gap) return null;
+    return {
+      initialReason,
+      purpose: `In-store: ${gap.title}`,
+      roadmapGapId: parsed.data.prefillRoadmapGapId,
+    };
+  }
+
+  return null;
+}
+
+const INSPIRATION_APPOINTMENTS = [
+  {
+    id: "fall-winter-2026",
+    dateLabel: "September 2026",
+    title: "Fall/Winter Wardrobe Appointment",
+    treatment: "linear-gradient(135deg, #56665a 0%, #222b24 100%)",
+  },
+  {
+    id: "spring-summer-2027",
+    dateLabel: "February 2027",
+    title: "Spring/Summer 2027 Wardrobe Appointment",
+    treatment: "linear-gradient(135deg, #7c8772 0%, #3f493b 100%)",
+  },
+  {
+    id: "summer-holiday-2027",
+    dateLabel: "April 2027",
+    title: "Summer Holiday 2027 Wardrobe Appointment",
+    treatment: "linear-gradient(135deg, #8e7762 0%, #40342c 100%)",
+  },
+  {
+    id: "holiday-season-2027",
+    dateLabel: "November 2027",
+    title: "Holiday Season Look Appointment",
+    treatment: "linear-gradient(135deg, #5f4d49 0%, #302624 100%)",
+  },
+] as const;
+
+export default async function AppointmentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const session = await requireSession();
   const supabase = await getSupabaseServerClient();
+  const resolvedSearchParams = await searchParams;
 
   const customers = await new CustomerRepository(supabase).findByUserId(
     session.userId,
   );
   const appointmentRepo = new AppointmentRepository(supabase);
   const retailerRepo = new RetailerRepository(supabase);
+  const branchRepo = new RetailerBranchRepository(supabase);
 
   const appointmentsByCustomer = await Promise.all(
     customers.map((customer) => appointmentRepo.findByCustomer(customer.id)),
@@ -38,53 +157,232 @@ export default async function AppointmentsPage() {
   );
 
   const primaryCustomer = customers[0];
-  const primaryRetailer = primaryCustomer
-    ? await retailerRepo.findById(primaryCustomer.retailerId)
+  const bookingPrefill = primaryCustomer
+    ? await resolveBookingPrefill(
+        supabase,
+        primaryCustomer.id,
+        resolvedSearchParams,
+      )
     : null;
-  const bookHref = primaryRetailer
-    ? `/r/${primaryRetailer.slug}`
-    : "/r/maison-dubois";
+  const bookableBranches: readonly BookableBranch[] = primaryCustomer
+    ? (await branchRepo.listByRetailer(primaryCustomer.retailerId)).map(
+        (branch) => ({
+          id: branch.id,
+          name: branch.name,
+          openingHours: branch.openingHours,
+        }),
+      )
+    : [];
+
+  let operationsByService: Record<
+    PaidCareServiceKind,
+    readonly PricedOperation[]
+  > = { dry_cleaning: [], shoe_repair: [], alteration: [] };
+  if (primaryCustomer) {
+    const priceRepo = new PaidCareServicePriceRepository(supabase);
+    const [dryCleaning, shoeRepair, catalogue] = await Promise.all([
+      priceRepo.findForRetailer(primaryCustomer.retailerId, "dry_cleaning"),
+      priceRepo.findForRetailer(primaryCustomer.retailerId, "shoe_repair"),
+      new AlterationCatalogueRepository(supabase).findForRetailer(
+        primaryCustomer.retailerId,
+      ),
+    ]);
+    operationsByService = {
+      dry_cleaning: dryCleaning.map((price) => ({
+        code: price.operationCode,
+        label: price.label,
+        amountMinorUnits: price.amountMinorUnits,
+        currency: price.currency,
+      })),
+      shoe_repair: shoeRepair.map((price) => ({
+        code: price.operationCode,
+        label: price.label,
+        amountMinorUnits: price.amountMinorUnits,
+        currency: price.currency,
+      })),
+      alteration: catalogue.operations
+        .filter((op) => op.enabled && op.effectivePrice)
+        .map((op) => ({
+          code: op.code,
+          label: op.name,
+          amountMinorUnits: op.effectivePrice!.amountMinorUnits,
+          currency: op.effectivePrice!.currency,
+        })),
+    };
+  }
+  const now = Date.now();
+  const upcoming = appointments.find(
+    (appointment) =>
+      !["completed", "canceled", "no_show"].includes(appointment.status) &&
+      new Date(appointment.startsAt).getTime() >= now,
+  );
+  const history = appointments.filter(
+    (appointment) => appointment.id !== upcoming?.id,
+  );
+  const retailerById = new Map(
+    appointments.map((appointment, index) => [
+      appointment.id,
+      retailers[index],
+    ]),
+  );
+  const formatTime = (iso: string) =>
+    formatDate(iso, "en-US", { hour: "numeric", minute: "2-digit" });
+  const formatRange = (startsAt: string, endsAt: string) =>
+    `${formatTime(startsAt)}–${formatTime(endsAt)}`;
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
-        Appointments
-      </h1>
+    <div className="customer-page flex flex-col gap-8">
+      <div className="customer-page-header flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="customer-kicker text-sm font-medium uppercase tracking-[0.16em]">
+            Your visits
+          </p>
+          <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
+            My Appointments
+          </h1>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          {primaryCustomer ? (
+            <BookAppointmentLauncher
+              retailerId={primaryCustomer.retailerId}
+              branches={bookableBranches}
+              {...(bookingPrefill
+                ? {
+                    autoOpen: true,
+                    initialReason: bookingPrefill.initialReason,
+                    purpose: bookingPrefill.purpose,
+                    ...(bookingPrefill.wardrobeItemId
+                      ? { wardrobeItemId: bookingPrefill.wardrobeItemId }
+                      : {}),
+                    ...(bookingPrefill.roadmapGapId
+                      ? { roadmapGapId: bookingPrefill.roadmapGapId }
+                      : {}),
+                  }
+                : {})}
+            />
+          ) : null}
+          <RelatedLinks links={[{ href: "/concierge", label: "Concierge" }]} />
+        </div>
+      </div>
 
-      {appointments.length === 0 ? (
-        <div className="rounded-[var(--radius-md)] border border-dashed border-[var(--color-stone-300)] px-6 py-16 text-center">
-          <p className="text-[var(--color-stone-600)]">
-            No appointments yet. Book a fitting from the storefront.
+      {primaryCustomer ? (
+        <section>
+          <h2 className="font-display mb-3 text-xl text-[var(--color-stone-900)]">
+            Suggestions to book
+          </h2>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {INSPIRATION_APPOINTMENTS.map((card) => (
+              <BookAppointmentLauncher
+                key={card.id}
+                retailerId={primaryCustomer.retailerId}
+                branches={bookableBranches}
+                initialReason="in_the_mood_for_something_fresh"
+                purpose={card.title}
+                className="group flex min-h-32 w-full flex-col justify-end gap-3 rounded-[15px] p-5 text-left text-white shadow-[inset_0_-80px_80px_rgba(0,0,0,0.16)] transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white motion-safe:duration-200 sm:hover:-translate-y-0.5"
+                style={{ background: card.treatment }}
+              >
+                <div>
+                  <p className="text-xs uppercase tracking-[0.1em] text-[var(--color-stone-400)]">
+                    {card.dateLabel}
+                  </p>
+                  <p className="font-display mt-1 text-base">{card.title}</p>
+                  <p className="mt-3 text-xs font-medium uppercase tracking-[0.12em] text-white/80">
+                    Start booking
+                  </p>
+                </div>
+              </BookAppointmentLauncher>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {primaryCustomer ? (
+        <section>
+          <h2 className="font-display mb-3 text-xl text-[var(--color-stone-900)]">
+            Paid-care services
+          </h2>
+          <PaidCareLauncher
+            retailerId={primaryCustomer.retailerId}
+            operationsByService={operationsByService}
+          />
+        </section>
+      ) : null}
+
+      {upcoming ? (
+        <section
+          className="relative overflow-hidden rounded-[var(--customer-radius)] p-6 text-white"
+          style={{
+            background: "linear-gradient(135deg, #2c3428 0%, #14170f 100%)",
+          }}
+        >
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.14em] text-white/60">
+                Next appointment
+              </p>
+              <h2 className="font-display mt-2 text-2xl text-white">
+                {APPOINTMENT_TYPE_LABELS[upcoming.type]}
+              </h2>
+              <p className="mt-1 text-white/80">
+                {retailerById.get(upcoming.id)?.displayName ??
+                  "Unknown retailer"}
+              </p>
+            </div>
+            <AppointmentStatusBadge status={upcoming.status} />
+          </div>
+          <p className="mt-5 text-sm text-white/80">
+            {formatDate(upcoming.startsAt, "en-US")} ·{" "}
+            {formatRange(upcoming.startsAt, upcoming.endsAt)}
           </p>
           <Link
-            href={bookHref}
-            className={buttonVariants({ className: "mt-6" })}
+            href={`/appointments/${upcoming.id}`}
+            className="customer-button mt-6 inline-flex"
           >
-            Book a fitting
+            View appointment
           </Link>
+        </section>
+      ) : !primaryCustomer ? (
+        <div className="customer-panel px-6 py-16 text-center">
+          <p className="text-[var(--color-stone-600)]">
+            No retailer connection yet.
+          </p>
         </div>
-      ) : (
-        <Card className="divide-y divide-[var(--color-stone-100)] p-0">
-          {appointments.map((appointment, index) => (
-            <Link
-              key={appointment.id}
-              href={`/appointments/${appointment.id}`}
-              className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 hover:bg-[var(--color-stone-50)]"
-            >
-              <div className="min-w-0">
-                <p className="font-medium text-[var(--color-stone-900)]">
-                  {retailers[index]?.displayName ?? "Unknown retailer"}
-                </p>
-                <p className="text-sm text-[var(--color-stone-500)]">
-                  {APPOINTMENT_TYPE_LABELS[appointment.type]} ·{" "}
-                  {formatDate(appointment.startsAt, "en-US")}
-                </p>
-              </div>
-              <AppointmentStatusBadge status={appointment.status} />
-            </Link>
-          ))}
-        </Card>
-      )}
+      ) : null}
+
+      {history.length > 0 ? (
+        <details className="overflow-hidden rounded-[var(--customer-radius)] border border-[var(--customer-border)]">
+          <summary
+            className="font-display cursor-pointer list-none px-6 py-4 text-xl text-white"
+            style={{
+              background: "linear-gradient(135deg, #56665a 0%, #222b24 100%)",
+            }}
+          >
+            Appointment history ({history.length})
+          </summary>
+          <div className="divide-y divide-[var(--color-stone-100)] bg-[var(--customer-paper)]">
+            {history.map((appointment) => (
+              <Link
+                key={appointment.id}
+                href={`/appointments/${appointment.id}`}
+                className="customer-list-row flex flex-wrap items-center justify-between gap-3 px-6 py-4"
+              >
+                <div className="min-w-0">
+                  <p className="font-medium text-[var(--color-stone-900)]">
+                    {APPOINTMENT_TYPE_LABELS[appointment.type]}
+                  </p>
+                  <p className="text-sm text-[var(--color-stone-500)]">
+                    {retailerById.get(appointment.id)?.displayName ??
+                      "Unknown retailer"}{" "}
+                    · {formatDate(appointment.startsAt, "en-US")} ·{" "}
+                    {formatRange(appointment.startsAt, appointment.endsAt)}
+                  </p>
+                </div>
+                <AppointmentStatusBadge status={appointment.status} />
+              </Link>
+            ))}
+          </div>
+        </details>
+      ) : null}
     </div>
   );
 }

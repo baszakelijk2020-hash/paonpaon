@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.15",
+  "requirementIds": ["CENV-NAVIGATION-003"],
+  "status": "verified_local",
+  "title": "claude-customer-navigation-v3-copy — navigation and forbidden-copy consistency",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "n_a",
+    "exceptions": "n_a",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "no new domain logic — pure customer navigation presentation layer with no transactional changes or new business invariants",
+    "persistence": "no new persistence — navigation metadata and labels are static configuration, not stored",
+    "service": "apps/customer/app/(dashboard)/layout.tsx defines the persistent warm customer shell; apps/customer/app/(dashboard)/account-top-tabs.tsx renders the top navigation menu with the exact seven destination labels (Overview, Wardrobe, My Appointments, Orders, Digital Fitting Room, Rewards & Referrals, My Profile); apps/customer/app/(dashboard)/customer-navigation-lifecycle.tsx manages warm navigation state and client-side routing; apps/customer/app/(dashboard)/intent-prefetch-link.tsx supports client-side navigation without full page reloads",
+    "origin_ui": "apps/customer/app/(dashboard)/account-top-tabs.tsx — renders desktop and mobile navigation with client-side link handling; desktop shows all seven navigation tabs in correct order with correct hrefs; mobile shows first three destinations inline with a 'More' overflow button providing access to remaining destinations",
+    "receiver_ui": "apps/customer/app/(dashboard)/layout.tsx — customer shell is persistent across navigation; no full page reloads when navigating between destinations; app shell element reference remains the same after client-side navigation",
+    "rls": "no new RLS requirements — navigation is presentation-only and does not introduce new data-access patterns beyond existing customer session scope",
+    "exceptions": "no new exceptions — all seven navigation destinations respect existing customer RLS boundaries; attempting to navigate to any destination without authentication fails before the nav component renders",
+    "browser": "apps/customer/e2e/customer-navigation-v3-copy.spec.ts — authenticated E2E Customer Workspace persona against local Supabase stack; desktop 1280x800 + mobile 390x844; 8/8 passed at gitSha 2c4a627 (docs/evidence/runs/20.15.json). Desktop tests verify: (1) exactly 7 navigation tabs in correct order with correct hrefs, (2) navigation is client-side with no full page reloads, (3) no forbidden 'house' wording in navigation labels, (4) console-clean warm navigation across all destinations. Mobile tests verify: (1) first 3 destinations inline with 'More' overflow menu, all destinations reachable, (2) mobile navigation is client-side, (3) no forbidden 'house' wording in mobile navigation, (4) console-clean warm navigation across all destinations; zero console errors on all tests",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "n_a",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-customer-workspace",
+  "browserProofSpec": "apps/customer/e2e/customer-navigation-v3-copy.spec.ts",
+  "assertedAt": "2026-09-02T00:00:00.000Z"
+}

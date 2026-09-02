@@ -1,0 +1,36 @@
+{
+  "phase": "20.7",
+  "commit": "7819396",
+  "route": "/digital-fitting-room",
+  "persona": "authenticated e2e-shopper customer fixture (E2E Customer Workspace)",
+  "summary": "First-run entry is one calm premium card — kicker, invitation, three real steps, and a single Start creating action into ?step=avatar. The existing avatar/portrait workflow is preserved and replaces the entry step in place.",
+  "checks": {
+    "focused_playwright": "1 passed: digital-fitting-room-first-run.spec.ts (fresh customer build via next build + next start)",
+    "customer_lint": "passed",
+    "customer_typecheck": "passed",
+    "repo_lint": "passed (pnpm lint, 12 packages)",
+    "repo_typecheck": "passed (pnpm typecheck, 12 packages)",
+    "console": "no error messages observed by the authenticated browser test",
+    "independent_review": "one fresh Haiku reviewer, zero findings"
+  },
+  "screenshots": [
+    {
+      "file": "desktop-first-run-1512x982.png",
+      "viewport": "1512x982",
+      "note": "calm single-card first-run entry",
+      "sha256": "36c087e0018b770469ba84231d12cc439214421944e0933c7a368f31394579b3"
+    },
+    {
+      "file": "mobile-first-run-390x844.png",
+      "viewport": "390x844",
+      "note": "same card, steps stacked, single CTA",
+      "sha256": "d030abe9c28672cfc3a8fe6ee29709547cf06fd62fb54e6b13160fa8895a11b5"
+    },
+    {
+      "file": "desktop-avatar-step-1512x982.png",
+      "viewport": "1512x982",
+      "note": "after Start creating — the preserved Style Portrait workflow replaces the entry step",
+      "sha256": "1ee7a2682a7baf7ab5e27832a77cc69c27457f64a101e82bdad5d9121b160bc7"
+    }
+  ]
+}

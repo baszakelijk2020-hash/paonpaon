@@ -27,16 +27,24 @@ export function CompleteTheLookCard({
   if (suggestions.length === 0) return null;
 
   return (
-    <Card className="flex flex-col gap-3" data-complete-the-look-card>
-      <div>
-        <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
-          Complete the look
-        </h2>
-        <p className="text-sm text-[var(--color-stone-500)]">
-          Wardrobe-planning suggestions that complement what you already own.
-        </p>
+    <Card className="overflow-hidden p-0" data-complete-the-look-card>
+      <div className="flex items-end justify-between gap-6 border-b border-[var(--color-stone-200)] px-5 py-5 sm:px-6">
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.18em] text-[var(--color-stone-400)]">
+            Edit your rotation
+          </p>
+          <h2 className="font-display mt-1 text-2xl text-[var(--color-stone-900)]">
+            Complete the look
+          </h2>
+          <p className="mt-1 text-sm text-[var(--color-stone-500)]">
+            Chosen to complement what you already own.
+          </p>
+        </div>
+        <span className="hidden text-xs text-[var(--color-stone-500)] sm:block">
+          {suggestions.length} considered
+        </span>
       </div>
-      <ul className="flex snap-x gap-3 overflow-x-auto pb-1">
+      <ul className="grid gap-px bg-[var(--color-stone-200)] sm:grid-cols-2 xl:grid-cols-3">
         {suggestions.map((suggestion) => (
           <SuggestedLookTile
             key={suggestion.productId}

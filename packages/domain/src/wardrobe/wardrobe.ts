@@ -101,6 +101,7 @@ export type WardrobeOwnershipEventKind =
  * enum is a designated ADR-034 source contract every existing consumer
  * depends on; this reuses the existing freeform message channel instead. */
 export const WARDROBE_SERVICE_REQUEST_KINDS = [
+  "repair",
   "alteration",
   "cleaning",
 ] as const;
@@ -112,6 +113,7 @@ export const WARDROBE_SERVICE_REQUEST_KIND_LABELS: Record<
   WardrobeServiceRequestKind,
   string
 > = {
+  repair: "Book a repair",
   alteration: "Book an alteration",
   cleaning: "Book a cleaning",
 };
@@ -316,6 +318,25 @@ export function wardrobeServiceRequestMessage(params: {
   const name = params.itemBrand
     ? `${params.itemBrand} ${params.itemDisplayName}`
     : params.itemDisplayName;
-  const action = params.kind === "alteration" ? "an alteration" : "a cleaning";
+  const action =
+    params.kind === "alteration"
+      ? "an alteration"
+      : params.kind === "cleaning"
+        ? "a cleaning"
+        : "a repair";
   return `I'd like to book ${action} for this item from my wardrobe: ${name}.`;
+}
+
+/** Reuses the same real conversation channel as
+ * {@link wardrobeServiceRequestMessage} for the Order Again deck's
+ * fallback when a wardrobe item has no linked product/variant to
+ * repurchase directly. */
+export function wardrobeReorderRequestMessage(params: {
+  readonly itemDisplayName: string;
+  readonly itemBrand?: string;
+}): string {
+  const name = params.itemBrand
+    ? `${params.itemBrand} ${params.itemDisplayName}`
+    : params.itemDisplayName;
+  return `I'd like to reorder this item from my wardrobe: ${name}. Could you help me find or arrange it?`;
 }

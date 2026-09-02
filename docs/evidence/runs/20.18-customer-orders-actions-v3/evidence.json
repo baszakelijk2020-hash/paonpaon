@@ -1,0 +1,26 @@
+{
+  "phase": "20.18",
+  "commit": "55e6d01",
+  "route": "/orders",
+  "persona": "authenticated E2E Customer Workspace fixture (TEST_CUSTOMER_EMAIL magic-link sign-in) against the local Supabase stack",
+  "checks": {
+    "focused_playwright": "1 passed: orders-actions-v3.spec.ts (every per-order action is a real route carrying this order's own context)",
+    "regression": "2 passed: orders-v3-presentation.spec.ts (20.12 — action set + complete-the-look module + capture)",
+    "customer_lint": "passed",
+    "customer_typecheck": "passed",
+    "console": "no console error messages observed by the authenticated desktop/mobile browser capture"
+  },
+  "notes": "CUSTOMER_ENVIRONMENT_REBUILD_V3 §7. Deepens the per-order action row built in 20.12 (a256373) so each of the five actions carries this order's own context, within the orders/page.tsx owner boundary (no new server action or component): 'Order again' -> /r/<slug>/products/<first-line product>; 'Complete the look' -> /digital-fitting-room?productSlug=<first-line product> (the DFR route preloads that product) instead of a page anchor; 'Ask a question' -> /messages?prefill=<question mentioning this order number> (the messages route reads prefill); 'Request service' -> /services; 'View order / invoice' -> /orders/<id>. Supporting-modules grid unchanged; 'seasonal staff favourites' still omitted — no real data source exists.",
+  "screenshots": [
+    {
+      "file": "desktop-1512x982.png",
+      "viewport": "1512x982",
+      "sha256": "b73a489f2173e98462270c0072695e1dea7147e8749452d1f54ff7d8990f2631"
+    },
+    {
+      "file": "mobile-390x844.png",
+      "viewport": "390x844",
+      "sha256": "a5f61698cdf9f08b36b50ca854f9a5de8cf9bbc5a08df0692320b376b50c13fb"
+    }
+  ]
+}

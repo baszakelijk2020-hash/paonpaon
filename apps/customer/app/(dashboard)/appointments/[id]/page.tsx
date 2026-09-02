@@ -1,6 +1,9 @@
 import { AppointmentRepository, RetailerRepository } from "@paon/database";
-import { asId, APPOINTMENT_TYPE_LABELS } from "@paon/domain";
-import { Card } from "@paon/ui/components/Card";
+import {
+  asId,
+  APPOINTMENT_STATUS_LABELS,
+  APPOINTMENT_TYPE_LABELS,
+} from "@paon/domain";
 import { formatDate } from "@paon/utils";
 import { notFound } from "next/navigation";
 
@@ -28,10 +31,22 @@ export default async function AppointmentDetailPage({
   const retailer = await new RetailerRepository(supabase).findById(
     appointment.retailerId,
   );
+  const formatTime = (iso: string) =>
+    formatDate(iso, "en-US", { hour: "numeric", minute: "2-digit" });
+  const isTerminal = ["canceled", "no_show"].includes(appointment.status);
+  const progressStatuses = [
+    "requested",
+    "confirmed",
+    "checked_in",
+    "completed",
+  ] as const;
+  const currentProgress = progressStatuses.indexOf(
+    appointment.status as (typeof progressStatuses)[number],
+  );
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
+    <div className="customer-page flex flex-col gap-8">
+      <div className="customer-page-header">
         <div className="flex items-center gap-3">
           <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
             {retailer?.displayName ?? "Unknown retailer"}
@@ -43,13 +58,16 @@ export default async function AppointmentDetailPage({
         </p>
       </div>
 
-      <Card className="flex flex-col gap-3">
+      <section className="customer-panel flex flex-col gap-3">
         <div>
           <p className="text-xs font-medium uppercase text-[var(--color-stone-500)]">
-            Requested time
+            Appointment time
           </p>
           <p className="text-[var(--color-stone-900)]">
             {formatDate(appointment.startsAt, "en-US")}
+          </p>
+          <p className="text-sm text-[var(--color-stone-600)]">
+            {formatTime(appointment.startsAt)}–{formatTime(appointment.endsAt)}
           </p>
         </div>
         {appointment.notes ? (
@@ -60,7 +78,34 @@ export default async function AppointmentDetailPage({
             <p className="text-[var(--color-stone-900)]">{appointment.notes}</p>
           </div>
         ) : null}
-      </Card>
+      </section>
+
+      <section className="customer-panel-dark">
+        <h2 className="font-display text-xl text-[var(--color-stone-50)]">
+          Appointment status
+        </h2>
+        {isTerminal ? (
+          <div className="mt-4 flex items-center gap-3 text-sm text-[var(--color-stone-200)]">
+            <AppointmentStatusBadge status={appointment.status} />
+            <span>This appointment is no longer active.</span>
+          </div>
+        ) : (
+          <div className="mt-5 grid grid-cols-4 gap-2">
+            {progressStatuses.map((status, index) => (
+              <div key={status} className="flex flex-col gap-2">
+                <div
+                  className={`h-1.5 rounded-full ${index <= currentProgress ? "bg-[var(--color-stone-50)]" : "bg-[var(--color-stone-700)]"}`}
+                />
+                <span
+                  className={`text-xs ${index === currentProgress ? "font-medium text-[var(--color-stone-50)]" : "text-[var(--color-stone-300)]"}`}
+                >
+                  {APPOINTMENT_STATUS_LABELS[status]}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       {appointment.status === "requested" ? (
         <p className="text-sm text-[var(--color-stone-500)]">

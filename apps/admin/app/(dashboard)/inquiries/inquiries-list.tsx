@@ -2,6 +2,7 @@
 
 import { SearchableCollection } from "@paon/ui/components/SearchableCollection";
 import Link from "next/link";
+import { useActionState } from "react";
 
 import { updateInquiryStatus } from "./actions";
 
@@ -30,6 +31,48 @@ export type InquiryRow = {
   status: keyof typeof STATUS_LABELS;
   createdAt: string;
 };
+
+function InquiryStatusForm({ inquiry }: { inquiry: InquiryRow }) {
+  const [state, action, pending] = useActionState(updateInquiryStatus, {});
+
+  return (
+    <form action={action} className="flex flex-col gap-2">
+      <input type="hidden" name="inquiryId" value={inquiry.id} />
+      <div className="flex flex-wrap gap-2">
+        <select
+          name="status"
+          defaultValue={inquiry.status}
+          disabled={pending}
+          className="h-9 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-2 text-xs disabled:opacity-50"
+          aria-label="Inquiry status"
+        >
+          {Object.entries(STATUS_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+        <button
+          type="submit"
+          disabled={pending}
+          className="h-9 rounded-[var(--radius-md)] bg-[var(--color-stone-900)] px-3 text-xs text-white disabled:opacity-50"
+        >
+          {pending ? "Saving…" : "Save"}
+        </button>
+      </div>
+      {state.formError ? (
+        <p role="alert" className="text-xs text-[var(--color-danger-500)]">
+          {state.formError}
+        </p>
+      ) : null}
+      {state.saved ? (
+        <p role="status" className="text-xs text-[var(--color-success-500)]">
+          Status updated.
+        </p>
+      ) : null}
+    </form>
+  );
+}
 
 export function InquiriesList({ inquiries }: { inquiries: InquiryRow[] }) {
   return (
@@ -96,30 +139,7 @@ export function InquiriesList({ inquiries }: { inquiries: InquiryRow[] }) {
                   >
                     {new Date(inquiry.createdAt).toLocaleString()}
                   </time>
-                  <form
-                    action={updateInquiryStatus}
-                    className="flex flex-wrap gap-2"
-                  >
-                    <input type="hidden" name="inquiryId" value={inquiry.id} />
-                    <select
-                      name="status"
-                      defaultValue={inquiry.status}
-                      className="h-9 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-2 text-xs"
-                      aria-label="Inquiry status"
-                    >
-                      {Object.entries(STATUS_LABELS).map(([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      type="submit"
-                      className="h-9 rounded-[var(--radius-md)] bg-[var(--color-stone-900)] px-3 text-xs text-white"
-                    >
-                      Save
-                    </button>
-                  </form>
+                  <InquiryStatusForm inquiry={inquiry} />
                   {inquiry.status !== "converted" ? (
                     <Link
                       href={`/prospects/new?company=${encodeURIComponent(inquiry.companyName)}&email=${encodeURIComponent(inquiry.email)}&contact=${encodeURIComponent(inquiry.contactName)}`}

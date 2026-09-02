@@ -1,19 +1,28 @@
+import { resolve } from "node:path";
+
 import { createSupabaseAdminClient } from "@paon/database";
 import { expect, test } from "@playwright/test";
 
 import { TEST_CUSTOMER_EMAIL, TEST_RETAILER_SLUG } from "./fixtures";
 
 /**
- * The real MorningRoutine engine now auto-generates and renders at the top
- * of the dashboard instead of sitting on its own page behind a manual
- * "Select today" button — pag1.html's own composed-look widget (anchor
- * id="morning", live weather fetch, "Hi {name} ... today calls for
- * something special") is a daily hero, not a page a customer has to
- * remember to visit.
+ * The Overview composes compact local context directly above the real daily
+ * MorningRoutine OOTD. It must not duplicate the look inside the strip or
+ * bring the old Overview-only Complete the Look module back.
  */
-test("the dashboard shows today's MorningRoutine hero automatically, with a priced breakdown", async ({
+test("the dashboard composes local context directly above the real daily OOTD", async ({
   page,
-}) => {
+}, testInfo) => {
+  const evidencePath = (...parts: string[]) =>
+    resolve(
+      testInfo.config.rootDir,
+      "../../../docs/evidence/runs/20.5-customer-overview",
+      ...parts,
+    );
+  const consoleErrors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") consoleErrors.push(message.text());
+  });
   const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
   const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
   if (!supabaseUrl || !serviceRoleKey) {
@@ -35,17 +44,16 @@ test("the dashboard shows today's MorningRoutine hero automatically, with a pric
   );
   await expect(page).toHaveURL(/\/dashboard$/);
 
-  // No manual "Select today" click anywhere — the hero must appear on its
-  // own from a cold dashboard load.
-  await expect(
-    page.getByText(/today calls for something special/),
-  ).toBeVisible();
-  await expect(page.getByText("Complete the look")).toBeVisible();
+  const localContext = page.getByText("Local context");
+  const ootd = page.getByRole("region", { name: "Outfit of the day" });
+  await expect(localContext).toBeVisible();
+  await expect(ootd).toBeVisible();
+  await expect(page.getByText("Complete the look")).toHaveCount(0);
 
   // At least one priced piece with a working Buy link into the real store.
-  const buyLink = page.getByRole("link", { name: "Buy" }).first();
-  await expect(buyLink).toBeVisible();
-  const href = await buyLink.getAttribute("href");
+  const buyControl = page.getByRole("link", { name: "Buy" }).first();
+  await expect(buyControl).toBeVisible();
+  const href = await buyControl.getAttribute("href");
   expect(href).toMatch(new RegExp(`/r/${TEST_RETAILER_SLUG}`));
 
   // Reloading does not silently reshuffle "today's look" underneath the
@@ -54,4 +62,16 @@ test("the dashboard shows today's MorningRoutine hero automatically, with a pric
   const firstLook = await featuredHeading.textContent();
   await page.reload();
   await expect(featuredHeading).toHaveText(firstLook ?? "");
+
+  await page.setViewportSize({ width: 1512, height: 982 });
+  await page.screenshot({
+    path: evidencePath("desktop-1512x982.png"),
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: evidencePath("mobile-390x844.png"),
+    fullPage: true,
+  });
+  expect(consoleErrors).toEqual([]);
 });

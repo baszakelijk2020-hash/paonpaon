@@ -1,7 +1,7 @@
 {
   "phaseItemId": "17.1",
-  "gitSha": "42e27d722497654593f2ec13ed09971f9aaec577",
+  "gitSha": "6be179cdf1251c9b156cc77e1dc5c2d35eb21c59",
   "spec": "apps/retailer/e2e/advisor-capture.spec.ts",
   "status": "passed",
-  "timestamp": "2026-08-19T13:20:01.235Z"
+  "timestamp": "2026-09-02T02:23:13.13Z"
 }

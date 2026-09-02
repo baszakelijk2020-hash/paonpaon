@@ -13,7 +13,8 @@ import {
  * Mapping is explicit so ranking stays panel-agnostic (ADR-060) while
  * mounts stay narrow (ADR-052).
  */
-export type StorefrontKnowledgePanel = "archetype" | "fabric" | "sizing";
+export type StorefrontKnowledgePanel =
+  "archetype" | "fabric" | "sizing" | "discover";
 
 export interface StorefrontKnowledgeCard {
   readonly id: KnowledgeObjectId;
@@ -22,12 +23,14 @@ export interface StorefrontKnowledgeCard {
   readonly title: string;
   readonly summary: string;
   readonly imageUrl: string | null;
+  readonly body?: string;
 }
 
 export interface StorefrontKnowledgePanels {
   readonly archetype: readonly StorefrontKnowledgeCard[];
   readonly fabric: readonly StorefrontKnowledgeCard[];
   readonly sizing: readonly StorefrontKnowledgeCard[];
+  readonly discover: readonly StorefrontKnowledgeCard[];
 }
 
 const TOPIC_TO_PANEL: Record<KnowledgeTopic, StorefrontKnowledgePanel> = {
@@ -52,6 +55,20 @@ const PANEL_TOPICS: Record<
   archetype: ["styling", "occasion", "value", "tradeoff"],
   fabric: ["mill", "fibre", "fabric", "weave", "performance"],
   sizing: ["construction", "collar", "care"],
+  discover: [
+    "styling",
+    "occasion",
+    "value",
+    "tradeoff",
+    "mill",
+    "fibre",
+    "fabric",
+    "weave",
+    "performance",
+    "construction",
+    "collar",
+    "care",
+  ],
 };
 
 const MAX_CARDS_PER_PANEL = 2;
@@ -60,6 +77,7 @@ export const EMPTY_STOREFRONT_KNOWLEDGE_PANELS: StorefrontKnowledgePanels = {
   archetype: [],
   fabric: [],
   sizing: [],
+  discover: [],
 };
 
 export function knowledgeTopicsForStorefrontPanel(
@@ -97,6 +115,7 @@ export function partitionStorefrontKnowledgePanels(
   const archetype: StorefrontKnowledgeCard[] = [];
   const fabric: StorefrontKnowledgeCard[] = [];
   const sizing: StorefrontKnowledgeCard[] = [];
+  const discover: StorefrontKnowledgeCard[] = [];
 
   for (const result of results) {
     const card = toStorefrontKnowledgeCard(result);
@@ -110,10 +129,13 @@ export function partitionStorefrontKnowledgePanels(
       case "sizing":
         sizing.push(card);
         break;
+      case "discover":
+        discover.push(card);
+        break;
     }
   }
 
-  return { archetype, fabric, sizing };
+  return { archetype, fabric, sizing, discover };
 }
 
 export function storefrontKnowledgePanelsHaveCards(
@@ -122,7 +144,8 @@ export function storefrontKnowledgePanelsHaveCards(
   return (
     panels.archetype.length > 0 ||
     panels.fabric.length > 0 ||
-    panels.sizing.length > 0
+    panels.sizing.length > 0 ||
+    panels.discover.length > 0
   );
 }
 
@@ -135,14 +158,22 @@ export function rankStorefrontKnowledgePanels(
   request: Omit<KnowledgeDiscoveryRequest, "minResults" | "maxResults">,
   candidates: readonly KnowledgeDiscoveryCandidate[],
 ): StorefrontKnowledgePanels {
+  // Build a map of knowledgeObjectId -> body for discover panel
+  const bodyByObjectId = new Map<string, string | undefined>();
+  for (const candidate of candidates) {
+    bodyByObjectId.set(candidate.object.id, candidate.object.body);
+  }
+
   const panels: {
     archetype: StorefrontKnowledgeCard[];
     fabric: StorefrontKnowledgeCard[];
     sizing: StorefrontKnowledgeCard[];
+    discover: StorefrontKnowledgeCard[];
   } = {
     archetype: [],
     fabric: [],
     sizing: [],
+    discover: [],
   };
 
   for (const panel of ["archetype", "fabric", "sizing"] as const) {
@@ -161,8 +192,31 @@ export function rankStorefrontKnowledgePanels(
       },
       panelCandidates,
     );
-    panels[panel] = ranked.map(toStorefrontKnowledgeCard);
+    panels[panel] = ranked.map((result) => {
+      const card = toStorefrontKnowledgeCard(result);
+      const body = bodyByObjectId.get(result.knowledgeObjectId);
+      return body ? { ...card, body } : card;
+    });
   }
+
+  // Discover panel: all matched knowledge objects across all topics, with body
+  const allRanked = rankKnowledgeDiscovery(
+    {
+      ...request,
+      minResults: 0,
+      maxResults: 4,
+    },
+    candidates,
+  );
+  panels.discover = allRanked.map((result) => {
+    const baseCard = toStorefrontKnowledgeCard(result);
+    const body = bodyByObjectId.get(result.knowledgeObjectId);
+    return {
+      ...baseCard,
+      panel: "discover" as const,
+      ...(body ? { body } : {}),
+    };
+  });
 
   return panels;
 }

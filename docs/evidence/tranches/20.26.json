@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.26",
+  "requirementIds": ["CENV-WARDROBE-RAILS-001"],
+  "status": "verified_local",
+  "title": "claude-wardrobe-rail-contract-v3 \u2014 eight-rail contract proof",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "no domain logic; rail ordering is a presentation contract",
+    "persistence": "no new migration; wardrobe_items table is unchanged",
+    "service": "apps/customer/app/(dashboard)/wardrobe/wardrobe-panel.tsx \u2014 renders exactly eight rails in V3 contract order; each rail shows real item count; ten visible slots per rail; all items are retailer purchase-linked only; images are object-contain and never clipped",
+    "origin_ui": "wardrobe-panel.tsx \u2014 render eight rails in exact order, real counts, ten slots visible, object-contain imagery; no clipped images; no external garments",
+    "receiver_ui": "wardrobe presentation is stable and predictable; eight rails are always in contract order; no rail reordering or count errors",
+    "rls": "no new RLS; existing customer-scoped wardrobe_items query is unchanged",
+    "exceptions": "no new exception paths; RLS prevents access to other customers' garments",
+    "browser": "apps/customer/e2e/wardrobe-rail-contract-v3.spec.ts \u2014 authenticated E2E Customer Workspace persona; desktop 1512x982 + mobile 390x844; 1/1 passed at gitSha 6be179c (docs/evidence/runs/20.26.json). Exactly eight rails in contract order, each with ten empty slots and an owned-only header count; no clipped images; no console/page errors",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-customer-workspace",
+  "browserProofSpec": "apps/customer/e2e/wardrobe-rail-contract-v3.spec.ts",
+  "assertedAt": "2026-09-02T08:47:00.000Z"
+}

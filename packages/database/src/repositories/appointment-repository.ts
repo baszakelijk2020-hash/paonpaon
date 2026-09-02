@@ -160,6 +160,7 @@ export class AppointmentRepository {
     startsAt: string;
     endsAt: string;
     notes?: string;
+    branchId?: RetailerBranchId;
   }): Promise<AppointmentId> {
     const { data, error } = await this.client.rpc("request_appointment", {
       p_retailer_id: params.retailerId,
@@ -167,6 +168,7 @@ export class AppointmentRepository {
       p_starts_at: params.startsAt,
       p_ends_at: params.endsAt,
       p_notes: (params.notes ?? null) as never,
+      p_branch_id: (params.branchId ?? null) as never,
     });
 
     if (error) {

@@ -316,15 +316,38 @@ function prospectDemoSlug(companyName: string, prospectId: string): string {
   return `demo-${base || "prospect"}-${suffix}`;
 }
 
-export async function setDemoPublication(formData: FormData): Promise<void> {
+export interface DemoPublicationActionState {
+  formError?: string;
+  saved?: boolean;
+}
+
+export async function setDemoPublication(
+  _previous: DemoPublicationActionState,
+  formData: FormData,
+): Promise<DemoPublicationActionState> {
   requirePlatformOperator(await getSession());
   const prospectId = String(formData.get("prospectId") ?? "");
   const publish = formData.get("publish") === "true";
-  await new CommercialProspectRepository(
-    await getSupabaseServerClient(),
-  ).setEnvironmentPublished(prospectId, publish);
+  if (!prospectId) {
+    return { formError: "Prospect ID is required." };
+  }
+
+  try {
+    await new CommercialProspectRepository(
+      await getSupabaseServerClient(),
+    ).setEnvironmentPublished(prospectId, publish);
+  } catch (error) {
+    return {
+      formError:
+        error instanceof Error
+          ? error.message
+          : "Could not update demo publication status.",
+    };
+  }
+
   revalidatePath(`/prospects/${prospectId}/studio`);
   revalidatePath("/prospects");
+  return { saved: true };
 }
 
 export async function saveStudioConfiguration(

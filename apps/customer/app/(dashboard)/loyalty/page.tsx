@@ -10,8 +10,9 @@ import {
 } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Button } from "@paon/ui/components/Button";
-import { Card } from "@paon/ui/components/Card";
 import { Input } from "@paon/ui/components/Input";
+
+import { RelatedLinks } from "../related-links";
 
 import { inviteFriend, joinLoyalty, redeemReward } from "./actions";
 import { BadgesShelf } from "./badges-shelf";
@@ -52,23 +53,30 @@ export default async function LoyaltyPage() {
     })),
   );
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
-          Loyalty &amp; rewards
-        </h1>
-        <p className="text-sm text-[var(--color-stone-500)]">
-          Membership, considered milestones, and referrals across houses.
+    <div className="customer-page flex flex-col gap-6">
+      <header className="customer-page-header flex-col items-start gap-2">
+        <p className="customer-kicker text-[var(--color-stone-500)]">
+          Membership
         </p>
-      </div>
+        <h1 className="font-display text-4xl text-[var(--customer-ink)]">
+          Rewards &amp; Referrals
+        </h1>
+        <p className="max-w-2xl text-base text-[var(--color-stone-600)]">
+          Your membership tier and points, considered milestones, redeemable
+          rewards, and referrals across your retailers.
+        </p>
+        <RelatedLinks
+          links={[{ href: "/private-offers", label: "Private Offers" }]}
+        />
+      </header>
       {relationships.map(
         (
           { customer, retailer, account, rewards, referrals, milestones },
           index,
         ) => (
-          <Card
+          <section
             key={customer.id}
-            className="paon-reveal flex flex-col gap-5"
+            className="paon-reveal flex flex-col gap-5 rounded-[var(--customer-radius)] border border-[var(--customer-border)] bg-gradient-to-br from-[var(--customer-paper)] to-[#e4e1d3] p-5 shadow-sm"
             style={{ animationDelay: `${index * 120}ms` }}
           >
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -123,7 +131,11 @@ export default async function LoyaltyPage() {
                         return (
                           <li
                             key={award.id}
-                            className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-3"
+                            className={`rounded-[var(--customer-radius)] p-4 ${
+                              presentation.tone === "reversed"
+                                ? "bg-[rgba(203,211,197,0.35)]"
+                                : "bg-gradient-to-br from-[#7c8772]/20 to-[#3f493b]/10"
+                            }`}
                           >
                             <div className="flex flex-wrap items-center justify-between gap-2">
                               <p className="font-medium text-[var(--color-stone-900)]">
@@ -167,7 +179,7 @@ export default async function LoyaltyPage() {
                         <form
                           key={reward.id}
                           action={redeemReward}
-                          className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3 transition-[border-color,box-shadow] duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] hover:border-[var(--color-stone-400)] hover:shadow-[var(--shadow-lifted)]"
+                          className="customer-list-row flex-wrap px-4 py-3 transition-colors hover:bg-white/70"
                         >
                           <input
                             type="hidden"
@@ -181,7 +193,7 @@ export default async function LoyaltyPage() {
                             type="submit"
                             size="sm"
                             variant="outline"
-                            className="shrink-0"
+                            className="customer-button shrink-0"
                             disabled={account.pointsBalance < reward.pointsCost}
                           >
                             Redeem
@@ -195,7 +207,7 @@ export default async function LoyaltyPage() {
                     ) : null}
                   </div>
                 </div>
-                <div className="border-t border-[var(--color-stone-100)] pt-5">
+                <div className="border-t border-[var(--customer-border)] pt-5">
                   <p className="mb-3 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
                     Introduce a friend
                   </p>
@@ -215,7 +227,7 @@ export default async function LoyaltyPage() {
                       placeholder="Their email address"
                       required
                     />
-                    <Button type="submit" variant="outline">
+                    <Button type="submit" className="customer-button">
                       Send invitation
                     </Button>
                   </form>
@@ -254,15 +266,15 @@ export default async function LoyaltyPage() {
                 <Button type="submit">Join loyalty programme</Button>
               </form>
             )}
-          </Card>
+          </section>
         ),
       )}
       {relationships.length === 0 ? (
-        <Card className="paon-reveal">
+        <section className="customer-panel paon-reveal p-6">
           <p className="text-sm text-[var(--color-stone-500)]">
             Shop or book with a retailer to begin a relationship.
           </p>
-        </Card>
+        </section>
       ) : null}
     </div>
   );

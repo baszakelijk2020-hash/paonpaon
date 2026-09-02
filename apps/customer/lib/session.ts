@@ -2,6 +2,7 @@ import "server-only";
 
 import {
   requireCustomerSession,
+  requireCorporateManagerSession,
   requireWearerSession,
   resolveAppSession,
   type AppSession,
@@ -44,6 +45,20 @@ export async function requireWearerAppSession(): Promise<
     requireWearerSession(session);
   } catch {
     redirect("/employee/login");
+  }
+  return session;
+}
+
+/** Manager Portal (PHASE 14.1) equivalent of `requireSession` — redirects
+ * to `/manager/login` instead of throwing when not a corporate manager session. */
+export async function requireCorporateManagerAppSession(): Promise<
+  AppSession & { accountType: "corporate_manager"; managerId: string }
+> {
+  const session = await getSession();
+  try {
+    requireCorporateManagerSession(session);
+  } catch {
+    redirect("/manager/login");
   }
   return session;
 }

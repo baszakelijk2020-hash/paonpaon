@@ -1,0 +1,25 @@
+{
+  "phase": "20.27",
+  "commit": "50bdf00",
+  "route": "/orders",
+  "persona": "authenticated E2E Customer Workspace fixture (TEST_CUSTOMER_EMAIL magic-link sign-in) against the local Supabase stack",
+  "checks": {
+    "focused_playwright": "1 passed: orders-history-integrity-v3.spec.ts (an order stays in Order history when its product is also owned in the wardrobe; no product-detail link is repeated inside the Complete-the-Look module on desktop or mobile)",
+    "customer_lint": "passed",
+    "customer_typecheck": "passed",
+    "console": "no console error messages observed by the authenticated desktop/mobile browser capture"
+  },
+  "notes": "CUSTOMER_ENVIRONMENT_REBUILD_V3 §7 — proof only, no product code changed by this lane. The spec seeds the SAME fixture product both as an owned wardrobe catalogue item (WardrobeRepository.createCatalogueItem) and as a line on a placed order for the fixture customer, then asserts: (1) /wardrobe shows the owned garment AND the order still appears in the /orders 'Order history' section — history is a complete purchase record regardless of wardrobe overlap; (2) inside the #complete-the-look module every product-detail (`/products/<slug>`) href is distinct — the source product is never repeated as one of its own carousel suggestions. Verified at 1512x982 and 390x844, console-clean. Seeded order, order line and wardrobe item are removed in the spec's finally block.",
+  "screenshots": [
+    {
+      "file": "desktop-1512x982.png",
+      "viewport": "1512x982",
+      "sha256": "f9f5bd524045d96649edfa6dfa5b8308e72dcec71d169cab36d2906736e5ba5b"
+    },
+    {
+      "file": "mobile-390x844.png",
+      "viewport": "390x844",
+      "sha256": "aca4b10abd766b1018e779d7392e992750ec1c02293b67b6e649913822bfdb1a"
+    }
+  ]
+}

@@ -1,10 +1,13 @@
 import { createSupabaseAdminClient } from "@paon/database";
-import { DEMO_PASSWORD, DEMO_PERSONA_LOGINS } from "@paon/database/demo-seed";
+import {
+  DEMO_CANONICAL_PERSONAS,
+  DEMO_PASSWORD,
+  isCanonicalDemoEmail,
+} from "@paon/database/demo-seed";
 import { Badge } from "@paon/ui/components/Badge";
-import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 
-import { setDemoLoginsActive } from "./actions";
+import { DemoLoginsForm } from "./demo-logins-form";
 import { DemoPersonaDirectory } from "./demo-persona-directory";
 import { SeedDemoDataForm } from "./seed-demo-data-form";
 
@@ -20,14 +23,14 @@ export default async function DemoModePage() {
   );
   const { data } = await admin.auth.admin.listUsers({ perPage: 1000 });
   const demoUsers = (data?.users ?? []).filter((u) =>
-    u.email?.endsWith("@nebelspiegel.com"),
+    isCanonicalDemoEmail(u.email),
   );
   const activeCount = demoUsers.filter(
     (u) => !u.banned_until || new Date(u.banned_until) < new Date(),
   ).length;
   const isOwner = session.platformRole === "platform_owner";
   const customerAppUrl = env.customerAppUrl ?? "http://localhost:3002";
-  const personas = DEMO_PERSONA_LOGINS.map((persona) => ({
+  const personas = DEMO_CANONICAL_PERSONAS.map((persona) => ({
     ...persona,
     href:
       persona.app === "admin"
@@ -48,11 +51,18 @@ export default async function DemoModePage() {
             Seed data
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--color-stone-500)]">
-            Enter PAON as every operating persona. The seed provides two
-            image-rich retailers, relationship history, live appointments,
-            messages, workshop assignments, events and wedding-party
-            coordination.
+            Open the one canonical persona for each active showcase role. Nebel
+            &amp; Spiegel is the shared journey tenant; other seeded records
+            support fixture coverage and are not demo launcher identities.
           </p>
+          <a
+            href={`${customerAppUrl}/r/atelier-demo`}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-4 inline-flex h-9 items-center rounded-[var(--radius-md)] bg-[var(--color-ink-600)] px-4 text-xs font-medium text-white"
+          >
+            Browse storefront (suits, jackets &amp; more)
+          </a>
         </div>
         <div className="rounded-[var(--radius-lg)] bg-[var(--color-stone-900)] px-5 py-4 text-white">
           <p className="font-accent text-[7px] uppercase tracking-[0.16em] text-white/45">
@@ -84,32 +94,7 @@ export default async function DemoModePage() {
               Only a platform owner can populate or toggle demo data.
             </p>
           )}
-          {isOwner && demoUsers.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              <form action={setDemoLoginsActive.bind(null, true)}>
-                <button
-                  type="submit"
-                  className={buttonVariants({
-                    variant: "outline",
-                    size: "sm",
-                  })}
-                >
-                  Activate logins
-                </button>
-              </form>
-              <form action={setDemoLoginsActive.bind(null, false)}>
-                <button
-                  type="submit"
-                  className={buttonVariants({
-                    variant: "ghost",
-                    size: "sm",
-                  })}
-                >
-                  Deactivate
-                </button>
-              </form>
-            </div>
-          ) : null}
+          {isOwner && demoUsers.length > 0 ? <DemoLoginsForm /> : null}
         </div>
       </Card>
 
@@ -118,8 +103,9 @@ export default async function DemoModePage() {
           Choose a perspective
         </h2>
         <p className="mt-1 text-sm text-[var(--color-stone-500)]">
-          Copy a complete login or open the correct application in a new tab.
-          Customer demos use the dedicated password entry.
+          Copy a complete login or open its correct application in a new tab.
+          Every shortcut authenticates through the application&apos;s normal
+          production authorization path.
         </p>
       </div>
 

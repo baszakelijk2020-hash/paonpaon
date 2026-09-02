@@ -157,4 +157,52 @@ test("a referral converts through signup and first delivered order", async ({
     .eq("customer_id", referrerCustomer.id)
     .single();
   expect((accountAfter?.points_balance ?? 0) - pointsBefore).toBe(500);
+
+  // Create a reward the authenticated referrer can afford, then exercise the
+  // real customer form and verify the database-side redemption it invokes.
+  const rewardName = `E2E redeem reward ${suffix}`;
+  const { data: reward, error: rewardError } = await admin
+    .from("rewards")
+    .insert({
+      retailer_id: retailer.id,
+      name: rewardName,
+      type: "discount_percent",
+      points_cost: 100,
+      active: true,
+    })
+    .select("id")
+    .single();
+  if (rewardError || !reward) {
+    throw new Error(
+      `Failed to create redemption reward: ${rewardError?.message ?? "unknown error"}`,
+    );
+  }
+
+  await page.reload();
+  const rewardForm = page.locator("form", { hasText: rewardName });
+  const redeemButton = rewardForm.getByRole("button", { name: "Redeem" });
+  await expect(redeemButton).toBeEnabled();
+  await redeemButton.click();
+
+  await expect
+    .poll(async () => {
+      const { count, error } = await admin
+        .from("reward_redemptions")
+        .select("id", { count: "exact", head: true })
+        .eq("reward_id", reward.id);
+      if (error) throw error;
+      return count ?? 0;
+    })
+    .toBe(1);
+
+  const { data: accountAfterRedemption, error: balanceError } = await admin
+    .from("loyalty_accounts")
+    .select("points_balance")
+    .eq("retailer_id", retailer.id)
+    .eq("customer_id", referrerCustomer.id)
+    .single();
+  if (balanceError) throw balanceError;
+  expect(accountAfterRedemption?.points_balance).toBe(
+    (accountAfter?.points_balance ?? 0) - 100,
+  );
 });

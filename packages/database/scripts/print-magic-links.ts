@@ -29,7 +29,9 @@ const RETAILER_APP_URL = requireEnv("RETAILER_APP_URL");
 const CUSTOMER_APP_URL = requireEnv("CUSTOMER_APP_URL");
 
 function appUrlFor(email: string): string {
-  if (email === "contact@nebelspiegel.com") return ADMIN_APP_URL;
+  if (email === "contact+platform-admin@nebelspiegel.com") {
+    return ADMIN_APP_URL;
+  }
   if (
     email.includes("-owner@") ||
     email.includes("-manager@") ||

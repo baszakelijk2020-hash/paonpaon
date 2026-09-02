@@ -1,7 +1,7 @@
 {
   "phaseItemId": "16.5",
-  "gitSha": "45d3f2794b8c17d4b33f596c854c1cb9aec1e5e0",
+  "gitSha": "b49bbb048eea750dac77af37ed1402d20a8a71a3",
   "spec": "apps/retailer/e2e/wedding-party-coordination.spec.ts",
-  "status": "passed",
-  "timestamp": "2026-08-06T00:53:30.527Z"
+  "status": "failed",
+  "timestamp": "2026-08-20T12:39:00.419Z"
 }

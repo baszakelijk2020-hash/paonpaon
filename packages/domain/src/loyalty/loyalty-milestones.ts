@@ -110,11 +110,11 @@ export const LOYALTY_MILESTONE_KIND_LABELS: Record<
   string
 > = {
   first_commission: "First commission",
-  repeat_order: "Return to the house",
+  repeat_order: "A returning client",
   new_category: "New category explored",
   premium_construction: "Full-canvas craft",
   advanced_fabric: "Advanced cloth",
-  custom: "House milestone",
+  custom: "Retailer milestone",
 };
 
 export interface LoyaltyMilestoneDefinition {
@@ -588,9 +588,9 @@ function defaultMilestoneExplanation(
 ): string {
   switch (kind) {
     case "first_commission":
-      return "Recognised for your first made-to-order commission with this house.";
+      return "Recognised for your first made-to-order commission with this retailer.";
     case "repeat_order":
-      return "Recognised for returning to commission with this house.";
+      return "Recognised for returning to commission with this retailer.";
     case "new_category":
       return "Recognised for exploring a new garment category.";
     case "premium_construction":

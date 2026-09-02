@@ -140,7 +140,11 @@ export function OrderForm({
           to discuss availability.
         </p>
       ) : null}
-      <Button type="submit" disabled={isPending || selectedIsSoldOut}>
+      <Button
+        type="submit"
+        disabled={isPending || selectedIsSoldOut}
+        className="rounded-[15px]"
+      >
         {isPending ? "Adding…" : "Add to cart"}
       </Button>
       <p className="text-xs text-[var(--color-stone-500)]">

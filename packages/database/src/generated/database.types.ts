@@ -4396,7 +4396,8 @@ export type Database = {
       };
       corporate_announcements: {
         Row: {
-          authored_by_staff_id: string;
+          authored_by_manager_id: string | null;
+          authored_by_staff_id: string | null;
           body: string;
           created_at: string;
           deleted_at: string | null;
@@ -4408,7 +4409,8 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
-          authored_by_staff_id: string;
+          authored_by_manager_id?: string | null;
+          authored_by_staff_id?: string | null;
           body: string;
           created_at?: string;
           deleted_at?: string | null;
@@ -4420,7 +4422,8 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
-          authored_by_staff_id?: string;
+          authored_by_manager_id?: string | null;
+          authored_by_staff_id?: string | null;
           body?: string;
           created_at?: string;
           deleted_at?: string | null;
@@ -4432,6 +4435,13 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "corporate_announcements_authored_by_manager_id_fkey";
+            columns: ["authored_by_manager_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_managers";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "corporate_announcements_authored_by_staff_id_fkey";
             columns: ["authored_by_staff_id"];
@@ -4863,6 +4873,60 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "corporate_wearers";
             referencedColumns: ["id", "retailer_id"];
+          },
+        ];
+      };
+      corporate_managers: {
+        Row: {
+          account_id: string;
+          active: boolean;
+          contact_name: string;
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          login_email: string | null;
+          retailer_id: string;
+          updated_at: string;
+          user_id: string | null;
+        };
+        Insert: {
+          account_id: string;
+          active?: boolean;
+          contact_name: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          login_email?: string | null;
+          retailer_id: string;
+          updated_at?: string;
+          user_id?: string | null;
+        };
+        Update: {
+          account_id?: string;
+          active?: boolean;
+          contact_name?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          login_email?: string | null;
+          retailer_id?: string;
+          updated_at?: string;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "corporate_managers_account_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_accounts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_managers_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
           },
         ];
       };
@@ -6676,6 +6740,61 @@ export type Database = {
           },
         ];
       };
+      customer_popup_impressions: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          dismissed_at: string | null;
+          id: string;
+          knowledge_object_id: string | null;
+          popup_kind: string;
+          retailer_id: string;
+          shown_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id: string;
+          dismissed_at?: string | null;
+          id?: string;
+          knowledge_object_id?: string | null;
+          popup_kind: string;
+          retailer_id: string;
+          shown_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string;
+          dismissed_at?: string | null;
+          id?: string;
+          knowledge_object_id?: string | null;
+          popup_kind?: string;
+          retailer_id?: string;
+          shown_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "customer_popup_impressions_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_popup_impressions_knowledge_object_id_fkey";
+            columns: ["knowledge_object_id"];
+            isOneToOne: false;
+            referencedRelation: "knowledge_objects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_popup_impressions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       customer_preferences: {
         Row: {
           communication_channels: string[];
@@ -6881,6 +7000,7 @@ export type Database = {
         Row: {
           acquisition_source: string | null;
           assigned_staff_id: string | null;
+          corporate_account_id: string | null;
           created_at: string;
           deleted_at: string | null;
           email: string | null;
@@ -6898,6 +7018,7 @@ export type Database = {
         Insert: {
           acquisition_source?: string | null;
           assigned_staff_id?: string | null;
+          corporate_account_id?: string | null;
           created_at?: string;
           deleted_at?: string | null;
           email?: string | null;
@@ -6915,6 +7036,7 @@ export type Database = {
         Update: {
           acquisition_source?: string | null;
           assigned_staff_id?: string | null;
+          corporate_account_id?: string | null;
           created_at?: string;
           deleted_at?: string | null;
           email?: string | null;
@@ -6943,6 +7065,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "retailer_staff_members";
             referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "customers_corporate_account_id_fkey";
+            columns: ["corporate_account_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_accounts";
+            referencedColumns: ["id"];
           },
           {
             foreignKeyName: "customers_retailer_id_fkey";
@@ -7078,6 +7207,45 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      error_events: {
+        Row: {
+          app: string;
+          context: Json;
+          created_at: string;
+          environment: string;
+          id: string;
+          level: string;
+          message: string;
+          request_id: string | null;
+          route: string | null;
+          stack: string | null;
+        };
+        Insert: {
+          app: string;
+          context?: Json;
+          created_at?: string;
+          environment: string;
+          id?: string;
+          level?: string;
+          message: string;
+          request_id?: string | null;
+          route?: string | null;
+          stack?: string | null;
+        };
+        Update: {
+          app?: string;
+          context?: Json;
+          created_at?: string;
+          environment?: string;
+          id?: string;
+          level?: string;
+          message?: string;
+          request_id?: string | null;
+          route?: string | null;
+          stack?: string | null;
+        };
+        Relationships: [];
       };
       event_rsvps: {
         Row: {
@@ -12039,6 +12207,152 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "wardrobe_roadmaps";
             referencedColumns: ["id", "retailer_id"];
+          },
+        ];
+      };
+      paid_care_bookings: {
+        Row: {
+          created_at: string;
+          currency: string | null;
+          customer_id: string;
+          deleted_at: string | null;
+          garment_description: string;
+          id: string;
+          notes: string | null;
+          operation_code: string | null;
+          operation_label: string | null;
+          payment_choice: string;
+          payment_status: string;
+          pickup_method: string;
+          preferred_window: string | null;
+          pricing_status: string;
+          qr_token: string | null;
+          quantity: number;
+          retailer_id: string;
+          return_method: string;
+          service_kind: string;
+          status: string;
+          total_amount_minor_units: number | null;
+          unit_amount_minor_units: number | null;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          currency?: string | null;
+          customer_id: string;
+          deleted_at?: string | null;
+          garment_description: string;
+          id?: string;
+          notes?: string | null;
+          operation_code?: string | null;
+          operation_label?: string | null;
+          payment_choice: string;
+          payment_status?: string;
+          pickup_method: string;
+          preferred_window?: string | null;
+          pricing_status?: string;
+          qr_token?: string | null;
+          quantity?: number;
+          retailer_id: string;
+          return_method: string;
+          service_kind: string;
+          status?: string;
+          total_amount_minor_units?: number | null;
+          unit_amount_minor_units?: number | null;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          currency?: string | null;
+          customer_id?: string;
+          deleted_at?: string | null;
+          garment_description?: string;
+          id?: string;
+          notes?: string | null;
+          operation_code?: string | null;
+          operation_label?: string | null;
+          payment_choice?: string;
+          payment_status?: string;
+          pickup_method?: string;
+          preferred_window?: string | null;
+          pricing_status?: string;
+          qr_token?: string | null;
+          quantity?: number;
+          retailer_id?: string;
+          return_method?: string;
+          service_kind?: string;
+          status?: string;
+          total_amount_minor_units?: number | null;
+          unit_amount_minor_units?: number | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "paid_care_bookings_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "paid_care_bookings_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      paid_care_service_prices: {
+        Row: {
+          active: boolean;
+          amount_minor_units: number;
+          created_at: string;
+          currency: string;
+          deleted_at: string | null;
+          display_order: number;
+          id: string;
+          label: string;
+          operation_code: string;
+          retailer_id: string;
+          service_kind: string;
+          updated_at: string;
+        };
+        Insert: {
+          active?: boolean;
+          amount_minor_units: number;
+          created_at?: string;
+          currency: string;
+          deleted_at?: string | null;
+          display_order?: number;
+          id?: string;
+          label: string;
+          operation_code: string;
+          retailer_id: string;
+          service_kind: string;
+          updated_at?: string;
+        };
+        Update: {
+          active?: boolean;
+          amount_minor_units?: number;
+          created_at?: string;
+          currency?: string;
+          deleted_at?: string | null;
+          display_order?: number;
+          id?: string;
+          label?: string;
+          operation_code?: string;
+          retailer_id?: string;
+          service_kind?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "paid_care_service_prices_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
           },
         ];
       };
@@ -20599,6 +20913,72 @@ export type Database = {
           },
         ];
       };
+      wardrobe_roadmap_gap_dispositions: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          disposition: string;
+          id: string;
+          retailer_id: string;
+          roadmap_gap_id: string;
+          roadmap_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id: string;
+          disposition?: string;
+          id?: string;
+          retailer_id: string;
+          roadmap_gap_id: string;
+          roadmap_id: string;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string;
+          disposition?: string;
+          id?: string;
+          retailer_id?: string;
+          roadmap_gap_id?: string;
+          roadmap_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "wardrobe_roadmap_gap_dispositions_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_roadmap_gap_dispositions_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "wardrobe_roadmap_gap_dispositions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_roadmap_gap_dispositions_roadmap_gap_id_fkey";
+            columns: ["roadmap_gap_id"];
+            isOneToOne: false;
+            referencedRelation: "wardrobe_roadmap_gaps";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_roadmap_gap_dispositions_roadmap_id_fkey";
+            columns: ["roadmap_id"];
+            isOneToOne: false;
+            referencedRelation: "wardrobe_roadmaps";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       wardrobe_roadmap_gaps: {
         Row: {
           category_code: string | null;
@@ -22891,6 +23271,7 @@ export type Database = {
         Args: { p_referred_email: string; p_retailer_id: string };
         Returns: string;
       };
+      current_corporate_manager_id: { Args: never; Returns: string };
       current_platform_role: { Args: never; Returns: string };
       current_retailer_id: { Args: never; Returns: string };
       current_retailer_role: { Args: never; Returns: string };
@@ -23185,6 +23566,10 @@ export type Database = {
       };
       is_alterations_advisor: { Args: never; Returns: boolean };
       is_alterations_management: { Args: never; Returns: boolean };
+      is_corporate_manager_with_programme_access: {
+        Args: { p_programme_id: string };
+        Returns: boolean;
+      };
       is_my_event_invitation: {
         Args: { p_event_id: string };
         Returns: boolean;
@@ -23217,6 +23602,7 @@ export type Database = {
         };
         Returns: Json;
       };
+      link_my_corporate_manager_account: { Args: never; Returns: undefined };
       link_my_customer_accounts: { Args: never; Returns: undefined };
       link_my_wearer_account: { Args: never; Returns: undefined };
       link_service_booking_appointment: {
@@ -23507,6 +23893,15 @@ export type Database = {
         Args: { p_version_id: string };
         Returns: string;
       };
+      record_popup_impression: {
+        Args: {
+          p_customer_id: string;
+          p_knowledge_object_id?: string;
+          p_popup_kind: string;
+          p_retailer_id: string;
+        };
+        Returns: string;
+      };
       record_pos_payment_atomic: {
         Args: {
           p_amount_minor_units: number;
@@ -23682,6 +24077,7 @@ export type Database = {
       };
       request_appointment: {
         Args: {
+          p_branch_id?: string;
           p_ends_at: string;
           p_notes?: string;
           p_retailer_id: string;
@@ -23932,6 +24328,10 @@ export type Database = {
       save_wishlist_item: {
         Args: { p_retailer_id: string; p_variant_id: string };
         Returns: boolean;
+      };
+      seed_default_paid_care_service_prices: {
+        Args: { p_retailer_id: string };
+        Returns: undefined;
       };
       send_conversation_message: {
         Args: { p_body: string; p_conversation_id: string };
@@ -24535,7 +24935,8 @@ export type Database = {
         | "loyalty_update"
         | "message"
         | "marketing"
-        | "system";
+        | "system"
+        | "paid_care_booking";
       notification_channel: "email" | "sms" | "push" | "in_app";
       order_channel: "online" | "in_store" | "clienteling" | "phone";
       order_status:
@@ -24961,6 +25362,7 @@ export const Constants = {
         "message",
         "marketing",
         "system",
+        "paid_care_booking",
       ],
       notification_channel: ["email", "sms", "push", "in_app"],
       order_channel: ["online", "in_store", "clienteling", "phone"],

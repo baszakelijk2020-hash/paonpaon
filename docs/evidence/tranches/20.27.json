@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.27",
+  "requirementIds": ["CENV-ORDERS-HISTORY-001"],
+  "status": "verified_local",
+  "title": "claude-orders-history-integrity-v3 \u2014 history and duplicate-suppression proof",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "no domain logic; order partitioning and deduplication are presentation concerns",
+    "persistence": "no new migration; existing orders and order_items tables are unchanged",
+    "service": "apps/customer/app/(dashboard)/orders/page.tsx \u2014 renders Pending Orders first, then Order History; deduplicates products that appear in both Pending and History; no overlapping product render on one viewport",
+    "origin_ui": "orders/page.tsx \u2014 show Pending Orders above History; filter duplicate products so each appears once per section; no overlapping modules on one viewport",
+    "receiver_ui": "order presentation is stable and predictable; Pending Orders always precede History; no duplicate products on screen",
+    "rls": "no new RLS; existing customer-scoped orders and order_items queries are unchanged",
+    "exceptions": "no new exception paths; RLS prevents access to other customers' orders",
+    "browser": "apps/customer/e2e/orders-history-integrity-v3.spec.ts \u2014 authenticated E2E Customer Workspace persona; desktop 1512x982 + mobile 390x844; 1/1 passed at gitSha 6be179c (docs/evidence/runs/20.27.json). An order stays in history when its product is also in wardrobe; no product renders twice on /orders; Pending Orders precede History; no console/page errors",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-customer-workspace",
+  "browserProofSpec": "apps/customer/e2e/orders-history-integrity-v3.spec.ts",
+  "assertedAt": "2026-09-02T08:47:00.000Z"
+}

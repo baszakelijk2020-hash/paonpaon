@@ -1,0 +1,26 @@
+{
+  "phase": "R0.4",
+  "commit": "c74bea2",
+  "route": "/staff/today",
+  "persona": "authenticated advisor fixture (retailer workspace) against real Supabase stack",
+  "summary": "Golden Relationship — House Memory and Advisor Today integration. Advisor opens Today surface, navigates to customer's complete House Memory view, sees provenance and why-now evidence, completes human action, captures outcome. Outcome changes next preparation. Existing modules compose without new top-level navigation.",
+  "checks": {
+    "focused_playwright": "3 passed: house-memory-advisor-today.spec.ts (advisor navigates Today→House Memory→action complete, permissions isolation, stale state handling)",
+    "retailer_lint": "passed",
+    "retailer_typecheck": "passed",
+    "console": "no console error messages observed by authenticated browser tests",
+    "permissions": "RLS verifies different advisors cannot see each other's opportunities"
+  },
+  "spec_file": "apps/retailer/e2e/house-memory-advisor-today.spec.ts",
+  "requirements": {
+    "today_surface": "Advisor opens assigned opportunities on Today surface",
+    "house_memory_link": "House Memory navigation available from assigned customer opportunities",
+    "house_memory_view": "Complete House Memory view displays customer brief with provenance",
+    "evidence_display": "Fact evidence visible with advisor/customer declared sources",
+    "action_completion": "Advisor completes quick human action from House Memory",
+    "outcome_capture": "Outcome captured and reflected in next Today preparation",
+    "permissions": "Advisor permissions isolated, no cross-advisor opportunity visibility",
+    "stale_states": "System handles expired/old evidence gracefully",
+    "modules_compose": "Existing modules compose into shared object pages (no new nav)"
+  }
+}

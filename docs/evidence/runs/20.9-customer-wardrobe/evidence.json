@@ -1,0 +1,37 @@
+{
+  "phase": "20.9",
+  "commit": "13e9765",
+  "customer_app_code_sha": "3f1c88d",
+  "note": "Release-branch re-proof. The prior evidence recorded candidate SHA 2c5425d, which is not an ancestor of the release HEAD (see docs/evidence/reviews/phase-20-v3-release-audit/AUDIT.md). This run captures wardrobe-v3-presentation.spec.ts passing against the release branch; apps/customer application code is unchanged since 3f1c88d (13e9765 only added the audit doc).",
+  "route": "/wardrobe",
+  "persona": "authenticated E2E Customer Workspace fixture (TEST_CUSTOMER_EMAIL magic-link sign-in) against the local Supabase stack (http://127.0.0.1:54321)",
+  "checks": {
+    "focused_playwright": "2 passed: wardrobe-v3-presentation.spec.ts — 'eight rails, an uncropped owned card face, and an in-place Actions+ deck' (1.0s); 'authenticated desktop and mobile capture of the wardrobe' (2.5s)",
+    "customer_lint": "passed (pnpm --filter @paon/customer lint)",
+    "customer_typecheck": "passed (pnpm --filter @paon/customer typecheck)",
+    "console": "no console error messages observed by the authenticated desktop/mobile browser capture (spec asserts consoleErrors.toEqual([]))"
+  },
+  "asserted": [
+    "exactly eight rails in contract order (Suits, Jackets, Trousers, Shirts, Outerwear, Knitwear, Shoes, Accessories)",
+    "ten [data-empty-slot] per rail",
+    "rail header count is owned real items only ('1 piece' for the seeded Shoes item)",
+    "owned card foreground <img> computed object-fit is 'contain' (uncropped)",
+    "progressive-blur overlay carries the title and 'Purchased on 6 Jan 2025 · N days in your wardrobe'",
+    "footer control is exactly 'Actions +'; no 'Garment Details'",
+    "no 'Purchased here' / 'bought elsewhere' / standalone 'house' copy",
+    "Actions + opens the deck in place — card width/height and rail height unchanged, no appended form",
+    "deck lists Complete the look, Order again, Book a repair, Book an alteration, Book a cleaning, Request a fit-check in store, Do a fit-check in app, Retire, Ask your advisor"
+  ],
+  "screenshots": [
+    {
+      "file": "desktop-1512x982.png",
+      "viewport": "1512x982",
+      "sha256": "fc0be4be317eac74c6dabcbf2a0cc893a9bc9bc047e541b010ac695e58a54aef"
+    },
+    {
+      "file": "mobile-390x844.png",
+      "viewport": "390x844",
+      "sha256": "3a86388a3ada99776b4c3846f154bbee90cfd928e8564a1ce02995ff9e21db62"
+    }
+  ]
+}

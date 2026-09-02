@@ -259,14 +259,33 @@ acceptance contract — this table is not a substitute for it.
 
 #### Immediate critical path (ordered — founder priority → dependency → value → risk → efficiency)
 
+**Update (2026-08-18, agent/lane-h-customer-ai-conversation):** this section
+was written 2026-08-13 and had gone stale — items 2, 4, and 5 below were
+independently built and merged to `origin/main` since (commits `169d81a`,
+`da01729`, plus the FT-04 migration/RPC/UI tranche), discovered while
+integrating a 76-commit `origin` pull into this branch. Re-verified directly
+against repository truth (not worker narration) before marking done:
+`@paon/database typecheck` passes with `alteration_grid_snapshots` present
+in generated types (the exact Docker/type-regen blocker below is resolved),
+full `pnpm typecheck`/`pnpm lint` clean across all 12 packages. Item 3
+(MorningRoutine buy) closed this same session — see its own entry. Items 4
+and 5 still have the same live-DB e2e verification gap FT-09 already
+flagged (shared local Supabase, cannot run in this sandboxed session — see
+"Real hard blockers"). Did **not** re-audit the rest of the Reconciliation
+counts table above; treat only the items named here as corrected.
+
 1. ~~**Mission Control decision intelligence**~~ — **DONE (2026-08-13)**,
    see build-order item 6 above for the connected, verified proof. Removed
    from the active critical path.
-2. **FT-04 alteration grid/snapshot/work-order** (Stage 12 / FT-04) —
-   NOT STARTED, one failed integration attempt already reverted this
-   session (real `pnpm --filter @paon/database typecheck` failures because
-   generated Supabase types were never regenerated against the new
-   migration — needs `supabase start`/`db reset`, i.e. local Docker).
+2. ~~**FT-04 alteration grid/snapshot/work-order**~~ — **BUILT**, found
+   already merged 2026-08-18 (`apps/retailer/components/alterations/
+ft04-alteration-grid.tsx`, `alteration-grid-snapshot-repository.ts`,
+   migration `20260814000000_add_ft04_alteration_grid_snapshots.sql`,
+   `apps/retailer/e2e/ft04-alteration-grid.spec.ts`). The Docker/type-regen
+   blocker this item was stuck on is resolved — generated types include
+   `alteration_grid_snapshots` and `@paon/database typecheck` is clean.
+   E2e spec exists but has not been run against a live database this
+   session. Removed from the active critical path pending that run.
    Self-contained: schema, pricing (`alteration_price_lists`), and role
    gates (`is_alterations_advisor`/`is_alterations_management`) all already
    exist. **BLOCKED on Docker availability for the type-regeneration step
@@ -276,12 +295,7 @@ acceptance contract — this table is not a substitute for it.
    (see `git log --oneline | grep -i "alteration.grid"` once landed, or the
    reverted worktree `worktree-agent-a440028916928a36e` for a first draft
    requiring correction, not a template to trust as-is).
-3. **MorningRoutine one-click-buy → real order creation** — PARTIAL. Buy
-   currently only links to the product page (`routine-panel.tsx`'s own
-   comment: "order creation remains the Commerce boundary"). Needs to call
-   the existing Commerce order-creation Server Action from this specific
-   entry point, gated the same way `one-tap-checkout` already is. Small,
-   concretely scoped — not a rebuild.
+3. **MorningRoutine one-click-buy → real order creation** — `implemented_unverified`. Buy now calls the existing Commerce order-creation Server Action (`OrderRepository.addToCart` + `.checkoutCart`) from this specific entry point, gated against the customer's saved default shipping address (same as `one-tap-checkout`), with no payment step. Falls back to product-page linking when no variant is resolvable for one-tap creation.
    **Scope check (2026-08-13), governance verified — no change to the item
    above, recorded to close a genuine question rather than leave it
    ambiguous for a future session:** Stage 4.4's own acceptance criteria
@@ -305,17 +319,25 @@ acceptance contract — this table is not a substitute for it.
    (FT-04/Docker, TableService quarantine/scanner choice, the local
    migration agent's founder sign-off requirement) were already correctly
    marked accordingly.
+   **Status (2026-08-14):** `implemented_unverified`. `runMorningRoutineAction`'s `"buy"` branch in `apps/customer/app/(dashboard)/morning-routine/actions.ts` calls `OrderRepository.addToCart` + `.checkoutCart` against the customer's saved default shipping address, redirects to `/orders/{id}` on success. `routine-panel.tsx` renders a form when `buy.productVariantId` is present, falling back to product-page link otherwise. New `apps/customer/e2e/morning-routine-buy.spec.ts` (patterned on `e2e/one-tap-checkout.spec.ts`) seeds a saved address, generates today's routine, clicks "Buy", asserts redirect to `/orders/{id}`, and verifies the order is `pending_payment`. `pnpm --filter customer typecheck`/`lint`/`build` clean. Not verified: e2e spec not yet run against a live database (no local Docker/Supabase available this session). A future Docker-available session should run `morning-routine-buy.spec.ts` plus `morning-routine.spec.ts` and `one-tap-checkout.spec.ts` for regression before marking `verified_local`.
+
 4. **TableService unified remote proposal** (FT-09, addition recorded
    2026-08-12) — SCHEMA/DOMAIN/UI DONE, E2E PROOF PENDING (needs clean-environment re-run). Field spec already locked
    in `FOUNDER_TOOL_BLUEPRINTS.md` FT-09. `conversation_proposals` table,
    create/respond RPCs, and `MessagingRepository` methods landed 2026-08-14;
    retailer composer UI and customer accept/decline UI landed 2026-08-14;
    browser proof requires clean-environment re-run.
-5. **TableService attachment quarantine resolution** — uploads currently
-   queue indefinitely with no scanner or retry/release UI. Needs a
-   provider decision (which scanner) before the UI can be finished —
-   record the decision as an ADR if none exists, then build the retry/
-   release surface regardless of which scanner is chosen.
+5. ~~**TableService attachment quarantine resolution**~~ — **BUILT**
+   (commit `da01729`, found already merged 2026-08-18). Adds
+   `release_message_attachment`, a SECURITY DEFINER RPC mirroring the
+   existing `retry_message_attachment_scan`'s staff-role re-derivation, so
+   a staff member can deliberately release an attachment under manual
+   review; wired plus the existing retry RPC into the retailer messages
+   page — non-cleared uploads show a status badge and Retry/Release
+   buttons instead of a bare "Attachment unavailable". Scanner-provider
+   choice remains genuinely undecided (per this item's original text) —
+   that was never the blocker this commit closed. Removed from the active
+   critical path.
 6. **Moonstruck guest-voucher customer redemption UI** — IMPLEMENTED
    2026-08-13 (commit `d6950b4`, cherry-picked from bounded worker commit
    `0a549f7`): `redeem_wedding_guest_voucher` SECURITY DEFINER RPC
@@ -333,17 +355,25 @@ acceptance contract — this table is not a substitute for it.
    run against a live database** — Docker was unavailable in both the
    worker's and the integrator's sessions. See the 16.5 correction below;
    do not treat this as `verified_local` until those two run for real.
-7. **Virtual Wardrobe item-level actions** (alteration/cleaning booking,
-   unattached logged-out items) — NOT STARTED. Depends on FT-04 (item 2)
-   for the alteration-booking half; the cleaning-booking half does not.
+7. ~~**Virtual Wardrobe item-level actions — alteration/cleaning
+   booking**~~ — **BUILT** (2026-08-10, `7ba5e45`-adjacent, see Stage
+   17.13's own "Status (2026-08-10, alteration/cleaning booking)" entry) —
+   this critical-path summary just never picked it up. Verified still
+   present 2026-08-18: `requestWardrobeItemService` Server Action,
+   `wardrobeServiceRequestMessage` domain helper, and the "Book an
+   alteration"/"Book a cleaning" buttons + their `wardrobe.spec.ts` e2e
+   coverage are all intact in the current tree. Only the **unattached
+   (logged-out-created) item** schema change remains a real, unattempted
+   gap (also unblocked by anything — no FT-04 dependency, contrary to
+   what this entry previously said).
 
 #### Subsequent completion work (active/KEEP, not on the immediate critical path)
 
-- **Preferred Tailoring monthly grid** (FT-14) — NOT STARTED. No source to
-  port; build directly from the founder's written spec (current-month
-  calendar, some days fade in a suit/jacket image, ~4s fade with varied
-  start timing, mobile page-filling layout). No dependency on anything else
-  unbuilt.
+- **Preferred Tailoring monthly grid** (FT-14) — BUILT, found already
+  merged 2026-08-18 (`apps/customer/app/(dashboard)/services/
+preferred-tailoring-month-grid.tsx`, `apps/customer/e2e/
+preferred-tailoring-grid.spec.ts`). E2e spec exists but has not been run
+  against a live database this session.
 - **Location Finder** (FT-11) — BUILT (2026-08-14). Retailer settings editor
   (`/settings/locations`, staff-only) maintains branch location facts (address,
   coordinates, hours, contact, imagery, services, filter categories) and per-branch
@@ -352,23 +382,50 @@ acceptance contract — this table is not a substitute for it.
   map-mode branches, and an inline-SVG world plot for globe-mode branches. A full
   3D/Cesium globe was deferred pending the founder spec's own required bundle/tile-
   cost budget decision — not a missing build task, an acknowledged deferred design
-  choice awaiting founder input. **Note for agent/codex-openrouter integration:**
-  that branch has an older read-only stub at `apps/retailer/app/(dashboard)/
-locations/page.tsx` (commit 1368bd0) built before this schema existed and now
-  redundant — retire it or repoint to `/settings/locations` rather than keeping
-  both stubs.
+  choice awaiting founder input. **Update (2026-08-18,
+  agent/lane-h-customer-ai-conversation):** retired the older read-only stub
+  this note flagged (`apps/retailer/app/(dashboard)/locations/page.tsx`,
+  commit `1368bd0`, and its now-orphaned `BranchLocationList` component) —
+  it had zero nav references anywhere in the app. Its e2e coverage
+  (`location-finder.spec.ts`) was the only test FT-11 had and was testing
+  the stub, not the real `/settings/locations` editor, so it was rewritten
+  to exercise the actual edit-and-persist flow instead (fill "Store Type",
+  save, reload, assert the value persisted server-side). `@paon/retailer`
+  typecheck and lint on the new spec are clean; not yet run against a live
+  database this session.
 - **Loyalty**: METRE→MILLI→MICRON tier naming, retailer-configurable
-  campaigns/percentages/milestones, dedicated badges page — all NOT
-  STARTED on top of an already-COMPLETE ledger/milestone core (Stage 5.2).
-- **Corporate/Métier**: project-setup wizard (14.1 founder addition) NOT
-  STARTED; external-signal ingestion (18.11) real but manual-entry-only,
-  no autonomous discovery pipeline (`blocked_external`, correctly so —
-  no external data source access this environment); corporate project
-  lifecycle (18.7) missing production/qc/distribution/launch auto-triggers
-  from Stage 12 production-order events.
+  campaigns/percentages/milestones, dedicated badges page — still NOT
+  STARTED as a whole feature on top of an already-COMPLETE ledger/milestone
+  core (Stage 5.2). **Note (2026-08-18,
+  agent/lane-h-customer-ai-conversation):** found one orphaned-looking
+  fragment already in the tree, `apps/retailer/lib/loyalty-tier-labels.ts`
+  (used by `self-portrait.tsx`, `loyalty/page.tsx`, `events/page.tsx`) —
+  a display-label map. It surfaces a real, unresolved naming gap rather
+  than being wrong on its own: `LoyaltyTier` (`packages/domain/src/loyalty/
+loyalty.ts`) has four values (`member`/`silver`/`gold`/`platinum`), but
+  5.2's founder-fixed tier language above names only three (METRE/MILLI/
+  MICRON), so this file maps both `gold` and `platinum` to `MICRON`,
+  making them visually indistinguishable. Did not guess a fourth name —
+  this is exactly the kind of "not retailer-editable" founder-language
+  decision Stage 5.2 says is fixed, so it needs the founder to supply the
+  fourth tier name (or confirm gold/platinum are meant to share one label)
+  before this label map — or anything else in the Loyalty item — is built
+  further.
+- **Corporate/Métier**: project-setup wizard (14.1 founder addition) —
+  BUILT, found already merged 2026-08-18 (`apps/retailer/app/(dashboard)/
+corporate/setup-wizard/`, `apps/retailer/e2e/corporate-setup-wizard.spec.ts`,
+  not yet run against a live database this session); external-signal
+  ingestion (18.11) real but manual-entry-only, no autonomous discovery
+  pipeline (`blocked_external`, correctly so — no external data source
+  access this environment); corporate project lifecycle (18.7) missing
+  production/qc/distribution/launch auto-triggers from Stage 12
+  production-order events.
 - **Academy** (16.1): only the roleplay/coaching loop is real. Knowledge
-  libraries, DailyBriefing, MunroMentor, guided-tier definitions and the
-  consultancy-project workflow are SCAFFOLD/NOT STARTED.
+  libraries, MunroMentor, guided-tier definitions and the consultancy-project
+  workflow are SCAFFOLD/NOT STARTED. **DailyBriefing** (admin) — BUILT,
+  found already merged 2026-08-18 (`apps/admin/app/(dashboard)/
+daily-briefing/page.tsx`); no e2e coverage found for it, not verified
+  against a live database this session.
 - **Shopify/Faden connectors**: connection lifecycle UI is real; scheduled/
   webhook execution is manual-trigger only, not actually scheduled.
 - **Catalogue/migration**: retailer migration concierge (customer export/
@@ -381,8 +438,12 @@ locations/page.tsx` (commit 1368bd0) built before this schema existed and now
   revoke/refund states remain PARTIAL.
 - **Payroll** (11.1): core workflow COMPLETE with real E2E; external
   payroll-provider export adapter is the one remaining PARTIAL piece.
-- **Mission-Control-led in-store feedback** (16.4): schema-level only per
-  its own Stage entry; needs the salesperson-facing capture UI.
+- **Mission-Control-led in-store feedback** (16.4) — BUILT, found already
+  merged 2026-08-18 (`apps/retailer/app/(dashboard)/store-sessions/
+feedback-capture.tsx`, wired to a real `captureFeedback` Server Action
+  with idempotency-key handling and `store-feedback-repository.ts`;
+  `apps/retailer/e2e/store-feedback.spec.ts` exists, not yet run against a
+  live database this session).
 
 #### PARKED — preserved, not selectable (do not build without founder reactivation)
 
@@ -1661,7 +1722,7 @@ orchestrator.ts` was the only other one still uncovered (the
     Remaining FT-09 gaps: an upload progress indicator (cosmetic) and
     "consent/citation proof" (scope not yet defined).
 
-- [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
+- [x] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.
   - **Acceptance:** an advisor opens one Today surface, understands the next
     clients/promises, opens a complete House Memory view, sees provenance and
@@ -2352,7 +2413,7 @@ replacement of human advice for uncertain high-value decisions.
     retailer pause + eligible-product allowlist, cron enqueue from the exact
     selection via existing notification/email outbox path.
 
-- [ ] **4.6 Virtual Wardrobe Studio — shared foundation**
+- [x] **4.6 Virtual Wardrobe Studio — shared foundation**
   - **Requirement IDs:** `VWS-001`, `VWS-002`, `VWS-003`.
   - **Dependencies:** `4.2`; ADR-033, ADR-061, ADR-063, ADR-074.
   - **Owner boundary:** wardrobe/AI-integration domain, forward migration/RLS,
@@ -7976,6 +8037,671 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     specific stages are wired to Stage 12 production, exactly as 18.7's
     own status already names.
 
+### Stage 20 — Unified storefront and customer navigation
+
+- [x] **20.1 codex-frontier-navigation — architecture and acceptance**
+  - **Requirement IDs:** `UNAV-001`.
+  - **Dependencies:** founder-authorized unified-navigation programme.
+  - **Owner boundary:** Route-C architecture, bounded task decomposition,
+    integration, and independent acceptance only. No concurrent feature-file
+    edits.
+  - **Fleet owned paths:** `docs/PHASE.md`.
+  - **Acceptance:** fleet lanes have disjoint ownership and claims; worker
+    commits, diffs, tests, and evidence are independently verified before
+    integration.
+  - **Tests:** `scripts/fleet/paon-fleet status`.
+
+- [x] **20.2 claude-customer-navigation — persistent warm customer shell**
+  - **Requirement IDs:** `UNAV-002`.
+  - **Dependencies:** `19.1` architecture boundary.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/account-top-tabs.tsx`,
+    `apps/customer/app/(dashboard)/customer-navigation-lifecycle.tsx`, and
+    `apps/customer/e2e/customer-navigation-performance.spec.ts`.
+  - **Acceptance:** all seven customer destinations use client navigation;
+    shell identity persists; production-browser warm menu switches meet p95
+    ≤200ms with recorded p50/p95, sample count, browser, viewport, and network
+    profile. Existing auth, repositories, and RLS remain unchanged.
+  - **Tests:** customer typecheck, lint, production build, and focused
+    Playwright performance test.
+
+- [x] **20.3 claude-storefront-baseline — immutable Atelier Demo evidence**
+  - **Requirement IDs:** `UNAV-003`.
+  - **Dependencies:** `19.1`.
+  - **Fleet owned paths:** `docs/evidence/atelier-demo-baseline/`,
+    `docs/plans/ATELIER_DEMO_PARITY_TEST_PLAN.md`,
+    `apps/customer/e2e/atelier-demo-baseline.spec.ts`.
+  - **Owner boundary:** read-only source investigation; evidence and plan only
+    under `docs/evidence/atelier-demo-baseline/` and
+    `docs/plans/ATELIER_DEMO_PARITY_TEST_PLAN.md`. Source probe path for fleet
+    isolation: `apps/customer/e2e/atelier-demo-baseline.spec.ts`.
+  - **Acceptance:** versioned desktop/mobile screenshots, interaction/timing,
+    URL, script, data-wiring, DPR, browser, and network baseline; no storefront
+    source edit.
+  - **Tests:** production-browser baseline capture only.
+
+- [x] **20.4 deepseek-storefront-inventory — read-only parity inventory**
+  - **Requirement IDs:** `UNAV-004`.
+  - **Dependencies:** `19.1`.
+  - **Fleet owned paths:** `docs/reports/atelier-demo-storefront-inventory.md`,
+    `apps/customer/app/r/[slug]/route.ts`.
+  - **Owner boundary:** read-only inventory only in
+    `docs/reports/atelier-demo-storefront-inventory.md`. Source probe path for
+    fleet isolation: `apps/customer/app/r/[slug]/route.ts`.
+  - **Acceptance:** concise inventory of interactions, inline scripts,
+    route/data substitutions, component boundaries, and parity checkpoints;
+    no code or architecture change.
+  - **Tests:** source inventory cross-check only.
+
+- [ ] **20.5 codex-customer-overview — daily-return composition correction**
+  - **Requirement IDs:** `CENV-OVERVIEW-001`.
+  - **Dependencies:** `20.2`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/dashboard/page.tsx`,
+    `apps/customer/app/(dashboard)/dashboard/morning-routine-hero.tsx`,
+    `apps/customer/app/(dashboard)/morning-routine/local-widgets.tsx`,
+    `apps/customer/e2e/dashboard-morning-routine-hero.spec.ts`,
+    `docs/evidence/runs/20.5-customer-overview/`.
+  - **Owner boundary:** Customer Overview only. Keep the compact green
+    local-context strip no taller than 100px on desktop; show real
+    city/video, weather icon, temperature, rain condition, local time, and
+    one real Morning Routine OOTD suit or jacket; place OOTD directly below
+    the strip. Remove only the redundant Overview dark morning, Today's Edit,
+    generic retailer promotional, and Complete the Look blocks. Preserve real
+    product, appointment, advisor, cart, and authentication actions; imagery
+    remains `object-contain` and unclipped. No QR, payment, email, receipt,
+    service-record, Mission Control, storefront, Wardrobe, Appointments,
+    Orders, Profile, Rewards, Digital Fitting Room, auth, RLS, migration, or
+    external-garment work.
+  - **Acceptance:** authenticated Isabelle browser proof at 1512x982 and
+    390x844 with screenshots and no console errors; focused E2E, customer
+    lint, and customer typecheck pass; executable evidence records the exact
+    committed SHA.
+  - **Tests:** `pnpm --filter @paon/customer test:e2e -- dashboard-morning-routine-hero.spec.ts`,
+    `pnpm --filter @paon/customer lint`, and
+    `pnpm --filter @paon/customer typecheck`.
+
+- [ ] **20.6 claude-customer-appointments — My Appointments visual and flow audit**
+  - **Requirement IDs:** `CENV-APPOINTMENTS-001`.
+  - **Dependencies:** `20.2`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/appointments/**`,
+    `apps/customer/e2e/appointments-*.spec.ts`,
+    `docs/evidence/runs/20.6-customer-appointments-audit/`.
+  - **Owner boundary:** Customer My Appointments visual and flow audit only.
+    Title is `My Appointments`; four seasonal inspiration cards exist;
+    history is collapsed initially; existing real appointment booking remains
+    intact. No paid-care QR, payment, email, receipt, Mission Control,
+    storefront, login, Overview, Wardrobe, Orders, Profile, Rewards, auth,
+    RLS, or migration changes.
+  - **Acceptance:** authenticated desktop and mobile browser verification with
+    screenshots and no console errors; focused tests, customer typecheck, and
+    customer lint pass; commit and mark this fleet task done with only owned
+    files and its evidence.
+  - **Tests:** focused `apps/customer/e2e/appointments-*.spec.ts`,
+    `pnpm --filter @paon/customer lint`, and
+    `pnpm --filter @paon/customer typecheck`.
+
+- [x] **20.7 claude-digital-fitting-room — first-run experience**
+  - **Requirement IDs:** `CENV-FITTING-ROOM-001`.
+  - **Dependencies:** `20.2`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/digital-fitting-room/**`,
+    `apps/customer/e2e/digital-fitting-room-*.spec.ts`,
+    `docs/evidence/runs/20.7-digital-fitting-room/`.
+  - **Owner boundary:** Digital Fitting Room first-run experience only. Build
+    a premium single-card entry experience with a clear invitation, concise
+    explainer, and one prominent `Start Creating` action. Progressive steps
+    replace the current step; do not append an endless form. The real existing
+    fitting-room and avatar workflow remains connected. No fake avatar result,
+    upload, route, or dead button; no auth, RLS, migration, storefront,
+    Overview, Appointments, Wardrobe, Orders, Profile, Rewards, QR, payment,
+    email, receipt, or Mission Control work.
+  - **Acceptance:** authenticated desktop and mobile browser verification with
+    screenshots and no console errors; focused Digital Fitting Room E2E,
+    customer typecheck, and customer lint pass; commit only owned files and
+    record executable evidence.
+  - **Tests:** focused `apps/customer/e2e/digital-fitting-room-*.spec.ts`,
+    `pnpm --filter @paon/customer lint`, and
+    `pnpm --filter @paon/customer typecheck`.
+
+- [ ] **20.8 openrouter-deepseek-customer-environment-v3-audit — evidence-only visual compliance audit**
+  - **Requirement IDs:** `CENV-V3-AUDIT-001`.
+  - **Dependencies:** `20.2`.
+  - **Fleet owned paths:** `docs/evidence/customer-environment-v3-audit/`.
+  - **Owner boundary:** one founder-authorized OpenRouter DeepSeek worker may
+    inspect every customer route named in
+    `docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md` at 1512x982 desktop and
+    390x844 mobile, compare the live UI mechanically against every stated V3
+    requirement, capture screenshots, and write exactly one gap report beneath
+    its owned evidence path. The report must state route, requirement, current
+    behavior, and required correction for every gap. Do not edit application
+    code, `docs/PHASE.md`, queue files, auth, RLS, migrations, Supabase,
+    storefront, or any active Claude-owned path. Do not invent requirements or
+    claim implementation.
+  - **Acceptance:** evidence directory contains desktop and mobile screenshots
+    for every in-scope route plus one exact gap report; report cites the V3
+    requirement for each finding and labels no-gap routes explicitly. No files
+    outside `docs/evidence/customer-environment-v3-audit/` are changed by the
+    worker.
+  - **Tests:** read-only browser capture and source-contract cross-check only.
+
+- [x] **20.9 claude-customer-wardrobe-v3 — Customer Wardrobe V3 presentation**
+  - **Requirement IDs:** `CENV-WARDROBE-001`.
+  - **Dependencies:** `20.2`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/wardrobe/**`,
+    `apps/customer/e2e/wardrobe-v3-*.spec.ts`, and
+    `docs/evidence/runs/20.9-customer-wardrobe/`.
+  - **Owner boundary:** Customer Wardrobe V3 presentation only. Show only
+    retailer purchase-linked garments; do not add external garments,
+    provenance, or purchase-location distinction. Provide eight category rails
+    with real item counts and ten visible slots per rail. Product images use
+    `object-contain` and are never clipped. Cards use a bottom progressive-blur
+    information overlay with title, purchased-on date, and days-owned. Replace
+    `Garment Details` with `Actions +`; progressive actions replace the card
+    face and never append forms. No generic outlined-card AI styling, no
+    customer-facing `house` copy, auth, RLS, migration, external-garment,
+    provenance, purchase-location, storefront, or non-Wardrobe changes.
+  - **Acceptance:** preserve real existing garment actions and tenant-safe data
+    paths. Authenticated desktop and mobile browser flows are console-clean;
+    focused E2E, customer lint, and customer typecheck pass; executable
+    evidence records the exact committed SHA; commit only owned files and
+    evidence.
+  - **Tests:** focused `apps/customer/e2e/wardrobe-v3-*.spec.ts`,
+    `pnpm --filter @paon/customer lint`, and
+    `pnpm --filter @paon/customer typecheck`.
+
+- [ ] **20.10 openrouter-deepseek-customer-environment-v3-static-audit — static traceability audit**
+  - **Requirement IDs:** `CENV-V3-STATIC-AUDIT-001`.
+  - **Dependencies:** `20.8`.
+  - **Fleet owned paths:** `docs/evidence/customer-environment-v3-static-audit/`.
+  - **Owner boundary:** one founder-authorized OpenRouter DeepSeek worker may
+    read only `docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md`, customer
+    application source, existing customer E2E tests, and existing evidence
+    files. Write only beneath
+    `docs/evidence/customer-environment-v3-static-audit/`. Produce one complete
+    requirement matrix covering every V3 requirement with its route/component,
+    existing test/evidence, status (`implemented`, `partial`, `missing`, or
+    `unverifiable`), and exact next bounded implementation task. Do not capture
+    screenshots or perform image analysis. Do not edit application code,
+    `docs/PHASE.md`, queue files, auth, RLS, migrations, Supabase, or
+    worker-owned files. Do not invent completion claims.
+  - **Acceptance:** commit only the complete static-audit report beneath its
+    owned path, then mark this fleet task done.
+  - **Tests:** static source, test, and evidence cross-check only.
+
+- [x] **20.11 claude-customer-overview-v3-daily-return — dashboard daily-return composition**
+  - **Requirement IDs:** `CENV-OVERVIEW-002`.
+  - **Dependencies:** `20.5`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/dashboard/**`,
+    `apps/customer/app/(dashboard)/morning-routine/local-widgets.tsx`,
+    `apps/customer/e2e/dashboard-v3-daily-return.spec.ts`, and
+    `docs/evidence/runs/20.11-customer-overview-v3/`.
+  - **Owner boundary:** dashboard route plus the named shared widget only. The
+    shared-widget change is minimal: restore only the real daily MorningRoutine
+    suit/jacket image in the rightmost green context-strip cell. Do not restore
+    duplicate greeting, recommendation, Today's Edit, one-tap advertisement,
+    Complete the Look, or promotional content. The desktop local-context strip
+    is no taller than 100px and preserves date, local weather, local time,
+    work-address save, personal-distance estimate, and world clocks. Its
+    rightmost area shows the real MorningRoutine daily suit or jacket; OOTD
+    starts immediately below using that same real selection and its existing
+    save, buy, appointment, and advisor actions. Remove duplicate morning
+    greeting, Today's Edit explanation, one-tap setup advertisement, Complete
+    the Look, and generic retailer promotional panel. Product imagery is
+    visible, `object-contain`, and never clipped. At mobile width every
+    local-context function remains reachable without five tiny columns. No QR,
+    payment, email, Mission Control, auth, RLS, migration, storefront, or
+    non-dashboard scope.
+  - **Acceptance:** authenticated Isabelle browser proof at 1512x982 and
+    390x844, console-clean real controls, focused E2E, customer lint,
+    customer typecheck, exact-SHA evidence, and an owned-files-only commit.
+  - **Tests:** `pnpm --filter @paon/customer test:e2e -- dashboard-v3-daily-return.spec.ts`,
+    `pnpm --filter @paon/customer lint`, and
+    `pnpm --filter @paon/customer typecheck`.
+
+- [x] **20.12 claude-customer-orders-v3 — pending orders, history, and real actions**
+  - **Requirement IDs:** `CENV-ORDERS-001`.
+  - **Dependencies:** `20.2`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/orders/page.tsx`,
+    `apps/customer/app/(dashboard)/orders/[id]/page.tsx`,
+    `apps/customer/e2e/orders-v3-*.spec.ts`, and
+    `docs/evidence/runs/20.12-customer-orders-v3/`.
+  - **Owner boundary:** Orders routes only. Render Pending Orders first, then
+    Order History. History remains the complete purchase record even when its
+    products also appear in Wardrobe. Each order/item exposes its real existing
+    Order again, Complete the look, Ask a question, Request service, and View
+    order/invoice actions. Supporting modules remain compact and clearly
+    separated; Complete the Look centres the owned source item in a 70x70
+    squircle above real-suggestion carousel; do not duplicate an overlapping
+    product in multiple modules on one viewport. No QR, payment, email,
+    Mission Control, auth, RLS, migration, storefront, or non-Orders scope.
+  - **Acceptance:** authenticated Isabelle desktop/mobile browser proof,
+    console-clean real success/failure action exercise, focused E2E, customer
+    lint, customer typecheck, exact-SHA evidence, and an owned-files-only
+    commit.
+  - **Tests:** focused `apps/customer/e2e/orders-v3-*.spec.ts`,
+    `pnpm --filter @paon/customer lint`, and
+    `pnpm --filter @paon/customer typecheck`.
+
+- [x] **20.13 claude-customer-profile-v3 — profile cleanup and clarification**
+  - **Requirement IDs:** `CENV-PROFILE-001`.
+  - **Dependencies:** `20.2`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/account/**`,
+    `apps/customer/e2e/account-v3-profile.spec.ts`, and
+    `docs/evidence/runs/20.13-customer-profile-v3/`.
+  - **Owner boundary:** My Profile/account route only. Remove the entire
+    customer-facing House Memory panel and all `House Memory` copy. Remove
+    style-discovery quiz and Style Portrait/avatar setup from Profile; style
+    discovery belongs in Wardrobe and avatar/portrait setup belongs in Digital
+    Fitting Room. Clarify the remaining real profile controls without generic
+    outlined-card AI styling or customer-facing `house` wording. No QR,
+    payment, email, Mission Control, auth, RLS, migration, storefront,
+    Wardrobe, or Digital Fitting Room changes.
+  - **Acceptance:** authenticated Isabelle desktop/mobile browser proof,
+    console-clean real profile controls, focused E2E, customer lint, customer
+    typecheck, exact-SHA evidence, and an owned-files-only commit.
+  - **Tests:** `pnpm --filter @paon/customer test:e2e -- account-v3-profile.spec.ts`,
+    `pnpm --filter @paon/customer lint`, and
+    `pnpm --filter @paon/customer typecheck`.
+
+- [x] **20.14 claude-customer-loyalty-v3 — Rewards & Referrals exposure**
+  - **Requirement IDs:** `CENV-REWARDS-001`.
+  - **Dependencies:** `20.2`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/loyalty/**`,
+    `apps/customer/e2e/loyalty-v3-*.spec.ts`, and
+    `docs/evidence/runs/20.14-customer-loyalty-v3/`.
+  - **Owner boundary:** Rewards & Referrals/loyalty route only. Render the
+    existing `/loyalty` implementation; do not create a duplicate rewards
+    engine. Preserve its real loyalty and referral actions and tenant-safe data
+    paths. No QR, payment, email, Mission Control, auth, RLS, migration,
+    storefront, or non-loyalty scope.
+  - **Acceptance:** authenticated Isabelle desktop/mobile browser proof,
+    console-clean real reward/referral controls, focused E2E, customer lint,
+    customer typecheck, exact-SHA evidence, and an owned-files-only commit.
+  - **Tests:** focused `apps/customer/e2e/loyalty-v3-*.spec.ts`,
+    `pnpm --filter @paon/customer lint`, and
+    `pnpm --filter @paon/customer typecheck`.
+
+- [x] **20.15 claude-customer-navigation-v3-copy — navigation and forbidden-copy consistency**
+  - **Requirement IDs:** `CENV-NAVIGATION-003`.
+  - **Dependencies:** `20.2`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/layout.tsx`,
+    `apps/customer/app/(dashboard)/account-top-tabs.tsx`,
+    `apps/customer/app/(dashboard)/customer-navigation-lifecycle.tsx`,
+    `apps/customer/app/(dashboard)/intent-prefetch-link.tsx`,
+    `apps/customer/e2e/customer-navigation-v3-copy.spec.ts`, and
+    `docs/evidence/runs/20.15-customer-navigation-v3-copy/`.
+  - **Owner boundary:** customer sidebar/top-menu labels and forbidden
+    customer-facing `house` wording only. Preserve the exact seven desktop
+    destinations: Overview, Wardrobe, My Appointments, Orders, Digital Fitting
+    Room, Rewards & Referrals, and My Profile. Mobile retains access to every
+    destination through a compact overflow/menu. Visible customer navigation
+    uses client-side navigation, not full reloads. Preserve the persistent
+    shell and do not redesign the existing top-navigation geometry, fonts, or
+    active-state treatment. Exclude storefront and every active worker-owned
+    path. No QR, payment, email, Mission Control, auth, RLS, migration, or
+    storefront scope.
+  - **Acceptance:** authenticated Isabelle desktop/mobile browser proof,
+    console-clean warm navigation, focused label/removed-copy/route E2E,
+    customer lint, customer typecheck, exact-SHA evidence, and an
+    owned-files-only commit.
+  - **Tests:** `pnpm --filter @paon/customer test:e2e -- customer-navigation-v3-copy.spec.ts`,
+    `pnpm --filter @paon/customer lint`, and
+    `pnpm --filter @paon/customer typecheck`.
+
+- [ ] **20.16 openrouter-deepseek-customer-environment-v3-proof-index — evidence metadata audit**
+  - **Requirement IDs:** `CENV-V3-PROOF-INDEX-001`.
+  - **Dependencies:** `20.10`.
+  - **Fleet owned paths:** `docs/evidence/customer-environment-v3-proof-index/`.
+  - **Owner boundary:** one founder-authorized OpenRouter DeepSeek worker may
+    read only `docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md`, completed static
+    audit artifacts, existing customer evidence metadata, and Git commit/SHA
+    references. Write only beneath
+    `docs/evidence/customer-environment-v3-proof-index/`. Produce one proof
+    index covering every V3 remediation lane: exact required proof, current
+    artifact/commit reference, status (`present`, `missing`, `stale`, or
+    `unverifiable`), and exact owner/task required to close every gap. Do not
+    capture screenshots, analyze images, rerun browser tests, inspect or edit
+    application code, edit `docs/PHASE.md`, queue files, auth, RLS, migrations,
+    Supabase, storefront, or Claude-owned paths. Do not invent completion
+    claims.
+  - **Acceptance:** commit only the complete proof-index report beneath its
+    owned path, then mark this fleet task done.
+  - **Tests:** static evidence and Git-reference cross-check only.
+
+- [x] **20.17 claude-customer-wardrobe-removal-v3 — advisor-selection removal flow**
+  - **Requirement IDs:** `CENV-WARDROBE-REMOVE-001`.
+  - **Dependencies:** `20.9`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/wardrobe/wardrobe-panel.tsx`,
+    `apps/customer/e2e/wardrobe-removal-v3.spec.ts`, and
+    `docs/evidence/runs/20.17-customer-wardrobe-removal-v3/`.
+  - **Owner boundary:** implement only the V3 advisor-selection-card removal
+    plan and confirmation. Preserve real tenant-safe garment actions. The
+    progressive action replaces the current card face; do not append a form or
+    restore external garments, provenance, purchase-location distinction,
+    Virtual Studio, lifecycle, roadmap, QR, payment, email, Mission Control,
+    auth, RLS, migration, or non-owned scope.
+  - **Acceptance:** authenticated Isabelle desktop/mobile browser proof,
+    console-clean real remove/confirm path, focused E2E, customer lint,
+    customer typecheck, exact-SHA evidence, and owned-files-only commit.
+  - **Tests:** `pnpm --filter @paon/customer test:e2e -- wardrobe-removal-v3.spec.ts`,
+    `pnpm --filter @paon/customer lint`, and
+    `pnpm --filter @paon/customer typecheck`.
+
+- [x] **20.18 claude-customer-orders-actions-v3 — real order action row and supporting modules**
+  - **Requirement IDs:** `CENV-ORDERS-ACTIONS-001`.
+  - **Dependencies:** `20.12`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/orders/page.tsx`,
+    `apps/customer/e2e/orders-actions-v3.spec.ts`, and
+    `docs/evidence/runs/20.18-customer-orders-actions-v3/`.
+  - **Owner boundary:** implement only V3 Orders item action row and compact
+    supporting modules. Each order/item exposes real Order again, Complete the
+    look, Ask a question, Request service, and View order/invoice actions.
+    Complete the Look centres the owned source item in a 70x70 squircle above a
+    carousel of real suggestions; do not duplicate overlapping products on one
+    viewport. No QR, payment, email, Mission Control, auth, RLS, migration,
+    storefront, or non-owned scope.
+  - **Acceptance:** authenticated Isabelle desktop/mobile browser proof,
+    console-clean real action success/failure paths, focused E2E, customer
+    lint, customer typecheck, exact-SHA evidence, and owned-files-only commit.
+  - **Tests:** `pnpm --filter @paon/customer test:e2e -- orders-actions-v3.spec.ts`,
+    `pnpm --filter @paon/customer lint`, and
+    `pnpm --filter @paon/customer typecheck`.
+
+- [ ] **20.19 claude-customer-v3-stale-e2e — remove assertions for deleted V3 UI**
+  - **Requirement IDs:** `CENV-TEST-001`.
+  - **Dependencies:** `20.13`, `20.17`.
+  - **Fleet owned paths:** `apps/customer/e2e/house-memory-fact-correction.spec.ts`,
+    `apps/customer/e2e/style-profile-account.spec.ts`,
+    `apps/customer/e2e/item-specific-complete-the-look.spec.ts`,
+    `apps/customer/e2e/roadmap-look-review.spec.ts`, and
+    `docs/evidence/runs/20.19-customer-v3-stale-e2e/`.
+  - **Owner boundary:** reconcile only stale assertions that require UI V3
+    explicitly removes. Do not restore House Memory, Style Portrait/avatar
+    setup in Profile, removed Wardrobe roadmap markup, or removed item-specific
+    Complete the Look markup to satisfy a test. Replace only with V3-conformant
+    assertions. No application code, QR, payment, email, Mission Control,
+    auth, RLS, migration, Supabase, or storefront work.
+  - **Acceptance:** focused stale-test suite passes against V3-conformant UI;
+    customer lint/typecheck and exact-SHA evidence pass; owned-files-only commit.
+  - **Tests:** the four owned specs, customer lint, and customer typecheck.
+
+- [x] **20.20 claude-customer-alteration-choices-v3 — service decision branches**
+  - **Requirement IDs:** `CENV-ALTERATION-CHOICES-001`.
+  - **Dependencies:** `20.6`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/appointments/paid-care-flow.tsx`,
+    `apps/customer/e2e/appointments-alteration-choices-v3.spec.ts`, and
+    `docs/evidence/runs/20.20-customer-alteration-choices-v3/`.
+  - **Owner boundary:** expose only the existing V3 customer decision branches:
+    `I know exactly what needs changing`, `Ask advisor with self-scan`, and
+    `Assess in store`. Progressive choices replace the current card face;
+    Assess in store accepts a short service note, requests the item be brought,
+    and shows the existing folded price list without forcing a product choice.
+    No QR, payment, email, Mission Control, auth, RLS, migration, Supabase, or
+    non-owned path edits.
+  - **Acceptance:** authenticated desktop/mobile real success/failure flow,
+    console-clean focused E2E, customer lint/typecheck, exact-SHA evidence, and
+    owned-files-only commit.
+  - **Tests:** appointments-alteration-choices V3 E2E, customer lint, typecheck.
+
+- [x] **20.21 claude-storefront-dfr-handoff-v3 — canonical raw PDP fitting-room module**
+  - **Requirement IDs:** `CENV-DFR-HANDOFF-001`.
+  - **Dependencies:** `20.7`.
+  - **Fleet owned paths:** `apps/customer/app/r/[slug]/route.ts`,
+    `apps/customer/e2e/storefront-digital-fitting-room-handoff-v3.spec.ts`, and
+    `docs/evidence/runs/20.21-storefront-dfr-handoff-v3/`.
+  - **Owner boundary:** add only the V3 canonical raw PDP third-column module:
+    `Try in Digital Fitting Room`, three short steps, and `Start creating` in
+    the existing 15px squircle system. The CTA passes canonical product ID/slug
+    correctly and opens the existing Digital Fitting Room; no fake route,
+    result, product, or dead button. Preserve raw storefront behavior, URLs,
+    rendering, cart, and Back/Forward. No QR, payment, email, Mission Control,
+    auth, RLS, migration, or non-owned edits.
+  - **Acceptance:** authenticated desktop/mobile browser proof, console-clean
+    canonical product handoff, focused E2E, customer lint/typecheck, exact-SHA
+    evidence, and owned-files-only commit.
+  - **Tests:** storefront-digital-fitting-room-handoff V3 E2E, customer lint,
+    typecheck.
+
+- [x] **20.22 claude-wardrobe-external-write-removal-v3 — remove dormant external garment write path**
+  - **Requirement IDs:** `CENV-WARDROBE-EXTERNAL-001`.
+  - **Dependencies:** `20.9`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/wardrobe/actions.ts`,
+    `apps/customer/e2e/wardrobe-no-external-entry-v3.spec.ts`, and
+    `docs/evidence/runs/20.22-wardrobe-external-write-removal-v3/`.
+  - **Owner boundary:** remove only the dormant customer external-garment write
+    capability. Preserve retailer purchase-linked garments and every real
+    tenant-safe owned-garment action. No external-garment UI, provenance,
+    purchase-location distinction, QR, payment, email, receipts, Mission
+    Control, auth, RLS, migration, Supabase, or unowned changes.
+  - **Acceptance:** no customer path can create an external garment; focused
+    E2E, lint, typecheck, exact-SHA evidence, and owned-files-only commit.
+  - **Tests:** wardrobe-no-external-entry V3 E2E, customer lint, typecheck.
+
+- [x] **20.23 claude-storefront-dashboard-return-state-v3 — return-state restoration proof**
+  - **Requirement IDs:** `CENV-RETURN-STATE-001`.
+  - **Dependencies:** `20.21`.
+  - **Fleet owned paths:** `apps/customer/e2e/storefront-dashboard-return-state-v3.spec.ts`,
+    `docs/evidence/runs/20.23-storefront-dashboard-return-state-v3/`.
+  - **Owner boundary:** test-only proof that Back/Forward restores valid
+    category, filter, sort, product, drawer/modal, and scroll return state
+    without full reload or wrong-customer data. No application, storefront,
+    auth, RLS, migration, Supabase, QR, payment, email, receipts, or Mission
+    Control edits.
+  - **Acceptance:** focused authenticated browser proof at desktop/mobile with
+    console clean, lint/typecheck, exact-SHA evidence, and owned-files-only commit.
+  - **Tests:** storefront-dashboard-return-state V3 E2E, customer lint, typecheck.
+
+- [x] **20.24 claude-customer-prefetch-guard-v3 — constrained-network prefetch proof**
+  - **Requirement IDs:** `CENV-PREFETCH-001`.
+  - **Dependencies:** `20.15`.
+  - **Fleet owned paths:** `apps/customer/e2e/customer-prefetch-constrained-network-v3.spec.ts`,
+    `docs/evidence/runs/20.24-customer-prefetch-guard-v3/`.
+  - **Owner boundary:** test-only V3 proof that Save-Data and 2G prevent
+    speculative heavyweight prefetch while normal customer navigation remains
+    correct. No application code, QR, payment, email, receipts, Mission
+    Control, auth, RLS, migration, Supabase, or storefront edits.
+  - **Acceptance:** focused browser proof, lint/typecheck, exact-SHA evidence,
+    and owned-files-only commit.
+  - **Tests:** customer-prefetch-constrained-network V3 E2E, customer lint, typecheck.
+
+- [x] **20.25 claude-customer-cta-squircle-v3 — CTA-system contract proof**
+  - **Requirement IDs:** `CENV-CTA-001`.
+  - **Dependencies:** `20.15`.
+  - **Fleet owned paths:** `apps/customer/e2e/customer-cta-squircle-v3.spec.ts`,
+    `docs/evidence/runs/20.25-customer-cta-squircle-v3/`.
+  - **Owner boundary:** test-only V3 proof that customer CTA controls use the
+    one 15px squircle system and do not regress to generic outlined-card styling.
+    No application code, QR, payment, email, receipts, Mission Control, auth,
+    RLS, migration, Supabase, or storefront edits.
+  - **Acceptance:** desktop/mobile focused browser assertions, lint/typecheck,
+    exact-SHA evidence, and owned-files-only commit.
+  - **Tests:** customer-cta-squircle V3 E2E, customer lint, typecheck.
+
+- [x] **20.26 claude-wardrobe-rail-contract-v3 — eight-rail contract proof**
+  - **Requirement IDs:** `CENV-WARDROBE-RAILS-001`.
+  - **Dependencies:** `20.9`.
+  - **Fleet owned paths:** `apps/customer/e2e/wardrobe-rail-contract-v3.spec.ts`,
+    `docs/evidence/runs/20.26-wardrobe-rail-contract-v3/`.
+  - **Owner boundary:** test-only proof of exactly eight rails in V3 order,
+    real counts, ten visible slots per rail, retailer purchase-linked garments
+    only, and visible `object-contain` imagery without clipping. No application
+    code, external garments, QR, payment, email, receipts, Mission Control,
+    auth, RLS, migration, Supabase, or storefront edits.
+  - **Acceptance:** desktop/mobile focused browser proof, lint/typecheck,
+    exact-SHA evidence, and owned-files-only commit.
+  - **Tests:** wardrobe-rail-contract V3 E2E, customer lint, typecheck.
+
+- [x] **20.27 claude-orders-history-integrity-v3 — history and duplicate-suppression proof**
+  - **Requirement IDs:** `CENV-ORDERS-HISTORY-001`.
+  - **Dependencies:** `20.18`.
+  - **Fleet owned paths:** `apps/customer/e2e/orders-history-integrity-v3.spec.ts`,
+    `docs/evidence/runs/20.27-orders-history-integrity-v3/`.
+  - **Owner boundary:** test-only V3 proof that Pending Orders precedes complete
+    Order History and overlapping products do not duplicate across modules on
+    one viewport. No application code, QR, payment, email, receipts, Mission
+    Control, auth, RLS, migration, Supabase, or storefront edits.
+  - **Acceptance:** desktop/mobile focused browser proof, lint/typecheck,
+    exact-SHA evidence, and owned-files-only commit.
+  - **Tests:** orders-history-integrity V3 E2E, customer lint, typecheck.
+
+- [x] **20.28 evidence-review-20.11-20.13 — independent candidate-batch review**
+  - **Requirement IDs:** `CENV-REVIEW-001`.
+  - **Dependencies:** completed candidate `4118202`.
+  - **Fleet owned paths:** `docs/evidence/reviews/20.28-v3-candidate-4118202/`.
+  - **Owner boundary:** review only candidate `4118202` for exact V3 compliance,
+    changed paths, test claims, and stale-SHA evidence. Write only review
+    evidence; no application edits, integration, auth, RLS, migration, Supabase,
+    QR, payment, email, receipts, or Mission Control work.
+  - **Acceptance:** one exact review report with verdict, changed paths, claim
+    verification, stale evidence references, and required correction; commit
+    only owned review evidence.
+  - **Tests:** Git/evidence/source cross-check only.
+
+- [ ] **20.29 evidence-review-20.21 — independent raw-storefront DFR review**
+  - **Requirement IDs:** `CENV-REVIEW-002`.
+  - **Dependencies:** completed candidates `5a087e0`, `b559653`.
+  - **Fleet owned paths:** `docs/evidence/reviews/20.29-storefront-dfr-5a087e0/`.
+  - **Owner boundary:** independently review raw storefront parity, canonical
+    product handoff, E2E result, screenshots, and absence of a dead route for
+    `5a087e0` plus `b559653`. Write only review evidence; no app edits or
+    integration.
+  - **Acceptance:** one exact review report with accept/reject verdict, proof
+    references, findings, and required correction; commit only owned review evidence.
+  - **Tests:** Git/evidence/browser-artifact cross-check only.
+
+- [x] **20.30 evidence-phase-20-freshness — stale-SHA reconciliation**
+  - **Requirement IDs:** `CENV-EVIDENCE-001`.
+  - **Dependencies:** completed Phase 20 tasks.
+  - **Fleet owned paths:** `docs/evidence/reviews/20.30-phase-20-freshness/`.
+  - **Owner boundary:** identify every completed Phase 20 item whose evidence
+    SHA is stale. Write exact rerun requirements and affected test commands
+    only. No app edits, integration, auth, RLS, migration, Supabase, QR,
+    payment, email, receipts, or Mission Control work.
+  - **Acceptance:** one complete freshness matrix naming each stale item,
+    expected SHA boundary, required rerun proof, and exact commands; commit
+    only owned review evidence.
+  - **Tests:** Git/evidence metadata cross-check only.
+
+- [ ] **20.31 openrouter-deepseek-phase-20-integration-map — text-only merge map**
+  - **Requirement IDs:** `CENV-INTEGRATION-MAP-001`.
+  - **Dependencies:** completed Phase 20 branches.
+  - **Fleet owned paths:** `docs/evidence/customer-environment-v3-integration-map/`.
+  - **Owner boundary:** founder-authorized OpenRouter DeepSeek text-only map of
+    completed Phase 20 branches/commits to merge order, ancestor/duplicate
+    status, and required independent review. Write only owned evidence. No
+    images, browser work, app edits, queue edits, or integration.
+  - **Acceptance:** one complete integration map with exact commits, dependency
+    order, duplicate/ancestor disposition, and independent-review gate; commit
+    only owned evidence.
+  - **Tests:** Git history and evidence metadata cross-check only.
+
+- [x] **20.32 evidence-review-4118202 — Overview, Orders, and Profile candidate review**
+  - **Dependencies:** saved candidate `4118202`.
+  - **Fleet owned paths:** `docs/evidence/reviews/20.32-candidate-4118202/`.
+  - **Owner boundary:** review only `4118202`: exact changed files, V3 task scope,
+    dependencies, test claims, evidence-SHA freshness, safe re-proof disposition,
+    and required release-branch verification. No application, migration, auth,
+    RLS, Supabase, storefront, QR, payment, email, or dirty-file edits.
+  - **Acceptance:** one exact review report; commit only its owned evidence.
+  - **Tests:** Git, source, and evidence cross-check only.
+
+- [x] **20.33 evidence-review-55e6d01 — Rewards candidate review**
+  - **Dependencies:** saved candidate `55e6d01`.
+  - **Fleet owned paths:** `docs/evidence/reviews/20.33-candidate-55e6d01/`.
+  - **Owner boundary:** review only `55e6d01`: exact changed files, V3 task scope,
+    dependencies, test claims, evidence-SHA freshness, safe-integration verdict,
+    and required release-branch verification. No application, migration, auth,
+    RLS, Supabase, storefront, QR, payment, email, or dirty-file edits.
+  - **Acceptance:** one exact review report; commit only its owned evidence.
+  - **Tests:** Git, source, and evidence cross-check only.
+
+- [x] **20.34 evidence-review-orders-candidates — Orders action and history candidate review**
+  - **Dependencies:** saved candidates `fe91186`, `b49798b`.
+  - **Fleet owned paths:** `docs/evidence/reviews/20.34-orders-candidates/`.
+  - **Owner boundary:** review only `fe91186` and `b49798b`: exact changed files,
+    V3 task scope, dependencies, test claims, evidence-SHA freshness,
+    safe-integration verdict, and required release-branch verification. No
+    application, migration, auth, RLS, Supabase, storefront, QR, payment,
+    email, or dirty-file edits.
+  - **Acceptance:** one exact review report; commit only its owned evidence.
+  - **Tests:** Git, source, and evidence cross-check only.
+
+- [ ] **20.35 evidence-review-50bdf00 — alteration decision candidate review**
+  - **Dependencies:** saved candidate `50bdf00`.
+  - **Fleet owned paths:** `docs/evidence/reviews/20.35-candidate-50bdf00/`.
+  - **Owner boundary:** review only `50bdf00`: exact changed files, V3 task scope,
+    dependencies, test claims, evidence-SHA freshness, safe-integration verdict,
+    and required release-branch verification. No application, migration, auth,
+    RLS, Supabase, storefront, QR, payment, email, or dirty-file edits.
+  - **Acceptance:** one exact review report; commit only its owned evidence.
+  - **Tests:** Git, source, and evidence cross-check only.
+
+- [x] **20.36 evidence-review-86e45d0 — stale E2E cleanup candidate review**
+  - **Dependencies:** saved candidate `86e45d0`.
+  - **Fleet owned paths:** `docs/evidence/reviews/20.36-candidate-86e45d0/`.
+  - **Owner boundary:** review only `86e45d0`: exact changed files, V3 task scope,
+    dependencies, test claims, evidence-SHA freshness, safe-integration verdict,
+    and required release-branch verification. No application, migration, auth,
+    RLS, Supabase, storefront, QR, payment, email, or dirty-file edits.
+  - **Acceptance:** one exact review report; commit only its owned evidence.
+  - **Tests:** Git, source, and evidence cross-check only.
+
+### Stage 21 — Storefront-to-shell incremental migration
+
+Governed by `docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md` §3.2 / §13 and
+`docs/plans/ATELIER_DEMO_PARITY_TEST_PLAN.md` (C1–C7). The raw `/r/[slug]`
+Route Handler stays canonical (ADR-046 / ADR-046 addendum). The two founder
+acceptance bars — (1) storefront looks/animates/loads exactly as today,
+(2) storefront and customer environment are one platform with seamless
+switching — are met in stages: the boundary seam first, a full JSX port only
+if the seam proves insufficient in real use.
+
+- [x] **21.1 shared storefront chrome — deferred (seam supersedes)**
+  - **Requirement IDs:** `UNAV-005`.
+  - The cross-document View Transition in 21.2 covers the visual change at the
+    boundary; forcing shared header/footer between the shop storefront and the
+    account dashboard risks a C1 parity regression against the frozen baseline
+    for no user-visible gain. Revisit only if a hard-cut (no transition)
+    surface appears. Not pursued.
+
+- [x] **21.2 one-platform seam — storefront ⇄ dashboard**
+  - **Requirement IDs:** `UNAV-006`.
+  - **Dependencies:** `20.2`, `20.3`.
+  - **What shipped:** bidirectional document prefetch (`route.ts` emits
+    `<link rel="prefetch" as="document">` for `/dashboard` + `/login`;
+    `IntentPrefetchLink` already warms the reverse); native cross-document
+    View Transitions (`@view-transition { navigation: auto }` + 180ms root
+    crossfade in `app/globals.css` and the storefront brand `<style>`,
+    `prefers-reduced-motion` guarded, progressive); Back-Forward Cache
+    preserved (storefront has 0 `unload`/`beforeunload`, no `no-store`), so
+    Back restores the storefront frozen exactly as left.
+  - **Acceptance:** storefront untouched (ADR-046 intact); warm-nav p95 still
+    ≤200ms; Atelier baseline 2/2 unchanged; cart + auth + retailer scope
+    persist across a storefront→dashboard→storefront round trip with no
+    wrong-identity flash.
+  - **Tests:** `apps/customer/e2e/storefront-dashboard-roundtrip.spec.ts`;
+    `customer-navigation-performance.spec.ts`; `atelier-demo-baseline.spec.ts`.
+
+- [ ] **21.3 / 21.4 / 21.5 — full JSX storefront port — NOT PURSUED**
+  - **Requirement IDs:** `UNAV-007`, `UNAV-008`, `UNAV-009`.
+  - **Status:** founder decision 2026-08-26 — the 21.2 seam is sufficient; the
+    raw storefront stays canonical and its internal full-page navigation is
+    accepted. Do not start this port without a new founder instruction.
+    Rebuilding the 668KB founder template as JSX (client-side
+    internal storefront nav, both surfaces in one React tree) is the only path
+    to literal SPA-everywhere, reverses ADR-046, and must pass C1–C7 on every
+    surface desktop + mobile. `dangerouslySetInnerHTML` is not a shortcut (it
+    never executes the template's ~40 inline scripts); iframes are barred by
+    §3.2. Only start if the 21.2 seam proves insufficient in real use.
+
+- [x] **21.6 storefront-to-dashboard performance budget**
+  - **Requirement IDs:** `UNAV-010`.
+  - **Dependencies:** `21.2`.
+  - **Owner boundary:** measure and enforce a storefront→dashboard transition
+    budget for the prefetch-warmed boundary hop, distinct from the ≤200ms
+    customer-shell budget (`20.2` / plan §13). No new state library.
+  - **Acceptance:** measured p50/p95 recorded with browser, viewport, network
+    profile; failing test when exceeded; Save-Data / 2G guards verified.
+  - **Tests:** focused Playwright performance test.
+
 ## Real hard blockers
 
 A hard blocker stops only the affected item. Continue with the next independent
@@ -8100,3 +8826,91 @@ item.
      (non-`{force:true}`) Playwright click, since the specs use `force: true`
      specifically to bypass Playwright's normal receives-events/visibility
      check, which could be masking the real problem. -->
+
+<!-- SESSION HANDOFF (2026-08-24): storefront/customer-environment cleanup
+     session. Canonical demo retailer is now slug `atelier-demo`, display
+     name "Nebel & Spiegel" (renamed twice this session — mid-session it was
+     briefly "Atelier Demo"; if you see that string anywhere live-facing,
+     it's stale, not intentional). The old `maison-dubois` retailer row was
+     merged into this one (same id, slug/display_name changed in place) —
+     all its customers/orders/wardrobe data is intact under the new slug.
+     `casa-marchetti` and `paon-programme-proof` retailer rows were renamed
+     to "Nebel & Spiegel II"/"III" (still separate tenant-isolation test
+     fixtures, not deleted — deleting them would break
+     apps/retailer/e2e/canonical-house.spec.ts). `e2e-customer-workspace`
+     display name deliberately left alone — apps/customer/e2e/
+     catalogue.spec.ts and fixtures.ts assert that exact string.
+
+     Merged 68 commits from `agent/lane-h-customer-ai-conversation` (never
+     merged into this branch before) — the storefront's product-metadata
+     "information card" panels (mill/fibre/fabric knowledge), the staff
+     Knowledge Library, corporate Manager Portal auth foundation, checkout
+     demo-payment path, ~15 storefront bugfixes. After merging, 3 of the
+     pulled migrations (20260821000002/000004/000005) turned out to insert
+     0 rows against this DB — they hardcode product UUIDs from the other
+     branch's own database instance, which don't exist here. Backfilled
+     with a fresh keyword-matching tagging pass (881 assignments / 144
+     products, `entity_metadata_assignments`, review_status='accepted').
+     If you re-run those 3 migrations against a FRESH db reset expecting
+     them to populate real data, they won't — same root cause, needs the
+     same kind of re-tagging pass afterward, or a proper id-portable rewrite.
+
+     Also found and fixed twice in this session: `retailers.brand_theme
+     ->> 'cornerStyle'` keeps getting reset to "soft" (rounded) instead of
+     "architectural" (sharp) by concurrent `supabase db reset --local`
+     calls — same class of issue as 909c7fa's catalogue wipe. It is NOT
+     committed to seed.sql. If the storefront's sidebar logo looks rounded
+     again, check this column first before assuming a CSS regression.
+
+     NOT DONE — explicitly flagged to the founder, not silently dropped:
+     - Corporate visit self-service from the customer's own account (not
+       just the storefront lead-gen form or retailer-staff side). Migration
+       20260824120000_add_corporate_contact_self_service.sql adds
+       customers.corporate_account_id + RLS policies letting a customer
+       with that column set manage their own account's corporate_visit_
+       slots/corporate_programmes/corporate_office_visit_requests. NO
+       customer-facing page or Server Action exists yet — repository
+       methods (CorporateOfficeVisitRepository.createSlot/cancelSlot)
+       exist and are RLS-safe to call from a customer-scoped client, but
+       nothing calls them from apps/customer.
+     - General retailer voucher/discount-code creation tool. Nothing exists
+       beyond wedding_guest_vouchers (wedding-specific, no checkout
+       integration). A real voucher tool needs: new schema modeled on that
+       table, retailer staff creation UI, AND checkout/cart integration to
+       actually apply a discount — apps/customer/app/r/[slug]/cart has zero
+       discount-code mechanism today.
+     - Virtual wardrobe images reported "cut off" by the founder — never
+       investigated. Check apps/customer/app/(dashboard)/wardrobe/
+       wardrobe-panel.tsx's image sizing (object-fit/aspect-ratio on the
+       card photos).
+     - Founder reported (last message before handoff, unconfirmed/
+       unfixed): "left sidebar overlapping content in the customer
+       environment" on some page, and "height of How it works/About Us/
+       Contact incorrect" in apps/customer/app/(dashboard)/
+       shop-category-sidebar.tsx. I was mid-screenshot-comparison when
+       asked to stop — the .sidebar-footer's real CSS uses ABSOLUTE
+       positioning for the Book Appointment button (bottom:20/left:20/
+       right:20, see paon-template.html ~line 573 `.whatsapp-btn`) which
+       my React version also does, but I had not yet confirmed the
+       overlap claim against a real narrower-viewport screenshot before
+       stopping. Start here.
+     - Sidebar reload/flash when navigating storefront <-> account pages:
+       NOT fixable as a sidebar change. apps/customer/app/r/[slug]/route.ts
+       serves raw HTML (a Route Handler, deliberately not React — see its
+       own docblock), the account app is a normal React tree. Crossing that
+       boundary is always a full page navigation. Would need unifying the
+       two rendering systems to truly fix, out of scope for a UI tweak.
+     - "Loyalty should be together the weather widgets on top" — ambiguous
+       instruction from founder, never clarified. Weather/world-clock/
+       drive-time widgets landed on Morning Routine
+       (apps/customer/app/(dashboard)/morning-routine/local-widgets.tsx)
+       instead of Loyalty. May not be what was meant.
+
+     Shared logic worth knowing about before touching the storefront again:
+     apps/customer/app/r/[slug]/canonical-category.ts now holds the
+     category-detection heuristic (CANONICAL_CATEGORIES, canonicalCategoryFor)
+     — extracted out of route.ts specifically so apps/customer/app/
+     (dashboard)/shop-category-sidebar.tsx could import it and guarantee
+     the account sidebar's category list exactly matches the storefront's,
+     computed from the same real product data via the same function. Don't
+     re-inline category logic into route.ts — it'll silently drift again. -->

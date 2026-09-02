@@ -1,0 +1,217 @@
+{
+  "baselineVersion": "v1",
+  "capturedDate": "2026-08-26",
+  "gitSha": "24be9519d33fa69f3dd10e4547e34ce4a40ec74f",
+  "branch": "agent/lane-b-customer-navigation-claude1",
+  "fleetTask": "phase-20.3",
+  "lane": "claude-storefront-baseline",
+  "ownedPath": "docs/evidence/atelier-demo-baseline/",
+  "acceptanceCmd": "pnpm lint && pnpm typecheck",
+  "toolchain": {
+    "node": "v22.20.0",
+    "pnpm": "9.15.0",
+    "nodeModulesPresent": true
+  },
+  "subject": {
+    "name": "Atelier Demo",
+    "displayName": "Nebel & Spiegel",
+    "retailerSlug": "atelier-demo",
+    "slugConstant": "CANONICAL_DEMO_RETAILER_SLUG",
+    "kind": "database-seeded retailer rendered by a Next.js Route Handler as raw founder-template HTML",
+    "seedDefinition": "packages/database/src/demo-seed.ts",
+    "seedScript": "packages/database/scripts/seed-demo.ts",
+    "deployToggle": "apps/admin/app/(dashboard)/demo-mode/page.tsx",
+    "demoAccountEmailPattern": "contact+atelier-demo-{role}@nebelspiegel.com",
+    "demoPassword": "Demo-PAON-2026!"
+  },
+  "servingApp": {
+    "path": "apps/customer/",
+    "devCmd": "next dev --turbopack -p 3002",
+    "startCmd": "next start -p 3002",
+    "port": 3002,
+    "framework": "Next.js App Router",
+    "baseUrl": "http://localhost:3002",
+    "storefrontEntry": "apps/customer/app/r/[slug]/route.ts",
+    "template": "apps/customer/app/r/[slug]/paon-template.html",
+    "templateBytes": 668725,
+    "serializer": "apps/customer/app/r/[slug]/storefront-page-data.ts"
+  },
+  "urls": {
+    "home": "/r/atelier-demo",
+    "homeCategory": "/r/atelier-demo?category=<CanonicalName>",
+    "pdp": "/r/atelier-demo/products/<productSlug>",
+    "cart": "/r/atelier-demo/cart",
+    "appointments": "/r/atelier-demo/appointments",
+    "locations": "/r/atelier-demo/locations",
+    "swipe": "/r/atelier-demo/swipe",
+    "configurator": "/r/atelier-demo/configurator",
+    "concepts": "/r/atelier-demo/concepts",
+    "conceptDetail": "/r/atelier-demo/concepts/<code>",
+    "events": "/r/atelier-demo/events",
+    "tieMate": "/r/atelier-demo/tie-mate",
+    "corporate": "/r/atelier-demo/corporate/<programmeId>",
+    "gift": "/r/atelier-demo/gift/<token>",
+    "tenders": "/r/atelier-demo/tenders/<token>",
+    "wardrobe": "/r/atelier-demo/wardrobe/<token>",
+    "weddingPartyJoin": "/r/atelier-demo/wedding-parties/join/<token>",
+    "api": {
+      "cartAdd": "POST /r/atelier-demo/api/cart-add",
+      "cartUpdate": "POST /r/atelier-demo/api/cart-update",
+      "cartSummary": "GET /r/atelier-demo/api/cart-summary",
+      "appointmentRequest": "POST /r/atelier-demo/api/appointment-request",
+      "tableServiceInquiry": "POST /r/atelier-demo/api/table-service-inquiry",
+      "tableServiceMessage": "POST /r/atelier-demo/api/table-service-message"
+    }
+  },
+  "placeholders": [
+    "__PAON_BRAND_HEAD__",
+    "__PAON_BRAND_MARK__",
+    "__PAON_CATALOGUE_BY_PRODUCT_JSON__",
+    "__PAON_CATEGORY_NAMES_JSON__",
+    "__PAON_DEFAULT_CATEGORY_JSON__",
+    "__PAON_FOOTER_HTML__",
+    "__PAON_GARMENTS_JSON__",
+    "__PAON_HERO_HTML__",
+    "__PAON_KNOWLEDGE_BY_PRODUCT_JSON__",
+    "__PAON_LAND_ON_GRID__",
+    "__PAON_OG_DESCRIPTION__",
+    "__PAON_OG_IMAGE__",
+    "__PAON_OG_TITLE__",
+    "__PAON_PRODUCTS_JSON__",
+    "__PAON_RETAILER_ID__",
+    "__PAON_RETAILER_NAME__",
+    "__PAON_SLUG__",
+    "__PAON_STORES_JSON__",
+    "__PAON_TABLESERVICE_SIGNED_IN__",
+    "__PAON_WEDDING_PARTIES_JSON__"
+  ],
+  "dataWiring": {
+    "session": [
+      "getSupabaseServerClient",
+      "supabase.auth.getUser",
+      "resolveAppSession (@paon/auth)"
+    ],
+    "repositories": [
+      {
+        "name": "RetailerRepository",
+        "method": "findBySlug",
+        "tables": ["retailers"],
+        "via": "app/r/[slug]/storefront-context.ts (react cache)"
+      },
+      {
+        "name": "ProductRepository",
+        "method": "findByRetailer",
+        "tables": ["products"],
+        "filter": "status === 'active'"
+      },
+      {
+        "name": "CollectionRepository",
+        "method": "findByRetailer",
+        "tables": ["collections"]
+      },
+      {
+        "name": "ProductVariantRepository",
+        "method": "findByProducts",
+        "tables": ["product_variants"]
+      },
+      {
+        "name": "MetadataRepository",
+        "method": "findAssignmentsForReview('accepted')",
+        "tables": ["entity_metadata_assignments"],
+        "note": "called twice per request (catalogue + knowledge serializers)"
+      },
+      {
+        "name": "MetadataRepository",
+        "method": "findVisibleConcepts",
+        "tables": ["metadata concept tables"]
+      },
+      {
+        "name": "CatalogueQueryRepository",
+        "method": "projectCandidates",
+        "tables": ["catalogue/fabric-weight candidate projection"]
+      },
+      {
+        "name": "KnowledgeRepository",
+        "method": "projectDiscoveryCandidates",
+        "tables": ["knowledge_articles", "ADR-060 discovery relations"]
+      },
+      {
+        "name": "CustomerRepository",
+        "method": "findByUserId",
+        "tables": ["customers"],
+        "condition": "signed-in customer only"
+      },
+      {
+        "name": "WeddingPartyRepository",
+        "method": "findByCustomer",
+        "tables": ["wedding_parties"],
+        "condition": "signed-in customer only",
+        "injectedAs": "__PAON_WEDDING_PARTIES_JSON__"
+      },
+      {
+        "name": "WardrobeRepository",
+        "method": "findByCustomer",
+        "tables": ["wardrobe"],
+        "condition": "signed-in customer only",
+        "injectedAs": "__PAON_GARMENTS_JSON__"
+      }
+    ],
+    "directTableReads": [
+      {
+        "table": "prospect_demo_environments",
+        "columns": ["configuration_id"],
+        "key": "retailer_slug = slug"
+      },
+      {
+        "table": "prospect_demo_configurations",
+        "columns": [
+          "locations",
+          "marketing_headline",
+          "personalized_introduction"
+        ]
+      }
+    ],
+    "serializers": [
+      "apps/customer/app/r/[slug]/serialize-storefront-catalogue.ts",
+      "apps/customer/app/r/[slug]/serialize-storefront-knowledge.ts",
+      "apps/customer/app/r/[slug]/storefront-page-data.ts"
+    ],
+    "mocks": "none (no MSW, no hardcoded product JSON in the app; template sample products fully replaced)",
+    "envFlags": {
+      "NODE_ENV=development": "template re-read from disk per request",
+      "DEMO_PAYMENTS_ENABLED=true": "fake checkout without Stripe"
+    },
+    "externalAssets": [
+      "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js",
+      "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js",
+      "https://www.nebelspiegel.com/images/... (product/hero imagery from seed + route fallbacks)",
+      "https://upload.wikimedia.org/... (Antwerp/Amsterdam store photos, MAISON_APPOINTMENT_STORES)"
+    ]
+  },
+  "canonicalDemoSpecialisation": {
+    "key": "slug === 'atelier-demo' only; no DEMO/ATELIER env flag",
+    "landing": "landOnGrid=false organically; true when ?category= resolves to a populated category",
+    "appointmentStores": [
+      { "city": "Antwerp", "address": "Lombardenstraat 2, 2000 Antwerp" },
+      { "city": "Amsterdam", "address": "PC Hooftstraat 48, 1071 BZ Amsterdam" }
+    ],
+    "storyLineMaxChars": 72,
+    "honestyNoteAlwaysRendered": true,
+    "sharedPhotographyNoteSuppressed": true
+  },
+  "parityCheckpoints": [
+    "P1 template byte-for-byte, substitution only, 668725 bytes",
+    "P2 exactly 20 __PAON_* placeholders, all substituted, zero survive in output",
+    "P3 founder category taxonomy preserved; getCat() heuristic retained as fallback",
+    "P4 table-service widget font rewritten to local /fonts/TN_Web_Use_Only_2.woff2",
+    "P5 canonical-demo behaviour keyed on slug constant only",
+    "P6 fabric/archetype honesty note on every render",
+    "P7 marketing_headline sliced to 72 chars for story line",
+    "P8 data-source table set fixed (see dataWiring)",
+    "P9 placeholder substitution order fixed in storefront-page-data.ts"
+  ],
+  "gaps": {
+    "screenshots": "not captured — requires running customer app on :3002 + seeded atelier-demo retailer; out of read-only lane scope. See screenshots/README.md.",
+    "timings": "not measured — same blocker. See timings.md."
+  }
+}

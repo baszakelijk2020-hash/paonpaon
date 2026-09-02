@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.13",
+  "requirementIds": ["CENV-PROFILE-001"],
+  "status": "verified_local",
+  "title": "claude-customer-profile-v3 \u2014 profile cleanup and clarification",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "no new domain logic; profile is existing customer record presentation",
+    "persistence": "no new migration; existing customers table and attributes unchanged",
+    "service": "apps/customer/app/(dashboard)/account/page.tsx (My Profile route; removes House Memory panel and all house copy; removes style-discovery quiz and Style Portrait/avatar setup; retains real profile controls: name, email, preferences, etc.)",
+    "origin_ui": "account/page.tsx \u2014 render only real profile controls without generic outlined-card AI styling or customer-facing house wording; no House Memory panel; no style-discovery quiz; no Style Portrait/avatar setup (those belong in Wardrobe and Digital Fitting Room)",
+    "receiver_ui": "all profile controls are real and functional; no dead buttons or removed controls that are still needed",
+    "rls": "no new RLS; existing customer-scoped profile query is unchanged",
+    "exceptions": "no new exception paths; customer can only read/write their own profile",
+    "browser": "apps/customer/e2e/account-v3-profile.spec.ts \u2014 authenticated E2E Customer Workspace persona; desktop 1512x982 + mobile 390x844; 1/1 passed at gitSha 6be179c (docs/evidence/runs/20.13.json). Only account preferences shown; no House Memory panel; no quiz; no portrait setup; real profile controls present; no console/page errors",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-customer-workspace",
+  "browserProofSpec": "apps/customer/e2e/account-v3-profile.spec.ts",
+  "assertedAt": "2026-09-02T08:47:00.000Z"
+}

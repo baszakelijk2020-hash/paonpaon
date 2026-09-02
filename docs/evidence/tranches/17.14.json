@@ -1,7 +1,7 @@
 {
   "phaseItemId": "17.14",
   "requirementIds": ["ADV-114"],
-  "status": "verified_local",
+  "status": "implemented_unverified",
   "title": "Prospect AI conversation, buying-intent queue, and human handoff",
   "applicability": {
     "domain": "required",
@@ -23,7 +23,7 @@
     "receiver_ui": "apps/retailer/app/(dashboard)/messages/page.tsx; apps/retailer/app/(dashboard)/messages/conversation-triage.tsx; apps/customer/app/(dashboard)/messages/[id]/page.tsx",
     "rls": "supabase/tests/conversation_ai_handoff_test.sql; supabase/migrations/20260808170000_harden_conversation_ai_drafts.sql",
     "exceptions": "packages/domain/src/intelligence/conversation-intent.test.ts; packages/ai/src/openai-provider.communication-draft.test.ts; packages/database/src/repositories/conversation-draft-repository.test.ts",
-    "browser": "apps/retailer/e2e/prospect-ai-conversation.spec.ts + docs/evidence/runs/17.14.json status=passed",
+    "browser": "apps/retailer/e2e/prospect-ai-conversation.spec.ts is a cross-app journey (prospect submits via the customer storefront, staff triages/drafts/sends in the retailer app, customer sees the reply). It requires BOTH the customer (:3002) and retailer app servers running, but apps/retailer/playwright.config.ts starts only one app and the spec's RETAILER_APP_ORIGIN points at :3011 while the config serves :3001 (drift from commit 964d9db). The dual-app Playwright harness does not exist, so this journey has no runnable browser proof at rc HEAD \u2014 status implemented_unverified. The capability itself is built: domain (conversation-intent), migrations (20260806010000, 20260808170000), repositories, the customer storefront inquiry route, the retailer triage UI, and supabase/tests/conversation_ai_handoff_test.sql. Pre-existing (GROUND_TRUTH.md section 3); not caused by the V3-controller / global-sign-out integration.",
     "operations": "packages/domain/scripts/validate-completion-evidence.ts; packages/domain/package.json",
     "live_gap": "The deterministic local mock proves provider-neutral orchestration; live provider activation remains outside this local tranche without OPENAI_API_KEY."
   },
@@ -34,9 +34,9 @@
     "denied": "n_a",
     "stale": "n_a",
     "conflict": "n_a",
-    "success": "proven",
-    "role_orientation": "proven",
-    "task_continuation": "proven",
+    "success": "missing",
+    "role_orientation": "missing",
+    "task_continuation": "missing",
     "phone": "n_a",
     "tablet": "n_a",
     "desktop": "n_a",

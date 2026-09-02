@@ -11,11 +11,10 @@ import {
   retailerRoleHasAlterationsPermission,
 } from "@paon/domain";
 import { AppShell, type AppShellNavGroup } from "@paon/ui/components/AppShell";
-import { Button } from "@paon/ui/components/Button";
 import { RetailerTheme } from "@paon/ui/components/RetailerTheme";
 import { notFound } from "next/navigation";
 
-import { signOut } from "./actions";
+import { SignOutButton } from "./components/sign-out-button";
 import { KeyboardShortcuts } from "./keyboard-shortcuts";
 import { OfflineBanner } from "./offline-banner";
 
@@ -110,6 +109,11 @@ export default async function DashboardLayout({
           href: "/staff/learning",
           label: "Learning",
           description: "Share what you know; moderated before it's shared",
+        },
+        {
+          href: "/staff/knowledge",
+          label: "Knowledge library",
+          description: "Sartorial trivia, mills, fabrics — read and learn",
         },
         {
           href: "/staff/service-recovery",
@@ -453,12 +457,9 @@ export default async function DashboardLayout({
         email={session.email}
         navigation={entitledNavigation}
         mobileDock={entitledMobileDock}
-        signOutControl={
-          <form action={signOut}>
-            <Button type="submit" variant="ghost" size="sm">
-              Sign out
-            </Button>
-          </form>
+        signOutControl={<SignOutButton testId="retailer-signout-desktop" />}
+        signOutControlMobile={
+          <SignOutButton testId="retailer-signout-mobile" />
         }
       >
         <OfflineBanner />

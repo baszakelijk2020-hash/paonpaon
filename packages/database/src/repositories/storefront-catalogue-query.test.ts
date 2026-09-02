@@ -22,6 +22,11 @@ const routePath = path.resolve(
   "../../../../apps/customer/app/r/[slug]/route.ts",
 );
 
+const pageDataPath = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../../../../apps/customer/app/r/[slug]/storefront-page-data.ts",
+);
+
 /**
  * ENG-004 / SRCH-001: only authorized catalogue-query markers may appear in
  * the founder template. Broader redesign markers fail this allowlist.
@@ -44,6 +49,7 @@ describe("founder storefront catalogue DOM allowlist", () => {
   it("only introduces authorized catalogue-query markers", () => {
     const template = readFileSync(templatePath, "utf8");
     const route = readFileSync(routePath, "utf8");
+    const pageData = readFileSync(pageDataPath, "utf8");
 
     expect(template).toContain("__PAON_CATALOGUE_BY_PRODUCT_JSON__");
     expect(template).toContain("PAON_CATALOGUE_BY_PRODUCT");
@@ -51,7 +57,7 @@ describe("founder storefront catalogue DOM allowlist", () => {
     expect(template).toContain("productMatchesCatalogFilters");
 
     expect(route).toContain("loadStorefrontCatalogueByProduct");
-    expect(route).toContain("__PAON_CATALOGUE_BY_PRODUCT_JSON__");
+    expect(pageData).toContain("__PAON_CATALOGUE_BY_PRODUCT_JSON__");
     expect(route).toContain("preferCatalogueFacetValue");
     // Heuristics remain until parity coverage retires them.
     expect(route).toContain("deriveColor");

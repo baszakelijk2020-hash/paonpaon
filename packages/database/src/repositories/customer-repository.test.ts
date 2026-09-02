@@ -17,6 +17,7 @@ const row: CustomerRow = {
   phone: null,
   lifecycle_stage: "prospect",
   assigned_staff_id: null,
+  corporate_account_id: null,
   shipping_addresses: [],
   acquisition_source: null,
   preferred_carrier: null,

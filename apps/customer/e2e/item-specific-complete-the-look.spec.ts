@@ -45,14 +45,10 @@ async function signIn(
         cookie.name.includes("auth-token") &&
         !cookie.name.includes("code-verifier"),
     );
-    const isCustomerDashboard = await page
-      .getByRole("button", { name: "Sign out" })
+    const isCustomerShell = await page
+      .locator("[data-customer-shell]")
       .isVisible();
-    if (
-      /\/dashboard$/.test(page.url()) &&
-      hasAuthCookie &&
-      isCustomerDashboard
-    ) {
+    if (/\/dashboard$/.test(page.url()) && hasAuthCookie && isCustomerShell) {
       return;
     }
   }
@@ -75,10 +71,11 @@ test.afterAll(async () => {
  * wardrobe-level card: scoped to what pairs with one owned item
  * specifically, via the approved canonical sartorial rules seeded in
  * migration `20260730170000` (never a generic assumption). An owned
- * jacket with no owned trousers surfaces a trousers suggestion under its
- * own card's "Complete the look" disclosure — a real approved
- * jacket/trousers pairing rule — and tapping "See it on me" reaches the
- * same real enqueue pipeline `complete-the-look.spec.ts` already proves.
+ * jacket with no owned trousers surfaces a trousers suggestion in its own
+ * card's `Actions +` deck under "Complete the look" (V3 §5.4 relocated it
+ * there from the old card-face disclosure) — a real approved jacket/
+ * trousers pairing rule — and tapping "See it on me" reaches the same real
+ * enqueue pipeline `complete-the-look.spec.ts` already proves.
  */
 test("an owned item's card suggests an approved complementary category, and tapping it enqueues a real job", async ({
   page,
@@ -246,10 +243,13 @@ test("an owned item's card suggests an approved complementary category, and tapp
       .first();
     await expect(card).toBeVisible();
 
-    const disclosure = card.locator("[data-item-complete-the-look]");
-    await expect(disclosure).toBeVisible();
-    await disclosure.locator("summary").click();
-    const tile = disclosure.locator("li", {
+    // V3 §5.4 — item-specific "Complete the look" now lives in the owned
+    // card's `Actions +` progressive deck, not a card-face disclosure. The
+    // suggestion is still scoped to what pairs with *this* item
+    // (item-specific-complete-the-look-data.ts).
+    await card.getByRole("button", { name: "Actions +" }).click();
+    await card.getByRole("button", { name: "Complete the look" }).click();
+    const tile = card.locator("li", {
       hasText: "E2E Item-Specific CTL Trousers",
     });
     await expect(tile).toBeVisible();

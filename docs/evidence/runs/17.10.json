@@ -1,7 +1,7 @@
 {
   "phaseItemId": "17.10",
-  "gitSha": "7ba5e45a6f63e064b511a4e642ae5e9f47012fd3",
+  "gitSha": "24be9519d33fa69f3dd10e4547e34ce4a40ec74f",
   "spec": "apps/customer/e2e/complete-the-look.spec.ts",
-  "status": "passed",
-  "timestamp": "2026-08-09T12:12:48.985Z"
+  "status": "failed",
+  "timestamp": "2026-08-26T05:44:31.072Z"
 }

@@ -37,6 +37,7 @@ export * from "./repositories/customer-moment-repository";
 export * from "./repositories/alteration-repository";
 export * from "./repositories/alteration-update-repository";
 export * from "./repositories/alteration-catalogue-repository";
+export * from "./repositories/paid-care-repository";
 export * from "./repositories/alteration-grid-snapshot-repository";
 export * from "./repositories/alteration-task-repository";
 export * from "./repositories/alteration-workflow-repository";

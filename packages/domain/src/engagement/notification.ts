@@ -16,7 +16,8 @@ export type NotificationCategory =
   | "loyalty_update"
   | "message"
   | "marketing"
-  | "system";
+  | "system"
+  | "paid_care_booking";
 
 export interface Notification extends Timestamps {
   readonly id: NotificationId;

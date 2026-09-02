@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.18",
+  "requirementIds": ["CENV-ORDERS-ACTIONS-001"],
+  "status": "verified_local",
+  "title": "claude-customer-orders-actions-v3 \u2014 real order action row and supporting modules",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "no new domain logic; order actions are existing domain operations",
+    "persistence": "no new migration; existing orders and actions tables unchanged",
+    "service": "apps/customer/app/(dashboard)/orders/page.tsx (renders V3 Orders item action row: real Order again, Complete the Look, Ask a question, Request service, View order/invoice actions; Complete the Look centres owned source item in 70x70 squircle above real-suggestion carousel; no duplicate overlapping products on one viewport)",
+    "origin_ui": "orders/page.tsx \u2014 render compact action row per item with real actions; Complete the Look uses 70x70 squircle for source item; carousel shows real suggestions; no duplicate products on viewport",
+    "receiver_ui": "all actions are real routes carrying order/item context; no dead buttons or false promises",
+    "rls": "no new RLS; existing customer-scoped order actions are unchanged",
+    "exceptions": "no new exception paths; RLS guards all action access",
+    "browser": "apps/customer/e2e/orders-actions-v3.spec.ts \u2014 authenticated E2E Customer Workspace persona; desktop 1512x982 + mobile 390x844; 1/1 passed at gitSha 6be179c (docs/evidence/runs/20.18.json). Every per-order action is a real route carrying order context; Complete the Look uses 70x70 squircle + carousel; no duplicate products; no console/page errors",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-customer-workspace",
+  "browserProofSpec": "apps/customer/e2e/orders-actions-v3.spec.ts",
+  "assertedAt": "2026-09-02T08:47:00.000Z"
+}

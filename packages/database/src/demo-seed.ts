@@ -58,11 +58,32 @@ export interface DemoLogin {
 }
 
 export interface DemoPersonaLogin {
+  id: DemoPersonaId;
   app: "admin" | "retailer" | "customer";
+  /** The authorised role demonstrated by this login in its target app. */
+  role:
+    | "platform_admin"
+    | "customer"
+    | "retailer_owner"
+    | "retailer_manager"
+    | "sales_advisor"
+    | "production_staff"
+    | "workshop_manager"
+    | "alteration_worker";
   retailer?: string;
   persona: string;
   email: string;
 }
+
+export type DemoPersonaId =
+  | "platform-admin"
+  | "customer"
+  | "retailer-owner"
+  | "retailer-manager"
+  | "sales-advisor"
+  | "production-staff"
+  | "workshop-manager"
+  | "alteration-worker";
 
 export const DEMO_PASSWORD = "Demo-PAON-2026!";
 
@@ -309,11 +330,18 @@ const MAISON_CLIENT_HISTORIES: Record<string, ClientHistoryStory> = {
   },
 };
 
+/**
+ * The one canonical demo storefront/tenant slug — every launcher, guest
+ * portal, and marketing "browse collection" link must resolve here so the
+ * founder never lands in a second, inconsistent demo environment.
+ */
+export const CANONICAL_DEMO_RETAILER_SLUG = "atelier-demo";
+
 /** Remap Maison client-book stories onto slug-scoped prospect emails. */
 function clientHistoriesForSlug(
   slug: string,
 ): Record<string, ClientHistoryStory> {
-  if (slug === "maison-dubois") return MAISON_CLIENT_HISTORIES;
+  if (slug === CANONICAL_DEMO_RETAILER_SLUG) return MAISON_CLIENT_HISTORIES;
   return Object.fromEntries(
     Object.entries(MAISON_CLIENT_HISTORIES).map(([email, story]) => {
       const local = email.split("@")[0]?.replace(/^contact\+/, "") ?? "client";
@@ -324,9 +352,9 @@ function clientHistoriesForSlug(
 
 const RETAILERS: RetailerSpec[] = [
   {
-    slug: "maison-dubois",
-    displayName: "Maison Dubois",
-    legalName: "Maison Dubois SARL",
+    slug: CANONICAL_DEMO_RETAILER_SLUG,
+    displayName: "Nebel & Spiegel",
+    legalName: "Nebel & Spiegel SARL",
     currency: "EUR",
     collectionName: "Signature Tailoring",
     collectionSlug: "signature-tailoring",
@@ -1116,40 +1144,100 @@ const STAFF_ROLES: {
   { role: "worker", label: "alteration-worker" },
 ];
 
-export const DEMO_PERSONA_LOGINS: DemoPersonaLogin[] = [
+/**
+ * The sole roster exposed by demo launchers and one-click login controls.
+ *
+ * Nebel & Spiegel (slug CANONICAL_DEMO_RETAILER_SLUG) is the canonical showcase
+ * tenant. Other seed users remain
+ * fixture data for client-book stories, tenant-isolation coverage, and
+ * generated prospect demos; they are intentionally not launcher personas.
+ */
+export const DEMO_CANONICAL_PERSONAS: readonly DemoPersonaLogin[] = [
   {
+    id: "platform-admin",
     app: "admin",
+    role: "platform_admin",
     persona: "Platform administrator",
-    email: "contact@nebelspiegel.com",
+    email: "contact+platform-admin@nebelspiegel.com",
   },
-  ...RETAILERS.flatMap((retailer) => [
-    ...STAFF_ROLES.map(({ role, label }) => ({
-      app: "retailer" as const,
-      retailer: retailer.displayName,
-      persona:
-        role === "sales_associate"
-          ? "Sales advisor"
-          : role === "production_staff"
-            ? "Production / operations"
-            : role === "workshop_manager"
-              ? "Workshop manager"
-              : role === "worker"
-                ? "Alteration worker"
-                : role === "owner"
-                  ? "Retailer owner"
-                  : "Retailer manager",
-      email: `contact+${retailer.slug}-${label}@nebelspiegel.com`,
-    })),
-    ...retailer.customers
-      .filter((customer) => customer.portal)
-      .map((customer) => ({
-        app: "customer" as const,
-        retailer: retailer.displayName,
-        persona: `Customer — ${customer.name}`,
-        email: customer.email,
-      })),
-  ]),
+  {
+    id: "customer",
+    app: "customer",
+    role: "customer",
+    retailer: "Nebel & Spiegel",
+    persona: "Customer — Isabelle Laurent",
+    email: "contact+isabelle@nebelspiegel.com",
+  },
+  {
+    id: "retailer-owner",
+    app: "retailer",
+    role: "retailer_owner",
+    retailer: "Nebel & Spiegel",
+    persona: "Retailer owner",
+    email: "contact+atelier-demo-owner@nebelspiegel.com",
+  },
+  {
+    id: "retailer-manager",
+    app: "retailer",
+    role: "retailer_manager",
+    retailer: "Nebel & Spiegel",
+    persona: "Retailer manager",
+    email: "contact+atelier-demo-manager@nebelspiegel.com",
+  },
+  {
+    id: "sales-advisor",
+    app: "retailer",
+    role: "sales_advisor",
+    retailer: "Nebel & Spiegel",
+    persona: "Sales advisor",
+    email: "contact+atelier-demo-sales@nebelspiegel.com",
+  },
+  {
+    id: "production-staff",
+    app: "retailer",
+    role: "production_staff",
+    retailer: "Nebel & Spiegel",
+    persona: "Production / operations",
+    email: "contact+atelier-demo-operations@nebelspiegel.com",
+  },
+  {
+    id: "workshop-manager",
+    app: "retailer",
+    role: "workshop_manager",
+    retailer: "Nebel & Spiegel",
+    persona: "Workshop manager",
+    email: "contact+atelier-demo-workshop@nebelspiegel.com",
+  },
+  {
+    id: "alteration-worker",
+    app: "retailer",
+    role: "alteration_worker",
+    retailer: "Nebel & Spiegel",
+    persona: "Alteration worker",
+    email: "contact+atelier-demo-alteration-worker@nebelspiegel.com",
+  },
 ];
+
+const DEMO_CANONICAL_EMAILS = new Set(
+  DEMO_CANONICAL_PERSONAS.map((persona) => persona.email),
+);
+
+export function isCanonicalDemoEmail(email: string | undefined): boolean {
+  return email !== undefined && DEMO_CANONICAL_EMAILS.has(email);
+}
+
+/** @deprecated Use DEMO_CANONICAL_PERSONAS for new launcher code. */
+export const DEMO_PERSONA_LOGINS = DEMO_CANONICAL_PERSONAS;
+
+export function getDemoPersona(id: DemoPersonaId): DemoPersonaLogin {
+  const persona = DEMO_CANONICAL_PERSONAS.find(
+    (candidate) => candidate.id === id,
+  );
+  if (!persona) {
+    throw new Error(`Missing canonical demo persona: ${id}`);
+  }
+  return persona;
+}
 
 export async function seedDemoData(params: {
   supabaseUrl: string;
@@ -1238,7 +1326,7 @@ export async function seedProspectDemoRetailer(params: {
   // Always seed the full Maison catalogue so regenerate can expand the mix
   // later; applyProspectProductMix archives SKUs outside the selection.
   const customers = template.customers.map((customer) => {
-    if (params.slug === "maison-dubois") return customer;
+    if (params.slug === CANONICAL_DEMO_RETAILER_SLUG) return customer;
     // Isolate prospect-demo portal users from Maison so wedding/client
     // walks land on this tenant, not the shared Maison client book.
     const localPart = customer.email.split("@")[0] ?? "client";
@@ -1441,17 +1529,62 @@ async function seedRetailerSpecs(params: {
       await admin.auth.admin.listUsers({ perPage: 1000 });
     if (listError) throw listError;
     const found = existing.users.find((u) => u.email === email);
-    if (found) return found.id as UserId;
+    if (found) {
+      // A matching address is not proof that this account is disposable demo
+      // data. Never reset credentials for an identity this seeder did not
+      // create and mark itself.
+      if (found.app_metadata?.["demo_seed"] !== true) {
+        throw new Error(
+          `Refusing to modify unmarked user while seeding demo data: ${email}`,
+        );
+      }
+      const { error } = await admin.auth.admin.updateUserById(found.id, {
+        password: DEMO_PASSWORD,
+        email_confirm: true,
+        user_metadata: {
+          ...found.user_metadata,
+          full_name: fullName,
+        },
+        app_metadata: {
+          ...found.app_metadata,
+          demo_seed: true,
+        },
+      });
+      if (error) {
+        throw new Error(
+          `Failed to refresh demo user ${email}: ${error.message}`,
+        );
+      }
+      return found.id as UserId;
+    }
 
     const { data, error } = await admin.auth.admin.createUser({
       email,
       password: DEMO_PASSWORD,
       email_confirm: true,
       user_metadata: { full_name: fullName },
+      app_metadata: { demo_seed: true },
     });
     if (error || !data.user) {
       throw new Error(
         `Failed to create user ${email}: ${error?.message ?? "unknown"}`,
+      );
+    }
+    // GoTrue assigns provider metadata during creation. Mark the account in a
+    // separate admin update so that subsequent idempotent seeds can prove it
+    // is safe to refresh this demo-only credential.
+    const { error: markError } = await admin.auth.admin.updateUserById(
+      data.user.id,
+      {
+        app_metadata: {
+          ...data.user.app_metadata,
+          demo_seed: true,
+        },
+      },
+    );
+    if (markError) {
+      throw new Error(
+        `Failed to mark demo user ${email}: ${markError.message}`,
       );
     }
     return data.user.id as UserId;
@@ -1468,13 +1601,13 @@ async function seedRetailerSpecs(params: {
   }
 
   async function seedPlatformAdmin() {
-    const email = "contact@nebelspiegel.com";
-    const userId = await ensureUser(email, "Founder");
+    const email = getDemoPersona("platform-admin").email;
+    const userId = await ensureUser(email, "PAON Demo Platform Administrator");
     const repo = new PlatformStaffRepository(admin);
     let staff = await repo.findByUserId(userId);
     staff ??= await repo.create({
       userId,
-      fullName: "Founder",
+      fullName: "PAON Demo Platform Administrator",
       role: "platform_owner",
     });
     if (!staff.acceptedAt) {
@@ -1866,6 +1999,237 @@ async function seedRetailerSpecs(params: {
           quantity: 1,
         });
         await deliverOrder(orderId);
+      }
+    }
+
+    // Preferred Tailoring calendar (FT-14): seed real wardrobe items from
+    // the primary portal customer's delivered order lines (idempotent by
+    // order_line_id), then spread service-partner care engagements across
+    // most days of the current month so the calendar's fade-in animation
+    // has real garments to show, not an empty grid.
+    if (customerIds[0]) {
+      const primaryCustomerId = customerIds[0];
+      const { data: ownedForWardrobe, error: ownedForWardrobeError } =
+        await admin
+          .from("order_lines")
+          .select(
+            "id, product_variant_id, orders!inner(customer_id, status, deleted_at)",
+          )
+          .eq("orders.customer_id", primaryCustomerId)
+          .eq("orders.status", "delivered")
+          .is("orders.deleted_at", null);
+      if (ownedForWardrobeError) throw ownedForWardrobeError;
+
+      const { data: existingWardrobe, error: existingWardrobeError } =
+        await admin
+          .from("wardrobe_items")
+          .select("id, order_line_id")
+          .eq("customer_id", primaryCustomerId)
+          .is("deleted_at", null);
+      if (existingWardrobeError) throw existingWardrobeError;
+      const wardrobeByOrderLine = new Map(
+        (existingWardrobe ?? [])
+          .filter((w) => w.order_line_id)
+          .map((w) => [w.order_line_id as string, w.id as string]),
+      );
+
+      const wardrobeItemIds: string[] = [];
+      for (const line of ownedForWardrobe ?? []) {
+        const existingId = wardrobeByOrderLine.get(line.id as string);
+        if (existingId) {
+          wardrobeItemIds.push(existingId);
+          continue;
+        }
+        const { data: variant, error: variantError } = await admin
+          .from("product_variants")
+          .select("product_id")
+          .eq("id", line.product_variant_id as string)
+          .single();
+        if (variantError) throw variantError;
+        const { data: product, error: productError } = await admin
+          .from("products")
+          .select("name, primary_image_url")
+          .eq("id", variant.product_id as string)
+          .single();
+        if (productError) throw productError;
+        const { data: created, error: createError } = await admin
+          .from("wardrobe_items")
+          .insert({
+            retailer_id: retailerId,
+            customer_id: primaryCustomerId,
+            ownership_kind: "retailer_purchased",
+            provenance_source: "order_line",
+            category_code: "suit",
+            display_name: product.name as string,
+            condition: "excellent",
+            care_state: "current",
+            product_id: variant.product_id as string,
+            order_line_id: line.id as string,
+            identifying_photo_url: product.primary_image_url as string | null,
+            created_by_actor: "customer",
+          })
+          .select("id")
+          .single();
+        if (createError) throw createError;
+        wardrobeItemIds.push(created.id as string);
+      }
+
+      if (wardrobeItemIds.length > 0) {
+        const { data: existingPartner, error: partnerLookupError } = await admin
+          .from("service_partners")
+          .select("id")
+          .eq("retailer_id", retailerId)
+          .eq("display_name", "Atelier Press & Care")
+          .maybeSingle();
+        if (partnerLookupError) throw partnerLookupError;
+        let partnerId = existingPartner?.id as string | undefined;
+        if (!partnerId) {
+          const { data: createdPartner, error: createPartnerError } =
+            await admin
+              .from("service_partners")
+              .insert({
+                retailer_id: retailerId,
+                display_name: "Atelier Press & Care",
+                capabilities: [
+                  "dry_cleaning",
+                  "alteration",
+                  "invisible_mending",
+                ],
+                turnaround_days: 5,
+              })
+              .select("id")
+              .single();
+          if (createPartnerError) throw createPartnerError;
+          partnerId = createdPartner.id as string;
+        }
+
+        const { data: existingPlan, error: planLookupError } = await admin
+          .from("service_plans")
+          .select("id")
+          .eq("retailer_id", retailerId)
+          .eq("kind", "preferred_tailoring")
+          .maybeSingle();
+        if (planLookupError) throw planLookupError;
+        let planId = existingPlan?.id as string | undefined;
+        if (!planId) {
+          const { data: createdPlan, error: createPlanError } = await admin
+            .from("service_plans")
+            .insert({
+              retailer_id: retailerId,
+              kind: "preferred_tailoring",
+              status: "active",
+              title: "Preferred Tailoring",
+              summary: "Ongoing pressing and care for your wardrobe.",
+              explanation:
+                "Your house arranges recurring pressing, cleaning and minor repair for pieces you wear often.",
+            })
+            .select("id")
+            .single();
+          if (createPlanError) throw createPlanError;
+          planId = createdPlan.id as string;
+        }
+
+        const { data: existingMembership, error: membershipLookupError } =
+          await admin
+            .from("service_memberships")
+            .select("id")
+            .eq("retailer_id", retailerId)
+            .eq("plan_id", planId)
+            .eq("customer_id", primaryCustomerId)
+            .maybeSingle();
+        if (membershipLookupError) throw membershipLookupError;
+        let membershipId = existingMembership?.id as string | undefined;
+        if (!membershipId) {
+          const { data: createdMembership, error: createMembershipError } =
+            await admin
+              .from("service_memberships")
+              .insert({
+                retailer_id: retailerId,
+                plan_id: planId,
+                customer_id: primaryCustomerId,
+                status: "active",
+              })
+              .select("id")
+              .single();
+          if (createMembershipError) throw createMembershipError;
+          membershipId = createdMembership.id as string;
+        }
+
+        const { data: existingEngagements, error: engagementsLookupError } =
+          await admin
+            .from("service_partner_engagements")
+            .select("job_reference")
+            .eq("retailer_id", retailerId);
+        if (engagementsLookupError) throw engagementsLookupError;
+        const existingRefs = new Set(
+          (existingEngagements ?? []).map((e) => e.job_reference as string),
+        );
+
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const daysInMonth = new Date(
+          now.getFullYear(),
+          now.getMonth() + 1,
+          0,
+        ).getDate();
+        const custodyStates = [
+          "with_partner",
+          "in_transit_to_partner",
+          "returned_to_retailer",
+          "with_retailer",
+          "in_transit_to_retailer",
+        ] as const;
+
+        let bookingSeq = 0;
+        // Two of every three days this month carry a garment — enough to
+        // read as "most days" without every single day faking activity.
+        for (let day = 1; day <= daysInMonth; day += 1) {
+          if (day % 3 === 0) continue;
+          const jobReference = `${spec.slug}-preferred-tailoring-${now.getFullYear()}-${now.getMonth() + 1}-${day}`;
+          if (existingRefs.has(jobReference)) continue;
+
+          const dueOn = new Date(monthStart);
+          dueOn.setDate(day);
+          const dueOnKey = dueOn.toISOString().slice(0, 10);
+
+          const { data: createdBooking, error: createBookingError } =
+            await admin
+              .from("service_bookings")
+              .insert({
+                retailer_id: retailerId,
+                customer_id: primaryCustomerId,
+                membership_id: membershipId,
+                plan_id: planId,
+                kind: "care",
+                status: "in_progress",
+                request_idempotency_key: `demo-preferred-tailoring-${day}`,
+              })
+              .select("id")
+              .single();
+          if (createBookingError) throw createBookingError;
+
+          const wardrobeItemId =
+            wardrobeItemIds[bookingSeq % wardrobeItemIds.length]!;
+          const custodyState =
+            custodyStates[bookingSeq % custodyStates.length]!;
+          bookingSeq += 1;
+
+          const { error: createEngagementError } = await admin
+            .from("service_partner_engagements")
+            .insert({
+              retailer_id: retailerId,
+              partner_id: partnerId,
+              customer_id: primaryCustomerId,
+              booking_id: createdBooking.id as string,
+              wardrobe_item_id: wardrobeItemId,
+              job_reference: jobReference,
+              capability: "dry_cleaning",
+              instructions: "Demo garment care — Preferred Tailoring showcase.",
+              due_on: dueOnKey,
+              custody_state: custodyState,
+            });
+          if (createEngagementError) throw createEngagementError;
+        }
       }
     }
 
