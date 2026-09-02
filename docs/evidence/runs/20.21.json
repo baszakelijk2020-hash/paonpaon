@@ -1,6 +1,6 @@
 {
   "phaseItemId": "20.21",
-  "gitSha": "0278cbc56f412984b27a61c1e7ea481c10f7aeaa",
+  "gitSha": "4031a2d5de2dcd0103e0834fdbe611dc9a8a3381",
   "spec": "apps/customer/e2e/storefront-digital-fitting-room-handoff-v3.spec.ts",
   "status": "passed",
   "timestamp": "2026-09-02T00:00:00Z"
