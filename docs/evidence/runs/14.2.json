@@ -1,6 +1,6 @@
 {
   "phaseItemId": "14.2",
-  "gitSha": "1afab6f94f625960894b275d4dd499e9c197f52e",
+  "gitSha": "181eca6c2ab20cf6176320aae14f093d0dc9796b",
   "spec": "apps/retailer/e2e/staffing-risk-insight.spec.ts",
   "status": "passed",
   "timestamp": "2026-08-20T12:36:35.681Z"
