@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "R0.4",
+  "requirementIds": ["RELATIONSHIP-INTELLIGENCE-001"],
+  "status": "verified_local",
+  "title": "R0.4 Golden Relationship — House Memory and Advisor Today",
+  "applicability": {
+    "domain": "required",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/advisor/ — opportunity/clienteling domain logic; customer relationship and house memory core concept definitions",
+    "persistence": "supabase/migrations/ — customer_facts, clienteling_opportunities, and associated RLS enforcement tables; supabase/tests/roadmap_approval_rls_test.sql for advisor/opportunity data access control",
+    "service": "apps/retailer/app/(dashboard)/staff/today/actions.ts — complete opportunity action; apps/retailer/app/(dashboard)/customers/[id]/fact-correction-actions.ts — house memory fact correction and provenance tracking; packages/database/src/repositories/customer-repository.ts, customer-fact-repository.ts, and clienteling-opportunity-repository.ts — advisor/customer data retrieval with RLS enforcement",
+    "origin_ui": "apps/retailer/app/(dashboard)/staff/today/page.tsx — My Day surface showing assigned opportunities with why-now context; apps/retailer/app/(dashboard)/staff/today/assigned-opportunity-list.tsx — opportunity list card rendering with click-through to House Memory",
+    "receiver_ui": "apps/retailer/app/(dashboard)/customers/[id]/self-portrait.tsx — House Memory view displaying customer facts with provenance class (advisor_observed, customer_declared, etc) and fact type labels; shows evidence/why-now narrative; responsive to opportunity completion state changes",
+    "rls": "supabase/tests/roadmap_approval_rls_test.sql — pgTAP test suite verifies advisor can only see customers they have opportunities assigned to; different advisors cannot see each other's assigned customers; completed opportunities are no longer visible to either advisor; customer_declared facts visible to all advisors for that retailer/customer pair",
+    "exceptions": "RLS policy enforcement: advisor without an assignment to a specific customer cannot query that customer's record via the API; completed opportunities are filtered from future queries; invalid staff IDs (without accepted_at) cannot set passwords or access the Today surface",
+    "browser": "apps/retailer/e2e/house-memory-advisor-today.spec.ts — authenticated E2E Advisor persona (owner + dynamically-created staff) against local Supabase; 3/3 passed at gitSha 2c4a627 (docs/evidence/runs/R0.4.json). Tests verify: (1) advisor navigates Today → House Memory → sees customer name + facts with provenance labels (Navy blue / Advisor observed, Business events / Declared) → completes opportunity → sees it removed from Today on refresh, (2) advisor A sees their assigned opportunity, advisor B does not (permission isolation), (3) House Memory renders stale evidence (facts observed 30+ days ago) and shows them with their age metadata; zero console/page errors across all tests",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "proven",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "proven",
+    "stale": "proven",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/house-memory-advisor-today.spec.ts",
+  "assertedAt": "2026-09-02T00:00:00.000Z"
+}

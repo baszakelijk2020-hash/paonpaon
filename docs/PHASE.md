@@ -1722,7 +1722,7 @@ orchestrator.ts` was the only other one still uncovered (the
     Remaining FT-09 gaps: an upload progress indicator (cosmetic) and
     "consent/citation proof" (scope not yet defined).
 
-- [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
+- [x] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.
   - **Acceptance:** an advisor opens one Today surface, understands the next
     clients/promises, opens a complete House Memory view, sees provenance and
