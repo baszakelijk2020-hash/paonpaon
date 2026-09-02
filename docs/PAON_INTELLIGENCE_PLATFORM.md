@@ -44,7 +44,11 @@ requires it.
   catalogue import/migration, product and product-knowledge actions.
   Relationship, garment/service, Commerce, Retail Operations and knowledge
   route layouts reject suspended/off direct reads while keeping preview
-  useful. Browser proof waits for the action responses, verifies zero
+  useful. Route-gating (PHASE 19.1) extends this boundary to `/production`
+  and `/fabric-pairing` (gated to `garment_service_operations`) and
+  unconditionally blocks `/concepts` (FT-03 deleted route); acceptance e2e
+  spec is at `apps/retailer/e2e/route-gating.spec.ts` (proof pending Docker
+  run against seeded stack). Browser proof waits for the action responses, verifies zero
   coverage/client/service-plan/event rows, and checks suspended direct access
   returns 500. The canonical proof House is now a deep, idempotent tenant
   separated from founder demo, Demo Studio and generic e2e data, with the full
