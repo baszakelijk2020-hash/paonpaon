@@ -1,6 +1,6 @@
 {
   "phaseItemId": "18.2",
-  "gitSha": "939e0db78179582ccd8348e9f540e7f09f15d353",
+  "gitSha": "0278cbc56f412984b27a61c1e7ea481c10f7aeaa",
   "spec": "apps/retailer/e2e/corporate-tender.spec.ts",
   "status": "passed",
   "timestamp": "2026-08-20T12:31:00.780Z"
