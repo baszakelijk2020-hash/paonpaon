@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "19.1",
+  "requirementIds": ["ROUTE-GATING-001"],
+  "status": "verified_local",
+  "title": "Close parked/deleted route-gating gap",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "required",
+    "origin_ui": "n_a",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "no new domain logic — route gating is a presentation-layer authorization concern; existing requireModuleSession and notFound patterns are applied",
+    "persistence": "no new persistence — the fix uses existing platform_modules table queried by requireModuleSession()",
+    "service": "apps/retailer/app/(dashboard)/production/layout.tsx — calls requireModuleSession('garment_service_operations', 'read'); apps/retailer/app/(dashboard)/fabric-pairing/layout.tsx — calls requireModuleSession('garment_service_operations', 'read'); apps/retailer/app/(dashboard)/concepts/layout.tsx — calls notFound() unconditionally; implemented in commits 0ac30c6 (initial) + 94a6f80 (concepts correction) + f86ef1b (fabric-pairing actions guard)",
+    "origin_ui": "n_a",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "apps/retailer/e2e/route-gating-19-1.spec.ts tests that: (a) /production and /fabric-pairing return 200 when garment_service_operations is active; (b) /production and /fabric-pairing return 500 when garment_service_operations is suspended; (c) /concepts returns 404 regardless of wardrobe_styling state",
+    "browser": "apps/retailer/e2e/route-gating-19-1.spec.ts — retailer workspace authenticated test; verifies all three routes' gating behavior by toggling garment_service_operations on/off and checking HTTP response codes; proves /concepts stays unreachable even when wardrobe_styling is active; 1/1 passed at gitSha 462acfa",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "proven",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "n_a",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/route-gating-19-1.spec.ts",
+  "assertedAt": "2026-09-03T11:25:00.000Z"
+}
