@@ -112,6 +112,7 @@ export * from "./repositories/honeymoon-programme-repository";
 export * from "./campaign-delivery-orchestrator";
 export * from "./faden-webhook-ingest-orchestrator";
 export * from "./shopify-delta-sync-orchestrator";
+export * from "./integration-scheduled-sync-orchestrator";
 export * from "./campaign-activation-orchestrator";
 export * from "./programme-proof-seed";
 export * from "./repositories/service-plan-repository";

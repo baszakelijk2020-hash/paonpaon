@@ -199,6 +199,29 @@ export class IntegrationLifecycleRepository {
     return planned;
   }
 
+  /**
+   * Active Shopify connections eligible for scheduled delta sync (PHASE 9.2).
+   * Service-role only — scans all tenants for the cron orchestrator.
+   */
+  async listActiveShopifyConnectionsForScheduledSync(): Promise<
+    readonly {
+      readonly retailerId: RetailerId;
+      readonly connectionId: string;
+    }[]
+  > {
+    const { data, error } = await this.client
+      .from("integration_connections")
+      .select("id, retailer_id")
+      .eq("provider", "shopify")
+      .eq("operational_state", "active")
+      .is("deleted_at", null);
+    if (error) throw error;
+    return (data ?? []).map((row) => ({
+      retailerId: asId<"RetailerId">(row.retailer_id),
+      connectionId: row.id,
+    }));
+  }
+
   async getOperationalState(args: {
     readonly retailerId: RetailerId;
     readonly connectionId: string;

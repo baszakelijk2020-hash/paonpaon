@@ -2,6 +2,7 @@ import {
   CommercialProspectRepository,
   EmailOutboxRepository,
   orchestrateCampaignDeliveries,
+  orchestrateIntegrationScheduledSyncs,
   orchestrateMorningRoutineDeliveries,
 } from "@paon/database";
 import { sendEmail } from "@paon/email";
@@ -21,9 +22,9 @@ import { getSupabaseAdminClient } from "@/lib/supabase-admin";
  * `vercel.json`); the same header works for manual/local triggering.
  *
  * Also runs Demo Studio expiry teardown, MorningRoutine delivery enqueue,
- * and private-offer campaign delivery on the same tick (Hobby caps cron
- * jobs at two daily slots). Delivery enqueue does not require Resend;
- * email drain does.
+ * private-offer campaign delivery, and scheduled Shopify integration sync
+ * on the same tick (Hobby caps cron jobs at two daily slots). Delivery
+ * enqueue and integration sync do not require Resend; email drain does.
  */
 async function handleDispatch(request: Request): Promise<Response> {
   const cronSecret = env.cronSecret;
@@ -44,6 +45,7 @@ async function handleDispatch(request: Request): Promise<Response> {
 
   const morningRoutine = await orchestrateMorningRoutineDeliveries(admin);
   const campaigns = await orchestrateCampaignDeliveries(admin);
+  const integrationSyncs = await orchestrateIntegrationScheduledSyncs(admin);
   const wardrobeVisualizations = await processWardrobeVisualizationJobs(admin);
 
   const resend = getResendClient();
@@ -53,6 +55,7 @@ async function handleDispatch(request: Request): Promise<Response> {
       demosExpired,
       morningRoutine,
       campaigns,
+      integrationSyncs,
       wardrobeVisualizations,
       email: {
         skipped: true,
@@ -93,6 +96,7 @@ async function handleDispatch(request: Request): Promise<Response> {
     demosExpired,
     morningRoutine,
     campaigns,
+    integrationSyncs,
     wardrobeVisualizations,
   });
 }

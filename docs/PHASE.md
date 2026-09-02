@@ -3368,11 +3368,21 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     same precedent this codebase already established for
     `rehearseCampaign`/`activateCampaignToStaffMissions`.
 
-    Still missing for this item as a whole: scheduled/webhook-triggered
-    execution (today's sync is manual-trigger only), reconciliation UI,
+    Still missing for this item as a whole: reconciliation UI,
     and live provider smoke (`blocked_external`, does not gate this
     checkbox per the item's own hard-blocker framing). Checkbox stays
     unchecked — connection creation was one gap among several.
+
+  - **Update (2026-09-02, build watchdog):** scheduled Shopify delta sync
+    now runs on the existing admin `dispatch-emails` cron tick via
+    `orchestrateIntegrationScheduledSyncs`, scanning every
+    `operational_state = active` Shopify connection and recording
+    `trigger_kind = scheduled` sync runs through the same
+    `orchestrateShopifyDeltaSync` path as the retailer manual trigger.
+    Faden ingest remains webhook-triggered at
+    `/api/webhooks/faden/[connectionId]`. Unit tests cover the
+    orchestrator loop. Reconciliation UI and live provider smoke remain
+    open; checkbox stays unchecked.
 
 - [ ] **9.3 Demand-led connector expansion**
   - **Requirement IDs:** `INT-002`–`INT-005`.
