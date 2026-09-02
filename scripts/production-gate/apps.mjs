@@ -22,8 +22,11 @@ export const APPS = {
     // bug fails loudly without false-positiving on normal copy.
     mustNotContain: ["Staff access", "Platform staff"],
     // A route the live storefront must actually serve (public by design).
-    publicSmokePath: "/r/hall-madden",
-    publicSmokeMustContain: ["Hall Madden"],
+    // Canonical demo retailer since the storefront was consolidated to one
+    // tenant (slug `atelier-demo`, display "Nebel & Spiegel") — see
+    // CANONICAL_DEMO_RETAILER_SLUG in packages/database/src/demo-seed.ts.
+    publicSmokePath: "/r/atelier-demo",
+    publicSmokeMustContain: ["Nebel & Spiegel"],
   },
   retailer: {
     projectId: "prj_z2yJPrlzEyOBhkStN4cf9fCi1bEg",
