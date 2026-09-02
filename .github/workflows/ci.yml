@@ -34,7 +34,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          fetch-depth: 2
+          # Full history: `pnpm test` runs validate:completion, which resolves
+          # every browser-proof run's gitSha with `git merge-base --is-ancestor`.
+          # A shallow clone can't see those ancestor commits and the gate then
+          # false-fails every evidence file.
+          fetch-depth: 0
 
       - uses: actions/setup-node@v5
         with:
