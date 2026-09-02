@@ -3192,7 +3192,7 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
 
 ### Stage 8.4 — Delivery integrity and connected-product proof
 
-- [ ] **8.4 Machine-enforced completion and multi-role journey gate**
+- [x] **8.4 Machine-enforced completion and multi-role journey gate**
   - **Status:** `verified_local`.
   - **Requirement IDs:** `AUD-001`–`AUD-005`.
   - **Dependencies:** `8.3`; ADR-068; the common-sense and traceability audits.
@@ -3249,7 +3249,7 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
 
 ### Stage 9 — Migration Cockpit and connectors
 
-- [ ] **9.1 Generic staged-file migration**
+- [x] **9.1 Generic staged-file migration**
   - **Status:** `verified_local`.
   - **Requirement IDs:** `INT-002`, `INT-003`.
   - **Dependencies:** `8.2`, `8.4`; extend existing import foundations.
@@ -5689,7 +5689,7 @@ stage's own item text; nothing here jumps ahead of Stage 15/16's own queue,
 it runs alongside it per explicit founder instruction to build this backlog
 now.
 
-- [ ] **17.1 Advisor capture — AI-proposed, human-confirmed action bundles**
+- [x] **17.1 Advisor capture — AI-proposed, human-confirmed action bundles**
   - **Requirement IDs:** ADV-101.
   - **Dependencies:** `7.3` (customer_facts), `7.4` (clienteling_opportunities).
   - **Owner boundary:** typed/voiced/photographed advisor note → AI-proposed
@@ -5858,7 +5858,7 @@ now.
     fixes it. `docs/evidence/runs/17.2.json` now records a genuinely
     passing run at `cc47e0d`.
 
-- [ ] **17.3 Pre/during/post-appointment advisor dashboard**
+- [x] **17.3 Pre/during/post-appointment advisor dashboard**
   - **Requirement IDs:** ADV-103.
   - **Dependencies:** `17.1`, `9.x` Self-Portrait, wishlist, wardrobe.
   - **Owner boundary:** a per-appointment view: purchase history, Self-
@@ -5910,7 +5910,7 @@ now.
     map; `docs/evidence/runs/17.3.json` records a fresh passing run at
     `cc47e0d`.
 
-- [ ] **17.4 Fabric-pairing upsell engine**
+- [x] **17.4 Fabric-pairing upsell engine**
   - **Requirement IDs:** ADV-104.
   - **Dependencies:** `2.x` metadata graph, product catalogue.
   - **Owner boundary:** given a selected fabric, surface top-matching
@@ -5965,7 +5965,7 @@ now.
     map; `docs/evidence/runs/17.4.json` records a fresh passing run at
     `cc47e0d`.
 
-- [ ] **17.5 Promise-matching on inbound stock news**
+- [x] **17.5 Promise-matching on inbound stock news**
   - **Requirement IDs:** ADV-105.
   - **Dependencies:** `17.1`, `7.4` clienteling_opportunities.
   - **Owner boundary:** a staff-entered stock update ("new linen jackets
@@ -6009,7 +6009,7 @@ now.
     map; `docs/evidence/runs/17.5.json` records a fresh passing run at
     `cc47e0d`.
 
-- [ ] **17.6 Customer segmentation and rankings**
+- [x] **17.6 Customer segmentation and rankings**
   - **Requirement IDs:** ADV-106.
   - **Owner boundary:** best-customer rankings, seasonal/one-time/suit/
     casual buyer segments and similar retailer-facing cohorts, computed
@@ -6149,7 +6149,7 @@ now.
     4.7/4.8, 4.9, 4.10 and 17.14 already established for their own
     checkboxes.
 
-- [ ] **17.9 Omnichannel communication hub**
+- [x] **17.9 Omnichannel communication hub**
   - **Requirement IDs:** ADV-109.
   - **Owner boundary:** a provider-neutral core that unifies the existing
     TableService chat with SMS/WhatsApp/email, surfaced both in Mission
