@@ -4811,6 +4811,19 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     email access. This wizard is additive to the existing account/
     programme/role/wearer/entitlement schema in this item — it does not
     replace it.
+  - **Correction (2026-09-03, agent/phase-14-1-20260903):** the 2026-08-14
+    update below ("Remaining missing items are unchanged: employee portal,
+    invite flow...") was stale. Stage 18 work already merged to `main`
+    before this session started had, in fact, built the employee portal
+    auth path (`bb20db1`, PHASE 18.5), the manager portal auth path
+    (`115dcb2`, this item, PHASE 14.1), the self-link invite mechanism both
+    reuse, the public tender page and pitch builder, and an end-to-end
+    lifecycle browser proof (`3087951`, PHASE 18.13) — that proof covers
+    signal→opportunity→tender→account→programme→wearer→portal→fitting→
+    exception→renewal for **one company, one wearer, one role**. A commit
+    on `main` (`462acfa`) literally recorded "18.5 verified but unchecked
+    (awaits 14.1)" — other Stage 18 items were blocked on this item's own
+    closure, not the reverse.
   - **Status (2026-08-01, takeover branch):** `implemented_unverified`.
     Domain and schema only; no employee portal, no dashboards, no browser
     proof. Both non-goals are structural. `corporate_wearers` has no
@@ -4888,6 +4901,72 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     staff onboarding, not closure of the acceptance criterion. Remaining
     missing items are unchanged: employee portal, invite flow, fitting/order/
     issue wiring to real orders, tender demo, and dashboards.
+  - **Update (2026-09-03, agent/phase-14-1-20260903), NEEDS TEST/PROOF:**
+    closed this item's own last two structural gaps (see correction above —
+    the portal/invite/tender gaps this note previously named were already
+    closed by Stage 18 before this session; only order-wiring and the
+    multi-site/multi-role capstone proof were genuinely still missing).
+    Added: `place_corporate_order` RPC (`supabase/migrations/
+20260829000000_add_corporate_order_wiring.sql`) so a retailer-staff
+    garment issue creates a real `orders`/`order_lines` row
+    (`orders.customer_id` now nullable, `orders.corporate_wearer_id` added,
+    a CHECK enforces exactly one of the two), with RLS scoping a corporate
+    manager to their own account's orders only; `recordIssue` now calls it
+    and threads the real `order_id` through, closing "fitting/order/issue
+    wiring to real orders" for real (previously `corporate_issue_records
+.order_id` was always null). Added `planCorporateWearerImport` (pure
+    delta create/update/deactivate by `employeeReference`,
+    `packages/domain/src/corporate/corporate-programme.ts`) +
+    `importWearersBatch` repository method + a reachable "Import employees"
+    server action, closing "batch/delta import". New capstone spec
+    `apps/retailer/e2e/corporate-pilot-full-cycle.spec.ts` drives one
+    fixture employer across two site_keys and three role_keys through
+    invite→fit→order→issue→service/leaver-exception, a real manager-portal
+    login (magic link, matching the existing self-link pattern) asserting
+    the manager sees only their own account's data and not a second
+    fixture employer's, and axe-core WCAG2AA/2.1AA checks on both the
+    manager portal and `/corporate/[programmeId]` with zero
+    serious/critical violations allowed.
+    An independent security review (Sonnet, before merge) found the new
+    RPC's staff-authorization check was **fail-open**:
+    `current_retailer_id()`/`current_retailer_role()` return SQL NULL for
+    any authenticated non-staff caller (a plain customer, a corporate
+    wearer, or a corporate manager), and PL/pgSQL's `if not (a = b and c in
+(...))` evaluates to NULL when either side is NULL — which `IF NULL
+THEN` treats exactly like `FALSE`, so the `raise exception` branch
+    never ran. Any signed-in Supabase user, with no retailer relationship
+    at all, could have called `place_corporate_order` directly over
+    PostgREST for an arbitrary retailer/wearer, decrementing real
+    inventory. The reviewer also caught that the worker's own pgTAP test
+    had unwittingly exercised this exact bypass while seeding a
+    cross-tenant fixture, and that the capstone spec's manager-portal step
+    was a no-op stub. Both were fixed before commit: the check now fails
+    closed on NULL (`is distinct from` / `is null`, not `=`/`in`), a pgTAP
+    case asserts a non-staff caller is rejected, and the stub was replaced
+    with the real manager-login/cross-tenant/a11y assertions described
+    above. Commit `fcad449`.
+    **Status is NEEDS TEST/PROOF, not DONE — checkbox stays unchecked.**
+    Lint, typecheck, build, and domain unit tests (111 corporate tests,
+    including the new import-plan cases) all pass and were independently
+    re-run, not just trusted from the worker's report. The pgTAP RLS test
+    and the Playwright capstone spec itself were **not executed** in this
+    environment: the local Supabase instance is shared across concurrently
+    active worktrees on this machine, and its migration-tracking state has
+    drifted from this worktree's migration files — `supabase migration up`
+    first failed replaying `20260730330000_add_versioned_campaign_library
+.sql` ("policy already exists"), and after that cleared on its own
+    (another session's activity, not this session's), failed again with
+    "Remote migration versions not found in local migrations directory"
+    against a migration (`20260903000000`) applied live by some other
+    concurrent session with no corresponding file in this worktree. The
+    suggested `supabase migration repair --local --status reverted
+20260903000000` / `supabase db reset` would mutate migration-tracking
+    or schema state that other active sessions on the same shared instance
+    depend on right now, so neither was run. **Next session/worker with
+    access to a clean or coordinated local Supabase instance must run**
+    `supabase/tests/corporate_order_wiring_rls_test.sql` and
+    `apps/retailer/e2e/corporate-pilot-full-cycle.spec.ts` for real and
+    record the pass/fail output before this checkbox can be checked.
 
 - [ ] **14.2 Advanced cited intelligence**
   - **Requirement IDs:** Stage 14 target plus `WFM-105`, `INV-104`.
