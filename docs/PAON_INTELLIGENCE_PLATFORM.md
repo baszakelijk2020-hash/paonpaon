@@ -15,11 +15,11 @@ requires it.
   connected-proof reset while restoring the full modular PAON destination.
   Landed Stage 0–16 foundations remain in code; unchecked legacy work must be
   mapped into the modular chapters before it resumes.
-- **Current queue item:** **R0.1 Environment truth and safety containment** at
-  the top of `PHASE.md`. Do not perform live-data/deployment work until its
-  environment guard passes, money/stock work until R0.2, or resume a legacy
-  item before R0.3 maps it to a module and proof contract. Safe independent
-  work is not blocked by a missing pilot or provider.
+- **Current queue item:** **6.2 Approved commerce primitives** — `6.1` closed
+  2026-09-02 (ADR-076 gate verified). Implement only ADR-076-approved
+  capabilities within existing `@paon/payments`/Stripe Connect boundaries.
+  R0.1 external deployment attestation and R0.2 (parked) still govern live-data
+  deployment and stock/money expansion; they do not block local 6.2 work.
 - **Immediate facts:** `ENVIRONMENTS.md` is the project ledger. Local Supabase
   is the active disposable target; original project `hngxrczavwywsnfceppb` is
   hard-protected; the Hyperagent sandbox is not accessible with the current
@@ -612,8 +612,9 @@ active slice needs historical context.
   jurisdiction documentation. Live Resend/OpenWeather/Faden/Shopify smoke
   still needs applicable provider credentials. Local/provider-neutral proof
   must follow ADR-068.
-- **Real blockers:** Stage 6.1 is blocked on founder business/legal/accounting/
-  provider decisions; 6.2 depends on 6.1; 6.3 marketplace modelling is not
+- **Real blockers:** 6.2 live smoke remains blocked on production Stripe
+  credentials/capability; eligibility and direct debit remain
+  `blocked_external` (ADR-076 §9); 6.3 marketplace modelling is not
   explicitly activated and remains gated on commercial/payment design;
   anonymous persistence remains blocked for new anonymous producers only;
   missing founder-authored fabric/colour/formality sartorial rules still block
@@ -621,13 +622,14 @@ active slice needs historical context.
   payment blocks money collection only (ADR-062). Stage 7 is not blocked by
   Stage 6. Optional later ADR-052 verbatim Tie-Mate founder-HTML port may
   replace interim chrome — not a programme blocker.
-- **Exact next work:** **R0.1 Environment truth and safety containment** on the
-  currently authorized takeover branch. Stage 9.2 must first be mapped through
-  R0.3 under ADR-070. Do not present the fixture Faden HMAC/header convention
-  as provider-documented.
+- **Exact next work:** **6.2 Approved commerce primitives** for ADR-076-
+  approved deposits, one-click repeat payment, instalments, stored value/gift
+  balance, and cash recording — using existing commerce/payment architecture
+  only. Live verification waits on production credentials; local mocks/tests
+  are buildable now. R0.1 external restore attestation remains parallel, not a
+  blocker for local 6.2. Stage 9.2 has an open draft PR — do not duplicate.
   Preserve `wip/stage-10-2-honeymoon` @
-  `ec58c8e00ec1d719c0cfbc2dbbc0d18730648cb5`. Do not invent Stage 6 payment
-  behavior.
+  `ec58c8e00ec1d719c0cfbc2dbbc0d18730648cb5`.
 
 ## 1. Programme intent
 

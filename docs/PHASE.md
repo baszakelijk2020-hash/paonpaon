@@ -2844,7 +2844,7 @@ invented founder-designed surface.
 
 ### Stage 6 — Later commerce capabilities
 
-- [ ] **6.1 Payment and compliance design gate**
+- [x] **6.1 Payment and compliance design gate**
   - **Requirement IDs:** `PAY-001`, `PAY-002`, `SERV-002`.
   - **Dependencies:** business/legal/accounting/provider decisions; ADR-030,
     ADR-031, ADR-050, and ADR-062.
@@ -2877,6 +2877,22 @@ invented founder-designed surface.
     SCA policy, a new jurisdiction, deletable payment records, or
     eligibility/direct-debit capability is not authorized and is its own
     hard blocker.
+  - **Closed (2026-09-02, build watchdog):** independent verification of the
+    gate Tests against ADR-076 and ADR-062. Decision completeness: every
+    acceptance dimension is explicitly resolved — approved (deposits,
+    one-click repeat payment, instalments, stored value/gift balance, cash),
+    rejected (customer-facing subscriptions/memberships, marketplace/6.3), or
+    deferred/`blocked_external` (eligibility, direct debit — ADR-076 §9). Provider
+    capability evidence: existing `@paon/payments` Stripe Connect Express
+    integration under ADR-030 (PaymentIntents, refunds/disputes, SCA defaults);
+    cash is in-person recording only with no processor surface. VAT/accounting:
+    retailer merchant-of-record throughout — tax liability remains with the
+    onboarded retailer via Stripe Connect, not PAON. Threat/privacy: provider-
+    hosted/tokenized credentials only (ADR-062 §3), append-only payment/order
+    history, standard business-record retention not customer-deletable
+    (ADR-076 §7). Reversal/migration: card refunds/disputes through the
+    retailer's Stripe-initiated process; no PAON custody to unwind. No live
+    charge performed. `pnpm lint`/`typecheck` clean at this commit.
 
 - [ ] **6.2 Approved commerce primitives**
   - **Requirement IDs:** `PAY-001`, `PAY-002`, `SERV-002`.
@@ -2896,8 +2912,10 @@ invented founder-designed surface.
   - **Hard blockers:** missing production provider credentials/capability or
     live compliance approval blocks the affected implementation and live
     verification.
-  - **Status:** blocked — depends on completed `6.1`; no commerce code until
-    that gate names exact capabilities.
+  - **Status (2026-09-02):** unblocked locally — `6.1` closed; implement only
+    the capabilities ADR-076 names (deposits, one-click repeat payment,
+    instalments, stored value/gift balance, cash recording). Live smoke and
+    production credential verification remain `blocked_external`.
 
 - [ ] **6.3 Retailer-owner marketplace**
   - **Requirement IDs:** `MKT-001`.
