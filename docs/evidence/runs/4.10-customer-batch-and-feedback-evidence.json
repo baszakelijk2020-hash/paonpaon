@@ -1,6 +1,6 @@
 {
   "phaseItemId": "4.10-customer-batch-and-feedback-evidence",
-  "gitSha": "38e2ee695e33a342520d18d996159a465df2798c",
+  "gitSha": "dacdf3e06e2a9af7331b1a0dc0ac9da6660f681e",
   "spec": "apps/customer/e2e/virtual-studio-batch-and-feedback-evidence.spec.ts",
   "status": "passed",
   "timestamp": "2026-08-20T12:46:41.065Z"
