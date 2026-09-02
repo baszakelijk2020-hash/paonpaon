@@ -22,12 +22,12 @@ The protected `/Users/nguyen/Projects/PAON` worktree was not modified during thi
 
 All commands ran from a disposable worktree at candidate source SHA `ccd0e20` against the local Supabase stack only. Its dependencies were installed locally with `pnpm install --frozen-lockfile`; no dependency tree was symlinked from another worktree.
 
-| Gate | Result |
-| --- | --- |
-| `pnpm --filter @paon/customer lint` | pass |
-| `pnpm --filter @paon/customer typecheck` | pass |
-| `pnpm --filter @paon/customer build` | pass |
-| Full focused V3 Playwright sequence | 30/30 passed |
+| Gate                                     | Result       |
+| ---------------------------------------- | ------------ |
+| `pnpm --filter @paon/customer lint`      | pass         |
+| `pnpm --filter @paon/customer typecheck` | pass         |
+| `pnpm --filter @paon/customer build`     | pass         |
+| Full focused V3 Playwright sequence      | 30/30 passed |
 
 The Playwright gate used a unique server port (`3631`), a unique Next output directory (`.next-e2e-clean-gate-3631`), and `PAON_E2E_WEBSERVER_TIMEOUT_MS=420000`. It executed these current-tip specs:
 

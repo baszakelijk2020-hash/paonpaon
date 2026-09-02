@@ -400,7 +400,7 @@ export function LocalWidgets({
           </div>
 
           <div
-            className={`relative col-span-2 overflow-hidden border-t border-black/10 bg-white/15 lg:col-span-1 lg:h-auto lg:border-t-0 lg:flex ${
+            className={`relative col-span-2 overflow-hidden border-t border-black/10 bg-white/15 lg:col-span-1 lg:flex lg:h-auto lg:border-t-0 ${
               recommendation?.imageUrl ? "flex h-44" : "hidden lg:flex"
             }`}
           >

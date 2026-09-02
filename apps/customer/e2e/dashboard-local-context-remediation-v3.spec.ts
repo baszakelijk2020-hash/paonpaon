@@ -217,9 +217,7 @@ test("local-context strip: readable weather state and mobile-visible world clock
     ).toBeVisible();
 
     // F4: the "Elsewhere" world clocks remain in the strip on mobile.
-    await expect(
-      strip.getByText("Elsewhere", { exact: true }),
-    ).toBeVisible();
+    await expect(strip.getByText("Elsewhere", { exact: true })).toBeVisible();
     for (const city of WORLD_CLOCK_CITIES) {
       await expect(strip.getByText(city, { exact: true })).toBeVisible();
     }

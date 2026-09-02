@@ -76,15 +76,9 @@ test("customer sidebar uses Trousers/Knitwear and local-context shows one locati
 
   // The link keeps the canonical storefront category value — only the label
   // changed, so catalogue filtering is untouched.
-  await expect(
-    sidebar.locator('a[href*="category=Pants"]'),
-  ).toHaveCount(1);
-  await expect(
-    sidebar.locator('a[href*="category=Knits"]'),
-  ).toHaveCount(1);
-  await expect(
-    sidebar.locator('a[href*="category=Trousers"]'),
-  ).toHaveCount(0);
+  await expect(sidebar.locator('a[href*="category=Pants"]')).toHaveCount(1);
+  await expect(sidebar.locator('a[href*="category=Knits"]')).toHaveCount(1);
+  await expect(sidebar.locator('a[href*="category=Trousers"]')).toHaveCount(0);
 
   // F11: exactly one "Your location" in the local-context strip.
   const strip = page

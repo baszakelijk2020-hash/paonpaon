@@ -182,9 +182,9 @@ test("owned card keeps the complete image and gains a non-white blurred lower ov
       const bg = imgs.first();
       const bgFilter = await bg.evaluate((el) => getComputedStyle(el).filter);
       expect(bgFilter).toContain("blur(");
-      expect(
-        await bg.evaluate((el) => getComputedStyle(el).objectFit),
-      ).toBe("cover");
+      expect(await bg.evaluate((el) => getComputedStyle(el).objectFit)).toBe(
+        "cover",
+      );
       // The blurred layer is more present than the pre-remediation 0.4.
       expect(await bg.evaluate((el) => getComputedStyle(el).opacity)).toBe(
         "0.6",

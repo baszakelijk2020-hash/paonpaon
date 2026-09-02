@@ -383,9 +383,7 @@ test("V3 Morning Routine real-action proof: today/save/review/ask-advisor/buy/de
       .poll(async () => {
         const { data } = await client
           .from("morning_routine_subscriptions")
-          .select(
-            "opted_in, frequency, channels, customer_id, retailer_id",
-          )
+          .select("opted_in, frequency, channels, customer_id, retailer_id")
           .eq("customer_id", customerId)
           .maybeSingle();
         return data;

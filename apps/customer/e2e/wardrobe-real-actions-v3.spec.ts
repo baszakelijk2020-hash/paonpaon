@@ -252,7 +252,9 @@ test.describe("V3 Wardrobe real-action proof", () => {
       // --- request repair: requestWardrobeItemService(kind=repair) ---
       let card = await openDeck(linkedName);
       await card.getByRole("button", { name: "Book a repair" }).click();
-      await expect(card.getByText("Request sent to your advisor.")).toBeVisible();
+      await expect(
+        card.getByText("Request sent to your advisor."),
+      ).toBeVisible();
       expectedMessages += 1;
       await expect
         .poll(() =>
@@ -286,9 +288,9 @@ test.describe("V3 Wardrobe real-action proof", () => {
       await page.reload();
       card = await openDeck(linkedName);
       await card.getByRole("button", { name: "Do a fit-check in app" }).click();
-      await card.getByRole("textbox", { name: "Notes" }).fill(
-        "E2E real-action self-scan note.",
-      );
+      await card
+        .getByRole("textbox", { name: "Notes" })
+        .fill("E2E real-action self-scan note.");
       await card
         .getByRole("combobox", { name: "Perceived fit" })
         .selectOption("slightly_tight");
@@ -326,7 +328,9 @@ test.describe("V3 Wardrobe real-action proof", () => {
       // --- reorder via advisor: requestWardrobeItemReorderViaAdvisor ---
       await page.reload();
       card = await openDeck(unlinkedName);
-      await card.getByRole("button", { name: "Order again", exact: true }).click();
+      await card
+        .getByRole("button", { name: "Order again", exact: true })
+        .click();
       await card
         .getByRole("button", { name: "Ask your advisor to reorder" })
         .click();
@@ -552,16 +556,16 @@ test.describe("V3 Wardrobe real-action proof", () => {
       // The click submits the real <form action={decideWardrobeRoadmap}>
       // under the real customer session — the service-role client below
       // only ever reads the postcondition, never performs the mutation.
-      await page
-        .getByRole("button", { name: "Approve", exact: true })
-        .click();
+      await page.getByRole("button", { name: "Approve", exact: true }).click();
 
       // DB postcondition: really approved, decided by the customer, timed.
       await expect
         .poll(async () => {
           const { data } = await client
             .from("wardrobe_roadmaps")
-            .select("status, decided_by_actor, decided_at, customer_id, retailer_id")
+            .select(
+              "status, decided_by_actor, decided_at, customer_id, retailer_id",
+            )
             .eq("id", approveRoadmap.id)
             .single();
           return data;
@@ -617,9 +621,9 @@ test.describe("V3 Wardrobe real-action proof", () => {
       const rejectBanner = page.locator("form", {
         has: page.getByRole("button", { name: "Approve", exact: true }),
       });
-      await expect(
-        rejectBanner.locator('input[name="roadmapId"]'),
-      ).toHaveValue(rejectRoadmap.id);
+      await expect(rejectBanner.locator('input[name="roadmapId"]')).toHaveValue(
+        rejectRoadmap.id,
+      );
       const requestChanges = page.getByRole("button", {
         name: "Request changes",
         exact: true,
@@ -641,7 +645,9 @@ test.describe("V3 Wardrobe real-action proof", () => {
         .poll(async () => {
           const { data } = await client
             .from("wardrobe_roadmaps")
-            .select("status, decided_by_actor, customer_decision_note, customer_id, retailer_id")
+            .select(
+              "status, decided_by_actor, customer_decision_note, customer_id, retailer_id",
+            )
             .eq("id", rejectRoadmapId)
             .single();
           return data;
