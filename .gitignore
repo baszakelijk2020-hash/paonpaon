@@ -4,6 +4,11 @@ node_modules/
 
 # Build outputs
 .next/
+# Playwright's isolated e2e Next.js dist dir (apps/*/playwright.config.ts
+# PAON_NEXT_DIST_DIR, e.g. `.next-e2e-3102`) — build output, not source.
+# Un-ignored once already, and a bulk `git add` from inside an app dir
+# during e2e work has landed hundreds of generated files in a commit.
+.next-e2e-*/
 dist/
 build/
 out/

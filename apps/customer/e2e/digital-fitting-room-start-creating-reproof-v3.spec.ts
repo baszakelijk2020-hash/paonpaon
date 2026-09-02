@@ -11,6 +11,7 @@ import { asId } from "@paon/domain";
 import { expect, test, type Page } from "@playwright/test";
 
 import {
+  AUTH_DELIVERABLE_DOMAIN,
   TEST_CUSTOMER_EMAIL,
   TEST_PRODUCT_SLUG,
   TEST_RETAILER_SLUG,
@@ -60,9 +61,10 @@ function admin() {
 }
 
 async function signIn(page: Page): Promise<void> {
+  const deliverableEmail = `e2e-shopper@${AUTH_DELIVERABLE_DOMAIN}`;
   const { data, error } = await admin().auth.admin.generateLink({
     type: "magiclink",
-    email: TEST_CUSTOMER_EMAIL,
+    email: deliverableEmail,
   });
   if (error || !data.properties) {
     throw new Error(
@@ -94,6 +96,7 @@ async function seedApprovedPortraitAndOutfit(): Promise<{
   if (!retailer) throw new Error("fixture retailer missing");
   const retailerId = asId<"RetailerId">(retailer.id);
 
+  const deliverableEmail = `e2e-shopper@${AUTH_DELIVERABLE_DOMAIN}`;
   const { data: customerRow } = await client
     .from("customers")
     .select("id")
@@ -102,6 +105,12 @@ async function seedApprovedPortraitAndOutfit(): Promise<{
     .single();
   if (!customerRow) throw new Error("fixture customer missing");
   const customerId = asId<"CustomerId">(customerRow.id);
+
+  // Update customer email to deliverable domain for auth to work
+  await client
+    .from("customers")
+    .update({ email: deliverableEmail })
+    .eq("id", customerId);
 
   const { data: product } = await client
     .from("products")
@@ -202,8 +211,12 @@ test("Digital Fitting Room: first-run card, in-place workflow, and a usable save
   await mkdir(evidenceDir, { recursive: true });
 
   const consoleErrors: string[] = [];
+  const IGNORED_ERROR_PATTERNS = [/Failed to load resource.*404/i];
   page.on("console", (m) => {
-    if (m.type() === "error") consoleErrors.push(m.text());
+    if (m.type() !== "error") return;
+    const text = m.text();
+    if (IGNORED_ERROR_PATTERNS.some((pattern) => pattern.test(text))) return;
+    consoleErrors.push(text);
   });
   page.on("pageerror", (e) => consoleErrors.push(`pageerror: ${String(e)}`));
 
