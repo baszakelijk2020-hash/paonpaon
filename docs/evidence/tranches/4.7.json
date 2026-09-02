@@ -2,7 +2,7 @@
   "phaseItemId": "4.7",
   "requirementIds": ["VWS-001", "VWS-002"],
   "status": "verified_local",
-  "title": "Virtual Wardrobe Studio — Style Portrait onboarding and customer single-look Studio (PHASE 4.7/4.8)",
+  "title": "Virtual Wardrobe Studio \u2014 Style Portrait onboarding and customer single-look Studio (PHASE 4.7/4.8)",
   "applicability": {
     "domain": "required",
     "persistence": "required",
@@ -19,11 +19,11 @@
     "domain": "packages/domain/src/wardrobe/virtual-studio.ts; packages/domain/src/wardrobe/virtual-studio.schema.ts; packages/domain/src/wardrobe/virtual-studio.test.ts",
     "persistence": "supabase/migrations/20260806110000_add_style_portrait_consent.sql; supabase/migrations/20260806120000_add_wardrobe_visualization_output_storage.sql; supabase/migrations/20260809130000_gate_visualization_enqueue.sql; supabase/migrations/20260809160000_add_style_portrait_preview_jobs.sql",
     "service": "packages/database/src/repositories/style-portrait-repository.ts; packages/database/src/repositories/style-portrait-consent-repository.ts; packages/database/src/repositories/wardrobe-visualization-job-repository.ts",
-    "origin_ui": "apps/customer/app/(dashboard)/account/style-portrait-panel.tsx; apps/customer/app/(dashboard)/account/style-portrait-actions.ts; apps/customer/app/(dashboard)/wardrobe/virtual-studio-panel.tsx; apps/customer/app/(dashboard)/wardrobe/virtual-studio-actions.ts",
-    "receiver_ui": "apps/admin/app/api/cron/process-wardrobe-visualizations (queue processor transitions the portrait/job to ready, private output storage); apps/customer/app/(dashboard)/wardrobe/virtual-studio-panel.tsx (customer sees queued/generating/ready status and cancels/gives feedback on the same object)",
+    "origin_ui": "apps/customer/app/(dashboard)/digital-fitting-room/style-portrait-panel.tsx; apps/customer/app/(dashboard)/digital-fitting-room/style-portrait-actions.ts; apps/customer/app/(dashboard)/digital-fitting-room/fitting-room-studio.tsx; apps/customer/app/(dashboard)/digital-fitting-room/virtual-studio-actions.ts",
+    "receiver_ui": "apps/admin/app/api/cron/process-wardrobe-visualizations (queue processor transitions the portrait/job to ready, private output storage); apps/customer/app/(dashboard)/digital-fitting-room/fitting-room-studio.tsx (customer sees queued/generating/ready status and cancels/gives feedback on the same object)",
     "rls": "supabase/tests/wardrobe_visualization_enqueue_test.sql; packages/database/src/repositories/style-portrait-consent-security.test.ts",
     "exceptions": "packages/domain/src/wardrobe/virtual-studio.test.ts (refusal without approved portrait/preset/consent; idempotent re-enqueue); apps/customer/e2e/virtual-studio.spec.ts's consent-gate and re-enqueue-reuse assertions",
-    "browser": "apps/customer/e2e/virtual-studio.spec.ts + docs/evidence/runs/4.7.json status=passed — consent grant, private face/full-body upload, fit-archetype declaration, queued neutral-preview job fixture-completed to ready (no OPENAI_API_KEY in this sandbox), portrait approval, owned-item look composition, generation enqueue reaching a real queued WardrobeVisualizationJob.",
+    "browser": "apps/customer/e2e/virtual-studio.spec.ts + docs/evidence/runs/4.7.json status=passed \u2014 consent grant, private face/full-body upload, fit-archetype declaration, queued neutral-preview job fixture-completed to ready (no OPENAI_API_KEY in this sandbox), portrait approval, owned-item look composition, generation enqueue reaching a real queued WardrobeVisualizationJob.",
     "operations": "packages/domain/scripts/validate-completion-evidence.ts; packages/domain/package.json (validate:completion)",
     "live_gap": "Live rendered-image proof requires the configured provider credential named by 4.6 (OPENAI_API_KEY); this sandbox fixture-completes the preview job to ready and only proves the outfit generation job reaches queued, not actual rendering."
   },
