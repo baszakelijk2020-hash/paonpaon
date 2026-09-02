@@ -1,6 +1,6 @@
 {
   "phaseItemId": "FT-02",
-  "gitSha": "96c2d12dee68d35769185229cf396cdb71124b69",
+  "gitSha": "939e0db78179582ccd8348e9f540e7f09f15d353",
   "specs": [
     "apps/customer/e2e/silhouette-analysis.spec.ts",
     "apps/retailer/e2e/silhouette-analysis-review.spec.ts"
@@ -8,6 +8,6 @@
   "pgtap": "full suite 160/160 (no dedicated silhouette-analysis pgTAP file; covered by both browser specs plus the RLS/grant fixes they surfaced)",
   "status": "passed",
   "runs": 30,
-  "note": "Adds to the prior consent/capture session state machine run: the retailer review card's Approve/Reject was a plain <form action={fn}> with no pending state and no way to surface a failure, the same reliability gap already fixed for FT-01's fit profile candidate card. Fixed the same way (SilhouetteAnalysisDecision, useActionState-backed). Wiring it found the real root cause of an intermittent timeout that had been provisionally attributed to environment cold-start on FT-01's sibling card: silhouette-analysis-review.spec.ts called page.reload() immediately after .click(), which resolves once the click dispatches, not once the mutation's underlying fetch completes — an occasionally-fast reload raced the write and reloaded the pre-decision page. Fixed by waiting for the mutating response before reloading. 30 repeated runs across this spec plus fit-tools.spec.ts and advisor-capture.spec.ts (same page) afterward: all clean. Full retailer lint/typecheck clean; pgTAP 160/160.",
+  "note": "Adds to the prior consent/capture session state machine run: the retailer review card's Approve/Reject was a plain <form action={fn}> with no pending state and no way to surface a failure, the same reliability gap already fixed for FT-01's fit profile candidate card. Fixed the same way (SilhouetteAnalysisDecision, useActionState-backed). Wiring it found the real root cause of an intermittent timeout that had been provisionally attributed to environment cold-start on FT-01's sibling card: silhouette-analysis-review.spec.ts called page.reload() immediately after .click(), which resolves once the click dispatches, not once the mutation's underlying fetch completes \u2014 an occasionally-fast reload raced the write and reloaded the pre-decision page. Fixed by waiting for the mutating response before reloading. 30 repeated runs across this spec plus fit-tools.spec.ts and advisor-capture.spec.ts (same page) afterward: all clean. Full retailer lint/typecheck clean; pgTAP 160/160.",
   "timestamp": "2026-08-05T20:08:34.000Z"
 }
