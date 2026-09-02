@@ -8139,7 +8139,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     `pnpm --filter @paon/customer lint`, and
     `pnpm --filter @paon/customer typecheck`.
 
-- [ ] **20.7 claude-digital-fitting-room — first-run experience**
+- [x] **20.7 claude-digital-fitting-room — first-run experience**
   - **Requirement IDs:** `CENV-FITTING-ROOM-001`.
   - **Dependencies:** `20.2`.
   - **Fleet owned paths:** `apps/customer/app/(dashboard)/digital-fitting-room/**`,
