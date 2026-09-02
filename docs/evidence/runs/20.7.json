@@ -1,6 +1,6 @@
 {
   "phaseItemId": "20.7",
-  "gitSha": "2c4a627cf15630a1dc7656a1cf358a290b02b1ec",
+  "gitSha": "939e0db78179582ccd8348e9f540e7f09f15d353",
   "spec": "apps/customer/e2e/digital-fitting-room-first-run.spec.ts",
   "status": "passed",
   "timestamp": "2026-09-02T00:00:00Z"
