@@ -1,6 +1,6 @@
 {
   "phaseItemId": "FT-02",
-  "gitSha": "19c9e0f59de917537a831c064784cc99762c47b3",
+  "gitSha": "d25eae9296313d2741df66ba8e0214e2f827cd23",
   "specs": [
     "apps/customer/e2e/silhouette-analysis.spec.ts",
     "apps/retailer/e2e/silhouette-analysis-review.spec.ts"
