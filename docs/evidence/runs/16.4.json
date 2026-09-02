@@ -1,6 +1,6 @@
 {
   "phaseItemId": "16.4",
-  "gitSha": "75c79561a16840fff2eb03a5c3f412d30a9d5977",
+  "gitSha": "1afab6f94f625960894b275d4dd499e9c197f52e",
   "spec": "apps/retailer/e2e/store-sessions.spec.ts",
   "status": "passed",
   "timestamp": "2026-08-20T12:37:12.288Z"
