@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { createSupabaseAdminClient } from "@paon/database";
 import { expect, test, type Page } from "@playwright/test";
 
-import { TEST_CUSTOMER_EMAIL } from "./fixtures";
+import { AUTH_DELIVERABLE_DOMAIN, TEST_CUSTOMER_EMAIL } from "./fixtures";
 
 /**
  * Phase 20.6 (CENV-APPOINTMENTS-001) — My Appointments visual and flow audit.
@@ -39,9 +39,28 @@ function admin() {
 }
 
 async function signIn(page: Page): Promise<void> {
-  const { data, error } = await admin().auth.admin.generateLink({
+  const deliverableEmail = `e2e-shopper@${AUTH_DELIVERABLE_DOMAIN}`;
+  const client = admin();
+
+  // Update fixture customer email from .test domain to deliverable domain
+  // The fixture customer exists with TEST_CUSTOMER_EMAIL, so we update it
+  const { data: customerRow } = await client
+    .from("customers")
+    .select("id")
+    .eq("email", TEST_CUSTOMER_EMAIL)
+    .limit(1);
+
+  if (customerRow && customerRow.length > 0) {
+    const customer = customerRow[0] as { id: string };
+    await client
+      .from("customers")
+      .update({ email: deliverableEmail })
+      .eq("id", customer.id);
+  }
+
+  const { data, error } = await client.auth.admin.generateLink({
     type: "magiclink",
-    email: TEST_CUSTOMER_EMAIL,
+    email: deliverableEmail,
   });
   if (error || !data.properties) {
     throw new Error(

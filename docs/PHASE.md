@@ -8127,7 +8127,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     `pnpm --filter @paon/customer lint`, and
     `pnpm --filter @paon/customer typecheck`.
 
-- [ ] **20.6 claude-customer-appointments — My Appointments visual and flow audit**
+- [x] **20.6 claude-customer-appointments — My Appointments visual and flow audit**
   - **Requirement IDs:** `CENV-APPOINTMENTS-001`.
   - **Dependencies:** `20.2`.
   - **Fleet owned paths:** `apps/customer/app/(dashboard)/appointments/**`,
