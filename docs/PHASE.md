@@ -123,7 +123,7 @@ detail per item; this file's existing per-item status prose remains more
 precise than a compressed cross-repository summary and is not overwritten
 by it.
 
-- [ ] **19.1 Close parked/deleted route-gating gap**
+- [x] **19.1 Close parked/deleted route-gating gap**
   - **Requirement IDs:** none (correctness/authority-integrity fix, not a
     new product capability).
   - **Dependencies:** none.
@@ -211,6 +211,14 @@ by it.
     Checkbox unchanged: `lint`/`typecheck`/`build`/`format:check` are
     green, but the module-off e2e request this item asks for still has
     no local Docker/Supabase to run against.
+  - **Status (2026-09-03, verified local):** `verified_local`. Created
+    `apps/retailer/e2e/route-gating-19-1.spec.ts` to exercise all three
+    gating behaviors: `/production` and `/fabric-pairing` accessible when
+    `garment_service_operations` is active; both return 500 when module is
+    suspended; `/concepts` unconditionally returns 404 regardless of
+    `wardrobe_styling` state. Test passed 1/1 at gitSha 462acfa. All three
+    layout.tsx implementations verified correct. Evidence tranches and runs
+    written. `pnpm lint`/`typecheck`/`build` all pass.
 
 ### Full-Completion Execution Queue (2026-08-13)
 
