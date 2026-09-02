@@ -35,8 +35,19 @@ function currentGitSha(): string {
   return execSync("git rev-parse HEAD", { cwd: root, encoding: "utf8" }).trim();
 }
 
+// CI/tooling infra paths that cannot affect the app behavior a browser or
+// DB proof exercises, so a change here must not invalidate an otherwise
+// current proof. Deliberately narrow — do NOT add app/package source,
+// migrations, or dependency manifests here; those genuinely can change
+// behavior and must keep invalidating stale evidence.
+//
+// Added 2026-09-03 after this bit three separate PRs in one day: a
+// `.github/workflows/ci.yml` fix (#48) and a `.gitignore` fix (#53) each
+// squash-merged as the first non-evidence commit on main's evidence-only
+// tail, invalidating all ~80 browser-proof run files and forcing an
+// 80-file re-stamp PR each time just to get `main` green again.
 const EVIDENCE_ONLY_PATH_RE =
-  /^(docs\/evidence\/|docs\/PHASE\.md$|docs\/PROJECT_STATE\.md$|docs\/PAON_INTELLIGENCE_PLATFORM\.md$|docs\/evidence\/STAGE_REPAIR_LEDGER\.md$)/;
+  /^(docs\/evidence\/|docs\/PHASE\.md$|docs\/PROJECT_STATE\.md$|docs\/PAON_INTELLIGENCE_PLATFORM\.md$|docs\/evidence\/STAGE_REPAIR_LEDGER\.md$|\.github\/|\.gitignore$)/;
 
 function isCurrentGitSha(artifactGitSha: string): boolean {
   const head = currentGitSha();
