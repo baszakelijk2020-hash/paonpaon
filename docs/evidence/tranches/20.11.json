@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.11",
+  "requirementIds": ["CENV-OVERVIEW-002"],
+  "status": "verified_local",
+  "title": "claude-customer-overview-v3-daily-return \u2014 dashboard daily-return composition",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "no new domain logic; the daily MorningRoutine selection is fetched via existing repository; presentation is client-side filtering",
+    "persistence": "no new migration; existing morning_routines and ootd_selections tables unchanged",
+    "service": "apps/customer/app/(dashboard)/dashboard/page.tsx (renders local-context strip \u2264100px tall with real date, weather, local time, work-address, personal distance, world clocks; rightmost cell shows real MorningRoutine daily suit/jacket); apps/customer/app/(dashboard)/morning-routine/local-widgets.tsx (minimal shared change: restore only the daily real image in the context-strip cell); OOTD below uses same selection with existing save/buy/appointment/advisor actions",
+    "origin_ui": "dashboard/page.tsx and local-widgets.tsx \u2014 render local-context strip with weather, time, clocks; show real MorningRoutine daily image; no duplicate greeting, Today's Edit, advertisement, Complete the Look, or promotional content; desktop \u2264100px tall",
+    "receiver_ui": "OOTD section directly below the context strip uses the same real MorningRoutine selection and its existing actions; no duplicate product render or conflicting modules",
+    "rls": "no new RLS; existing customer-scoped morning_routines and ootd selections are unchanged; customer session reads zero retailer_staff_members rows",
+    "exceptions": "no new exception paths; all read-only access uses existing RLS",
+    "browser": "apps/customer/e2e/dashboard-v3-daily-return.spec.ts \u2014 authenticated E2E Customer Workspace persona; desktop 1512x982 + mobile 390x844; 1/1 passed at gitSha 6be179c (docs/evidence/runs/20.11.json). Context strip \u2264100px, shows date/weather/time/clocks; real MorningRoutine image in rightmost cell; OOTD immediately below using same selection; no duplicate greeting/Today's Edit/ads/Complete the Look; no console/page errors",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-customer-workspace",
+  "browserProofSpec": "apps/customer/e2e/dashboard-v3-daily-return.spec.ts",
+  "assertedAt": "2026-09-02T08:47:00.000Z"
+}

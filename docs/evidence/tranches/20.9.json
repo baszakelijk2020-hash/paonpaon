@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "20.9",
+  "requirementIds": ["CENV-WARDROBE-001"],
+  "status": "verified_local",
+  "title": "claude-customer-wardrobe-v3 \u2014 Customer Wardrobe V3 presentation",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "no new domain logic \u2014 the presentation filters and rails are applied post-fetch on client; ownership/status invariants live in existing RLS",
+    "persistence": "no new migration; existing wardrobe_items table and customer-scoped RLS unchanged",
+    "service": "apps/customer/app/(dashboard)/wardrobe/page.tsx (fetches purchase-linked items via existing wardrobe repository); apps/customer/app/(dashboard)/wardrobe/wardrobe-panel.tsx (renders eight category rails with real counts, ten slots per rail, object-contain images, progressive-blur info overlay with title, purchased-on date, days-owned); actions are rendered in-place and are all real existing garment actions",
+    "origin_ui": "wardrobe/page.tsx and wardrobe-panel.tsx \u2014 render only retailer-linked garments in eight category rails; no external garments, provenance, purchase-location distinction, or house copy; product images are object-contain and never clipped; cards show title, purchased-on, days-owned overlay",
+    "receiver_ui": "the eight rails and item cards are the canonical presentation of the customer's wardrobe; no duplicate or redundant modules; all existing garment actions are callable from the card",
+    "rls": "no new RLS; existing customer-scoped wardrobe_items query is unchanged; customer session reads zero retailer_staff_members rows",
+    "exceptions": "no new exception paths; RLS guards all access; customer cannot read external garments or staff data",
+    "browser": "apps/customer/e2e/wardrobe-v3-presentation.spec.ts \u2014 authenticated E2E Customer Workspace persona; desktop 1512x982 + mobile 390x844; 2/2 passed at gitSha 6be179c (docs/evidence/runs/20.9.json). Eight rails render with real counts; ten visible slots per rail; product images uncropped; cards show title, purchased-on, days-owned; Actions+ menu opens with real actions; no external garments; no console/page errors",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-customer-workspace",
+  "browserProofSpec": "apps/customer/e2e/wardrobe-v3-presentation.spec.ts",
+  "assertedAt": "2026-09-02T08:47:00.000Z"
+}
