@@ -8441,7 +8441,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     owned-files-only commit.
   - **Tests:** appointments-alteration-choices V3 E2E, customer lint, typecheck.
 
-- [ ] **20.21 claude-storefront-dfr-handoff-v3 — canonical raw PDP fitting-room module**
+- [x] **20.21 claude-storefront-dfr-handoff-v3 — canonical raw PDP fitting-room module**
   - **Requirement IDs:** `CENV-DFR-HANDOFF-001`.
   - **Dependencies:** `20.7`.
   - **Fleet owned paths:** `apps/customer/app/r/[slug]/route.ts`,
