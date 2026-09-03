@@ -51,6 +51,11 @@ export default async function IntegrationsSettingsPage() {
         connectionId: connection.id,
         limit: 10,
       }),
+      reconciliationReports: await lifecycle.listReconciliationReports({
+        retailerId: session.retailerId,
+        connectionId: connection.id,
+        limit: 5,
+      }),
     })),
   );
 
@@ -196,6 +201,59 @@ export default async function IntegrationsSettingsPage() {
                       ))}
                     </ul>
                   ) : null}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Card>
+
+      <Card>
+        <h2 className="text-sm font-medium text-[var(--color-stone-900)]">
+          Reconciliation reports
+        </h2>
+        <p className="mt-1 text-xs text-[var(--color-stone-500)]">
+          Counts of matched, conflicted, stale, and dead-lettered records per
+          sync run and resource type.
+        </p>
+        {lifecycleByConnection.every(
+          (entry) => entry.reconciliationReports.length === 0,
+        ) ? (
+          <p className="mt-3 text-sm text-[var(--color-stone-500)]">
+            No reconciliation reports recorded yet.
+          </p>
+        ) : (
+          <div className="mt-3 flex flex-col gap-4 text-sm">
+            {lifecycleByConnection.map((entry) => {
+              const connection = connections.find(
+                (candidate) => candidate.id === entry.connectionId,
+              );
+              if (!connection || entry.reconciliationReports.length === 0) {
+                return null;
+              }
+              return (
+                <div key={entry.connectionId}>
+                  <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-stone-500)]">
+                    {connection.displayName}
+                  </p>
+                  <ul className="mt-1 flex flex-col gap-1">
+                    {entry.reconciliationReports.map((report) => (
+                      <li
+                        key={report.id}
+                        className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--color-stone-100)] py-1"
+                      >
+                        <span>
+                          {report.resource} · matched {report.matchedCount},
+                          conflict {report.conflictCount}, stale{" "}
+                          {report.staleCount}, dead-letter{" "}
+                          {report.deadLetterCount}
+                        </span>
+                        <span className="text-xs text-[var(--color-stone-500)]">
+                          {new Date(report.generatedAt).toLocaleString()}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               );
             })}

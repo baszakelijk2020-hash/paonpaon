@@ -297,4 +297,35 @@ test("create a connection via the form; it appears in the list and accepts manua
   });
   expect(runs.length).toBeGreaterThan(0);
   expect(runs[0]!.triggerKind).toBe("manual");
+
+  // Verify reconciliation reports are generated and visible on the page
+  await expect
+    .poll(
+      async () => {
+        const reports = await lifecycle.listReconciliationReports({
+          retailerId,
+          connectionId,
+          limit: 10,
+        });
+        return reports.length;
+      },
+      { timeout: 30_000 },
+    )
+    .toBeGreaterThan(0);
+
+  const reconciliationReports = await lifecycle.listReconciliationReports({
+    retailerId,
+    connectionId,
+    limit: 10,
+  });
+  expect(reconciliationReports.length).toBeGreaterThan(0);
+
+  // At least one report should have matched count > 0 (Shopify fixture has real data)
+  const hasMatched = reconciliationReports.some((r) => r.matchedCount > 0);
+  expect(hasMatched).toBe(true);
+
+  // Reload and verify the reconciliation section is now visible
+  await page.reload();
+  const reconciliationSection = page.getByText(/Reconciliation reports/);
+  await expect(reconciliationSection).toBeVisible({ timeout: 15_000 });
 });

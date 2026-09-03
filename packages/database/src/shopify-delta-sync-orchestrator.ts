@@ -112,6 +112,25 @@ export async function orchestrateShopifyDeltaSync(
       recordsFailed: 0,
     });
 
+    // Record reconciliation report per resource type (entityKind)
+    const resourceCounts = new Map<string, number>();
+    for (const row of rows) {
+      const count = resourceCounts.get(row.entityKind) ?? 0;
+      resourceCounts.set(row.entityKind, count + 1);
+    }
+    for (const [resource, count] of resourceCounts) {
+      await lifecycle.recordReconciliationReport({
+        retailerId: args.retailerId,
+        connectionId: args.connectionId,
+        runId: run.id,
+        resource,
+        matchedCount: count,
+        conflictCount: 0,
+        staleCount: 0,
+        deadLetterCount: 0,
+      });
+    }
+
     return {
       runId: run.id,
       jobId: published.id,
