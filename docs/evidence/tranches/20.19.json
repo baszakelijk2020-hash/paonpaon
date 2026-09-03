@@ -1,0 +1,49 @@
+{
+  "phaseItemId": "20.19",
+  "requirementIds": ["CENV-TEST-001"],
+  "status": "verified_local",
+  "title": "claude-customer-v3-stale-e2e — remove assertions for deleted V3 UI",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "n_a",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "no new domain logic — reconciliation only of stale test assertions",
+    "persistence": "no new persistence — test reconciliation only",
+    "service": "no application service changes — test assertions updated to match V3-conformant UI",
+    "origin_ui": "V3 customer UI surfaces verified by reconciled E2E specs: (1) house-memory-fact-correction.spec.ts deleted (commit 88c73a8) — House Memory panel removed by V3 §9, coverage moved to account-v3-profile.spec.ts. (2) style-profile-account.spec.ts deleted (commit 88c73a8) — Style Portrait/avatar setup removed from Profile by V3 §9, coverage moved to account-v3-profile.spec.ts. (3) item-specific-complete-the-look.spec.ts retargeted — item-specific 'Complete the look' relocated from card-face disclosure to Actions + progressive deck (V3 §5.4); suggestion scoping to single owned item preserved via item-specific-complete-the-look-data.ts; tile fixture, DB postconditions, See it on me → enqueue pipeline, and cleanup assertions preserved verbatim. (4) roadmap-look-review.spec.ts deleted (this commit) — standalone roadmap panel on /wardrobe removed by V3 §5.1; feedback write path (wardrobe_visualization_feedback) coverage preserved in digital-fitting-room-supported-actions-proof-v3.spec.ts and virtual-studio-batch-and-feedback-evidence.spec.ts",
+    "receiver_ui": "no receiver UI changes — focus is stale test assertion reconciliation only",
+    "rls": "no new RLS — existing RLS coverage verified by pgTAP suite (wardrobe_visualization_feedback write path tested in wardrobe_visualization_enqueue_test.sql)",
+    "exceptions": "no new exception cases — owner boundary explicitly excludes restoring removed UI to pass tests",
+    "browser": "apps/customer/e2e/item-specific-complete-the-look.spec.ts — authenticated E2E Customer Workspace persona against local Supabase; 1 passed at gitSha 5aa3c9f (docs/evidence/runs/20.19.json). Test verifies: owned item card renders; Actions + button opens progressive deck; Complete the look button present and clickable; item-specific suggestion (E2E Item-Specific CTL Trousers) visible in deck; See it on me button enqueues real outfit with title 'See it on me: E2E Item-Specific CTL Trousers'; wardrobe_visualization_jobs row created for outfit. 3 verified runs (clean DB, no flakiness). Database cleanup via soft-delete (deleted_at) to mark assignments inactive; pgTAP RLS policies verified separately.",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "proven",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-customer-workspace",
+  "browserProofSpec": "apps/customer/e2e/item-specific-complete-the-look.spec.ts",
+  "browserProofRunPath": "docs/evidence/runs/20.19.json",
+  "assertedAt": "2026-09-03T00:00:00.000Z"
+}
