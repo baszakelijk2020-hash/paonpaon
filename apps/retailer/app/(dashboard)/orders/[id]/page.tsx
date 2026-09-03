@@ -7,6 +7,7 @@ import {
 import { asId, retailerRoleAtLeast } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
+import { HoneymoonProgrammeCard } from "@paon/ui/components/HoneymoonProgrammeCard";
 import { formatDate, formatMoney } from "@paon/utils";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -17,6 +18,7 @@ import { MarkPaidInStoreForm, RequestReturnForm } from "./order-actions";
 import { StatusForm } from "./status-form";
 
 import { requireSession } from "@/lib/session";
+import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export default async function OrderDetailPage({
@@ -34,19 +36,38 @@ export default async function OrderDetailPage({
     notFound();
   }
 
-  const [lines, customer, honeymoonProgramme] = await Promise.all([
+  const [lines, customer] = await Promise.all([
     orderRepo.findLinesByOrder(order.id),
     new CustomerRepository(supabase).findById(order.customerId),
-    new HoneymoonProgrammeRepository(supabase).findByOrder(
-      order.retailerId,
-      order.id,
-    ),
   ]);
 
   const variantRepo = new ProductVariantRepository(supabase);
   const variants = await Promise.all(
     lines.map((line) => variantRepo.findById(line.productVariantId)),
   );
+
+  const admin = getSupabaseAdminClient();
+  const honeymoonProgramme = await new HoneymoonProgrammeRepository(
+    admin,
+  ).ensureForOrder({
+    retailerId: order.retailerId,
+    customerId: order.customerId,
+    orderId: order.id,
+    orderStatus: order.status,
+    contactPressureActive: false,
+    lines: lines
+      .map((line, index) => {
+        const variant = variants[index];
+        if (!variant) return null;
+        return {
+          productLabel: variant.sku,
+          quantity: line.quantity,
+          inStock: variant.inventoryQuantity > 0,
+          leadTimeDays: variant.leadTimeDays ?? 0,
+        };
+      })
+      .filter((line) => line !== null),
+  });
 
   const canManageOrders = retailerRoleAtLeast(
     session.retailerRole,
@@ -61,7 +82,7 @@ export default async function OrderDetailPage({
             {order.orderNumber}
           </h1>
           <OrderStatusBadge status={order.status} />
-          {honeymoonProgramme?.payAtDelivery ? (
+          {honeymoonProgramme.payAtDelivery ? (
             <Badge tone="warning">Pay at delivery</Badge>
           ) : null}
         </div>
@@ -121,6 +142,12 @@ export default async function OrderDetailPage({
           ) : null}
         </div>
       ) : null}
+
+      <HoneymoonProgrammeCard
+        orderId={honeymoonProgramme.orderId}
+        payAtDelivery={honeymoonProgramme.payAtDelivery}
+        actions={honeymoonProgramme.actions}
+      />
     </div>
   );
 }
