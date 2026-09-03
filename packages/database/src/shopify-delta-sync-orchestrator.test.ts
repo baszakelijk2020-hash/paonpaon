@@ -96,6 +96,23 @@ function createMockClient(operationalState: "active" | "paused") {
           error: null,
         };
       }
+      if (table === "integration_reconciliation_reports") {
+        return {
+          data: {
+            id: "reconciliation-1",
+            retailer_id: retailerId,
+            connection_id: connectionId,
+            run_id: "run-1",
+            resource: "product",
+            matched_count: 1,
+            conflict_count: 0,
+            stale_count: 0,
+            dead_letter_count: 0,
+            created_at: "2026-08-01T00:00:00.000Z",
+          },
+          error: null,
+        };
+      }
       return { data: null, error: null };
     });
     calls.push({ table, op: "call" });
