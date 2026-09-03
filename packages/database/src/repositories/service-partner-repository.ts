@@ -26,12 +26,17 @@ type InvoiceRow =
   Database["public"]["Tables"]["service_partner_invoices"]["Row"];
 type InvoiceLineRow =
   Database["public"]["Tables"]["service_partner_invoice_lines"]["Row"];
+type QualityReviewRow =
+  Database["public"]["Tables"]["service_partner_quality_reviews"]["Row"];
 
 type CustomerServiceCareStatusRow =
   Database["public"]["Functions"]["get_my_service_care_status"]["Returns"][number];
 
 export interface CustomerServiceCareStatus {
   readonly bookingId: string;
+  readonly engagementId: string;
+  readonly partnerId: string;
+  readonly retailerId: string;
   readonly garmentDisplayName: string;
   readonly capability: string;
   readonly dueOn: string;
@@ -44,6 +49,9 @@ function toCustomerServiceCareStatus(
 ): CustomerServiceCareStatus {
   return {
     bookingId: row.booking_id,
+    engagementId: row.engagement_id,
+    partnerId: row.partner_id,
+    retailerId: row.retailer_id,
     garmentDisplayName: row.garment_display_name,
     capability: row.capability,
     dueOn: row.due_on,
@@ -146,6 +154,34 @@ function toInvoiceLine(row: InvoiceLineRow): ServicePartnerInvoiceLine {
           ),
         }
       : {}),
+  };
+}
+
+export interface ServicePartnerQualityReview {
+  readonly id: string;
+  readonly retailerId: RetailerId;
+  readonly engagementId: string;
+  readonly partnerId: string;
+  readonly retailerRating?: number;
+  readonly retailerNote?: string;
+  readonly customerRating?: number;
+  readonly customerNote?: string;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+function toQualityReview(row: QualityReviewRow): ServicePartnerQualityReview {
+  return {
+    id: row.id,
+    retailerId: asId<"RetailerId">(row.retailer_id),
+    engagementId: row.engagement_id,
+    partnerId: row.partner_id,
+    ...(row.retailer_rating ? { retailerRating: row.retailer_rating } : {}),
+    ...(row.retailer_note ? { retailerNote: row.retailer_note } : {}),
+    ...(row.customer_rating ? { customerRating: row.customer_rating } : {}),
+    ...(row.customer_note ? { customerNote: row.customer_note } : {}),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
   };
 }
 
@@ -423,5 +459,85 @@ export class ServicePartnerRepository {
       .single();
     if (error) throw error;
     return toInvoice(data);
+  }
+
+  async findQualityReviewByEngagement(
+    engagementId: string,
+  ): Promise<ServicePartnerQualityReview | null> {
+    const { data, error } = await this.client
+      .from("service_partner_quality_reviews")
+      .select("*")
+      .eq("engagement_id", engagementId)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? toQualityReview(data) : null;
+  }
+
+  async submitQualityReview(args: {
+    retailerId?: RetailerId;
+    engagementId: string;
+    partnerId?: string;
+    retailerRating?: number | undefined;
+    retailerNote?: string | undefined;
+    customerRating?: number | undefined;
+    customerNote?: string | undefined;
+  }): Promise<ServicePartnerQualityReview> {
+    const existing = await this.findQualityReviewByEngagement(
+      args.engagementId,
+    );
+
+    if (existing) {
+      // Update existing review - build update payload conditionally
+      const updatePayload = {
+        ...(args.retailerRating !== undefined
+          ? { retailer_rating: args.retailerRating }
+          : {}),
+        ...(args.retailerNote !== undefined
+          ? { retailer_note: args.retailerNote }
+          : {}),
+        ...(args.customerRating !== undefined
+          ? { customer_rating: args.customerRating }
+          : {}),
+        ...(args.customerNote !== undefined
+          ? { customer_note: args.customerNote }
+          : {}),
+      };
+
+      const { data, error } = await this.client
+        .from("service_partner_quality_reviews")
+        .update(updatePayload)
+        .eq("id", existing.id)
+        .select("*")
+        .single();
+      if (error) throw error;
+      return toQualityReview(data);
+    }
+
+    // Get engagement to find partner (if not provided)
+    let partnerId = args.partnerId;
+    let retailerId = args.retailerId;
+    if (!partnerId || !retailerId) {
+      const engagement = await this.findEngagementById(args.engagementId);
+      if (!engagement) throw new Error("Engagement not found");
+      partnerId = engagement.partnerId;
+      retailerId = retailerId || engagement.retailerId;
+    }
+
+    // Create new review
+    const { data, error } = await this.client
+      .from("service_partner_quality_reviews")
+      .insert({
+        retailer_id: retailerId,
+        engagement_id: args.engagementId,
+        partner_id: partnerId,
+        retailer_rating: args.retailerRating ?? null,
+        retailer_note: args.retailerNote ?? null,
+        customer_rating: args.customerRating ?? null,
+        customer_note: args.customerNote ?? null,
+      })
+      .select("*")
+      .single();
+    if (error) throw error;
+    return toQualityReview(data);
   }
 }

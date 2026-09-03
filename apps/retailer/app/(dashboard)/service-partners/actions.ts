@@ -228,3 +228,19 @@ export async function approveInvoice(invoiceId: string): Promise<void> {
   await repo.approveInvoice(session.retailerId, invoiceId, staff.id);
   revalidatePath("/service-partners");
 }
+
+export async function submitRetailerQualityReview(
+  engagementId: string,
+  formData: FormData,
+): Promise<void> {
+  const { session, supabase } = await resolveActingStaff();
+  const rating = formData.get("retailerRating");
+  const note = formData.get("retailerNote");
+  await new ServicePartnerRepository(supabase).submitQualityReview({
+    retailerId: session.retailerId,
+    engagementId,
+    retailerRating: rating ? parseInt(String(rating), 10) : undefined,
+    retailerNote: note ? String(note).trim() || undefined : undefined,
+  });
+  revalidatePath("/service-partners");
+}
