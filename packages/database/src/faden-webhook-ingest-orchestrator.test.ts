@@ -150,6 +150,26 @@ function createMockClient(rows: {
               // markConnectionHealth's write — only its `error` field is
               // read by the caller, so an empty success envelope is enough.
               state.resolved = { data: null, error: null };
+            } else if (
+              table === "integration_reconciliation_reports" &&
+              prop === "insert"
+            ) {
+              const p = payload as Record<string, unknown>;
+              state.resolved = {
+                data: {
+                  id: "reconciliation-1",
+                  retailer_id: p["retailer_id"],
+                  connection_id: p["connection_id"],
+                  run_id: p["run_id"] ?? null,
+                  resource: p["resource"],
+                  matched_count: p["matched_count"],
+                  conflict_count: p["conflict_count"],
+                  stale_count: p["stale_count"],
+                  dead_letter_count: p["dead_letter_count"],
+                  created_at: envelope.timestamp,
+                },
+                error: null,
+              };
             }
             return self;
           });
