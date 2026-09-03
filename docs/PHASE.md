@@ -24,6 +24,133 @@ retailer versions, retailer selection, or new customer-to-retailer linking flows
 Expansion to multiple retailer versions comes only after founder testing and
 subsequent authorization. Preserve existing authorization and data boundaries.
 
+## Integration checkpoint — 2026-09-03 20:45 (+07)
+
+**One consolidated line now exists and runs.** This pass did not build or
+expand any feature; it took work that was already built on scattered branches
+and had never reached the local trunk, folded it into a single branch, and
+verified the whole thing compiles and boots against the Nebel & Spiegel demo.
+
+### The integrated branch
+
+- Branch: **`platform-integrated-20260903`**, HEAD **`2b83c6f`**.
+- Base: `agent/paon-codex-45m-stabilize-20260903` (`8a33861`) — itself a clean
+  linear superset of `origin/release-integration-lane-h` (`a840014`, PR #30
+  `rc/platform-20260901`, independently reviewed ACCEPT) + `origin/main`
+  (`60257a1`) + the phase 9.2 manager-role, 11.1 payroll-UI and 14.1
+  corporate-portal / `corporate-programme` domain work with its migrations.
+- Folded in this pass (one merge, `2b83c6f`, no conflicts): everything on
+  `agent/phase-9-2-20260903` / `agent/phase-12-3-20260903` that was not yet on
+  the base — **PHASE 12.3 service-partner network** (`service-partner-repository.ts`,
+  retailer `service-partners/` page + actions, customer `services/` wiring,
+  `preferred-tailoring-full-cycle` + `service-partners` e2e), migrations
+  `20260801000009_add_service_partner_network.sql` and
+  `20260903063100_add_engagement_id_to_care_status_projection.sql`, the
+  order-repository / commerce-order engagement-id plumbing, and the regenerated
+  `database.types.ts`.
+
+### Verified green on `2b83c6f`
+
+- `pnpm install` · `pnpm typecheck` · `pnpm lint` · `pnpm build` (admin +
+  retailer + customer + 11 packages) — all exit 0.
+- `supabase db reset --local` — all **292 migrations** apply cleanly, `seed.sql`
+  - `pnpm --filter @paon/database seed:demo` populate Nebel & Spiegel + Casa
+    Marchetti.
+- `pnpm dev` — admin `:3000`, retailer `:3001`, customer `:3002` all boot.
+  Retailer quick-persona login as **Nebel & Spiegel owner** lands on the owner
+  brief; customer quick-persona login as **Isabelle Laurent** lands on the V3
+  customer overview with a working **Sign out** control (the long-standing
+  three-app sign-out blocker is fixed and integrated via PR #30).
+
+### Deliberately NOT folded in (left on Hold / Pause exactly as found)
+
+- `feature/voice-intelligence`, `PAON-voice` — FT-01 / voice is **Parked**
+  (founder 2026-08-12). Untouched.
+- `agent/paon-parallel-worker-20260903` — 44 commits behind this line; it
+  carries useful **evidence closes** (17.2, 18.6, 12.1, 11.3, 11.2, 18.5,
+  17.8, 18.1, 20.6, 20.29, 20.35) and two real test files
+  (`business-development.spec.ts` +196, `staff-profile.spec.ts`) but merging a
+  branch that far behind would revert newer work. Cherry-pick the evidence and
+  the 18.1 cross-tenant test onto `2b83c6f` in a follow-up; do not merge the
+  branch whole.
+- Uncommitted scratch migration
+  `20260903120300_enforce_quality_review_column_scope.sql` living only in the
+  worktree `/private/tmp/paon-phase-14-1-20260903` — in-flight, left alone.
+- All Stage 6.2/6.3 commerce primitives, Stage 15.x lifestyle, 18.1/18.8/18.11
+  corporate BD, FT-03 (deleted) — remain **NI / Parked / Blocked** as recorded
+  below. No change.
+- The ~100 stale agent worktrees under `.claude/worktrees/` and `/private/tmp/`
+  were read for content only; none were merged.
+
+### Known residual — completion validator is RED (evidence currency, not code)
+
+`pnpm validate:completion` fails for ~80 Stage 17/20/21 + 4.x + 8.4/9.x items,
+all with the same shape: `status verified_local is not a verified completion
+claim`. The validator still _accepts_ `verified_local`; it rejects because the
+integration commit `2b83c6f` moved HEAD, so each tranche's browser-proof
+`gitSha` in `docs/evidence/runs/<id>.json` is no longer current and the run
+predates code that changed since. This is the expected ADR-068 "re-prove, do
+not re-date" chore after any integration commit — it is a separate
+evidence-reproof workstream (needs live Playwright runs), not missing
+implementation, and was explicitly out of scope for this integration pass.
+Fixes for many of these already exist on the `origin/evidence/*` re-stamp
+branches (`evidence/customer-close-batch`, `evidence/retailer-close-batch`,
+`evidence/20-6-appointments-audit`, `evidence/19-1-route-gating`) and on
+`agent/paon-parallel-worker-20260903`.
+
+### How to run the platform (the keys)
+
+```bash
+cd /Users/nguyen/Projects/PAON
+git checkout platform-integrated-20260903        # HEAD 2b83c6f
+
+# 1. local data plane (Docker must be running)
+supabase start                                   # or: supabase status
+supabase db reset --local                        # 292 migrations + seed.sql
+SUPABASE_URL=http://127.0.0.1:54321 \
+SUPABASE_ANON_KEY=<local anon key from `supabase status`> \
+SUPABASE_SERVICE_ROLE_KEY=<local service_role key from `supabase status`> \
+pnpm --filter @paon/database seed:demo           # demo personas
+
+# 2. apps
+pnpm install
+pnpm dev                                         # admin :3000  retailer :3001  customer :3002
+```
+
+Demo sign-in — password for **every** persona is `Demo-PAON-2026!`, and each
+login page also has a "DEV ONLY — QUICK PERSONA LOGIN" button row:
+
+| App      | URL                     | Persona emails (Nebel & Spiegel)                                                                                            |
+| -------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Admin    | `http://localhost:3000` | `contact+platform-admin@nebelspiegel.com`                                                                                   |
+| Retailer | `http://localhost:3001` | `contact+atelier-demo-owner@nebelspiegel.com` (also `-manager`, `-sales`, `-operations`, `-workshop`, `-alteration-worker`) |
+| Customer | `http://localhost:3002` | `contact+isabelle@nebelspiegel.com` (also `+marc`, `+julien`, `+camille`, `+nathalie`, `+thomas`)                           |
+
+### Safety net (nothing was lost)
+
+- Tag **`freeze-20260903-202905`** / branch `stabilize/20260903-202905`
+  (`907d47d`) = the exact working tree as inherited before this pass.
+- Branch `freeze/base-20260903-202905` (`ec84ac5`) = the local trunk commit it
+  was based on.
+- Bundle `/Users/nguyen/paon-freeze-*.bundle` if present.
+- `release-integration-lane-h` was moved forward to `2b83c6f` (was `ec84ac5`,
+  63 commits stale); its previous tip is preserved by the two freeze refs above.
+
+### If you are picking this up after a limit
+
+1. `git checkout platform-integrated-20260903 && git log --oneline -5` — confirm
+   HEAD is `2b83c6f` (or later).
+2. Re-run the "How to run" block; confirm all three apps boot and a
+   quick-persona login works in each.
+3. Next unit of _integration_ work (not new features): cherry-pick the evidence
+   closes + `dea167d` 18.1 cross-tenant test from
+   `agent/paon-parallel-worker-20260903`, then merge the four
+   `origin/evidence/*` re-stamp branches, then re-run `pnpm validate:completion`
+   and drive it toward green by re-proving — never by re-dating — the residual
+   tranches listed above.
+4. Everything under "Deliberately NOT folded in" stays on Hold until the
+   founder authorizes it.
+
 **Queue rule:** an item that lists another PHASE item as a dependency must not be checked or marked `verified_*` while that dependency remains unchecked or `implemented_unverified` (parallel implementation is allowed).
 
 **Ground-zero reconciliation, 2026-08-14.** 31 items were unmarked from `[x]`
