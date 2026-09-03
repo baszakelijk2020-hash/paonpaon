@@ -20,7 +20,7 @@ export async function publishMigrationJobAction(
   formData: FormData,
 ): Promise<void> {
   const session = await requireModuleSession("retail_operations");
-  requireRetailerRole(session.retailerRole, "admin");
+  requireRetailerRole(session.retailerRole, "manager");
   const jobId = String(formData.get("jobId") ?? "");
   if (!jobId) throw new Error("Missing job id");
   await new MigrationJobRepository(getSupabaseAdminClient()).publishJob({

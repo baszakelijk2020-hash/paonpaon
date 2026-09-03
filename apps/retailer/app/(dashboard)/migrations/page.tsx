@@ -1,5 +1,6 @@
 import { requireRetailerRole } from "@paon/auth";
 import { MigrationJobRepository } from "@paon/database";
+import { retailerRoleAtLeast } from "@paon/domain";
 import { Card } from "@paon/ui/components/Card";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -20,10 +21,11 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
 export default async function MigrationsPage() {
   const session = await requireSession();
   try {
-    requireRetailerRole(session.retailerRole, "admin");
+    requireRetailerRole(session.retailerRole, "manager");
   } catch {
     redirect("/dashboard");
   }
+  const canLoadFixtureJob = retailerRoleAtLeast(session.retailerRole, "admin");
 
   const supabase = await getSupabaseServerClient();
   const jobs = await new MigrationJobRepository(supabase).listJobs(
@@ -51,20 +53,22 @@ export default async function MigrationsPage() {
         </div>
       </div>
 
-      <Card>
-        <form action={createFixtureMigrationJobAction}>
-          <button
-            type="submit"
-            className="bg-[var(--color-stone-900)] px-4 py-2 text-sm text-white"
-          >
-            Load fixture job (dry-run)
-          </button>
-        </form>
-        <p className="mt-2 text-xs text-[var(--color-stone-500)]">
-          Uses the provider-neutral staged-file fixture. Live provider adapters
-          land in 9.2.
-        </p>
-      </Card>
+      {canLoadFixtureJob ? (
+        <Card>
+          <form action={createFixtureMigrationJobAction}>
+            <button
+              type="submit"
+              className="bg-[var(--color-stone-900)] px-4 py-2 text-sm text-white"
+            >
+              Load fixture job (dry-run)
+            </button>
+          </form>
+          <p className="mt-2 text-xs text-[var(--color-stone-500)]">
+            Uses the provider-neutral staged-file fixture. Live provider
+            adapters land in 9.2.
+          </p>
+        </Card>
+      ) : null}
 
       <Card>
         <h2 className="text-sm font-medium text-[var(--color-stone-900)]">
