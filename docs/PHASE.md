@@ -3382,6 +3382,37 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     checkbox per the item's own hard-blocker framing). Checkbox stays
     unchecked — connection creation was one gap among several.
 
+  - **Update (2026-09-03, agent/phase-9-2-20260903), NEEDS TEST/PROOF:**
+    closes the two remaining concrete gaps. New
+    `apps/admin/app/api/cron/dispatch-integration-sync` route (CRON_SECRET-
+    gated, mirrors the existing `dispatch-newsletter`/`dispatch-emails`
+    convention) queries every active Shopify `integration_connections` row
+    across all retailers and calls `orchestrateShopifyDeltaSync(...,
+triggerKind: "scheduled")` per connection, tolerating one connection's
+    failure without aborting the batch — closes "scheduled/webhook-
+    triggered execution" (today's Shopify path was manual-trigger only;
+    Faden stays webhook-driven by design, not polled). Not registered in
+    `vercel.json`'s crons — the Hobby plan already has two daily jobs at
+    capacity — documented for external-scheduler/manual triggering, same
+    precedent `dispatch-newsletter` already sets. `recordReconciliationReport()`
+    (`IntegrationLifecycleRepository`, previously written but never
+    called by anything) is now called by both `orchestrateShopifyDeltaSync`
+    and `ingestFadenWebhook` after a sync/ingest completes, and
+    `/settings/integrations` now renders each connection's recent
+    reconciliation reports — closes "reconciliation UI". Live provider
+    smoke remains `blocked_external` and does not gate this checkbox per
+    the item's own hard-blocker framing, unchanged.
+    Verified independently: lint/typecheck/build across all packages
+    pass; `apps/admin/e2e/dispatch-integration-sync-cron.spec.ts` (3/3:
+    rejects no/wrong bearer token, an authorized request processes real
+    active connections and returns a genuine `{processed, succeeded,
+failed, errors}` summary) and the extended
+    `apps/retailer/e2e/integration-connection-lifecycle.spec.ts` (2/2,
+    including a real assertion that `listReconciliationReports()` returns
+    actual rows with `matchedCount > 0` after a manual sync, not an
+    empty-table check) both pass against real local Supabase. Checkbox
+    stays unchecked pending independent review and PR integration.
+
 - [ ] **9.3 Demand-led connector expansion**
   - **Requirement IDs:** `INT-002`–`INT-005`.
   - **Dependencies:** `9.1`; live prospect evidence.
