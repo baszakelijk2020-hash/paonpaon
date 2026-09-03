@@ -4967,6 +4967,33 @@ THEN` treats exactly like `FALSE`, so the `raise exception` branch
     `supabase/tests/corporate_order_wiring_rls_test.sql` and
     `apps/retailer/e2e/corporate-pilot-full-cycle.spec.ts` for real and
     record the pass/fail output before this checkbox can be checked.
+  - **Update (2026-09-03, independent review, agent/paon-reconciliation):**
+    both blocked proofs are now executed. `supabase db reset` ran cleanly
+    from this branch (the drift above was transient concurrent-session
+    state, not a real conflict). `corporate_order_wiring_rls_test.sql` had
+    three accumulated bugs — a bare `declare/begin/end` never wrapped in
+    `do $$`, stale `retailer_branches`/`products`/`product_variants`
+    column names, and `perform is()` inside PL/pgSQL not registering with
+    pgTAP — all fixed in the test file only (no policy/migration change);
+    it now passes **8/8**, full pgTAP suite **52 files / 567 tests, 0
+    failures**. The capstone `corporate-pilot-full-cycle.spec.ts` revealed
+    two real gaps a test-only patch would have hidden: (1) `setAccountManager`
+    existed as a server action wired to no UI — a real form was added to
+    the account card (`corporate/page.tsx`), and the spec now adds the
+    manager through that UI instead of a DB insert; (2) genuine WCAG 2 AA
+    colour-contrast failures on the manager portal — fixed at the token
+    level (`text-[var(--color-stone-700)]`, darkened `Badge` success tone).
+    The spec passes **3/3** consecutive runs. `docs/evidence/tranches/14.1.json`
+    - `docs/evidence/runs/14.1.json` record this at the current SHA.
+      Checkbox still `[ ]`: dependency `13.1` is `verified_local` but
+      unchecked (it is founder-**parked** per `CAPABILITY_DISPOSITION.md`, so
+      its box will not flip through normal roadmap work) — 14.1 will not be
+      marked complete while a listed dependency shows `[ ]`. Known follow-up:
+      ~180 pre-existing `text-[var(--color-stone-500)]` AA contrast nodes
+      across the retailer `/corporate` portal (commit `8827bb3`) and the
+      shared `AppShell` section-nav — a platform-wide a11y token pass,
+      outside this item's owner boundary; the capstone's retailer-page axe
+      scan carves those exact nodes out and fails hard on anything else.
 
 - [ ] **14.2 Advanced cited intelligence**
   - **Requirement IDs:** Stage 14 target plus `WFM-105`, `INV-104`.
