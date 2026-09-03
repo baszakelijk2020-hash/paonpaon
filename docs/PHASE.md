@@ -5931,7 +5931,7 @@ now.
     `linked_service_booking_id`. Remaining open: "contact" as its own
     kind distinct from `follow_up` (arguably already covered by it).
 
-- [ ] **17.2 Mission Control unified brief**
+- [x] **17.2 Mission Control unified brief**
   - **Requirement IDs:** ADV-102.
   - **Dependencies:** `17.1`.
   - **Owner boundary:** extend the existing Mission Control aggregation
@@ -5983,6 +5983,11 @@ now.
     terminal, the written evidence said failed). `test.describe.serial`
     fixes it. `docs/evidence/runs/17.2.json` now records a genuinely
     passing run at `cc47e0d`.
+  - **Update (2026-09-03):** Re-proven and verified at 637dd13 (HEAD on
+    evidence/17-2-mission-control after reset of main). Mission control
+    spec passes all 4 tests consistently (verified 3 consecutive runs, no
+    flake). Validation, lint, typecheck, build, and pgTAP (52 files/568
+    tests) all pass with no regression.
 
 - [x] **17.3 Pre/during/post-appointment advisor dashboard**
   - **Requirement IDs:** ADV-103.
