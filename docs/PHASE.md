@@ -3395,7 +3395,7 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
 
 ### Stage 10 — Clienteling, campaign, and remote-selling parity
 
-- [ ] **10.1 Versioned campaign library**
+- [x] **10.1 Versioned campaign library**
   - **Status:** `verified_local`; pinned library/copy foundation and the
     accepted deployment-to-outcome loop are both real and browser-proven.
   - **Requirement IDs:** `CMP-101`–`CMP-104`.
@@ -3469,6 +3469,14 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     path, not what `apps/customer`'s real cart checkout calls — that goes
     through `checkoutCart` (a separate RPC), which had no linking hook at
     all until this update.
+
+  - **Update (2026-09-03):** re-run at HEAD confirms all three gaps remain
+    closed and working: manager clones/maps/activates a campaign, customer
+    orders the target product and campaign mission outcome auto-links,
+    manager's post-activation edit is refused, and manager clones for
+    correction into a new draft. Browser spec pass (apps/retailer/e2e/
+    campaigns.spec.ts), lint/typecheck/build green, pgTAP suite 52 files
+    568 tests all passing, evidence tranches created.
 
 - [ ] **10.2 Honeymoon Phase (Seven-Day Wardrobe parked)**
   - **Requirement IDs:** `CMP-105`, `CMP-106`, `WRD-104`.
