@@ -8536,7 +8536,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     `pnpm --filter @paon/customer lint`, and
     `pnpm --filter @paon/customer typecheck`.
 
-- [ ] **20.19 claude-customer-v3-stale-e2e — remove assertions for deleted V3 UI**
+- [x] **20.19 claude-customer-v3-stale-e2e — remove assertions for deleted V3 UI**
   - **Requirement IDs:** `CENV-TEST-001`.
   - **Dependencies:** `20.13`, `20.17`.
   - **Fleet owned paths:** `apps/customer/e2e/house-memory-fact-correction.spec.ts`,
