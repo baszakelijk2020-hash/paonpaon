@@ -3689,7 +3689,7 @@ test`/`typecheck`/`lint` clean (1169 tests). Missing: the remaining
     piece is the external payroll-provider export adapter (accepted blocker
     per Hard blockers line).
 
-- [ ] **11.2 Today, closeout, I AM and extra mile**
+- [x] **11.2 Today, closeout, I AM and extra mile**
   - **Requirement IDs:** `WFM-103`, `WFM-104`.
   - **Dependencies:** `8.3`; Stage 7 opportunities/closeout.
   - **Owner boundary:** unified role home, tasks/promises/briefing, ten-minute
@@ -3713,6 +3713,10 @@ test`/`typecheck`/`lint` clean (1169 tests). Missing: the remaining
     `/staff/recognition` review/coaching flow and `/staff/closeout` ten-minute
     closeout, this satisfies WFM-103 and WFM-104 without a raw-volume
     leaderboard or surveillance.
+
+  - **Update (2026-09-03):** re-proven at `db49a34` with all three browser specs
+    passing (staff-recognition, staff-closeout, staff-today), pgTAP suite 100%,
+    tranche and runs evidence files created.
 
   - **Earlier landed detail:** the extra-mile/recognition half (WFM-104).
     `20260801000004_add_staff_recognition_acts.sql` stores narrated acts

@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "11.2",
+  "requirementIds": ["WFM-103", "WFM-104"],
+  "status": "verified_local",
+  "title": "Today, closeout, I AM and extra mile",
+  "applicability": {
+    "domain": "required",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/workforce/recognition.ts (checkRecognitionReview, summarizeRecognitionCoverage); packages/domain/src/workforce/recognition.test.ts (no-leaderboard enforcement, self-review guard, double-review prevention, coaching-note requirement, dismissed-act non-coverage)",
+    "persistence": "supabase/migrations/20260801000004_add_staff_recognition_acts.sql (authenticated insert-pins-to-caller, optional customer/appointment/order link validation, reviewed state machine); supabase/migrations/20260811010000_add_staff_shift_closeouts.sql (upsert on retailer/staff/day, promises_note and what_worked_note required, extra_mile_act_id optional foreign-key validation, RLS staff-select-own vs manager-select-all); supabase/migrations/20260811075905_grant_staff_shift_closeouts_service_role_delete.sql",
+    "service": "packages/database/src/repositories/staff-recognition-repository.ts (insert via insertRecognitionAct, review via updateRecognitionReview); packages/database/src/repositories/shift-closeout-repository.ts (upsert closeout via upsertShiftCloseout); packages/database/src/repositories/staff-recognition-security.test.ts (RLS self-insert, manager-select-all, self-dismiss non-coverage)",
+    "origin_ui": "apps/retailer/app/(dashboard)/staff/recognition/page.tsx (recognition form and review queue); apps/retailer/app/(dashboard)/staff/recognition/recognition-forms.tsx; apps/retailer/app/(dashboard)/staff/recognition/actions.ts (logRecognition, coachRecognition); apps/retailer/app/(dashboard)/staff/closeout/page.tsx (closeout form); apps/retailer/app/(dashboard)/staff/closeout/closeout-forms.tsx; apps/retailer/app/(dashboard)/staff/closeout/actions.ts (submitCloseout); apps/retailer/app/(dashboard)/staff/today/page.tsx (unified role home with shift state, closeout prompt, recognition/opportunity status); apps/retailer/app/(dashboard)/staff/today/assigned-opportunity-list.tsx; apps/retailer/app/(dashboard)/staff/today/actions.ts (completeOwnOpportunity); apps/retailer/app/(dashboard)/staff/profile/page.tsx (rendered closeout and reviewed recognition evidence)",
+    "receiver_ui": "apps/retailer/app/(dashboard)/staff/recognition/page.tsx (review queue showing pending acts, reviewed list showing coached acts with notes); apps/retailer/app/(dashboard)/staff/closeout/page.tsx (today's closeout display on revisit); apps/retailer/app/(dashboard)/staff/today/page.tsx (shift state, closeout status, assigned opportunities, recognition summary); apps/retailer/app/(dashboard)/staff/profile/page.tsx (linked closeout promises and what_worked notes, linked recognition acts with coaching notes and reviewed_by name)",
+    "rls": "supabase/tests/staff_attribution_tenant_fk_test.sql (staff_recognition_acts and staff_shift_closeouts tenant-invariant triggers); staff-recognition-security.test.ts (insert pins to calling user, manager-select-all vs staff-select-own, dismissed never counts as coverage)",
+    "exceptions": "recognition: too-short narrative refused with readable reason (recognition.test.ts checkRecognitionReview validates narrative.trim().length >= 20), coaching without note refused (coaching_note required when review_state is 'coached'), self-review refused (RLS + checkRecognitionReview blocks authored_by_staff_id === reviewed_by_staff_id), double-review refused (review_state already coached/dismissed denies subsequent update); closeout: promises and what_worked notes required (upsertShiftCloseout enforces both), extra_mile_act_id optional foreign-key validated to same retailer/staff before insert",
+    "browser": "apps/retailer/e2e/staff-recognition.spec.ts (too-short narrative refused, act logs and appears in queue, coaching without note refused, coaching with note succeeds and moves to reviewed list, no leaderboard language on page, double-review prevented); apps/retailer/e2e/staff-closeout.spec.ts (closeout submitted, persists on revisit, manager sees it); apps/retailer/e2e/staff-today.spec.ts (staff sees unified role home, completed closeout shows instead of prompt, staff can complete their own assigned customer opportunity)",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts; packages/domain/package.json (validate:completion)",
+    "live_gap": "No external provider dependency — this item is entirely first-party domain/RLS/UI work with no live-credential gap."
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "proven",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/staff-closeout.spec.ts",
+  "assertedAt": "2026-09-03T00:00:00.000Z"
+}
