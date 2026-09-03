@@ -1,7 +1,7 @@
 {
   "phaseItemId": "17.2",
   "requirementIds": ["ADV-102"],
-  "status": "implemented_unverified",
+  "status": "verified_local",
   "title": "Mission Control unified brief",
   "applicability": {
     "domain": "n_a",
@@ -16,13 +16,13 @@
     "live_gap": "n_a"
   },
   "evidence": {
-    "domain": "no new pure logic — this item composes existing repository reads only, same shape as /dashboard's already-shipped brief",
-    "persistence": "no new schema — reuses existing alteration_work_orders/price_change_proposals, notifications, and product_variants tables",
+    "domain": "no new pure logic \u2014 this item composes existing repository reads only, same shape as /dashboard's already-shipped brief",
+    "persistence": "no new schema \u2014 reuses existing alteration_work_orders/price_change_proposals, notifications, and product_variants tables",
     "service": "packages/database/src/repositories/alteration-workflow-repository.ts (findPendingProposalsByRetailer); packages/database/src/repositories/messaging-repository.ts; packages/database/src/repositories/product-variant-repository.ts (countLowStockForRetailer)",
     "origin_ui": "apps/retailer/app/(dashboard)/mission-control/page.tsx",
-    "receiver_ui": "apps/retailer/app/(dashboard)/mission-control/page.tsx (same page — the attention card links out to /messages, /notifications, /products where each item is actually actioned)",
-    "rls": "no new table — reuses the tenant RLS already proven on the composed tables' own repository tests",
-    "exceptions": "no new domain refusal logic to test — a pure aggregation of already-validated repository reads",
+    "receiver_ui": "apps/retailer/app/(dashboard)/mission-control/page.tsx (same page \u2014 the attention card links out to /messages, /notifications, /products where each item is actually actioned)",
+    "rls": "no new table \u2014 reuses the tenant RLS already proven on the composed tables' own repository tests",
+    "exceptions": "no new domain refusal logic to test \u2014 a pure aggregation of already-validated repository reads",
     "browser": "apps/retailer/e2e/mission-control.spec.ts + docs/evidence/runs/17.2.json status=failed. Genuine reproducible bug found 2026-08-17, not staleness/flake: the spec books an appointment at 'next hour', and when run late at night that slot falls outside Mission Control's rendered 8-19 time grid, so the newly-booked appointment never appears in the brief. Reproduced 4 times across different servers/env configs (fleet ticket evidence-verified-local-12). Needs a real fix (either render the full day or pick a fixture time inside the grid) before this can be re-verified.",
     "operations": "packages/domain/scripts/validate-completion-evidence.ts",
     "live_gap": "n_a"

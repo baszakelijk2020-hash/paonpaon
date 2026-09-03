@@ -1,7 +1,7 @@
 {
   "phaseItemId": "10.1",
-  "gitSha": "b49bbb048eea750dac77af37ed1402d20a8a71a3",
+  "gitSha": "ad0a4db8942e2ec7fdd76b457d9f9bc2d0b29fae",
   "spec": "apps/retailer/e2e/campaigns.spec.ts",
-  "status": "failed",
-  "timestamp": "2026-08-20T12:29:45.569Z"
+  "status": "passed",
+  "timestamp": "2026-09-03T06:02:30.344Z"
 }

@@ -4,9 +4,12 @@
 -- (b) corporate manager can SELECT an order for wearer in their own account but NOT other account
 -- (c) customer_id IS NULL AND corporate_wearer_id IS NOT NULL round-trips correctly
 -- (d) CHECK constraint rejects row with both customer_id and corporate_wearer_id null
+-- (e) a corporate (customer_id NULL) order's status can be advanced with loyalty
+--     enabled — the personal-loyalty triggers must skip customer-less orders
+--     (regression guard for 20260829000001)
 
 begin;
-select plan(8);
+select plan(9);
 
 -- Set up two retailers A and B, each with account/programme/wearer/products
 insert into public.retailers (id, legal_name, display_name, slug, status)
@@ -20,17 +23,17 @@ values
     'Retailer B', 'Retailer B', 'retailer-b', 'active'
   );
 
-insert into public.retailer_branches (id, retailer_id, name, timezone, is_default)
+insert into public.retailer_branches (id, retailer_id, name, address_line1, city, postal_code, country, timezone)
 values
   (
     'c1100000-0000-0000-0000-000000000001',
     'c1000000-0000-0000-0000-000000000001',
-    'Branch A', 'UTC', false
+    'Branch A', '123 Main St', 'City A', '12345', 'Country', 'UTC'
   ),
   (
     'c1100000-0000-0000-0000-000000000002',
     'c1000000-0000-0000-0000-000000000002',
-    'Branch B', 'UTC', false
+    'Branch B', '456 Oak St', 'City B', '67890', 'Country', 'UTC'
   );
 
 -- Create product/variant for ordering
@@ -248,27 +251,26 @@ select throws_ok(
 reset request.jwt.claims;
 set local role none;
 
--- Retrieve the order just created to test (c) and manager visibility.
--- The pgTAP session's own default role bypasses RLS here, purely to grab
--- the id the earlier authenticated call created (mirrors the \gset idiom
--- already used in supabase/tests/customer_intake_test.sql).
-select id as order_id
-  from public.orders
-  where corporate_wearer_id = 'c3200000-0000-0000-0000-000000000001'
-  order by created_at desc
-  limit 1
-\gset
+-- Retrieve the order just created to test (c) and manager visibility
+with v_order_data as (
+  select id
+    from public.orders
+    where corporate_wearer_id = 'c3200000-0000-0000-0000-000000000001'
+    order by created_at desc
+    limit 1
+)
+select id::text as v_order_id from v_order_data \gset
 
 -- Test (c): customer_id IS NULL AND corporate_wearer_id IS NOT NULL
 select is(
-  (select customer_id from public.orders where id = :'order_id'),
+  (select customer_id from public.orders where id = :'v_order_id'::uuid),
   null,
   'customer_id is null for corporate order'
 );
 
 select is(
-  (select corporate_wearer_id from public.orders where id = :'order_id'),
-  'c3200000-0000-0000-0000-000000000001',
+  (select corporate_wearer_id from public.orders where id = :'v_order_id'::uuid),
+  'c3200000-0000-0000-0000-000000000001'::uuid,
   'corporate_wearer_id is set to the wearer'
 );
 
@@ -283,7 +285,7 @@ select is(
   (
     select count(*)::int
     from public.orders
-    where id = :'order_id'
+    where id = :'v_order_id'::uuid
   ),
   1,
   'manager A can SELECT the order for wearer in their account'
@@ -304,14 +306,18 @@ set local request.jwt.claims = '{
     "retailer_role": "admin"
   }
 }';
-select public.place_corporate_order(
-  'c1000000-0000-0000-0000-000000000002',
-  'c3200000-0000-0000-0000-000000000002',
-  '[{"productVariantId":"c2100000-0000-0000-0000-000000000002","quantity":1}]'::jsonb,
-  'in_store'::public.order_channel,
-  'GBP'
-) as order_b_id
-\gset
+
+with v_order_b_data as (
+  select public.place_corporate_order(
+    'c1000000-0000-0000-0000-000000000002',
+    'c3200000-0000-0000-0000-000000000002',
+    '[{"productVariantId":"c2100000-0000-0000-0000-000000000002","quantity":1}]'::jsonb,
+    'in_store'::public.order_channel,
+    'GBP'
+  ) as id
+)
+select id::text as v_order_b_id from v_order_b_data \gset
+
 reset request.jwt.claims;
 set local role none;
 
@@ -325,7 +331,7 @@ select is(
   (
     select count(*)::int
     from public.orders
-    where id = :'order_b_id'
+    where id = :'v_order_b_id'::uuid
   ),
   0,
   'manager A cannot SELECT order for wearer in a different account'
@@ -335,6 +341,9 @@ reset request.jwt.claims;
 set local role none;
 
 -- Test (d): CHECK constraint rejects both null
+-- Run as service_role to bypass RLS and hit the CHECK constraint directly
+set local role service_role;
+
 select throws_ok(
   $$
     insert into public.orders (
@@ -350,6 +359,39 @@ select throws_ok(
   null,
   'CHECK constraint rejects order with both customer_id and corporate_wearer_id null'
 );
+
+-- Test (e): with loyalty enabled for retailer A, advancing a corporate
+-- (customer_id NULL) order's status must not raise. The personal-loyalty
+-- status triggers unconditionally insert `orders.customer_id` into
+-- `loyalty_accounts.customer_id` (NOT NULL); 20260829000001 makes them skip
+-- customer-less orders. Runs as service_role: RLS is not what is under test.
+insert into public.loyalty_programs (retailer_id, enabled)
+values ('c1000000-0000-0000-0000-000000000001', true);
+
+with corp_order as (
+  insert into public.orders (
+    retailer_id, corporate_wearer_id, order_number, status, channel,
+    currency, subtotal_amount_minor_units, total_amount_minor_units
+  ) values (
+    'c1000000-0000-0000-0000-000000000001',
+    'c3200000-0000-0000-0000-000000000001',
+    'CORP-LOYALTY-E-1', 'pending_payment', 'in_store',
+    'GBP', 5000, 5000
+  )
+  returning id
+)
+select id::text as v_corp_order_id from corp_order \gset
+
+select lives_ok(
+  $$
+    update public.orders
+      set status = 'in_production'
+      where id = '$$ || :'v_corp_order_id' || $$'::uuid
+  $$,
+  'advancing a customer-less corporate order does not trip the personal-loyalty triggers'
+);
+
+reset role;
 
 select * from finish();
 rollback;

@@ -1,4 +1,4 @@
-import { CorporateRepository } from "@paon/database";
+import { CorporateRepository, type CorporateManager } from "@paon/database";
 import { Badge } from "@paon/ui/components/Badge";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
@@ -7,7 +7,7 @@ import { Input } from "@paon/ui/components/Input";
 import { Select } from "@paon/ui/components/Select";
 import Link from "next/link";
 
-import { createAccount, createProgramme } from "./actions";
+import { createAccount, createProgramme, setAccountManager } from "./actions";
 
 import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -22,6 +22,11 @@ export default async function CorporatePage() {
   const wearerCounts = await Promise.all(
     programmes.map((programme) => repo.findWearersByProgramme(programme.id)),
   );
+  const managersByAccountId = new Map<string, CorporateManager[]>();
+  for (const account of accounts) {
+    const managers = await repo.findManagersByAccount(account.id);
+    managersByAccountId.set(account.id, managers);
+  }
   const accountsById = new Map(
     accounts.map((account) => [account.id, account]),
   );
@@ -50,24 +55,90 @@ export default async function CorporatePage() {
             </p>
           ) : (
             <ul className="flex flex-col divide-y divide-[var(--color-stone-200)]">
-              {accounts.map((account) => (
-                <li
-                  key={account.id}
-                  className="flex items-center justify-between gap-3 py-2"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-[var(--color-stone-900)]">
-                      {account.legalName}
-                    </p>
-                    <p className="text-xs text-[var(--color-stone-500)]">
-                      {account.accountReference}
-                    </p>
-                  </div>
-                  <Badge tone={account.active ? "success" : "neutral"}>
-                    {account.active ? "Active" : "Inactive"}
-                  </Badge>
-                </li>
-              ))}
+              {accounts.map((account) => {
+                const managers = managersByAccountId.get(account.id) ?? [];
+                return (
+                  <li
+                    key={account.id}
+                    className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                          {account.legalName}
+                        </p>
+                        <p className="text-xs text-[var(--color-stone-500)]">
+                          {account.accountReference}
+                        </p>
+                      </div>
+                      <Badge tone={account.active ? "success" : "neutral"}>
+                        {account.active ? "Active" : "Inactive"}
+                      </Badge>
+                    </div>
+
+                    {managers.length > 0 ? (
+                      <div>
+                        <p className="mb-1 text-xs font-medium text-[var(--color-stone-700)]">
+                          Managers
+                        </p>
+                        <ul
+                          className="flex flex-col gap-1"
+                          id={`managers-${account.id}`}
+                        >
+                          {managers.map((manager) => (
+                            <li
+                              key={manager.id}
+                              className="text-xs text-[var(--color-stone-700)]"
+                            >
+                              <p className="font-medium">
+                                {manager.contactName}
+                              </p>
+                              <p className="text-[var(--color-stone-500)]">
+                                {manager.loginEmail}
+                              </p>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+
+                    <details className="text-xs">
+                      <summary className="cursor-pointer text-[var(--color-stone-700)]">
+                        Add a manager
+                      </summary>
+                      <form
+                        action={setAccountManager.bind(null, account.id)}
+                        className="mt-2 grid gap-2"
+                      >
+                        <FormField
+                          label="Contact name"
+                          htmlFor={`name-${account.id}`}
+                        >
+                          <Input
+                            id={`name-${account.id}`}
+                            name="contactName"
+                            required
+                          />
+                        </FormField>
+                        <FormField
+                          label="Login email"
+                          htmlFor={`email-${account.id}`}
+                        >
+                          <Input
+                            id={`email-${account.id}`}
+                            name="loginEmail"
+                            type="email"
+                            required
+                          />
+                        </FormField>
+                        <Button type="submit" size="sm" className="self-start">
+                          Add manager
+                        </Button>
+                      </form>
+                    </details>
+                  </li>
+                );
+              })}
             </ul>
           )}
           <form action={createAccount} className="flex flex-col gap-3 pt-2">

@@ -3426,7 +3426,7 @@ failed, errors}` summary) and the extended
 
 ### Stage 10 — Clienteling, campaign, and remote-selling parity
 
-- [ ] **10.1 Versioned campaign library**
+- [x] **10.1 Versioned campaign library**
   - **Status:** `verified_local`; pinned library/copy foundation and the
     accepted deployment-to-outcome loop are both real and browser-proven.
   - **Requirement IDs:** `CMP-101`–`CMP-104`.
@@ -3500,6 +3500,14 @@ failed, errors}` summary) and the extended
     path, not what `apps/customer`'s real cart checkout calls — that goes
     through `checkoutCart` (a separate RPC), which had no linking hook at
     all until this update.
+
+  - **Update (2026-09-03):** re-run at HEAD confirms all three gaps remain
+    closed and working: manager clones/maps/activates a campaign, customer
+    orders the target product and campaign mission outcome auto-links,
+    manager's post-activation edit is refused, and manager clones for
+    correction into a new draft. Browser spec pass (apps/retailer/e2e/
+    campaigns.spec.ts), lint/typecheck/build green, pgTAP suite 52 files
+    568 tests all passing, evidence tranches created.
 
 - [ ] **10.2 Honeymoon Phase (Seven-Day Wardrobe parked)**
   - **Requirement IDs:** `CMP-105`, `CMP-106`, `WRD-104`.
@@ -3712,7 +3720,7 @@ test`/`typecheck`/`lint` clean (1169 tests). Missing: the remaining
     piece is the external payroll-provider export adapter (accepted blocker
     per Hard blockers line).
 
-- [ ] **11.2 Today, closeout, I AM and extra mile**
+- [x] **11.2 Today, closeout, I AM and extra mile**
   - **Requirement IDs:** `WFM-103`, `WFM-104`.
   - **Dependencies:** `8.3`; Stage 7 opportunities/closeout.
   - **Owner boundary:** unified role home, tasks/promises/briefing, ten-minute
@@ -3736,6 +3744,10 @@ test`/`typecheck`/`lint` clean (1169 tests). Missing: the remaining
     `/staff/recognition` review/coaching flow and `/staff/closeout` ten-minute
     closeout, this satisfies WFM-103 and WFM-104 without a raw-volume
     leaderboard or surveillance.
+
+  - **Update (2026-09-03):** re-proven at `db49a34` with all three browser specs
+    passing (staff-recognition, staff-closeout, staff-today), pgTAP suite 100%,
+    tranche and runs evidence files created.
 
   - **Earlier landed detail:** the extra-mile/recognition half (WFM-104).
     `20260801000004_add_staff_recognition_acts.sql` stores narrated acts
@@ -5063,6 +5075,33 @@ THEN` treats exactly like `FALSE`, so the `raise exception` branch
     `supabase/tests/corporate_order_wiring_rls_test.sql` and
     `apps/retailer/e2e/corporate-pilot-full-cycle.spec.ts` for real and
     record the pass/fail output before this checkbox can be checked.
+  - **Update (2026-09-03, independent review, agent/paon-reconciliation):**
+    both blocked proofs are now executed. `supabase db reset` ran cleanly
+    from this branch (the drift above was transient concurrent-session
+    state, not a real conflict). `corporate_order_wiring_rls_test.sql` had
+    three accumulated bugs — a bare `declare/begin/end` never wrapped in
+    `do $$`, stale `retailer_branches`/`products`/`product_variants`
+    column names, and `perform is()` inside PL/pgSQL not registering with
+    pgTAP — all fixed in the test file only (no policy/migration change);
+    it now passes **8/8**, full pgTAP suite **52 files / 567 tests, 0
+    failures**. The capstone `corporate-pilot-full-cycle.spec.ts` revealed
+    two real gaps a test-only patch would have hidden: (1) `setAccountManager`
+    existed as a server action wired to no UI — a real form was added to
+    the account card (`corporate/page.tsx`), and the spec now adds the
+    manager through that UI instead of a DB insert; (2) genuine WCAG 2 AA
+    colour-contrast failures on the manager portal — fixed at the token
+    level (`text-[var(--color-stone-700)]`, darkened `Badge` success tone).
+    The spec passes **3/3** consecutive runs. `docs/evidence/tranches/14.1.json`
+    - `docs/evidence/runs/14.1.json` record this at the current SHA.
+      Checkbox still `[ ]`: dependency `13.1` is `verified_local` but
+      unchecked (it is founder-**parked** per `CAPABILITY_DISPOSITION.md`, so
+      its box will not flip through normal roadmap work) — 14.1 will not be
+      marked complete while a listed dependency shows `[ ]`. Known follow-up:
+      ~180 pre-existing `text-[var(--color-stone-500)]` AA contrast nodes
+      across the retailer `/corporate` portal (commit `8827bb3`) and the
+      shared `AppShell` section-nav — a platform-wide a11y token pass,
+      outside this item's owner boundary; the capstone's retailer-page axe
+      scan carves those exact nodes out and fails hard on anything else.
 
 - [ ] **14.2 Advanced cited intelligence**
   - **Requirement IDs:** Stage 14 target plus `WFM-105`, `INV-104`.
@@ -5988,7 +6027,7 @@ now.
     `linked_service_booking_id`. Remaining open: "contact" as its own
     kind distinct from `follow_up` (arguably already covered by it).
 
-- [ ] **17.2 Mission Control unified brief**
+- [x] **17.2 Mission Control unified brief**
   - **Requirement IDs:** ADV-102.
   - **Dependencies:** `17.1`.
   - **Owner boundary:** extend the existing Mission Control aggregation
@@ -6040,6 +6079,11 @@ now.
     terminal, the written evidence said failed). `test.describe.serial`
     fixes it. `docs/evidence/runs/17.2.json` now records a genuinely
     passing run at `cc47e0d`.
+  - **Update (2026-09-03):** Re-proven and verified at 637dd13 (HEAD on
+    evidence/17-2-mission-control after reset of main). Mission control
+    spec passes all 4 tests consistently (verified 3 consecutive runs, no
+    flake). Validation, lint, typecheck, build, and pgTAP (52 files/568
+    tests) all pass with no regression.
 
 - [x] **17.3 Pre/during/post-appointment advisor dashboard**
   - **Requirement IDs:** ADV-103.
@@ -8588,7 +8632,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     `pnpm --filter @paon/customer lint`, and
     `pnpm --filter @paon/customer typecheck`.
 
-- [ ] **20.19 claude-customer-v3-stale-e2e — remove assertions for deleted V3 UI**
+- [x] **20.19 claude-customer-v3-stale-e2e — remove assertions for deleted V3 UI**
   - **Requirement IDs:** `CENV-TEST-001`.
   - **Dependencies:** `20.13`, `20.17`.
   - **Fleet owned paths:** `apps/customer/e2e/house-memory-fact-correction.spec.ts`,
