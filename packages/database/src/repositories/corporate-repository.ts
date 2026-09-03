@@ -443,6 +443,17 @@ export class CorporateRepository {
     return data.map(toProgramme);
   }
 
+  async findManagersByAccount(accountId: string): Promise<CorporateManager[]> {
+    const { data, error } = await this.client
+      .from("corporate_managers")
+      .select("*")
+      .eq("account_id", accountId)
+      .is("deleted_at", null)
+      .order("contact_name", { ascending: true });
+    if (error) throw error;
+    return data.map(toManager);
+  }
+
   async createManager(
     retailerId: RetailerId,
     input: {
