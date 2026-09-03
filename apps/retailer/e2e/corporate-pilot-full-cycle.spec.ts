@@ -75,7 +75,9 @@ test("corporate pilot full cycle: one employer, multi-site, multi-role, order wi
     await page.getByLabel("Legal name").fill(companyName);
     await page.getByLabel("Account reference").fill(`REF-${unique}`);
     await page.getByRole("button", { name: "Add account" }).click();
-    await expect(page.getByText(companyName)).toBeVisible();
+    await expect(
+      page.getByRole("listitem").getByText(companyName),
+    ).toBeVisible();
 
     const { data: accountRow } = await admin
       .from("corporate_accounts")
@@ -112,7 +114,7 @@ test("corporate pilot full cycle: one employer, multi-site, multi-role, order wi
     ).toBeVisible();
 
     // 3. Create entitlement version with three roles (staff, manager, admin)
-    await page.getByText("Add an entitlement version").click();
+    await page.getByText("Publish a new version").click();
     const entitlementRules = [
       {
         roleKey: "staff",
@@ -139,9 +141,16 @@ test("corporate pilot full cycle: one employer, multi-site, multi-role, order wi
         period: "annual",
       },
     ];
-    await page.getByLabel("Rules").fill(JSON.stringify(entitlementRules));
-    await page.getByRole("button", { name: "Save" }).click();
-    await expect(page.getByText("uniform")).toBeVisible();
+    await page.getByLabel("Effective from").fill("2026-01-01");
+    await page
+      .getByLabel("Rules (JSON array)")
+      .fill(JSON.stringify(entitlementRules));
+    await page.getByRole("button", { name: /Publish version/ }).click();
+    // Wait for the entitlement table to appear
+    await expect(page.getByRole("table")).toBeVisible();
+    await expect(
+      page.getByRole("table").getByRole("cell", { name: "uniform" }).first(),
+    ).toBeVisible();
 
     // 4. Create three wearers: one staff (london), one manager (paris), one admin
     const wearers = [
@@ -169,14 +178,27 @@ test("corporate pilot full cycle: one employer, multi-site, multi-role, order wi
     ];
 
     for (const w of wearers) {
-      await page.getByText("Add a wearer").click();
+      // Find and open the "Add a wearer" details element
+      const addWearerSummary = page.locator("details").filter({
+        has: page.getByText("Add a wearer"),
+      });
+      await addWearerSummary.click();
+      // Wait for form to be fully visible
+      await page.getByLabel("Employee reference").waitFor({ state: "visible" });
       await page.getByLabel("Employee reference").fill(w.ref);
       await page.getByLabel("Display name").fill(w.name);
       await page.getByLabel("Role key").fill(w.role);
       await page.getByLabel("Site key").fill(w.site);
       await page.getByLabel("Joined on").fill("2026-01-01");
       await page.getByRole("button", { name: "Add wearer" }).click();
-      await expect(page.getByText(w.name)).toBeVisible();
+      // Scope to wearers list items to avoid matching <option> elements
+      await expect(
+        page
+          .getByRole("heading", { name: "Wearers" })
+          .locator("..")
+          .getByRole("listitem")
+          .filter({ hasText: w.name }),
+      ).toBeVisible();
 
       wearerEmails.push(w.email);
     }
@@ -204,13 +226,27 @@ test("corporate pilot full cycle: one employer, multi-site, multi-role, order wi
     }
 
     // 6. Create manager for this account to test scoped view
-    await page.goto(`/corporate`);
-    await page.getByText(companyName).click();
-    await page.getByText("Add a manager").click();
-    await page.getByLabel("Name").fill("Diana Manager");
-    await page.getByLabel("Email").fill(managerEmail);
-    await page.getByRole("button", { name: "Save" }).click();
-    await expect(page.getByText("Diana Manager")).toBeVisible();
+    // Navigate to corporate accounts page and add manager via UI
+    await page.goto("/corporate");
+    // Find the account list item for our company
+    const accountListItem = page.locator("li").filter({ hasText: companyName });
+    // Open the "Add a manager" details element - the text is in the summary
+    const addManagerSummary = accountListItem
+      .locator("details summary")
+      .filter({
+        hasText: "Add a manager",
+      });
+    await addManagerSummary.click();
+    // Wait for the form to be visible and fill in details
+    await accountListItem
+      .getByLabel("Contact name")
+      .waitFor({ state: "visible" });
+    await accountListItem.getByLabel("Contact name").fill("Diana Manager");
+    await accountListItem.getByLabel("Login email").fill(managerEmail);
+    // Submit the form
+    await accountListItem.getByRole("button", { name: "Add manager" }).click();
+    // Verify manager was created by checking visibility in the list
+    await expect(accountListItem.getByText("Diana Manager")).toBeVisible();
 
     // 7. FIT: Create a fitting appointment for Alice
     await page.goto(`/corporate/${programmeId}`);
@@ -218,7 +254,6 @@ test("corporate pilot full cycle: one employer, multi-site, multi-role, order wi
     await page.getByLabel("Date").fill("2026-09-15");
     await page.getByLabel("Capacity").fill("3");
     await page.getByRole("button", { name: "Add fitting day" }).click();
-
     const dayCard = page.locator('[data-rollout-day="2026-09-15"]');
     await expect(dayCard).toBeVisible();
     await dayCard.getByLabel("Assign wearer").selectOption("Alice Staff");
@@ -299,8 +334,14 @@ test("corporate pilot full cycle: one employer, multi-site, multi-role, order wi
 
     // 9. EXCEPTION: Service required and leaver return
     // Create a service_required exception for Bob (manager)
-    await page.getByText("Log an exception").click();
-    await page.getByLabel("Wearer").selectOption("Bob Manager");
+    // Scope to the exception form to avoid ambiguous "Wearer" selector
+    const exceptionDetails = page.locator("details").filter({
+      has: page.getByText("Log an exception"),
+    });
+    await exceptionDetails.click();
+    await exceptionDetails
+      .locator("select[name='wearerId']")
+      .selectOption("Bob Manager");
     await page.getByLabel("Kind").selectOption("service_required");
     await page
       .getByLabel("Detail")
@@ -343,7 +384,14 @@ test("corporate pilot full cycle: one employer, multi-site, multi-role, order wi
     await page.getByLabel("Legal name").fill(otherCompanyName);
     await page.getByLabel("Account reference").fill(`REF-OTHER-${unique}`);
     await page.getByRole("button", { name: "Add account" }).click();
-    await expect(page.getByText(otherCompanyName)).toBeVisible();
+    // Scope to accounts list to avoid strict mode violation with select option
+    await expect(
+      page
+        .getByRole("heading", { name: "Accounts" })
+        .locator("..")
+        .getByRole("listitem")
+        .filter({ hasText: otherCompanyName }),
+    ).toBeVisible();
 
     const { data: otherAccountRow } = await admin
       .from("corporate_accounts")
@@ -383,8 +431,11 @@ test("corporate pilot full cycle: one employer, multi-site, multi-role, order wi
 
     try {
       // Manager sign in via magic link
+      // Manager portal is on customer app (port 3002), not retailer app (port 3001)
+      const customerAppUrl =
+        process.env["NEXT_PUBLIC_CUSTOMER_APP_URL"] || "http://localhost:3002";
       await managerPage.goto(
-        `${process.env["PLAYWRIGHT_TEST_BASE_URL"] || "http://localhost:3000"}/manager/auth/confirm?token_hash=${magicLinkData.properties.hashed_token}&type=magiclink`,
+        `${customerAppUrl}/manager/auth/confirm?token_hash=${magicLinkData.properties.hashed_token}&type=magiclink`,
       );
       await expect(managerPage).toHaveURL(/\/manager$/);
 
