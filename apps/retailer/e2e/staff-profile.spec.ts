@@ -102,7 +102,10 @@ test("a staff member can read their own closeout and reviewed recognition eviden
     page.getByRole("heading", { name: "My Profile", exact: true }),
   ).toBeVisible();
   await expect(page.getByText(owner.full_name)).toBeVisible();
-  await expect(page.getByText(owner.role.replaceAll("_", " "))).toBeVisible();
+  await page.waitForLoadState("networkidle");
+  await expect(
+    page.locator("dd").filter({ hasText: owner.role.replaceAll("_", " ") }),
+  ).toBeVisible();
   await expect(page.getByText(closeoutPromises)).toBeVisible();
 
   const recognitionEvidence = page.getByLabel("Recognition evidence");
