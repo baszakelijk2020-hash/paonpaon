@@ -4485,6 +4485,58 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     no test covers the linkage, and the calendar UI, custody and
     alteration/dry-cleaning end-to-end flows this item requires are
     untouched.
+  - **Correction (2026-09-03, agent/phase-12-3-20260903):** the
+    2026-08-03 note above ("no such surface exists anywhere in this
+    repository ... to port") was stale — the founder's 2026-08-12
+    monthly-grid spec was in fact built in the interim:
+    `apps/customer/app/(dashboard)/preferred-tailoring/page.tsx` +
+    `apps/customer/app/(dashboard)/services/preferred-tailoring-month-grid.tsx`
+    (per-day staggered fade-in, mobile page-filling layout matching
+    FT-14), proven by `apps/customer/e2e/preferred-tailoring-grid.spec.ts`
+    — this narrative simply never caught up.
+  - **Update (2026-09-03, agent/phase-12-3-20260903), NEEDS TEST/PROOF:**
+    closes the item's two remaining concrete gaps. Wired the
+    previously-dormant `service_partner_quality_reviews` table (schema
+    existed since `20260801000009`, zero callers) into real, reachable
+    UI on both sides: `/service-partners` shows a rating/note form for
+    a retailer once an engagement reaches `returned_to_retailer`
+    (read-only once submitted); `/services` shows the equivalent for
+    the customer, sourced through `get_my_service_care_status()`
+    (extended to also return `engagement_id`/`partner_id`/`retailer_id`
+    so a customer session never needs the RLS-blocked
+    `service_partner_engagements` table directly). Added a genuine
+    customer-visible proof of "one alteration and one dry-cleaning flow
+    continues from booking and pickup through return" —
+    `apps/customer/e2e/preferred-tailoring-full-cycle.spec.ts` logs the
+    real customer in via magic link, drives both garments through the
+    full custody chain, and asserts the customer's own `/services` page
+    renders each item's distinct capability and current custody state
+    correctly at each stage, ending with a quality-review submission
+    through the real form (prior coverage was retailer-side custody
+    transitions plus a static customer grid/status display — never one
+    continuous customer-facing journey).
+    Independent re-verification (not the implementing workers' own
+    claims) found and fixed several real defects before this was
+    trustworthy: a migration-timestamp collision with a peer session's
+    already-applied migration; a customer-side "Engagement not found"
+    error from a repository fallback that queried a table with no
+    customer RLS SELECT policy; RLS policies that referenced a
+    `current_customer_id()` function which does not exist anywhere in
+    this codebase (silently never applied); a live page crash on
+    `/services` ("invalid input syntax for type uuid: undefined") from
+    an unapplied migration, root-caused via the actual dev-server stack
+    trace; and — surfaced by that same debugging — a real pre-existing
+    gap in this session's own 14.1 order-wiring work (`Order.customerId`
+    was still required even though `orders.customer_id` is nullable for
+    corporate orders), fixed with narrow fail-closed guards at every
+    retailer-app call site it affected.
+    Verified independently, twice each, against real local Supabase:
+    `preferred-tailoring-full-cycle.spec.ts` and the extended
+    `service-partners.spec.ts` (2 tests) all pass; full monorepo lint,
+    typecheck and build pass. Checkbox stays unchecked — the
+    acceptance criterion's "agenda/travel/context" and "composed looks"
+    requirements remain genuinely unbuilt, with no founder source
+    material to port from, unchanged from the 2026-08-03/08-12 notes.
 
 - [ ] **12.4 Supplier/atelier intelligence and support operations**
   - **Requirement IDs:** `MTM-101`.
