@@ -3523,6 +3523,18 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     into a saved challenge look; the month/season roadmap visualization; and
     multi-role browser proof.
 
+  - **Update (2026-09-03):** multi-role browser proof slice landed.
+    `packages/ui/src/components/HoneymoonProgrammeCard.tsx` is now shared
+    between customer and retailer order detail; retailer calls
+    `HoneymoonProgrammeRepository.ensureForOrder` (matching customer) so staff
+    see the same preparation/collection/aftercare truth, not just a pay-at-
+    delivery badge. New `apps/customer/e2e/honeymoon-programme-multi-role.spec.ts`
+    proves a retailer owner on `:3001` and the owning customer both render
+    the same programme actions for one real order. Lint/typecheck/build and
+    honeymoon unit tests pass; full e2e not re-run here (no local Docker/
+    Supabase). Checkbox stays unchecked: RPC `wardrobe_item_id` persistence
+    and month/season roadmap visualization remain open.
+
 - [ ] **10.3 Unified communication and remote proposals**
   - **Requirement IDs:** clienteling parity target; `CLI-004`, `CMP-103`.
   - **Dependencies:** `8.2`, `10.1`.

@@ -15,11 +15,12 @@ requires it.
   connected-proof reset while restoring the full modular PAON destination.
   Landed Stage 0–16 foundations remain in code; unchecked legacy work must be
   mapped into the modular chapters before it resumes.
-- **Current queue item:** **R0.1 Environment truth and safety containment** at
-  the top of `PHASE.md`. Do not perform live-data/deployment work until its
-  environment guard passes, money/stock work until R0.2, or resume a legacy
-  item before R0.3 maps it to a module and proof contract. Safe independent
-  work is not blocked by a missing pilot or provider.
+- **Current queue item:** **10.2 Honeymoon Phase** — order-to-delivery tracker
+  multi-role proof slice landed; remaining: RPC `wardrobe_item_id`
+  persistence and month/season roadmap visualization. Open PR #61 still
+  owns PHASE **9.2** scheduled sync/reconciliation — do not duplicate.
+  PR #56 owns **6.1** design-gate docs closure. Do not perform live-data/
+  deployment work until R0.1's environment guard passes.
 - **Immediate facts:** `ENVIRONMENTS.md` is the project ledger. Local Supabase
   is the active disposable target; original project `hngxrczavwywsnfceppb` is
   hard-protected; the Hyperagent sandbox is not accessible with the current
@@ -612,22 +613,17 @@ active slice needs historical context.
   jurisdiction documentation. Live Resend/OpenWeather/Faden/Shopify smoke
   still needs applicable provider credentials. Local/provider-neutral proof
   must follow ADR-068.
-- **Real blockers:** Stage 6.1 is blocked on founder business/legal/accounting/
-  provider decisions; 6.2 depends on 6.1; 6.3 marketplace modelling is not
-  explicitly activated and remains gated on commercial/payment design;
-  anonymous persistence remains blocked for new anonymous producers only;
-  missing founder-authored fabric/colour/formality sartorial rules still block
-  only those exact claims; live delivery smoke still needs credentials;
-  payment blocks money collection only (ADR-062). Stage 7 is not blocked by
-  Stage 6. Optional later ADR-052 verbatim Tie-Mate founder-HTML port may
-  replace interim chrome — not a programme blocker.
-- **Exact next work:** **R0.1 Environment truth and safety containment** on the
-  currently authorized takeover branch. Stage 9.2 must first be mapped through
-  R0.3 under ADR-070. Do not present the fixture Faden HMAC/header convention
-  as provider-documented.
-  Preserve `wip/stage-10-2-honeymoon` @
-  `ec58c8e00ec1d719c0cfbc2dbbc0d18730648cb5`. Do not invent Stage 6 payment
-  behavior.
+- **Real blockers:** Stage 6.1 design-gate docs closure is owned by open PR
+  #56; 6.2 depends on that checkbox. Stage 9.2 scheduled sync/reconciliation
+  is owned by open PR #61. Stage 10.2 multi-role programme proof is
+  implemented but awaits local Docker e2e verification; RPC wardrobe_item_id
+  persistence and roadmap visualization remain. Anonymous persistence remains
+  blocked for new anonymous producers only; live delivery smoke still needs
+  credentials. Payment blocks money collection only (ADR-062).
+- **Exact next work:** finish **10.2** (`upsert_campaign_challenge_look`
+  wardrobe_item_id migration, month/season roadmap visualization, then local
+  e2e verification of `honeymoon-programme-multi-role.spec.ts`). Merge or
+  reconcile open PR #61 for **9.2** separately — do not duplicate that lane.
 
 ## 1. Programme intent
 
