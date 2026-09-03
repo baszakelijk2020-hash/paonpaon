@@ -1,6 +1,6 @@
 {
   "phaseItemId": "20.24",
-  "gitSha": "0b1de2770f9ed3842a076a035d3bd3dc754831fa",
+  "gitSha": "d14510612bc25fbd15deeb1e7704618303f60524",
   "spec": "apps/customer/e2e/customer-prefetch-constrained-network-v3.spec.ts",
   "status": "passed",
   "timestamp": "2026-09-02T02:04:01.633292Z"

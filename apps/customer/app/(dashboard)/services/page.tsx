@@ -32,7 +32,11 @@ import { DateTimePicker } from "@paon/ui/components/DateTimePicker";
 import { FormField } from "@paon/ui/components/FormField";
 import Link from "next/link";
 
-import { decideWeeklyPlan, requestConciergeBooking } from "./actions";
+import {
+  decideWeeklyPlan,
+  requestConciergeBooking,
+  submitCustomerQualityReview,
+} from "./actions";
 import { PreferredTailoringMonthGrid } from "./preferred-tailoring-month-grid";
 
 import { requireSession } from "@/lib/session";
@@ -125,6 +129,19 @@ export default async function CustomerServicesPage() {
 
   const careRecords = groups.flatMap((group) => group.care);
 
+  const partnerRepo = new ServicePartnerRepository(client);
+  const reviewsByEngagement = new Map(
+    await Promise.all(
+      careStatus.map(
+        async (care) =>
+          [
+            care.engagementId,
+            await partnerRepo.findQualityReviewByEngagement(care.engagementId),
+          ] as const,
+      ),
+    ),
+  );
+
   return (
     <div className="customer-page flex flex-col gap-8">
       <header className="customer-page-header flex-col items-start gap-2">
@@ -144,7 +161,11 @@ export default async function CustomerServicesPage() {
       />
 
       <div id="care-journey">
-        <CareJourney careStatus={careStatus} careRecords={careRecords} />
+        <CareJourney
+          careStatus={careStatus}
+          careRecords={careRecords}
+          reviewsByEngagement={reviewsByEngagement}
+        />
       </div>
 
       {groups.every((group) => group.memberships.length === 0) ? (
@@ -287,11 +308,18 @@ const CARE_STEPS = [
 function CareJourney({
   careStatus,
   careRecords,
+  reviewsByEngagement,
 }: {
   careStatus: Awaited<
     ReturnType<ServicePartnerRepository["listMyCustomerCareStatus"]>
   >;
   careRecords: readonly ServiceCareRecord[];
+  reviewsByEngagement: Map<
+    string,
+    Awaited<
+      ReturnType<ServicePartnerRepository["findQualityReviewByEngagement"]>
+    >
+  >;
 }) {
   if (careStatus.length === 0) {
     return (
@@ -431,6 +459,81 @@ function CareJourney({
                     ).toLocaleDateString()}
                     .
                   </p>
+                ) : null}
+
+                {care.custodyState === "returned_to_retailer" ||
+                care.custodyState === "released_to_customer" ? (
+                  <div className="mt-6 border-t border-[var(--color-stone-100)] pt-4">
+                    {(() => {
+                      const review = reviewsByEngagement.get(care.engagementId);
+                      if (review?.customerRating || review?.customerNote) {
+                        return (
+                          <div className="flex flex-col gap-2 text-sm">
+                            <p className="text-xs font-medium text-[var(--color-stone-500)]">
+                              Your review
+                            </p>
+                            {review.customerRating ? (
+                              <p className="text-[var(--color-stone-700)]">
+                                Rating:{" "}
+                                <span className="font-medium">
+                                  {review.customerRating}/5
+                                </span>
+                              </p>
+                            ) : null}
+                            {review.customerNote ? (
+                              <p className="text-[var(--color-stone-700)]">
+                                {review.customerNote}
+                              </p>
+                            ) : null}
+                          </div>
+                        );
+                      }
+                      return (
+                        <form
+                          action={submitCustomerQualityReview.bind(
+                            null,
+                            care.engagementId,
+                          )}
+                          className="flex flex-col gap-3"
+                        >
+                          <p className="text-xs font-medium text-[var(--color-stone-500)]">
+                            How was the care?
+                          </p>
+                          <div className="flex items-end gap-2">
+                            <label className="flex flex-col gap-1 text-sm">
+                              Rating
+                              <input
+                                type="number"
+                                name="customerRating"
+                                min={1}
+                                max={5}
+                                required
+                                className="w-20 rounded-[var(--customer-radius)] border border-[var(--customer-border)] bg-white/70 px-2 py-1 text-sm"
+                                placeholder="1-5"
+                              />
+                            </label>
+                            <Button
+                              type="submit"
+                              variant="secondary"
+                              size="sm"
+                              className="customer-button"
+                            >
+                              Submit
+                            </Button>
+                          </div>
+                          <label className="flex flex-col gap-1 text-sm">
+                            Notes (optional)
+                            <textarea
+                              name="customerNote"
+                              maxLength={500}
+                              rows={2}
+                              className="rounded-[var(--customer-radius)] border border-[var(--customer-border)] bg-white/70 px-2 py-1 text-sm"
+                            />
+                          </label>
+                        </form>
+                      );
+                    })()}
+                  </div>
                 ) : null}
               </div>
             </article>

@@ -56,7 +56,7 @@ export type OrderChannel = "online" | "in_store" | "clienteling" | "phone";
 export interface Order extends Timestamps {
   readonly id: OrderId;
   readonly retailerId: RetailerId;
-  readonly customerId: CustomerId;
+  readonly customerId?: CustomerId;
   readonly orderNumber: string;
   readonly status: OrderStatus;
   readonly channel: OrderChannel;

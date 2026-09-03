@@ -38,6 +38,9 @@ export default async function OrderDetailPage({
   if (!order) {
     notFound();
   }
+  if (!order.customerId) {
+    notFound();
+  }
 
   const [lines, retailer, paymentRecord] = await Promise.all([
     orderRepo.findLinesByOrder(order.id),

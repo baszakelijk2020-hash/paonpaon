@@ -11943,9 +11943,10 @@ export type Database = {
       orders: {
         Row: {
           channel: Database["public"]["Enums"]["order_channel"];
+          corporate_wearer_id: string | null;
           created_at: string;
           currency: string;
-          customer_id: string;
+          customer_id: string | null;
           deleted_at: string | null;
           id: string;
           order_number: string;
@@ -11960,9 +11961,10 @@ export type Database = {
         };
         Insert: {
           channel?: Database["public"]["Enums"]["order_channel"];
+          corporate_wearer_id?: string | null;
           created_at?: string;
           currency: string;
-          customer_id: string;
+          customer_id?: string | null;
           deleted_at?: string | null;
           id?: string;
           order_number: string;
@@ -11977,9 +11979,10 @@ export type Database = {
         };
         Update: {
           channel?: Database["public"]["Enums"]["order_channel"];
+          corporate_wearer_id?: string | null;
           created_at?: string;
           currency?: string;
-          customer_id?: string;
+          customer_id?: string | null;
           deleted_at?: string | null;
           id?: string;
           order_number?: string;
@@ -11993,6 +11996,13 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "orders_corporate_wearer_id_fkey";
+            columns: ["corporate_wearer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_wearers";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "orders_customer_id_fkey";
             columns: ["customer_id"];
@@ -23529,7 +23539,10 @@ export type Database = {
           capability: string;
           custody_state: string;
           due_on: string;
+          engagement_id: string;
           garment_display_name: string;
+          partner_id: string;
+          retailer_id: string;
           returned_on: string;
         }[];
       };
@@ -23696,6 +23709,16 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      place_corporate_order: {
+        Args: {
+          p_channel: Database["public"]["Enums"]["order_channel"];
+          p_currency: string;
+          p_lines: Json;
+          p_retailer_id: string;
+          p_wearer_id: string;
+        };
+        Returns: string;
       };
       place_order: {
         Args: {

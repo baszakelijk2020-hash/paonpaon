@@ -228,15 +228,23 @@ test("corporate pilot full cycle: one employer, multi-site, multi-role, order wi
     // 6. Create manager for this account to test scoped view
     // Navigate to corporate accounts page and add manager via UI
     await page.goto("/corporate");
-    // Find the account list item for our company
-    const accountListItem = page.locator("li").filter({ hasText: companyName });
-    // Open the "Add a manager" details element - the text is in the summary
-    const addManagerSummary = accountListItem
-      .locator("details summary")
-      .filter({
-        hasText: "Add a manager",
-      });
-    await addManagerSummary.click();
+    // Wait for the accounts section to be visible
+    await page
+      .getByRole("heading", { name: "Accounts" })
+      .waitFor({ state: "visible" });
+    // Find the account list item for our company, scoped to the Accounts section
+    // (to avoid matching the programme list item with the same text)
+    const accountListItem = page
+      .getByRole("heading", { name: "Accounts" })
+      .locator("..")
+      .getByRole("listitem")
+      .filter({ hasText: companyName });
+    await accountListItem.waitFor({ state: "visible" });
+    // Open the "Add a manager" details element by clicking the details tag
+    // (details toggle works by clicking on the element, which opens/closes the details)
+    const addManagerDetails = accountListItem.locator("details");
+    await addManagerDetails.waitFor({ state: "visible" });
+    await addManagerDetails.click();
     // Wait for the form to be visible and fill in details
     await accountListItem
       .getByLabel("Contact name")

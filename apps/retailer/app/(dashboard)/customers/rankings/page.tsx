@@ -93,6 +93,7 @@ export default async function CustomerRankingsPage() {
   >();
 
   for (const order of completedOrders) {
+    if (!order.customerId) continue;
     const existing = summariesByCustomer.get(order.customerId) ?? {
       totalSpendMinorUnits: 0,
       currency: order.total.currency,

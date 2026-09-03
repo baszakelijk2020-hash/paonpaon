@@ -12,6 +12,7 @@ type OrderLineRow = Database["public"]["Tables"]["order_lines"]["Row"];
 const orderRow: OrderRow = {
   id: "99999999-9999-9999-9999-999999999999",
   retailer_id: "11111111-1111-1111-1111-111111111111",
+  corporate_wearer_id: null,
   customer_id: "44444444-4444-4444-4444-444444444444",
   order_number: "ORD-000001",
   status: "pending_payment",

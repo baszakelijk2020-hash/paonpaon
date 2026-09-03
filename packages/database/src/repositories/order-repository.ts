@@ -25,7 +25,9 @@ function toDomain(row: OrderRow): Order {
   return {
     id: asId<"OrderId">(row.id),
     retailerId: asId<"RetailerId">(row.retailer_id),
-    customerId: asId<"CustomerId">(row.customer_id),
+    ...(row.customer_id
+      ? { customerId: asId<"CustomerId">(row.customer_id) }
+      : {}),
     orderNumber: row.order_number,
     status: row.status,
     channel: row.channel,
@@ -207,6 +209,7 @@ export class OrderRepository {
     const productId = variant.product_id;
 
     // Look up open campaign mission for this customer
+    if (!order.customerId) return; // No customer, skip clienteling opportunity lookup
     const opportunity = await new ClientelingOpportunityRepository(
       admin,
     ).findOpenCampaignMission(retailerId, order.customerId);
