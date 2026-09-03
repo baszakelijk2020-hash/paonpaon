@@ -1,6 +1,6 @@
 {
   "phaseItemId": "14.1",
-  "gitSha": "fce97dec749b7b8c86366514f4ce63fb18d86da1",
+  "gitSha": "d14510612bc25fbd15deeb1e7704618303f60524",
   "spec": "apps/retailer/e2e/corporate-pilot-full-cycle.spec.ts",
   "status": "passed",
   "timestamp": "2026-09-03T09:17:06.490Z"

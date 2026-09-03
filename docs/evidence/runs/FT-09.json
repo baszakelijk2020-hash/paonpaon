@@ -1,10 +1,10 @@
 {
   "phaseItemId": "FT-09",
-  "gitSha": "74a00e6cc3567742b1378b7b72684545e3ca413b",
+  "gitSha": "d14510612bc25fbd15deeb1e7704618303f60524",
   "specs": ["apps/customer/e2e/consultation-outcome.spec.ts"],
   "pgtap": "501/501 green (supabase test db full suite; migration applies cleanly)",
   "status": "passed",
   "runs": 3,
-  "note": "Consultation-to-appointment outcome journey — customer browser-driven spec proves: (1) signed-in customer navigates to conversation thread, (2) clicks 'Book appointment' button wired in UI, (3) fills datetime and type form, (4) submits via real Server Action (bookAppointmentFromConsultation), (5) receives success with appointment ID, (6) appointment created in DB with origin_message_thread_id set to conversation.id, (7) unauthorized customer cannot book for other customer's thread. RPC book_appointment_from_consultation() validates caller authorization and conversation ownership. Fixture corrected to authenticate as customer and route through record_consultation_attachment() RPC instead of insecure service_role raw insert (reverted migration 20260819120000). Full typecheck/lint clean; all domain/database/customer/retailer packages build successfully.",
+  "note": "Consultation-to-appointment outcome journey \u2014 customer browser-driven spec proves: (1) signed-in customer navigates to conversation thread, (2) clicks 'Book appointment' button wired in UI, (3) fills datetime and type form, (4) submits via real Server Action (bookAppointmentFromConsultation), (5) receives success with appointment ID, (6) appointment created in DB with origin_message_thread_id set to conversation.id, (7) unauthorized customer cannot book for other customer's thread. RPC book_appointment_from_consultation() validates caller authorization and conversation ownership. Fixture corrected to authenticate as customer and route through record_consultation_attachment() RPC instead of insecure service_role raw insert (reverted migration 20260819120000). Full typecheck/lint clean; all domain/database/customer/retailer packages build successfully.",
   "timestamp": "2026-08-23T22:46:00.000Z"
 }
