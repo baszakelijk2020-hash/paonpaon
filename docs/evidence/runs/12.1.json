@@ -1,6 +1,6 @@
 {
   "phaseItemId": "12.1",
-  "gitSha": "1ecde4482cb4593b784e3af17621666479fd6072",
+  "gitSha": "ad0a4db8942e2ec7fdd76b457d9f9bc2d0b29fae",
   "spec": "apps/retailer/e2e/measurement-monitor.spec.ts",
   "status": "passed",
   "timestamp": "2026-08-20T12:33:14.355Z"

@@ -1,6 +1,6 @@
 {
   "phaseItemId": "4.7",
-  "gitSha": "1ecde4482cb4593b784e3af17621666479fd6072",
+  "gitSha": "ad0a4db8942e2ec7fdd76b457d9f9bc2d0b29fae",
   "spec": "apps/customer/e2e/digital-fitting-room-start-creating-reproof-v3.spec.ts",
   "status": "passed",
   "timestamp": "2026-09-02T09:30:00.000Z"
