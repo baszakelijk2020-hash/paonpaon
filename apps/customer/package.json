@@ -29,6 +29,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.0",
     "@paon/eslint-config": "workspace:*",
     "@paon/typescript-config": "workspace:*",
     "@playwright/test": "^1.49.1",

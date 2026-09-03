@@ -261,5 +261,22 @@ export async function ingestFadenWebhook(
     recordsFailed: 0,
   });
 
+  // Record reconciliation report for this webhook delivery
+  const reconciliationStatus = ingestResult.identity.reconciliationStatus;
+  const matchedCount = reconciliationStatus === "matched" ? 1 : 0;
+  const conflictCount = reconciliationStatus === "conflict" ? 1 : 0;
+  const staleCount = reconciliationStatus === "stale" ? 1 : 0;
+
+  await lifecycle.recordReconciliationReport({
+    retailerId: args.retailerId,
+    connectionId: args.connectionId,
+    runId: run.id,
+    resource: args.externalObjectType,
+    matchedCount,
+    conflictCount,
+    staleCount,
+    deadLetterCount: 0,
+  });
+
   return { ok: true, runId: run.id, identityId: ingestResult.identity.id };
 }

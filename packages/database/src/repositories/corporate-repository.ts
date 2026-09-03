@@ -407,6 +407,19 @@ export class CorporateRepository {
     return data ? toManager(data) : null;
   }
 
+  async findManagersByRetailer(
+    retailerId: RetailerId,
+  ): Promise<CorporateManager[]> {
+    const { data, error } = await this.client
+      .from("corporate_managers")
+      .select("*")
+      .eq("retailer_id", retailerId)
+      .is("deleted_at", null)
+      .order("contact_name", { ascending: true });
+    if (error) throw error;
+    return data.map(toManager);
+  }
+
   /** The Manager Portal's own lookup — `user_id` is set by
    * `linkMyCorporateManagerAccount`, never chosen by the caller.
    * Mirrors `findWearerByUserId` exactly. */

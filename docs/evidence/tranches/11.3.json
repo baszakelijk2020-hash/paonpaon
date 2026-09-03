@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "11.3",
+  "requirementIds": ["WFM-105", "WFM-106"],
+  "status": "verified_local",
+  "title": "Scheduling, demand, ceremony and coaching",
+  "applicability": {
+    "domain": "required",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/workforce/coverage.ts; packages/domain/src/workforce/coaching.ts (coverage.test.ts and coaching.test.ts, 41 tests: cited shortage recommendations, observation-to-coaching loop, no-autonomous-scheduling contract)",
+    "persistence": "supabase/migrations covering staff_availability_windows, staff_shift_swaps, staff_coverage_requirements, ceremony_versions and appointment context prompts, staff_observations/coaching_plans (see prior 2026-08-01/08-10 status notes on this item for exact migration filenames)",
+    "service": "packages/database/src/repositories (coverage, swap, ceremony and coaching repositories backing apps/retailer/e2e/staff-coverage.spec.ts's six scenarios)",
+    "origin_ui": "apps/retailer/app/(dashboard)/staff/coverage (publish coverage, availability declarations, shift swap offer/accept/approve, ceremony version publish, contextual prompts on appointment brief)",
+    "receiver_ui": "apps/retailer/app/(dashboard)/staff/coverage (cited shortage recommendation display, observation/coaching loop UI)",
+    "rls": "role/RLS enforced per the item's own acceptance criterion; exercised end-to-end by the six staff-coverage.spec.ts scenarios",
+    "exceptions": "explicit assertion that no staff_shifts row is auto-created by a shortage recommendation (no-autonomous-scheduling non-goal enforced, not just documented)",
+    "browser": "apps/retailer/e2e/staff-coverage.spec.ts — 6 scenarios independently re-run 2026-09-03 (not trusted from a prior unverified narrative claim): manager publishes coverage/reads a cited shortage/closes a coaching loop (publish -> cited shortage recommendation -> observation -> discussed -> plan_agreed -> outcome_recorded, plus assertion of zero auto-created staff_shifts rows); a staff member declares their own availability; a manager offers a shift, a colleague accepts, the owner approves; a manager publishes a versioned service ceremony; the appointment brief shows contextual ceremony prompts for that appointment's type; ceremony steps filter by context conditions (appliesWhen). All 6 pass. docs/evidence/runs/11.3.json status=passed at this commit.",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "No external provider dependency — first-party domain/RLS/UI work only."
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/staff-coverage.spec.ts",
+  "assertedAt": "2026-09-03T09:30:00.000Z"
+}

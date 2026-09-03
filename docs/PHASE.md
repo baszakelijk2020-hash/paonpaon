@@ -3382,6 +3382,37 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     checkbox per the item's own hard-blocker framing). Checkbox stays
     unchecked — connection creation was one gap among several.
 
+  - **Update (2026-09-03, agent/phase-9-2-20260903), NEEDS TEST/PROOF:**
+    closes the two remaining concrete gaps. New
+    `apps/admin/app/api/cron/dispatch-integration-sync` route (CRON_SECRET-
+    gated, mirrors the existing `dispatch-newsletter`/`dispatch-emails`
+    convention) queries every active Shopify `integration_connections` row
+    across all retailers and calls `orchestrateShopifyDeltaSync(...,
+triggerKind: "scheduled")` per connection, tolerating one connection's
+    failure without aborting the batch — closes "scheduled/webhook-
+    triggered execution" (today's Shopify path was manual-trigger only;
+    Faden stays webhook-driven by design, not polled). Not registered in
+    `vercel.json`'s crons — the Hobby plan already has two daily jobs at
+    capacity — documented for external-scheduler/manual triggering, same
+    precedent `dispatch-newsletter` already sets. `recordReconciliationReport()`
+    (`IntegrationLifecycleRepository`, previously written but never
+    called by anything) is now called by both `orchestrateShopifyDeltaSync`
+    and `ingestFadenWebhook` after a sync/ingest completes, and
+    `/settings/integrations` now renders each connection's recent
+    reconciliation reports — closes "reconciliation UI". Live provider
+    smoke remains `blocked_external` and does not gate this checkbox per
+    the item's own hard-blocker framing, unchanged.
+    Verified independently: lint/typecheck/build across all packages
+    pass; `apps/admin/e2e/dispatch-integration-sync-cron.spec.ts` (3/3:
+    rejects no/wrong bearer token, an authorized request processes real
+    active connections and returns a genuine `{processed, succeeded,
+failed, errors}` summary) and the extended
+    `apps/retailer/e2e/integration-connection-lifecycle.spec.ts` (2/2,
+    including a real assertion that `listReconciliationReports()` returns
+    actual rows with `matchedCount > 0` after a manual sync, not an
+    empty-table check) both pass against real local Supabase. Checkbox
+    stays unchecked pending independent review and PR integration.
+
 - [ ] **9.3 Demand-led connector expansion**
   - **Requirement IDs:** `INT-002`–`INT-005`.
   - **Dependencies:** `9.1`; live prospect evidence.
@@ -3766,7 +3797,7 @@ test`/`typecheck`/`lint` clean (1169 tests). Missing: the remaining
     recognition, this surface's notes (`help_requested_note`,
     `problems_note`) can carry content a peer has no reason to read.
 
-- [ ] **11.3 Scheduling, demand, ceremony and coaching**
+- [x] **11.3 Scheduling, demand, ceremony and coaching**
   - **Requirement IDs:** `WFM-105`, `WFM-106`.
   - **Dependencies:** `11.1`, `11.2`.
   - **Owner boundary:** availability/swaps/coverage, explainable staffing,
@@ -3979,6 +4010,19 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     (availability, swaps, coverage, explainable staffing, ceremony
     versions with contextual prompts, observations/rubrics/plans) has a
     browser-proven UI. Checkbox now checked.
+  - **Re-verification (2026-09-03, agent/phase-9-2-20260903):** the
+    checkbox above claimed "now checked" but the actual markdown
+    checkbox had never been toggled — a real narrative/state mismatch.
+    Independently re-ran all six named tests in
+    `apps/retailer/e2e/staff-coverage.spec.ts` for real against local
+    Supabase (not trusted from the prior note): all 6 pass, including
+    the full closed loop the acceptance criterion names — publish
+    coverage → cited shortage recommendation → observation → discussed
+    → plan agreed → outcome recorded, plus an explicit assertion no
+    `staff_shifts` row is auto-created (no autonomous scheduling, per
+    the non-goal). Domain unit tests (`coaching.test.ts`,
+    `coverage.test.ts`, 41 tests) and `@paon/domain` typecheck also
+    pass. Checkbox corrected to checked on this basis.
 
 - [ ] **11.4 Internal community, contribution and support**
   - **Requirement IDs:** `WFM-107`.
