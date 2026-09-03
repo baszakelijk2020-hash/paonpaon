@@ -4,9 +4,12 @@
 -- (b) corporate manager can SELECT an order for wearer in their own account but NOT other account
 -- (c) customer_id IS NULL AND corporate_wearer_id IS NOT NULL round-trips correctly
 -- (d) CHECK constraint rejects row with both customer_id and corporate_wearer_id null
+-- (e) a corporate (customer_id NULL) order's status can be advanced with loyalty
+--     enabled — the personal-loyalty triggers must skip customer-less orders
+--     (regression guard for 20260829000001)
 
 begin;
-select plan(8);
+select plan(9);
 
 -- Set up two retailers A and B, each with account/programme/wearer/products
 insert into public.retailers (id, legal_name, display_name, slug, status)
@@ -355,6 +358,37 @@ select throws_ok(
   '23514',
   null,
   'CHECK constraint rejects order with both customer_id and corporate_wearer_id null'
+);
+
+-- Test (e): with loyalty enabled for retailer A, advancing a corporate
+-- (customer_id NULL) order's status must not raise. The personal-loyalty
+-- status triggers unconditionally insert `orders.customer_id` into
+-- `loyalty_accounts.customer_id` (NOT NULL); 20260829000001 makes them skip
+-- customer-less orders. Runs as service_role: RLS is not what is under test.
+insert into public.loyalty_programs (retailer_id, enabled)
+values ('c1000000-0000-0000-0000-000000000001', true);
+
+with corp_order as (
+  insert into public.orders (
+    retailer_id, corporate_wearer_id, order_number, status, channel,
+    currency, subtotal_amount_minor_units, total_amount_minor_units
+  ) values (
+    'c1000000-0000-0000-0000-000000000001',
+    'c3200000-0000-0000-0000-000000000001',
+    'CORP-LOYALTY-E-1', 'pending_payment', 'in_store',
+    'GBP', 5000, 5000
+  )
+  returning id
+)
+select id::text as v_corp_order_id from corp_order \gset
+
+select lives_ok(
+  $$
+    update public.orders
+      set status = 'in_production'
+      where id = '$$ || :'v_corp_order_id' || $$'::uuid
+  $$,
+  'advancing a customer-less corporate order does not trip the personal-loyalty triggers'
 );
 
 reset role;
