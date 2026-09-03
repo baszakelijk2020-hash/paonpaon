@@ -15,11 +15,13 @@ requires it.
   connected-proof reset while restoring the full modular PAON destination.
   Landed Stage 0–16 foundations remain in code; unchecked legacy work must be
   mapped into the modular chapters before it resumes.
-- **Current queue item:** **R0.1 Environment truth and safety containment** at
-  the top of `PHASE.md`. Do not perform live-data/deployment work until its
-  environment guard passes, money/stock work until R0.2, or resume a legacy
-  item before R0.3 maps it to a module and proof contract. Safe independent
-  work is not blocked by a missing pilot or provider.
+- **Current queue item:** **9.2 Retailer migration plus Shopify and Faden
+  coexistence adapters** — scheduled Shopify sync is now wired to the admin
+  cron tick; reconciliation UI and live provider smoke remain. **8.4** and
+  **9.1** are `verified_local` at HEAD but unchecked pending formal closure.
+  Do not perform live-data/deployment work until **R0.1** passes; money/stock
+  work until **R0.2** (parked). Safe independent work is not blocked by a
+  missing pilot or provider.
 - **Immediate facts:** `ENVIRONMENTS.md` is the project ledger. Local Supabase
   is the active disposable target; original project `hngxrczavwywsnfceppb` is
   hard-protected; the Hyperagent sandbox is not accessible with the current
@@ -621,11 +623,10 @@ active slice needs historical context.
   payment blocks money collection only (ADR-062). Stage 7 is not blocked by
   Stage 6. Optional later ADR-052 verbatim Tie-Mate founder-HTML port may
   replace interim chrome — not a programme blocker.
-- **Exact next work:** **R0.1 Environment truth and safety containment** on the
-  currently authorized takeover branch. Stage 9.2 must first be mapped through
-  R0.3 under ADR-070. Do not present the fixture Faden HMAC/header convention
-  as provider-documented.
-  Preserve `wip/stage-10-2-honeymoon` @
+- **Exact next work:** finish **9.2** reconciliation UI and multi-role browser
+  proof for integration lifecycle; then **10.3** unified communication remote
+  proposal e2e (`proposal-composer.spec.ts` in a clean local stack). Preserve
+  `wip/stage-10-2-honeymoon` @
   `ec58c8e00ec1d719c0cfbc2dbbc0d18730648cb5`. Do not invent Stage 6 payment
   behavior.
 
