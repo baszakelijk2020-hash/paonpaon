@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "10.1",
+  "requirementIds": ["CMP-101", "CMP-102", "CMP-103", "CMP-104"],
+  "status": "verified_local",
+  "title": "Versioned campaign library",
+  "applicability": {
+    "domain": "required",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "required"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/campaign/campaign-library.ts; packages/domain/src/campaign/campaign.ts; packages/database/src/campaign-activation-orchestrator.ts",
+    "persistence": "supabase/migrations/20260730330000_add_versioned_campaign_library.sql; supabase/migrations/20260801000000_add_campaign_mission_opportunities.sql; supabase/migrations/20260801000001_add_campaign_rehearsal_and_activation_tracking.sql",
+    "service": "packages/database/src/repositories/campaign-library-repository.ts; packages/database/src/repositories/campaign-repository.ts",
+    "origin_ui": "apps/retailer/app/(dashboard)/settings/campaigns/page.tsx; apps/retailer/app/(dashboard)/settings/campaigns/clone-for-correction-form.tsx",
+    "receiver_ui": "apps/customer/app/(dashboard)/private-offers/page.tsx",
+    "rls": "supabase/migrations/20260801000000_add_campaign_mission_opportunities.sql (clienteling_opportunities requires current_retailer_role() IS NOT NULL for campaign mission writes)",
+    "exceptions": "packages/database/src/repositories/campaign-repository.ts enforces campaign.status !== draft guard via upsertAudienceRule and setTargetProduct; cloneRetailerCampaignForCorrection creates new draft with same library_version_id pin",
+    "browser": "apps/retailer/e2e/campaigns.spec.ts + docs/evidence/runs/10.1.json status=passed",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "Gaps 1-3 (downstream order linking, post-activation correction path, multi-role browser proof) all closed and proven browser-end-to-end: manager clones library + maps products, activates into staff missions + customer placements, customer orders product (campaign mission outcome auto-links), manager's post-activation edit is refused, manager clones for correction into new draft."
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "proven",
+    "denied": "proven",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/campaigns.spec.ts",
+  "assertedAt": "2026-09-03T03:30:00Z"
+}

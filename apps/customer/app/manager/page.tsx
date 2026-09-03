@@ -61,13 +61,13 @@ export default async function ManagerPortalPage() {
     return (
       <main className="mx-auto max-w-lg px-6 py-12">
         <div>
-          <p className="font-accent text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
+          <p className="font-accent text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-700)]">
             Manager Portal
           </p>
           <h1 className="font-display mt-1 text-3xl text-[var(--color-stone-900)]">
             {account.legalName}
           </h1>
-          <p className="mt-1 text-sm text-[var(--color-stone-500)]">
+          <p className="mt-1 text-sm text-[var(--color-stone-700)]">
             {manager.contactName}
           </p>
         </div>
@@ -93,13 +93,13 @@ export default async function ManagerPortalPage() {
   return (
     <main className="mx-auto flex max-w-lg flex-col gap-6 px-6 py-12">
       <div>
-        <p className="font-accent text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
+        <p className="font-accent text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-700)]">
           Manager Portal
         </p>
         <h1 className="font-display mt-1 text-3xl text-[var(--color-stone-900)]">
           {account.legalName}
         </h1>
-        <p className="mt-1 text-sm text-[var(--color-stone-500)]">
+        <p className="mt-1 text-sm text-[var(--color-stone-700)]">
           {manager.contactName}
         </p>
       </div>
@@ -114,7 +114,7 @@ export default async function ManagerPortalPage() {
               <li key={prog.id} className="py-2 text-sm">
                 <p className="text-[var(--color-stone-900)]">{prog.name}</p>
                 {prog.siteKeys.length > 0 ? (
-                  <p className="text-xs text-[var(--color-stone-500)]">
+                  <p className="text-xs text-[var(--color-stone-700)]">
                     {prog.siteKeys.join(", ")}
                   </p>
                 ) : null}
@@ -129,7 +129,7 @@ export default async function ManagerPortalPage() {
           {firstProgramme.name} — Wearers
         </h2>
         {activeWearers.length === 0 ? (
-          <p className="text-sm text-[var(--color-stone-500)]">
+          <p className="text-sm text-[var(--color-stone-700)]">
             No active wearers yet.
           </p>
         ) : (
@@ -143,7 +143,7 @@ export default async function ManagerPortalPage() {
                   <p className="text-[var(--color-stone-900)]">
                     {wearer.displayName}
                   </p>
-                  <p className="text-xs text-[var(--color-stone-500)]">
+                  <p className="text-xs text-[var(--color-stone-700)]">
                     {wearer.roleKey}
                   </p>
                 </div>
@@ -174,7 +174,7 @@ export default async function ManagerPortalPage() {
                 </p>
                 <div className="flex items-center justify-between gap-2">
                   {announcement.publishedAt ? (
-                    <p className="text-xs text-[var(--color-stone-500)]">
+                    <p className="text-xs text-[var(--color-stone-700)]">
                       Published {formatDate(announcement.publishedAt, "en-US")}
                     </p>
                   ) : (
@@ -202,7 +202,7 @@ export default async function ManagerPortalPage() {
                   <p className="text-[var(--color-stone-900)]">
                     {KIND_LABELS[exception.kind] ?? exception.kind}
                   </p>
-                  <p className="text-xs text-[var(--color-stone-500)]">
+                  <p className="text-xs text-[var(--color-stone-700)]">
                     {exception.detail}
                   </p>
                 </div>

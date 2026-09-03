@@ -102,16 +102,25 @@ test("a staff member can read their own closeout and reviewed recognition eviden
     page.getByRole("heading", { name: "My Profile", exact: true }),
   ).toBeVisible();
   await expect(page.getByText(owner.full_name)).toBeVisible();
-  await expect(page.getByText(owner.role.replaceAll("_", " "))).toBeVisible();
+  await page.waitForLoadState("networkidle");
+  await expect(
+    page.getByText(owner.role.replaceAll("_", " "), { exact: true }),
+  ).toBeVisible();
   await expect(page.getByText(closeoutPromises)).toBeVisible();
 
   const recognitionEvidence = page.getByLabel("Recognition evidence");
   await expect(
     recognitionEvidence.getByText(recognitionNarrative),
   ).toBeVisible();
-  await expect(recognitionEvidence.getByText("coached")).toBeVisible();
-  await expect(recognitionEvidence.getByText(coachingNote)).toBeVisible();
+
+  // Filter to the specific recognition item containing our unique narrative
+  // to avoid strict mode violations when multiple recognition acts exist
+  const recognitionItem = recognitionEvidence
+    .locator("li")
+    .filter({ hasText: recognitionNarrative });
   await expect(
-    recognitionEvidence.getByText(`by ${REVIEWER_NAME}`),
+    recognitionItem.getByText("coached", { exact: true }),
   ).toBeVisible();
+  await expect(recognitionItem.getByText(coachingNote)).toBeVisible();
+  await expect(recognitionItem.getByText(`by ${REVIEWER_NAME}`)).toBeVisible();
 });
