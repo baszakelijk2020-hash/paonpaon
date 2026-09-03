@@ -1,0 +1,49 @@
+{
+  "phaseItemId": "20.5",
+  "requirementIds": ["CENV-OVERVIEW-001"],
+  "status": "verified_local",
+  "title": "codex-customer-overview — daily-return composition correction",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "n_a",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "no new domain logic — the Overview is a presentation-layer composition over the existing Morning Routine selection/recommendation model",
+    "persistence": "no new persistence — today's OOTD is read through the existing ensureTodaysMorningRoutineSelection path and morning_routine_selections / morning_routine_recommendations tables",
+    "service": "apps/customer/app/(dashboard)/dashboard/page.tsx renders the compact local-context strip via apps/customer/app/(dashboard)/morning-routine/local-widgets.tsx (variant=\"dashboard\") directly above the real daily OOTD hero apps/customer/app/(dashboard)/dashboard/morning-routine-hero.tsx; the redundant Overview dark-morning, Today's Edit, generic promotional and Complete the Look blocks are gone, and real product / appointment / advisor / cart / auth actions are preserved",
+    "origin_ui": "apps/customer/app/(dashboard)/dashboard/page.tsx composes only the local-context strip (lg:h-[100px], city/video, weather icon, temperature, rain condition, local time in apps/customer/app/(dashboard)/morning-routine/local-widgets.tsx) and, immediately below it, one real Morning Routine OOTD in apps/customer/app/(dashboard)/dashboard/morning-routine-hero.tsx (region labelled \"Outfit of the day\", a priced piece with a working Buy link into /r/<retailer-slug>); desktop 1512x982 and mobile 390x844 captures written to docs/evidence/runs/20.5-customer-overview/desktop-1512x982.png and docs/evidence/runs/20.5-customer-overview/mobile-390x844.png",
+    "receiver_ui": "no distinct receiver surface — the Overview is the single customer-facing view; downstream Buy / Book appointment / Ask your advisor actions route into existing storefront, appointments and concierge surfaces unchanged",
+    "rls": "no new RLS — the Overview requires an authenticated customer session and reads only that customer's own Morning Routine rows through existing customer-scoped policies",
+    "exceptions": "no new exception cases — with no catalogue OOTD available the hero falls back to its generic \"Your next considered look will appear here.\" banner; an unauthenticated visit redirects to login before the Overview renders",
+    "browser": "apps/customer/e2e/dashboard-morning-routine-hero.spec.ts — authenticated E2E Customer Workspace shopper against local Supabase, seeding one real catalogue OOTD for today. Asserts: \"Local context\" strip visible, \"Outfit of the day\" region visible directly below it, zero \"Complete the look\" occurrences, a visible Buy link whose href matches /r/e2e-customer-workspace, the level-1 featured heading stable across a reload, zero console errors, and two screenshots docs/evidence/runs/20.5-customer-overview/desktop-1512x982.png plus docs/evidence/runs/20.5-customer-overview/mobile-390x844.png written during the run. Passed 3/3 consecutive local runs at gitSha 74a00e6; passed run artifact docs/evidence/runs/20.5.json.",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "proven",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "proven",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-customer-workspace",
+  "browserProofSpec": "apps/customer/e2e/dashboard-morning-routine-hero.spec.ts",
+  "browserProofRunPath": "docs/evidence/runs/20.5.json",
+  "assertedAt": "2026-09-03T08:58:33.000Z"
+}

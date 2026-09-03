@@ -8319,7 +8319,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     no code or architecture change.
   - **Tests:** source inventory cross-check only.
 
-- [ ] **20.5 codex-customer-overview — daily-return composition correction**
+- [x] **20.5 codex-customer-overview — daily-return composition correction**
   - **Requirement IDs:** `CENV-OVERVIEW-001`.
   - **Dependencies:** `20.2`.
   - **Fleet owned paths:** `apps/customer/app/(dashboard)/dashboard/page.tsx`,
