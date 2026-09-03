@@ -6,7 +6,7 @@
 -- (d) CHECK constraint rejects row with both customer_id and corporate_wearer_id null
 
 begin;
-select plan(9);
+select plan(8);
 
 -- Set up two retailers A and B, each with account/programme/wearer/products
 insert into public.retailers (id, legal_name, display_name, slug, status)
@@ -20,50 +20,47 @@ values
     'Retailer B', 'Retailer B', 'retailer-b', 'active'
   );
 
-insert into public.retailer_branches (id, retailer_id, name, address, city, postal_code, country, timezone, status)
+insert into public.retailer_branches (id, retailer_id, name, timezone, is_default)
 values
   (
     'c1100000-0000-0000-0000-000000000001',
     'c1000000-0000-0000-0000-000000000001',
-    'Branch A', '123 Main St', 'City A', '12345', 'Country', 'UTC', 'active'
+    'Branch A', 'UTC', false
   ),
   (
     'c1100000-0000-0000-0000-000000000002',
     'c1000000-0000-0000-0000-000000000002',
-    'Branch B', '456 Oak St', 'City B', '67890', 'Country', 'UTC', 'active'
+    'Branch B', 'UTC', false
   );
 
 -- Create product/variant for ordering
 insert into public.products (
-  id, retailer_id, branch_id, name, status, price_amount_minor_units, price_currency,
-  is_made_to_order, is_alterable
+  id, retailer_id, name, slug, status, is_made_to_order, is_alterable
 ) values
   (
     'c2000000-0000-0000-0000-000000000001',
     'c1000000-0000-0000-0000-000000000001',
-    'c1100000-0000-0000-0000-000000000001',
-    'Test Product A', 'active', 5000, 'GBP', false, false
+    'Test Product A', 'test-product-a', 'active', false, false
   ),
   (
     'c2000000-0000-0000-0000-000000000002',
     'c1000000-0000-0000-0000-000000000002',
-    'c1100000-0000-0000-0000-000000000002',
-    'Test Product B', 'active', 5000, 'GBP', false, false
+    'Test Product B', 'test-product-b', 'active', false, false
   );
 
 insert into public.product_variants (
-  id, product_id, sku, name, price_amount_minor_units, price_currency,
+  id, product_id, sku, price_amount_minor_units, price_currency,
   inventory_quantity
 ) values
   (
     'c2100000-0000-0000-0000-000000000001',
     'c2000000-0000-0000-0000-000000000001',
-    'SKU-A-1', 'Variant A', 5000, 'GBP', 100
+    'SKU-A-1', 5000, 'GBP', 100
   ),
   (
     'c2100000-0000-0000-0000-000000000002',
     'c2000000-0000-0000-0000-000000000002',
-    'SKU-B-1', 'Variant B', 5000, 'GBP', 100
+    'SKU-B-1', 5000, 'GBP', 100
   );
 
 -- Corporate accounts, programmes, wearers
@@ -251,93 +248,91 @@ select throws_ok(
 reset request.jwt.claims;
 set local role none;
 
--- Retrieve the order just created to test (c) and manager visibility
-declare
-  v_order_id uuid;
-begin
-  select id into v_order_id
+-- Retrieve the order just created to test (c) and manager visibility.
+-- The pgTAP session's own default role bypasses RLS here, purely to grab
+-- the id the earlier authenticated call created (mirrors the \gset idiom
+-- already used in supabase/tests/customer_intake_test.sql).
+select id as order_id
+  from public.orders
+  where corporate_wearer_id = 'c3200000-0000-0000-0000-000000000001'
+  order by created_at desc
+  limit 1
+\gset
+
+-- Test (c): customer_id IS NULL AND corporate_wearer_id IS NOT NULL
+select is(
+  (select customer_id from public.orders where id = :'order_id'),
+  null,
+  'customer_id is null for corporate order'
+);
+
+select is(
+  (select corporate_wearer_id from public.orders where id = :'order_id'),
+  'c3200000-0000-0000-0000-000000000001',
+  'corporate_wearer_id is set to the wearer'
+);
+
+-- Test (b): Manager A can see order for their own account's wearer
+set local role authenticated;
+set local request.jwt.claims = '{
+  "sub": "c4000000-0000-0000-0000-000000000003",
+  "role": "authenticated"
+}';
+
+select is(
+  (
+    select count(*)::int
     from public.orders
-    where corporate_wearer_id = 'c3200000-0000-0000-0000-000000000001'
-    order by created_at desc
-    limit 1;
+    where id = :'order_id'
+  ),
+  1,
+  'manager A can SELECT the order for wearer in their account'
+);
 
-  -- Test (c): customer_id IS NULL AND corporate_wearer_id IS NOT NULL
-  select is(
-    (select customer_id from public.orders where id = v_order_id),
-    null,
-    'customer_id is null for corporate order'
-  );
+reset request.jwt.claims;
+set local role none;
 
-  select is(
-    (select corporate_wearer_id from public.orders where id = v_order_id),
-    'c3200000-0000-0000-0000-000000000001',
-    'corporate_wearer_id is set to the wearer'
-  );
+-- Test (b cont): Manager A cannot see order for wearer of a different account
+-- (Create another order for Wearer B as retailer B's own staff — a genuine authorized
+-- caller for retailer B — then test manager A cannot see it)
+set local role authenticated;
+set local request.jwt.claims = '{
+  "sub": "c4000000-0000-0000-0000-000000000002",
+  "role": "authenticated",
+  "app_metadata": {
+    "retailer_id": "c1000000-0000-0000-0000-000000000002",
+    "retailer_role": "admin"
+  }
+}';
+select public.place_corporate_order(
+  'c1000000-0000-0000-0000-000000000002',
+  'c3200000-0000-0000-0000-000000000002',
+  '[{"productVariantId":"c2100000-0000-0000-0000-000000000002","quantity":1}]'::jsonb,
+  'in_store'::public.order_channel,
+  'GBP'
+) as order_b_id
+\gset
+reset request.jwt.claims;
+set local role none;
 
-  -- Test (b): Manager A can see order for their own account's wearer
-  set local role authenticated;
-  set local request.jwt.claims = '{
-    "sub": "c4000000-0000-0000-0000-000000000003",
-    "role": "authenticated"
-  }';
+set local role authenticated;
+set local request.jwt.claims = '{
+  "sub": "c4000000-0000-0000-0000-000000000003",
+  "role": "authenticated"
+}';
 
-  select is(
-    (
-      select count(*)::int
-      from public.orders
-      where id = v_order_id
-    ),
-    1,
-    'manager A can SELECT the order for wearer in their account'
-  );
+select is(
+  (
+    select count(*)::int
+    from public.orders
+    where id = :'order_b_id'
+  ),
+  0,
+  'manager A cannot SELECT order for wearer in a different account'
+);
 
-  reset request.jwt.claims;
-  set local role none;
-
-  -- Test (b cont): Manager A cannot see order for wearer of a different account
-  -- (Create another order for Wearer B as retailer B's own staff — a genuine authorized
-  -- caller for retailer B — then test manager A cannot see it)
-  declare
-    v_order_b_id uuid;
-  begin
-    set local role authenticated;
-    set local request.jwt.claims = '{
-      "sub": "c4000000-0000-0000-0000-000000000002",
-      "role": "authenticated",
-      "app_metadata": {
-        "retailer_id": "c1000000-0000-0000-0000-000000000002",
-        "retailer_role": "admin"
-      }
-    }';
-    select public.place_corporate_order(
-      'c1000000-0000-0000-0000-000000000002',
-      'c3200000-0000-0000-0000-000000000002',
-      '[{"productVariantId":"c2100000-0000-0000-0000-000000000002","quantity":1}]'::jsonb,
-      'in_store'::public.order_channel,
-      'GBP'
-    ) into v_order_b_id;
-    reset request.jwt.claims;
-    set local role none;
-
-    set local role authenticated;
-    set local request.jwt.claims = '{
-      "sub": "c4000000-0000-0000-0000-000000000003",
-      "role": "authenticated"
-    }';
-
-    select is(
-      (
-        select count(*)::int
-        from public.orders
-        where id = v_order_b_id
-      ),
-      0,
-      'manager A cannot SELECT order for wearer in a different account'
-    );
-
-    reset request.jwt.claims;
-  end;
-end;
+reset request.jwt.claims;
+set local role none;
 
 -- Test (d): CHECK constraint rejects both null
 select throws_ok(
