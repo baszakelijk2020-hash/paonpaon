@@ -2,6 +2,28 @@
 
 **This is the only authorized work queue.**
 
+## Current-platform inclusion rule — 2026-09-03
+
+All capability that already has real PAON implementation is included in the
+current platform: code, schema, routes, domain contracts and connected flows
+remain part of the product even when a larger future blueprint, deployment
+proof or a completion-evidence refresh remains open. Do not rebuild, hide or
+remove a working capability merely because its broader contract is unfinished.
+
+Integrate completed, usable parts now, including completed sub-parts of a
+larger unfinished feature. Repair their missing connections and consolidate
+overlapping implementations. Put absent or unfinished remainder on **Later /
+Hold**; scaffolding alone does not make a feature ready. `implemented_unverified`
+means evidence is pending, not that implementation is absent. Do not build new
+features during this integration pass. Parked and deleted scope remains excluded.
+
+**Single acceptance platform — founder clarification, 2026-09-03:** Nebel &
+Spiegel is the one customer and staff experience to integrate and test now.
+Reuse its existing canonical demo identities and data. Do not create additional
+retailer versions, retailer selection, or new customer-to-retailer linking flows.
+Expansion to multiple retailer versions comes only after founder testing and
+subsequent authorization. Preserve existing authorization and data boundaries.
+
 **Queue rule:** an item that lists another PHASE item as a dependency must not be checked or marked `verified_*` while that dependency remains unchecked or `implemented_unverified` (parallel implementation is allowed).
 
 **Ground-zero reconciliation, 2026-08-14.** 31 items were unmarked from `[x]`
