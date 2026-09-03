@@ -27,6 +27,7 @@ import {
   createInvoice,
   createPartner,
   reconcileInvoice,
+  submitRetailerQualityReview,
   transitionCustodyForEngagement,
 } from "./actions";
 
@@ -58,6 +59,18 @@ export default async function ServicePartnersPage() {
       customerRepo.findByRetailer(session.retailerId),
       servicePlanRepo.listBookingsByRetailer(session.retailerId),
     ]);
+
+  const reviewsByEngagement = new Map(
+    await Promise.all(
+      engagements.map(
+        async (engagement) =>
+          [
+            engagement.id,
+            await repo.findQualityReviewByEngagement(engagement.id),
+          ] as const,
+      ),
+    ),
+  );
 
   const partnersById = new Map(
     partners.map((partner) => [partner.id, partner]),
@@ -267,6 +280,77 @@ export default async function ServicePartnersPage() {
                     Record
                   </Button>
                 </form>
+
+                {engagement.custodyState === "returned_to_retailer" ? (
+                  <div className="mt-3 border-t border-[var(--color-stone-200)] pt-3">
+                    {(() => {
+                      const review = reviewsByEngagement.get(engagement.id);
+                      if (review) {
+                        return (
+                          <div className="flex flex-col gap-2 text-sm">
+                            <p className="text-xs font-medium text-[var(--color-stone-500)]">
+                              Quality review submitted
+                            </p>
+                            {review.retailerRating ? (
+                              <p className="text-[var(--color-stone-700)]">
+                                Rating:{" "}
+                                <span className="font-medium">
+                                  {review.retailerRating}/5
+                                </span>
+                              </p>
+                            ) : null}
+                            {review.retailerNote ? (
+                              <p className="text-[var(--color-stone-700)]">
+                                Note:{" "}
+                                <span className="font-medium">
+                                  {review.retailerNote}
+                                </span>
+                              </p>
+                            ) : null}
+                          </div>
+                        );
+                      }
+                      return (
+                        <form
+                          action={submitRetailerQualityReview.bind(
+                            null,
+                            engagement.id,
+                          )}
+                          className="flex flex-wrap items-end gap-2"
+                        >
+                          <FormField
+                            label="Rating (1-5)"
+                            htmlFor={`retailerRating-${engagement.id}`}
+                          >
+                            <Input
+                              id={`retailerRating-${engagement.id}`}
+                              name="retailerRating"
+                              type="number"
+                              min={1}
+                              max={5}
+                              required
+                              className="w-20"
+                            />
+                          </FormField>
+                          <FormField
+                            label="Note (optional)"
+                            htmlFor={`retailerNote-${engagement.id}`}
+                          >
+                            <Input
+                              id={`retailerNote-${engagement.id}`}
+                              name="retailerNote"
+                              placeholder="Quality feedback"
+                              className="w-64"
+                            />
+                          </FormField>
+                          <Button type="submit" size="sm" variant="secondary">
+                            Submit review
+                          </Button>
+                        </form>
+                      );
+                    })()}
+                  </div>
+                ) : null}
               </li>
             ))}
           </ul>

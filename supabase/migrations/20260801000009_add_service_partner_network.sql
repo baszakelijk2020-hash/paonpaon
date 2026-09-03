@@ -271,6 +271,69 @@ begin
   end loop;
 end $$;
 
+-- A customer must be able to read their own engagement row for the quality-review
+-- policies below (an EXISTS subquery against a table with no SELECT policy for
+-- the querying role returns no rows regardless of match — RLS applies to the
+-- subquery too, not just the outer statement).
+create policy "customers read own service partner engagements"
+  on public.service_partner_engagements
+  for select to authenticated using (
+    exists (
+      select 1 from public.customers c
+      where c.id = service_partner_engagements.customer_id
+        and c.user_id = (select auth.uid())
+        and c.deleted_at is null
+    )
+  );
+
+-- Customer RLS for quality reviews: can see and update only their own engagement reviews.
+-- Mirrors the existing "customers read/insert/update own wardrobe items" pattern
+-- (customers.user_id = auth.uid()), not a current_customer_id() helper — no such
+-- function exists in this codebase.
+create policy service_partner_quality_reviews_customer_select
+  on public.service_partner_quality_reviews
+  for select to authenticated using (
+    exists (
+      select 1 from public.service_partner_engagements spe
+      join public.customers c on c.id = spe.customer_id
+      where spe.id = service_partner_quality_reviews.engagement_id
+        and c.user_id = (select auth.uid())
+        and c.deleted_at is null
+    )
+  );
+
+create policy service_partner_quality_reviews_customer_insert
+  on public.service_partner_quality_reviews
+  for insert to authenticated with check (
+    exists (
+      select 1 from public.service_partner_engagements spe
+      join public.customers c on c.id = spe.customer_id
+      where spe.id = engagement_id
+        and c.user_id = (select auth.uid())
+        and c.deleted_at is null
+    )
+  );
+
+create policy service_partner_quality_reviews_customer_update
+  on public.service_partner_quality_reviews
+  for update to authenticated using (
+    exists (
+      select 1 from public.service_partner_engagements spe
+      join public.customers c on c.id = spe.customer_id
+      where spe.id = service_partner_quality_reviews.engagement_id
+        and c.user_id = (select auth.uid())
+        and c.deleted_at is null
+    )
+  ) with check (
+    exists (
+      select 1 from public.service_partner_engagements spe
+      join public.customers c on c.id = spe.customer_id
+      where spe.id = service_partner_quality_reviews.engagement_id
+        and c.user_id = (select auth.uid())
+        and c.deleted_at is null
+    )
+  );
+
 comment on table public.service_partner_custody_events is
   'PHASE 12.3 partner custody. NOT a duplicate of chain_of_custody_events: '
   'that table is bound to alteration_work_orders by a status trigger and '
