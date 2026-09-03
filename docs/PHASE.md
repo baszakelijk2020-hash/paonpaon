@@ -82,21 +82,46 @@ verified the whole thing compiles and boots against the Nebel & Spiegel demo.
 - The ~100 stale agent worktrees under `.claude/worktrees/` and `/private/tmp/`
   were read for content only; none were merged.
 
-### Known residual — completion validator is RED (evidence currency, not code)
+### Completion validator — partially re-proved at HEAD, residual documented
 
-`pnpm validate:completion` fails for ~80 Stage 17/20/21 + 4.x + 8.4/9.x items,
-all with the same shape: `status verified_local is not a verified completion
-claim`. The validator still _accepts_ `verified_local`; it rejects because the
-integration commit `2b83c6f` moved HEAD, so each tranche's browser-proof
-`gitSha` in `docs/evidence/runs/<id>.json` is no longer current and the run
-predates code that changed since. This is the expected ADR-068 "re-prove, do
-not re-date" chore after any integration commit — it is a separate
-evidence-reproof workstream (needs live Playwright runs), not missing
-implementation, and was explicitly out of scope for this integration pass.
-Fixes for many of these already exist on the `origin/evidence/*` re-stamp
-branches (`evidence/customer-close-batch`, `evidence/retailer-close-batch`,
-`evidence/20-6-appointments-audit`, `evidence/19-1-route-gating`) and on
-`agent/paon-parallel-worker-20260903`.
+After the integration commit, `pnpm validate:completion` failed ~46 checked
+items purely on evidence currency (each `docs/evidence/runs/<id>.json` still
+carried the pre-merge SHA `d145106`). This pass **re-ran the real Playwright
+proof suites** for those items against the seeded local stack at HEAD
+`8b8b5c4` and re-stamped only the ones that genuinely passed:
+
+- **Re-proved GREEN at HEAD and re-stamped (30 run artifacts):** 8.4, 9.1,
+  11.2, 11.3, 17.1, 17.2, 17.3, 17.4, 17.5, 17.6, 17.9, 19.1, 20.1, 20.2,
+  20.3, 20.4, 20.7, 20.14, 20.15, 20.20, 20.21, 20.22, 20.23, 20.24, 20.33,
+  21.1, 21.2, 21.6. Retailer suite: **21/22 passed**. Customer suite:
+  27/46 on the first parallel run, more on a serial re-run.
+- **Still failing at HEAD (~18 items), by cause — none is a newly broken
+  platform feature:**
+  - **Stale test-spec Auth bug (customer V3 cluster):** 20.9, 20.11, 20.12,
+    20.13, 20.17, 20.18, 20.19 (17.13), 20.25, 20.26, 20.27, 20.28, 20.30,
+    20.32, 20.34, 20.36. Their `signIn` helper calls Supabase `generateLink`
+    with `e2e-shopper@paon.test` — GoTrue rejects the reserved `.test` TLD, so
+    auth never establishes and the spec fast-fails (~100 ms). This is exactly
+    the gotcha documented in `apps/customer/e2e/fixtures.ts`
+    (`AUTH_DELIVERABLE_DOMAIN = "nebelspiegel.com"`); the specs predate that
+    fix and still pass the raw `.test` address. The underlying screens
+    (Wardrobe rails, Orders V3, Account, Dashboard OOTD) were verified
+    rendering correctly in a live authenticated browser check. Fix = point
+    these specs' `signIn` at an `@nebelspiegel.com` persona; then re-run and
+    re-stamp.
+  - **Real assertion failure:** 10.1 (`campaigns.spec.ts`) — fails the clone /
+    activate / placement flow on both parallel and serial runs. Its run
+    artifact is honestly recorded `status: failed` at HEAD. Needs a real fix.
+  - **Blocked on external credentials:** 4.6, 4.7, 4.9, 4.10 (Virtual Wardrobe
+    Studio live image generation needs an OpenAI `gpt-image` key), R0.4.
+  - **Not re-run this pass:** 14.1, 17.8, 18.5 — run artifacts still at
+    `d145106`; re-run + re-stamp to close.
+- The `dashboard-morning-routine-hero` (20.5) and `appointments-audit-v3`
+  (20.6) specs fail on real console-error / composition assertions — inspect
+  before re-stamping.
+
+Do not close any residual item by editing its `gitSha`/`status` by hand —
+re-run its spec against a seeded stack and let the harness write the result.
 
 ### How to run the platform (the keys)
 
