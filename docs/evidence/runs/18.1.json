@@ -1,6 +1,6 @@
 {
   "phaseItemId": "18.1",
-  "gitSha": "0e4dfb87b960c88bfb44359e05d7950caa2d0163",
+  "gitSha": "65819c688a727d1335262cdc7f39a13127444463",
   "spec": "apps/retailer/e2e/business-development.spec.ts",
   "status": "passed",
   "timestamp": "2026-08-20T12:29:51.188Z"
