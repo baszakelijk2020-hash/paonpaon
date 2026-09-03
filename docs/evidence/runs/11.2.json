@@ -1,6 +1,6 @@
 {
   "phaseItemId": "11.2",
-  "gitSha": "PENDING",
+  "gitSha": "1ecde4482cb4593b784e3af17621666479fd6072",
   "spec": "apps/retailer/e2e/staff-closeout.spec.ts",
   "status": "passed",
   "timestamp": "2026-09-03T00:00:00.000Z"

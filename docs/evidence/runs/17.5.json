@@ -1,6 +1,6 @@
 {
   "phaseItemId": "17.5",
-  "gitSha": "65819c688a727d1335262cdc7f39a13127444463",
+  "gitSha": "1ecde4482cb4593b784e3af17621666479fd6072",
   "spec": "apps/retailer/e2e/promise-matching.spec.ts",
   "status": "passed",
   "timestamp": "2026-09-02T16:36:32.188Z"

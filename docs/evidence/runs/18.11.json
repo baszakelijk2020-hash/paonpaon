@@ -1,6 +1,6 @@
 {
   "phaseItemId": "18.11",
-  "gitSha": "65819c688a727d1335262cdc7f39a13127444463",
+  "gitSha": "1ecde4482cb4593b784e3af17621666479fd6072",
   "spec": "apps/retailer/e2e/corporate-public-signal-citation.spec.ts",
   "status": "passed",
   "timestamp": "2026-08-20T12:30:32.843Z"
