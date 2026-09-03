@@ -21,6 +21,7 @@ import {
   type LeaverAction,
   type RecordCorporateIssueInput,
   type RetailerId,
+  type WearerImportPlan,
 } from "@paon/domain";
 
 import type { PaonSupabaseClient } from "../client-type";
@@ -442,6 +443,17 @@ export class CorporateRepository {
     return data.map(toProgramme);
   }
 
+  async findManagersByAccount(accountId: string): Promise<CorporateManager[]> {
+    const { data, error } = await this.client
+      .from("corporate_managers")
+      .select("*")
+      .eq("account_id", accountId)
+      .is("deleted_at", null)
+      .order("contact_name", { ascending: true });
+    if (error) throw error;
+    return data.map(toManager);
+  }
+
   async createManager(
     retailerId: RetailerId,
     input: {
@@ -535,6 +547,71 @@ export class CorporateRepository {
     if (error) throw error;
   }
 
+  /** PHASE 14.1 CORP-103: Apply a delta wearer import plan (create/update/deactivate).
+   * Applies the plan atomically where possible, reusing existing helper methods. */
+  async importWearersBatch(
+    retailerId: RetailerId,
+    programmeId: string,
+    plan: WearerImportPlan,
+  ): Promise<void> {
+    // Create new wearers
+    for (const row of plan.toCreate) {
+      await this.createWearer(retailerId, {
+        programmeId,
+        employeeReference: row.employeeReference,
+        displayName: row.displayName,
+        roleKey: row.roleKey,
+        siteKey: row.siteKey || undefined,
+        joinedOn: new Date().toISOString().split("T")[0]!,
+        garmentAdaptationNote: undefined,
+      });
+    }
+
+    // Update existing wearers with changed fields
+    for (const update of plan.toUpdate) {
+      interface WearerUpdate {
+        display_name?: string;
+        role_key?: string;
+        site_key?: string | null;
+        login_email?: string | null;
+      }
+      const updates: WearerUpdate = {};
+      if (update.changes.displayName !== undefined) {
+        updates.display_name = update.changes.displayName;
+      }
+      if (update.changes.roleKey !== undefined) {
+        updates.role_key = update.changes.roleKey;
+      }
+      if (update.changes.siteKey !== undefined) {
+        updates.site_key = update.changes.siteKey ?? null;
+      }
+      if (update.changes.loginEmail !== undefined) {
+        updates.login_email = update.changes.loginEmail ?? null;
+      }
+
+      if (Object.keys(updates).length > 0) {
+        const { error } = await (
+          this.client as unknown as {
+            from: (table: string) => {
+              update: (data: unknown) => {
+                eq: (col: string, val: string) => Promise<{ error: unknown }>;
+              };
+            };
+          }
+        )
+          .from("corporate_wearers")
+          .update(updates)
+          .eq("id", update.wearerId);
+        if (error) throw error;
+      }
+    }
+
+    // Deactivate leavers (set active = false)
+    for (const deactivate of plan.toDeactivate) {
+      await this.setWearerActive(deactivate.wearerId, false);
+    }
+  }
+
   async findIssuesByWearer(
     wearerId: string,
   ): Promise<CorporateIssueRecordEntity[]> {
@@ -584,6 +661,44 @@ export class CorporateRepository {
       .single();
     if (error) throw error;
     return toIssueRecord(data);
+  }
+
+  /** Place a corporate order for a wearer — PHASE 14.1 CORP-103. Mirrors the
+   * place_order RPC but for corporate wearers. Only callable by retailer staff.
+   * Returns the new order's id. */
+  async placeCorporateOrder(params: {
+    retailerId: string;
+    wearerId: string;
+    lines: Array<{ productVariantId: string; quantity: number }>;
+    channel: "online" | "in_store" | "clienteling" | "phone";
+    currency: string;
+  }): Promise<string> {
+    const { data, error } = await (
+      this.client as unknown as {
+        rpc: (
+          name: string,
+          params: unknown,
+        ) => Promise<{
+          data: unknown;
+          error: unknown;
+        }>;
+      }
+    ).rpc("place_corporate_order", {
+      p_retailer_id: params.retailerId,
+      p_wearer_id: params.wearerId,
+      p_lines: params.lines.map((line) => ({
+        productVariantId: line.productVariantId,
+        quantity: line.quantity,
+      })),
+      p_channel: params.channel,
+      p_currency: params.currency,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    return String(data);
   }
 
   async findExceptionsByProgramme(

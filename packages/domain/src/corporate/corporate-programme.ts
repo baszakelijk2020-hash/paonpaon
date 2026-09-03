@@ -310,6 +310,134 @@ export function planLeaverExceptions(args: {
     }));
 }
 
+/** PHASE 14.1 CORP-103: Delta wearer import plan. */
+export interface ImportWearerRow {
+  readonly employeeReference: string;
+  readonly displayName: string;
+  readonly roleKey: string;
+  readonly siteKey: string;
+  readonly loginEmail?: string;
+}
+
+export interface WearerImportPlan {
+  readonly toCreate: readonly ImportWearerRow[];
+  readonly toUpdate: readonly {
+    readonly wearerId: string;
+    readonly changes: Partial<
+      Pick<
+        ImportWearerRow,
+        "roleKey" | "siteKey" | "displayName" | "loginEmail"
+      >
+    >;
+  }[];
+  readonly toDeactivate: readonly {
+    readonly wearerId: string;
+    readonly employeeReference: string;
+  }[];
+}
+
+/**
+ * PHASE 14.1 CORP-103: Plan a delta (batch) import of corporate wearers.
+ * Pure function: match by employeeReference, compute create/update/deactivate
+ * lists. Semantics: a row in importRows but not in active existingWearers
+ * means create; in both with any field changed means update (only changed
+ * fields listed); in existingWearers but not importRows means deactivate
+ * (leaver signal). Exception composition (planLeaverExceptions per deactivate)
+ * is the caller's responsibility via separate steps.
+ */
+export function planCorporateWearerImport(args: {
+  readonly existingWearers: readonly {
+    readonly id: string;
+    readonly employeeReference: string;
+    readonly displayName: string;
+    readonly roleKey: string;
+    readonly siteKey?: string;
+    readonly active: boolean;
+    readonly loginEmail?: string;
+  }[];
+  readonly importRows: readonly ImportWearerRow[];
+}): WearerImportPlan {
+  const existingByReference = new Map<
+    string,
+    (typeof args.existingWearers)[number]
+  >();
+  for (const wearer of args.existingWearers) {
+    if (wearer.active) {
+      existingByReference.set(wearer.employeeReference, wearer);
+    }
+  }
+
+  const toCreate: ImportWearerRow[] = [];
+  const toUpdate: Array<{
+    wearerId: string;
+    changes: Partial<
+      Pick<
+        ImportWearerRow,
+        "roleKey" | "siteKey" | "displayName" | "loginEmail"
+      >
+    >;
+  }> = [];
+
+  for (const importRow of args.importRows) {
+    const existing = existingByReference.get(importRow.employeeReference);
+    if (!existing) {
+      toCreate.push(importRow);
+    } else {
+      const changeKeys: Record<string, string | undefined> = {};
+      if (importRow.displayName !== existing.displayName) {
+        changeKeys.displayName = importRow.displayName;
+      }
+      if (importRow.roleKey !== existing.roleKey) {
+        changeKeys.roleKey = importRow.roleKey;
+      }
+      if (
+        (importRow.siteKey ?? undefined) !== (existing.siteKey ?? undefined)
+      ) {
+        changeKeys.siteKey = importRow.siteKey;
+      }
+      if (
+        (importRow.loginEmail ?? undefined) !==
+        (existing.loginEmail ?? undefined)
+      ) {
+        changeKeys.loginEmail = importRow.loginEmail;
+      }
+      if (Object.keys(changeKeys).length > 0) {
+        toUpdate.push({
+          wearerId: existing.id,
+          changes: changeKeys as Partial<
+            Pick<
+              ImportWearerRow,
+              "roleKey" | "siteKey" | "displayName" | "loginEmail"
+            >
+          >,
+        });
+      }
+    }
+  }
+
+  const importByReference = new Set(
+    args.importRows.map((r) => r.employeeReference),
+  );
+  const toDeactivate: Array<{
+    wearerId: string;
+    employeeReference: string;
+  }> = [];
+  for (const wearer of args.existingWearers) {
+    if (wearer.active && !importByReference.has(wearer.employeeReference)) {
+      toDeactivate.push({
+        wearerId: wearer.id,
+        employeeReference: wearer.employeeReference,
+      });
+    }
+  }
+
+  return {
+    toCreate: Object.freeze(toCreate),
+    toUpdate: Object.freeze(toUpdate),
+    toDeactivate: Object.freeze(toDeactivate),
+  };
+}
+
 export interface ProgrammeReadiness {
   readonly wearerCount: number;
   readonly fittedCount: number;

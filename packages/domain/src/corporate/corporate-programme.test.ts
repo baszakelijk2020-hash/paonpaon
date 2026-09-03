@@ -5,6 +5,7 @@ import {
   checkAccommodationNote,
   checkIssue,
   computeEntitlementBalance,
+  planCorporateWearerImport,
   planLeaverExceptions,
   summarizeProgrammeReadiness,
   type EntitlementVersion,
@@ -329,5 +330,212 @@ describe("buildCorporateScopedView", () => {
     expect(JSON.stringify(view)).not.toMatch(
       /margin|cost|measurement|chest|waist/i,
     );
+  });
+});
+
+describe("planCorporateWearerImport", () => {
+  it("creates rows present in import but not in existing active wearers", () => {
+    const plan = planCorporateWearerImport({
+      existingWearers: [
+        {
+          id: "w1",
+          employeeReference: "EMP-001",
+          displayName: "Alice",
+          roleKey: "staff",
+          siteKey: "london",
+          active: true,
+        },
+      ],
+      importRows: [
+        {
+          employeeReference: "EMP-001",
+          displayName: "Alice",
+          roleKey: "staff",
+          siteKey: "london",
+        },
+        {
+          employeeReference: "EMP-002",
+          displayName: "Bob",
+          roleKey: "manager",
+          siteKey: "paris",
+        },
+      ],
+    });
+    expect(plan.toCreate).toEqual([
+      {
+        employeeReference: "EMP-002",
+        displayName: "Bob",
+        roleKey: "manager",
+        siteKey: "paris",
+      },
+    ]);
+    expect(plan.toUpdate).toEqual([]);
+    expect(plan.toDeactivate).toEqual([]);
+  });
+
+  it("updates rows with changed fields", () => {
+    const plan = planCorporateWearerImport({
+      existingWearers: [
+        {
+          id: "w1",
+          employeeReference: "EMP-001",
+          displayName: "Alice",
+          roleKey: "staff",
+          siteKey: "london",
+          active: true,
+        },
+      ],
+      importRows: [
+        {
+          employeeReference: "EMP-001",
+          displayName: "Alicia",
+          roleKey: "manager",
+          siteKey: "london",
+          loginEmail: "alicia@example.test",
+        },
+      ],
+    });
+    expect(plan.toCreate).toEqual([]);
+    expect(plan.toUpdate).toEqual([
+      {
+        wearerId: "w1",
+        changes: {
+          displayName: "Alicia",
+          roleKey: "manager",
+          loginEmail: "alicia@example.test",
+        },
+      },
+    ]);
+    expect(plan.toDeactivate).toEqual([]);
+  });
+
+  it("deactivates active wearers absent from import", () => {
+    const plan = planCorporateWearerImport({
+      existingWearers: [
+        {
+          id: "w1",
+          employeeReference: "EMP-001",
+          displayName: "Alice",
+          roleKey: "staff",
+          siteKey: "london",
+          active: true,
+        },
+        {
+          id: "w2",
+          employeeReference: "EMP-002",
+          displayName: "Bob",
+          roleKey: "manager",
+          siteKey: "paris",
+          active: true,
+        },
+      ],
+      importRows: [
+        {
+          employeeReference: "EMP-001",
+          displayName: "Alice",
+          roleKey: "staff",
+          siteKey: "london",
+        },
+      ],
+    });
+    expect(plan.toCreate).toEqual([]);
+    expect(plan.toUpdate).toEqual([]);
+    expect(plan.toDeactivate).toEqual([
+      {
+        wearerId: "w2",
+        employeeReference: "EMP-002",
+      },
+    ]);
+  });
+
+  it("handles mixed create-update-deactivate in one batch", () => {
+    const plan = planCorporateWearerImport({
+      existingWearers: [
+        {
+          id: "w1",
+          employeeReference: "EMP-001",
+          displayName: "Alice",
+          roleKey: "staff",
+          siteKey: "london",
+          active: true,
+        },
+        {
+          id: "w2",
+          employeeReference: "EMP-002",
+          displayName: "Bob",
+          roleKey: "manager",
+          siteKey: "paris",
+          active: true,
+        },
+      ],
+      importRows: [
+        {
+          employeeReference: "EMP-001",
+          displayName: "Alicia",
+          roleKey: "staff",
+          siteKey: "london",
+        },
+        {
+          employeeReference: "EMP-003",
+          displayName: "Charlie",
+          roleKey: "admin",
+          siteKey: "berlin",
+        },
+      ],
+    });
+    expect(plan.toCreate).toEqual([
+      {
+        employeeReference: "EMP-003",
+        displayName: "Charlie",
+        roleKey: "admin",
+        siteKey: "berlin",
+      },
+    ]);
+    expect(plan.toUpdate).toEqual([
+      {
+        wearerId: "w1",
+        changes: { displayName: "Alicia" },
+      },
+    ]);
+    expect(plan.toDeactivate).toEqual([
+      {
+        wearerId: "w2",
+        employeeReference: "EMP-002",
+      },
+    ]);
+  });
+
+  it("ignores inactive existing wearers", () => {
+    const plan = planCorporateWearerImport({
+      existingWearers: [
+        {
+          id: "w1",
+          employeeReference: "EMP-001",
+          displayName: "Alice",
+          roleKey: "staff",
+          siteKey: "london",
+          active: false,
+        },
+      ],
+      importRows: [
+        {
+          employeeReference: "EMP-001",
+          displayName: "Alice",
+          roleKey: "staff",
+          siteKey: "london",
+        },
+      ],
+    });
+    // Inactive wearer is not matched; import row is treated as create
+    expect(plan.toCreate).toEqual([
+      {
+        employeeReference: "EMP-001",
+        displayName: "Alice",
+        roleKey: "staff",
+        siteKey: "london",
+      },
+    ]);
+    expect(plan.toUpdate).toEqual([]);
+    expect(plan.toDeactivate).toEqual([]);
   });
 });
