@@ -1,6 +1,6 @@
 {
   "phaseItemId": "4.7-4.8-customer-style-portrait-onboarding",
-  "gitSha": "ad0a4db8942e2ec7fdd76b457d9f9bc2d0b29fae",
+  "gitSha": "74a00e6cc3567742b1378b7b72684545e3ca413b",
   "spec": "apps/customer/e2e/virtual-studio.spec.ts",
   "status": "passed",
   "timestamp": "2026-08-20T12:46:50.635Z"
