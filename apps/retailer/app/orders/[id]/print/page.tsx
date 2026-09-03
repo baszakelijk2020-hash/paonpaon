@@ -31,6 +31,9 @@ export default async function OrderPrintPage({
   if (!order || order.retailerId !== session.retailerId) {
     notFound();
   }
+  if (!order.customerId) {
+    notFound();
+  }
 
   const [lines, customer] = await Promise.all([
     orderRepo.findLinesByOrder(order.id),

@@ -41,6 +41,7 @@ export async function createSpec(
 
   const order = await new OrderRepository(supabase).findById(orderId as never);
   if (!order) return { formError: "Order not found." };
+  if (!order.customerId) return { formError: "Order not found." };
 
   const version = await new MeasurementMonitorRepository(
     supabase,
@@ -236,6 +237,7 @@ export async function raiseDelayServiceRecovery(
     piece.order_id as never,
   );
   if (!order) return { formError: "Order not found." };
+  if (!order.customerId) return { formError: "Order not found." };
 
   const result = await new InternalCommunityRepository(
     supabase,

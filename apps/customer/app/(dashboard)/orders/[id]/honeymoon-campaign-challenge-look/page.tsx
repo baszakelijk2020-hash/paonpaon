@@ -44,6 +44,9 @@ export default async function HoneymoonCampaignChallengeLookPage({
   if (!order) {
     notFound();
   }
+  if (!order.customerId) {
+    notFound();
+  }
 
   const [wardrobeCandidates, catalogueCandidates] = await Promise.all([
     buildWardrobeCandidates({ supabase, customerId: order.customerId }),

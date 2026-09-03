@@ -33,6 +33,9 @@ export default async function OrderDetailPage({
   if (!order) {
     notFound();
   }
+  if (!order.customerId) {
+    notFound();
+  }
 
   const [lines, customer, honeymoonProgramme] = await Promise.all([
     orderRepo.findLinesByOrder(order.id),

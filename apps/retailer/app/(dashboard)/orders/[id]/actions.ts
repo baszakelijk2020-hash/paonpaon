@@ -115,6 +115,9 @@ export async function requestReturn(
   if (!order || order.retailerId !== session.retailerId) {
     return { formError: "Order not found." };
   }
+  if (!order.customerId) {
+    return { formError: "Order not found." };
+  }
   if (order.status === "refunded") {
     return { formError: "This order has already been refunded." };
   }
