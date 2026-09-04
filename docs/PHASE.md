@@ -785,10 +785,31 @@ Full regression: domain 1144/1144, database 526/527 (the one failure,
 reproduces identically on the pre-change commit), pgTAP 337/337
 (`supabase test db`), `apps/retailer` `tsc --noEmit` clean. Checkbox not
 added: this item has no dedicated numbered checklist entry (it is founder-
-priority prose, not a Stage item) and several of its named pieces —
-quality-checkpoint attribution distinct from custody, and alteration-specific
-customer communication threaded into the Communication Centre — remain real,
-unattempted gaps.
+priority prose, not a Stage item).
+
+**Correction (2026-09-04):** this paragraph previously named
+"quality-checkpoint attribution distinct from custody" as a real,
+unattempted gap. Re-verified against current code: it is not a gap —
+`completion_reviews` (`supabase/migrations/20260719000101_build_garment_
+first_alterations.sql`) already implements exactly this, distinct from
+`chain_of_custody_events`. `transition_alteration_work_order`
+(`supabase/migrations/20260719000103_secure_alterations_and_workflows.sql`)
+inserts a `pending` review on transition into `completion_review` and
+resolves it to `approved`/`changes_requested` (with reviewer, timestamp,
+notes) on transition out;
+`AlterationWorkflowRepository.findCompletionReviews` reads it back and
+`apps/retailer/app/(dashboard)/alterations/[id]/page.tsx` (line ~1141)
+renders the list to non-worker staff; `update-form.tsx` exposes
+`completion_review` as a selectable status via the existing generic
+status-transition form (`ALTERATION_STATUS_TRANSITIONS`) — no bespoke UI
+needed. Existing unit coverage re-run clean this session:
+`@paon/database` `alteration-workflow-repository.test.ts` (4/4),
+`@paon/domain` `production.schema.test.ts` (16/16). Live browser/pgTAP
+proof remains blocked on local Docker/Supabase (same named environment
+gap as FT-04 and the decision-feed e2e above), not on missing
+implementation. The alteration-specific customer-communication gap named
+in this same original sentence was already closed by the "item 6, second
+slice" status directly below.
 
 **Status (2026-08-12, item 6, second slice):** closes the named
 "alteration-specific customer communication threaded into the
