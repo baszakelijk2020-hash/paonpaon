@@ -179,9 +179,12 @@ export function SelfPortrait({
   const occasionFacts = customerFacts.filter((fact) =>
     OCCASION_FACT_TYPES.has(fact.factType),
   );
-  const openPromises = openOpportunities.filter((opportunity) =>
-    OPEN_OPPORTUNITY_STATUSES.has(opportunity.status),
+  const nonOccasionFacts = customerFacts.filter(
+    (fact) => !OCCASION_FACT_TYPES.has(fact.factType),
   );
+  const openPromiseCount = openOpportunities.filter((opportunity) =>
+    OPEN_OPPORTUNITY_STATUSES.has(opportunity.status),
+  ).length;
   const timeline = buildTimeline(orders, appointments, alterations);
 
   return (
@@ -326,14 +329,18 @@ export function SelfPortrait({
         <p className="mb-1 text-xs font-medium uppercase text-[var(--color-stone-500)]">
           Structured facts
         </p>
-        {customerFacts.length === 0 ? (
+        {/* Occasion-typed facts (occasion/wedding_date/anniversary/
+         * travel_window) are promoted into the dedicated "Occasions &
+         * promises" section below — excluded here so the same fact never
+         * appears twice on this card. */}
+        {nonOccasionFacts.length === 0 ? (
           <p className="text-sm text-[var(--color-stone-500)]">
             No provenance-tagged facts yet. Use advisor rectangles to log
             observed interests.
           </p>
         ) : (
           <ul className="flex flex-col gap-1.5">
-            {customerFacts.slice(0, 8).map((fact) => (
+            {nonOccasionFacts.slice(0, 8).map((fact) => (
               <li
                 key={fact.id}
                 className="flex items-start justify-between gap-3 text-sm"
@@ -408,9 +415,9 @@ export function SelfPortrait({
         <p className="mb-2 text-xs font-medium uppercase text-[var(--color-stone-500)]">
           Occasions &amp; promises
         </p>
-        {occasionFacts.length === 0 && openPromises.length === 0 ? (
+        {occasionFacts.length === 0 ? (
           <p className="text-sm text-[var(--color-stone-500)]">
-            No dated occasions or open promises on record.
+            No dated occasions on record.
           </p>
         ) : (
           <ul className="flex flex-col gap-1.5">
@@ -421,32 +428,26 @@ export function SelfPortrait({
               >
                 <span className="text-[var(--color-stone-800)]">
                   {fact.valueLabel}
-                </span>
-                <Badge tone="neutral">
-                  {fact.factType.replaceAll("_", " ")}
-                </Badge>
-              </li>
-            ))}
-            {openPromises.map((opportunity) => (
-              <li
-                key={`promise-${opportunity.id}`}
-                className="flex items-center justify-between gap-3 text-sm"
-              >
-                <span className="text-[var(--color-stone-800)]">
-                  {opportunity.suggestedAction}
                   <span className="ml-2 text-xs text-[var(--color-stone-500)]">
-                    {opportunity.whyNow}
+                    {PROVENANCE_LABELS[fact.provenanceClass]} ·{" "}
+                    {fact.factType.replaceAll("_", " ")}
                   </span>
                 </span>
-                {opportunity.dueAt ? (
-                  <span className="shrink-0 text-xs text-[var(--color-stone-500)]">
-                    {formatDate(opportunity.dueAt, "en-US")}
-                  </span>
-                ) : null}
               </li>
             ))}
           </ul>
         )}
+        {/* Open promises live in one canonical place — the opportunity
+         * inbox below — not duplicated here; see advisor-capture.spec.ts's
+         * explicit "one canonical follow-up system, not a second one"
+         * assertion. */}
+        {openPromiseCount > 0 ? (
+          <p className="mt-2 text-xs text-[var(--color-stone-500)]">
+            {openPromiseCount} open promise
+            {openPromiseCount === 1 ? "" : "s"} — see the opportunity inbox
+            below.
+          </p>
+        ) : null}
       </div>
 
       <div className="mb-4">
