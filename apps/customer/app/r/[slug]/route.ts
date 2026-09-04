@@ -505,8 +505,24 @@ export async function GET(
 (function() {
   var CATEGORY_LABELS = { Pants: "Trousers", Knits: "Knitwear" };
   var categoryNames = __PAON_CATEGORY_NAMES_JSON__;
-  var PAON_SLUG = ${JSON.stringify(slug)};
-  var PAON_RETAILER_NAME = ${JSON.stringify(retailer.displayName)};
+  var PAON_SLUG_RAW = ${JSON.stringify(slug).replace(/<\/script/gi, "<\\/script")};
+  var PAON_RETAILER_NAME_RAW = ${JSON.stringify(retailer.displayName).replace(/<\/script/gi, "<\\/script")};
+
+  // Defense in depth: nothing interpolated below is currently attacker-
+  // controlled (slug/retailer name are DB-resolved, category names are a
+  // fixed server-side list), but this whole block builds innerHTML by
+  // string concatenation — escape everything going in regardless, rather
+  // than relying on "not attacker-controlled today" staying true forever.
+  function esc(value) {
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+  var PAON_SLUG = esc(PAON_SLUG_RAW);
+  var PAON_RETAILER_NAME = esc(PAON_RETAILER_NAME_RAW);
 
   function render() {
     var asideEl = document.querySelector("aside");
@@ -523,11 +539,11 @@ export async function GET(
     var categoryItems = categoryNames.map(function (name) {
       var label = CATEGORY_LABELS[name] || name;
       return (
-        '<a href="#" data-cat="' + name + '" ' +
+        '<a href="#" data-cat="' + esc(name) + '" ' +
         'style="display:flex;align-items:center;height:28px;min-height:28px;' +
         'padding-left:20px;opacity:.76;text-decoration:none;">' +
         '<span style="white-space:nowrap;color:#a6a6a6;font-family:OptimaKlein,serif;' +
-        'font-size:13px;line-height:1;">' + label + '</span></a>'
+        'font-size:13px;line-height:1;">' + esc(label) + '</span></a>'
       );
     }).join("");
 
@@ -591,7 +607,7 @@ export async function GET(
         if (typeof window.showCollectionGrid === "function") {
           window.showCollectionGrid(name);
         } else {
-          location.href = "/r/" + PAON_SLUG + "?category=" + encodeURIComponent(name);
+          location.href = "/r/" + PAON_SLUG_RAW + "?category=" + encodeURIComponent(name);
         }
       });
     }
