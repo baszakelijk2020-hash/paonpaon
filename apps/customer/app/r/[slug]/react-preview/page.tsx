@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { getStorefrontPageData } from "../get-storefront-page-data";
 
 import { Footer, Sidebar } from "./components";
+import { CatalogueSection } from "./components/CatalogueSection";
 import styles from "./storefront-shell.module.css";
 
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -22,6 +23,11 @@ async function StorefrontShell({ slug }: { slug: string }) {
   if (!pageData) {
     notFound();
   }
+
+  const handleProductClick = (productId: string) => {
+    // TODO: Navigate to product detail view
+    void productId;
+  };
 
   return (
     <div className={styles.root}>
@@ -48,14 +54,12 @@ async function StorefrontShell({ slug }: { slug: string }) {
         />
 
         <div className={styles.content}>
-          <div className={styles.gridPlaceholder}>
-            <div className={styles.gridPlaceholderText}>
-              <p>TODO: Product grid will render here</p>
-              <p style={{ fontSize: "12px", marginTop: "8px", opacity: 0.7 }}>
-                ({pageData.entries.length} products available)
-              </p>
-            </div>
-          </div>
+          <CatalogueSection
+            entries={pageData.entries}
+            categoryNames={pageData.categoryNames}
+            defaultCategory={pageData.defaultCategory}
+            onProductClick={handleProductClick}
+          />
 
           <Footer
             slug={slug}
