@@ -490,6 +490,127 @@ export async function GET(
 })();
 </script>`;
 
+  // Sidebar identity — replaces the founder template's own aside markup
+  // with the EXACT literal structure/inline-styles the customer dashboard
+  // sidebar renders (apps/customer/app/(dashboard)/shop-category-
+  // sidebar.tsx), not a re-approximation in a second parallel cascade of
+  // CSS. This is a full replace, not a style patch: it removes reliance
+  // on paon-template.html's own aside/.cat-grid/.cat-item CSS entirely
+  // for this element's chrome, so the two surfaces cannot drift again —
+  // every color, font-family and px value below is copied verbatim from
+  // that component's JSX. Category clicks still call the template's own
+  // existing showCollectionGrid(name) for its SPA-style transition —
+  // only the visual chrome is replaced, not the working navigation.
+  const sidebarIdentityScript = `<script id="paon-sidebar-identity-inject">
+(function() {
+  var CATEGORY_LABELS = { Pants: "Trousers", Knits: "Knitwear" };
+  var categoryNames = __PAON_CATEGORY_NAMES_JSON__;
+  var PAON_SLUG = ${JSON.stringify(slug)};
+  var PAON_RETAILER_NAME = ${JSON.stringify(retailer.displayName)};
+
+  function render() {
+    var asideEl = document.querySelector("aside");
+    if (!asideEl || asideEl.dataset.paonIdentityApplied) return;
+    asideEl.dataset.paonIdentityApplied = "1";
+
+    asideEl.setAttribute(
+      "style",
+      "width:250px;background:linear-gradient(to right,#333333,#1a1a1a);" +
+      "display:grid;grid-template-rows:60px auto minmax(0,1fr) 210px;" +
+      "position:sticky;top:0;height:100vh;min-height:100vh;overflow:hidden;"
+    );
+
+    var categoryItems = categoryNames.map(function (name) {
+      var label = CATEGORY_LABELS[name] || name;
+      return (
+        '<a href="#" data-cat="' + name + '" ' +
+        'style="display:flex;align-items:center;height:28px;min-height:28px;' +
+        'padding-left:20px;opacity:.76;text-decoration:none;">' +
+        '<span style="white-space:nowrap;color:#a6a6a6;font-family:OptimaKlein,serif;' +
+        'font-size:13px;line-height:1;">' + label + '</span></a>'
+      );
+    }).join("");
+
+    asideEl.innerHTML =
+      '<a href="/r/' + PAON_SLUG + '" ' +
+      'style="display:flex;align-items:center;justify-content:center;overflow:hidden;' +
+      'height:60px;background:linear-gradient(to right,#1a1a1a,#1a1a1a);">' +
+      '<span style="font-size:13px;line-height:1;position:relative;top:2px;' +
+      'white-space:nowrap;font-family:Aviano,serif;color:#fff;">' +
+      PAON_RETAILER_NAME + '</span></a>' +
+
+      '<div style="display:flex;align-items:center;justify-content:center;gap:16px;' +
+      'background:linear-gradient(to right,rgba(255,255,255,.045),rgba(255,255,255,0)),' +
+      'linear-gradient(to right,#262626,#1d1d1d);padding:14px 25px;">' +
+      '<a href="/r/' + PAON_SLUG + '" style="font-family:GTBold3,Arial,sans-serif;' +
+      'font-size:7px;text-transform:uppercase;letter-spacing:.04em;color:#d9d9d9;' +
+      'opacity:1;text-decoration:none;position:relative;">Store</a>' +
+      '<span aria-hidden="true" style="width:1px;height:14px;background:rgba(255,255,255,.18);"></span>' +
+      '<a href="/dashboard?returnTo=' + encodeURIComponent(location.pathname + location.search) + '" ' +
+      'style="font-family:GTBold3,Arial,sans-serif;font-size:7px;text-transform:uppercase;' +
+      'letter-spacing:.04em;color:#8a8a87;opacity:.7;text-decoration:none;">My PAON</a></div>' +
+
+      '<div style="display:flex;flex-direction:column;overflow-y:auto;padding:40px 25px 28px;' +
+      'background:linear-gradient(to right,rgba(255,255,255,.043),rgba(255,255,255,0)),' +
+      'linear-gradient(to right,#262626,#1d1d1d);">' +
+      '<a href="/r/' + PAON_SLUG + '" style="font-family:GTBold3,Arial,sans-serif;' +
+      'font-size:7px;line-height:1;color:#b5b5b2;text-transform:uppercase;margin:0 0 20px 0;' +
+      'text-decoration:none;">Home</a>' +
+      '<p style="font-family:GTBold3,Arial,sans-serif;font-size:7px;line-height:7px;' +
+      'color:#b5b5b2;text-transform:uppercase;margin:0 0 10px 0;">Collection</p>' +
+      categoryItems +
+      '</div>' +
+
+      '<div style="position:relative;display:flex;flex-direction:column;overflow:hidden;' +
+      'height:210px;min-height:210px;background:linear-gradient(to right,#333333,#1a1a1a);' +
+      'padding:20px 25px 0;">' +
+      '<a href="/discover/platform" style="font-family:GTBold3,Arial,sans-serif;font-size:7px;' +
+      'line-height:1.4;color:#b5b5b2;text-transform:uppercase;margin-bottom:5px;' +
+      'text-decoration:none;">How it works</a>' +
+      '<a href="/founder" style="font-family:GTBold3,Arial,sans-serif;font-size:7px;' +
+      'line-height:1.4;color:#b5b5b2;text-transform:uppercase;margin-bottom:5px;' +
+      'text-decoration:none;">About Us</a>' +
+      '<a href="/consultation" style="font-family:GTBold3,Arial,sans-serif;font-size:7px;' +
+      'line-height:1.4;color:#b5b5b2;text-transform:uppercase;margin-bottom:5px;' +
+      'text-decoration:none;">Contact</a>' +
+      '<a href="/appointments" style="position:absolute;bottom:20px;left:20px;right:20px;' +
+      'height:50px;border-radius:15px;background:linear-gradient(to right,#999999,#666666);' +
+      'color:#d9d9d9;font-family:OptimaKlein,serif;font-size:14px;padding:0 20px;' +
+      'display:flex;align-items:center;justify-content:flex-end;text-decoration:none;">' +
+      'Book Appointment</a>' +
+      '</div>';
+
+    var links = asideEl.querySelectorAll("a[data-cat]");
+    for (var i = 0; i < links.length; i++) {
+      links[i].addEventListener("click", function (e) {
+        e.preventDefault();
+        var name = this.getAttribute("data-cat");
+        if (window.paonReturnHomeFromDetail !== undefined) {
+          window.paonReturnHomeFromDetail = false;
+        }
+        if (typeof window.showCollectionGrid === "function") {
+          window.showCollectionGrid(name);
+        } else {
+          location.href = "/r/" + PAON_SLUG + "?category=" + encodeURIComponent(name);
+        }
+      });
+    }
+  }
+
+  function init() {
+    // Run after the template's own DOMContentLoaded render (registered
+    // earlier in the document) has finished, so this replacement is the
+    // final word, not overwritten by it.
+    window.setTimeout(render, 0);
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init, { once: true });
+  } else {
+    init();
+  }
+})();
+</script>`;
+
   const dfrHandoffScript = `<script id="paon-dfr-handoff-inject">
 (function() {
   function initDfrModule() {
@@ -675,6 +796,7 @@ ${
 }
 </style>`,
     contextSwitcherScript,
+    sidebarIdentityScript,
   ]
     .filter(Boolean)
     .join("\n");
