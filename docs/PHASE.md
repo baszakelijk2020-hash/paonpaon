@@ -811,6 +811,25 @@ implementation. The alteration-specific customer-communication gap named
 in this same original sentence was already closed by the "item 6, second
 slice" status directly below.
 
+**Real bug found, not fixed (2026-09-04):** local Docker/Supabase became
+available mid-session, unblocking real (non-mocked) browser proof for the
+first time on several previously-untestable items — `supabase db reset
+--local` (293 migrations), `supabase test db` (568/568 pgTAP), demo seed,
+and real Playwright runs against it. `mission-control.spec.ts`'s
+"Decision feed shows ranked entries from multiple signal kinds" test
+(item 6 above) passes for real, confirming that status. A separate,
+pre-existing, unrelated bug surfaced: `apps/retailer/app/(dashboard)/
+staff/today`'s `AssignedOpportunityList` renders one real
+`clienteling_opportunities` row twice in the DOM (confirmed via direct
+`psql` query — exactly one row exists; this is a render/query bug, not
+data duplication). Breaks `house-memory-advisor-today.spec.ts`'s first
+test (`R0.4`) at the Today-surface step, before House Memory is even
+reached. Last touched by commit `c74bea2`, untouched this session.
+Not fixed here — outside this session's scoped work (Mission Control
+item 6 and Self-Portrait), needs its own bounded task: locate why
+`assignedOpportunities`/`AssignedOpportunityList` renders a duplicate for
+one row and correct it without weakening the test.
+
 **Status (2026-08-12, item 6, second slice):** closes the named
 "alteration-specific customer communication threaded into the
 Communication Centre" gap. `alteration_work_orders.customer_notified_at`/
