@@ -303,6 +303,10 @@ export default async function CustomerDetailPage({
       customerId: customer.id,
     });
   }
+  const openOpportunities = await opportunityRepo.listForCustomer(
+    session.retailerId,
+    customer.id,
+  );
 
   // ADR-075 Slice 1 — reuses `customer.assignedStaffId` as the access
   // boundary. `canManage` alone (a role-capability check) already existed
@@ -719,6 +723,10 @@ export default async function CustomerDetailPage({
           interestProjection={interestProjection}
           customerFacts={customerFacts}
           styleProfile={styleProfile}
+          orders={orders}
+          appointments={appointments}
+          alterations={alterations}
+          openOpportunities={openOpportunities}
           conceptLabels={
             new Map(
               rectangleConcepts.map((concept) => [

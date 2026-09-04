@@ -1,11 +1,15 @@
 import type {
+  Alteration,
+  Appointment,
   BehavioralEvent,
   ClientelingNote,
+  ClientelingOpportunity,
   CustomerFact,
   CustomerInterestProjection,
   CustomerStyleProfile,
   LoyaltyAccount,
   LoyaltyMilestoneAward,
+  Order,
 } from "@paon/domain";
 import { milestonePresentation } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
@@ -69,6 +73,65 @@ function interestWindowLabel(projection: CustomerInterestProjection): string {
   return `${start} – ${end}`;
 }
 
+const OCCASION_FACT_TYPES = new Set([
+  "occasion",
+  "wedding_date",
+  "anniversary",
+  "travel_window",
+]);
+
+const OPEN_OPPORTUNITY_STATUSES = new Set(["draft", "accepted"]);
+
+interface TimelineEntry {
+  readonly key: string;
+  readonly at: string;
+  readonly label: string;
+  readonly kind: "order" | "appointment" | "alteration";
+}
+
+/** One coherent timeline across the three record types that otherwise
+ * live in separate cards — PHASE.md's Mission Control build order item 1
+ * calls for "one coherent memory, not duplicate notes across modules";
+ * this does not replace those cards' own detail/actions, only gives
+ * advisors a single chronological read of what has actually happened. */
+function buildTimeline(
+  orders: readonly Order[],
+  appointments: readonly Appointment[],
+  alterations: readonly Alteration[],
+): TimelineEntry[] {
+  const entries: TimelineEntry[] = [
+    ...orders
+      .filter((order) => order.placedAt)
+      .map((order) => ({
+        key: `order-${order.id}`,
+        at: order.placedAt as string,
+        label: `Order ${order.orderNumber} — ${order.status.replaceAll("_", " ")}`,
+        kind: "order" as const,
+      })),
+    ...appointments.map((appointment) => ({
+      key: `appointment-${appointment.id}`,
+      at: appointment.startsAt,
+      label: `${appointment.type.replaceAll("_", " ")} appointment — ${appointment.status.replaceAll("_", " ")}`,
+      kind: "appointment" as const,
+    })),
+    ...alterations.map((alteration) => ({
+      key: `alteration-${alteration.id}`,
+      at: alteration.createdAt,
+      label: `Alteration ${alteration.workOrderNumber} — ${alteration.status.replaceAll("_", " ")}`,
+      kind: "alteration" as const,
+    })),
+  ];
+  return entries.sort(
+    (a, b) => new Date(b.at).getTime() - new Date(a.at).getTime(),
+  );
+}
+
+const TIMELINE_KIND_TONE = {
+  order: "success",
+  appointment: "neutral",
+  alteration: "warning",
+} as const;
+
 /**
  * The one place staff read the customer as a whole rather than
  * per-record — loyalty standing, what they've been doing, and what the
@@ -83,6 +146,10 @@ export function SelfPortrait({
   interestProjection,
   customerFacts,
   styleProfile,
+  orders,
+  appointments,
+  alterations,
+  openOpportunities,
   conceptLabels,
 }: {
   customerId: string;
@@ -93,6 +160,10 @@ export function SelfPortrait({
   interestProjection: CustomerInterestProjection;
   customerFacts: readonly CustomerFact[];
   styleProfile: CustomerStyleProfile | null;
+  orders: readonly Order[];
+  appointments: readonly Appointment[];
+  alterations: readonly Alteration[];
+  openOpportunities: readonly ClientelingOpportunity[];
   conceptLabels: ReadonlyMap<string, string>;
 }) {
   const activeMilestones = milestoneAwards.filter(
@@ -102,6 +173,13 @@ export function SelfPortrait({
     interestProjection.visibility === "usable"
       ? interestProjection.insights
       : [];
+  const occasionFacts = customerFacts.filter((fact) =>
+    OCCASION_FACT_TYPES.has(fact.factType),
+  );
+  const openPromises = openOpportunities.filter((opportunity) =>
+    OPEN_OPPORTUNITY_STATUSES.has(opportunity.status),
+  );
+  const timeline = buildTimeline(orders, appointments, alterations);
 
   return (
     <Card>
@@ -317,6 +395,81 @@ export function SelfPortrait({
                   {formatDate(insight.latestEvidenceAt, "en-US")} ·{" "}
                   {insight.evidenceEventIds.length} evidence refs
                 </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="mb-4">
+        <p className="mb-2 text-xs font-medium uppercase text-[var(--color-stone-500)]">
+          Occasions &amp; promises
+        </p>
+        {occasionFacts.length === 0 && openPromises.length === 0 ? (
+          <p className="text-sm text-[var(--color-stone-500)]">
+            No dated occasions or open promises on record.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-1.5">
+            {occasionFacts.map((fact) => (
+              <li
+                key={`occasion-${fact.id}`}
+                className="flex items-center justify-between gap-3 text-sm"
+              >
+                <span className="text-[var(--color-stone-800)]">
+                  {fact.valueLabel}
+                </span>
+                <Badge tone="neutral">
+                  {fact.factType.replaceAll("_", " ")}
+                </Badge>
+              </li>
+            ))}
+            {openPromises.map((opportunity) => (
+              <li
+                key={`promise-${opportunity.id}`}
+                className="flex items-center justify-between gap-3 text-sm"
+              >
+                <span className="text-[var(--color-stone-800)]">
+                  {opportunity.suggestedAction}
+                  <span className="ml-2 text-xs text-[var(--color-stone-500)]">
+                    {opportunity.whyNow}
+                  </span>
+                </span>
+                {opportunity.dueAt ? (
+                  <span className="shrink-0 text-xs text-[var(--color-stone-500)]">
+                    {formatDate(opportunity.dueAt, "en-US")}
+                  </span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="mb-4">
+        <p className="mb-2 text-xs font-medium uppercase text-[var(--color-stone-500)]">
+          Timeline — orders, appointments &amp; alterations
+        </p>
+        {timeline.length === 0 ? (
+          <p className="text-sm text-[var(--color-stone-500)]">
+            No orders, appointments or alterations on record yet.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-1.5">
+            {timeline.slice(0, 8).map((entry) => (
+              <li
+                key={entry.key}
+                className="flex items-center justify-between gap-3 text-sm"
+              >
+                <span className="flex items-center gap-2 text-[var(--color-stone-800)]">
+                  <Badge tone={TIMELINE_KIND_TONE[entry.kind]}>
+                    {entry.kind}
+                  </Badge>
+                  {entry.label}
+                </span>
+                <span className="shrink-0 text-xs text-[var(--color-stone-500)]">
+                  {formatDate(entry.at, "en-US")}
+                </span>
               </li>
             ))}
           </ul>
