@@ -5,6 +5,7 @@ import {
 } from "@paon/database";
 
 import { SignOutButton } from "../components/sign-out-button";
+import { RelatedLinks } from "../related-links";
 
 import { PreferencesForm } from "./preferences-form";
 
@@ -47,6 +48,9 @@ export default async function AccountPage() {
             Language, currency and contact preferences for your account.
           </p>
         </div>
+        <RelatedLinks
+          links={[{ href: "/self-portrait", label: "Your Self-Portrait" }]}
+        />
       </header>
 
       {groups.length === 0 ? (
