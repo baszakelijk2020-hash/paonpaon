@@ -24,11 +24,6 @@ async function StorefrontShell({ slug }: { slug: string }) {
     notFound();
   }
 
-  const handleProductClick = (productId: string) => {
-    // TODO: Navigate to product detail view
-    void productId;
-  };
-
   return (
     <div className={styles.root}>
       <style>
@@ -58,7 +53,6 @@ async function StorefrontShell({ slug }: { slug: string }) {
             entries={pageData.entries}
             categoryNames={pageData.categoryNames}
             defaultCategory={pageData.defaultCategory}
-            onProductClick={handleProductClick}
           />
 
           <Footer

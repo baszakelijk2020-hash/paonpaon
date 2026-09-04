@@ -13,7 +13,6 @@ interface CatalogueSectionProps {
   entries: readonly StorefrontPageEntry[];
   categoryNames: readonly string[];
   defaultCategory: string;
-  onProductClick: (productId: string) => void;
 }
 
 // Extract catalogue number from product ID for sorting
@@ -53,11 +52,24 @@ export function CatalogueSection({
   entries,
   categoryNames,
   defaultCategory,
-  onProductClick,
 }: CatalogueSectionProps) {
   const [selectedCategory, setSelectedCategory] =
     useState<string>(defaultCategory);
   const [sortBy, setSortBy] = useState<string>("newest");
+  // TODO: Wire selectedProduct to ProductDetail/MobileProductDetail components per contract
+  const [selectedProduct, setSelectedProduct] =
+    useState<StorefrontPageEntry | null>(null);
+  // Reference selectedProduct to suppress unused variable warning; will be used when ProductDetail/MobileProductDetail integrated
+  void selectedProduct;
+
+  // Handle product click — currently just sets selectedProduct state,
+  // will be wired to ProductDetail/MobileProductDetail per contract
+  const handleProductClick = (productId: string) => {
+    const product = entries.find((entry) => entry.id === productId);
+    if (product) {
+      setSelectedProduct(product);
+    }
+  };
 
   // Memoize filtered and sorted products to avoid unnecessary recalculations
   const filteredAndSortedEntries = useMemo(() => {
@@ -78,7 +90,7 @@ export function CatalogueSection({
 
       <ProductGrid
         entries={filteredAndSortedEntries}
-        onProductClick={onProductClick}
+        onProductClick={handleProductClick}
       />
     </div>
   );
