@@ -303,10 +303,6 @@ export default async function CustomerDetailPage({
       customerId: customer.id,
     });
   }
-  const openOpportunities = await opportunityRepo.listForCustomer(
-    session.retailerId,
-    customer.id,
-  );
 
   // ADR-075 Slice 1 — reuses `customer.assignedStaffId` as the access
   // boundary. `canManage` alone (a role-capability check) already existed
@@ -326,6 +322,13 @@ export default async function CustomerDetailPage({
     viewingStaff?.id,
   );
   const canViewRelationshipIntelligence = canManage && hasRelationshipAccess;
+  // Same ADR-075 boundary as the opportunities inbox/capture sessions
+  // below: whyNow/suggestedAction is relationship intelligence, not
+  // minimal operational identity — must not reach an unassigned
+  // sales_associate/manager even inside the Self-Portrait card.
+  const openOpportunities = canViewRelationshipIntelligence
+    ? await opportunityRepo.listForCustomer(session.retailerId, customer.id)
+    : [];
 
   // ADR-075: "the customer detail page gates full contact display on
   // assignment/role server-side" — not just the list/search surface. Every
