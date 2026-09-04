@@ -16515,16 +16515,27 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
         border: 0;
         border-radius: 6px;
         min-height: 48px;
-        padding: 15px 26px;
+        padding: clamp(12px, 3vw, 15px) clamp(18px, 4vw, 26px);
         background: rgba(0, 0, 0, 0.1);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         color: var(--text);
         font-family: 'lvreg', sans-serif;
-        font-size: 15px;
+        font-size: clamp(13px, 2vw, 15px);
         cursor: pointer;
         box-shadow: 0 12px 30px rgba(0,0,0,.12);
         border: 1px solid rgba(0, 0, 0, 0.14);
+        transition: background 200ms ease;
+        background-size: 200% 100%;
+    }
+    #gilda-chat-widget-toggle:hover {
+        background-color: rgba(0, 0, 0, 0.16);
+        background-image: linear-gradient(110deg, transparent 40%, rgba(255,255,255,.4) 50%, transparent 60%);
+        animation: paon-tableservice-shimmer 1.6s ease-in-out infinite;
+    }
+    @keyframes paon-tableservice-shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
     }
     #gilda-chat-widget {
         display: none;
@@ -16825,7 +16836,7 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
         </div>
         <button type="button" class="gcw-close" id="gcw-close">Close</button>
     </div>
-    <button type="button" id="gilda-chat-widget-toggle">Ask us anything</button>
+    <button type="button" id="gilda-chat-widget-toggle">How may we be of service?</button>
 </div>
 
 <script id="paon-tableservice-widget-js">
@@ -17062,13 +17073,65 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
         }
     }
 
+    function openChatWidget() {
+        var pillRect = toggleBtn.getBoundingClientRect();
+        launcher.classList.add('open');
+        if (!window.gsap) return;
+        var panelRect = chatWidget.getBoundingClientRect();
+        gsap.fromTo(
+            chatWidget,
+            {
+                transformOrigin: 'bottom right',
+                x: pillRect.left - panelRect.left,
+                y: pillRect.top - panelRect.top,
+                width: pillRect.width,
+                height: pillRect.height,
+                opacity: 0
+            },
+            {
+                x: 0,
+                y: 0,
+                width: panelRect.width,
+                height: panelRect.height,
+                opacity: 1,
+                duration: 0.35,
+                ease: 'power2.out',
+                clearProps: 'width,height'
+            }
+        );
+    }
+
+    function closeChatWidget() {
+        if (!window.gsap) {
+            launcher.classList.remove('open');
+            return;
+        }
+        var pillRect = toggleBtn.getBoundingClientRect();
+        var panelRect = chatWidget.getBoundingClientRect();
+        gsap.to(chatWidget, {
+            x: pillRect.left - panelRect.left,
+            y: pillRect.top - panelRect.top,
+            width: pillRect.width,
+            height: pillRect.height,
+            opacity: 0,
+            duration: 0.3,
+            ease: 'power2.in',
+            onComplete: function() {
+                launcher.classList.remove('open');
+                gsap.set(chatWidget, { clearProps: 'all' });
+            }
+        });
+    }
+
     toggleBtn.addEventListener('click', function() {
-        launcher.classList.toggle('open');
+        if (launcher.classList.contains('open')) {
+            closeChatWidget();
+        } else {
+            openChatWidget();
+        }
     });
     if (closeBtn) {
-        closeBtn.addEventListener('click', function() {
-            launcher.classList.remove('open');
-        });
+        closeBtn.addEventListener('click', closeChatWidget);
     }
 
     sendBtn.addEventListener('click', handleSend);
