@@ -120,6 +120,14 @@ export interface AdvisorCaptureContext {
   /** ISO date, so the model can resolve "Friday" or "next month" against
    * a real anchor instead of guessing one. */
   readonly asOfDate: string;
+  /** Set when the capture happened during/after a specific appointment —
+   * gives the model a real anchor so it can recognise a note is about
+   * the appointment already on the books rather than proposing a new
+   * "appointment" bundle for it. */
+  readonly appointmentContext?: {
+    readonly type: string;
+    readonly startsAt: string;
+  };
 }
 
 /** Customer self-provided intake (PHASE 17.11) — same shape as

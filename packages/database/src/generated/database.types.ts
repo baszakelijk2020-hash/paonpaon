@@ -580,6 +580,7 @@ export type Database = {
       };
       advisor_capture_sessions: {
         Row: {
+          appointment_id: string | null;
           created_at: string;
           customer_id: string | null;
           id: string;
@@ -590,6 +591,7 @@ export type Database = {
           staff_id: string;
         };
         Insert: {
+          appointment_id?: string | null;
           created_at?: string;
           customer_id?: string | null;
           id?: string;
@@ -600,6 +602,7 @@ export type Database = {
           staff_id: string;
         };
         Update: {
+          appointment_id?: string | null;
           created_at?: string;
           customer_id?: string | null;
           id?: string;
@@ -610,6 +613,13 @@ export type Database = {
           staff_id?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "advisor_capture_sessions_appointment_id_fkey";
+            columns: ["appointment_id"];
+            isOneToOne: false;
+            referencedRelation: "appointments";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "advisor_capture_sessions_customer_id_fkey";
             columns: ["customer_id"];

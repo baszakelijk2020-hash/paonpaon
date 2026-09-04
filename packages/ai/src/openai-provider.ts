@@ -284,7 +284,7 @@ Each bundle has one "kind":
 - "appointment": the note clearly says to book something with a concrete date/time (not just "follow up sometime"). payload: {"appointmentType": one of "styling_consultation"|"fitting"|"alteration_fitting"|"personal_shopping"|"event", "startsAt": ISO datetime resolved against the given "as of" date, "endsAt": ISO datetime, "notes": optional short string}. If no concrete time is stated, propose "follow_up" instead.
 - "care_booking": the note says to request a garment-care service (pressing, cleaning, repair, collection, delivery, wardrobe review, planning, size check, button check, or general care) rather than a styling/fitting appointment. payload: {"bookingKind": one of "planning"|"wardrobe_review"|"pressing"|"cleaning"|"repair"|"collection"|"delivery"|"size_check"|"button_check"|"care", "requestedFor": optional ISO datetime if a date was mentioned, "notes": optional short string}.
 
-Respond only as JSON: {"bundles": [{"kind": string, "summary": short string, "sourceExcerpt": string, "confidence": number between 0 and 1, "payload": object}]}. Return an empty array if the note has nothing actionable. Never merge two unrelated topics into one bundle.`;
+Respond only as JSON: {"bundles": [{"kind": string, "summary": short string, "sourceExcerpt": string, "confidence": number between 0 and 1, "payload": object}]}. Return an empty array if the note has nothing actionable. Never merge two unrelated topics into one bundle. If "currentAppointment" is given below, never propose an "appointment" bundle for that same appointment — only for a genuinely different, new future booking mentioned in the note.`;
 
 function buildCapturePrompt(context: AdvisorCaptureContext): string {
   return JSON.stringify(
@@ -292,6 +292,7 @@ function buildCapturePrompt(context: AdvisorCaptureContext): string {
       retailer: context.retailerName,
       customer: context.customerName ?? "unspecified",
       asOfDate: context.asOfDate,
+      currentAppointment: context.appointmentContext ?? null,
       note: context.rawText,
     },
     null,

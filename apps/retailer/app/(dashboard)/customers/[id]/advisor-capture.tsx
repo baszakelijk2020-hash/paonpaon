@@ -78,9 +78,11 @@ function summarizePayload(bundle: AdvisorCaptureBundle): string {
 function BundleCard({
   bundle,
   customerId,
+  appointmentId,
 }: {
   readonly bundle: AdvisorCaptureBundle;
   readonly customerId: string;
+  readonly appointmentId?: string;
 }) {
   const router = useRouter();
   const [confirmState, confirmAction, confirmPending] = useActionState(
@@ -135,12 +137,18 @@ function BundleCard({
       <div className="flex items-center gap-2">
         <form action={confirmAction}>
           <input type="hidden" name="bundleId" value={bundle.id} />
+          {appointmentId ? (
+            <input type="hidden" name="appointmentId" value={appointmentId} />
+          ) : null}
           <Button type="submit" size="sm" disabled={confirmPending}>
             Confirm
           </Button>
         </form>
         <form action={dismissAction}>
           <input type="hidden" name="bundleId" value={bundle.id} />
+          {appointmentId ? (
+            <input type="hidden" name="appointmentId" value={appointmentId} />
+          ) : null}
           <Button
             type="submit"
             size="sm"
@@ -173,10 +181,12 @@ function BundleCard({
  */
 export function AdvisorCapture({
   customerId,
+  appointmentId,
   aiConfigured,
   pendingBundles,
 }: {
   readonly customerId: string;
+  readonly appointmentId?: string;
   readonly aiConfigured: boolean;
   readonly pendingBundles: readonly AdvisorCaptureBundle[];
 }) {
@@ -241,6 +251,9 @@ export function AdvisorCapture({
         </p>
       ) : (
         <form action={action} className="flex flex-col gap-3">
+          {appointmentId ? (
+            <input type="hidden" name="appointmentId" value={appointmentId} />
+          ) : null}
           <textarea
             ref={textareaRef}
             name="rawText"
@@ -302,6 +315,7 @@ export function AdvisorCapture({
                 key={bundle.id}
                 bundle={bundle}
                 customerId={customerId}
+                {...(appointmentId ? { appointmentId } : {})}
               />
             ))}
           </ul>

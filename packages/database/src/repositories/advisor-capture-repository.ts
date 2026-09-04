@@ -11,6 +11,7 @@
 
 import {
   checkCaptureBundleProposal,
+  type AppointmentId,
   type AppointmentPayload,
   type CaptureBundleKind,
   type CaptureBundleProposal,
@@ -46,6 +47,7 @@ export interface AdvisorCaptureSession {
   readonly retailerId: RetailerId;
   readonly staffId: StaffId;
   readonly customerId: CustomerId | null;
+  readonly appointmentId: AppointmentId | null;
   readonly source: CaptureSource;
   readonly messageId: MessageId | null;
   readonly rawText: string;
@@ -75,6 +77,7 @@ function sessionToDomain(row: SessionRow): AdvisorCaptureSession {
     retailerId: row.retailer_id as RetailerId,
     staffId: row.staff_id as StaffId,
     customerId: row.customer_id as CustomerId | null,
+    appointmentId: row.appointment_id as AppointmentId | null,
     source: row.source as CaptureSource,
     messageId: row.message_id as MessageId | null,
     rawText: row.raw_text,
@@ -121,6 +124,7 @@ export class AdvisorCaptureRepository {
     readonly retailerId: RetailerId;
     readonly staffId: StaffId;
     readonly customerId?: CustomerId;
+    readonly appointmentId?: AppointmentId;
     readonly source?: CaptureSource;
     readonly rawText: string;
   }): Promise<AdvisorCaptureSession> {
@@ -130,6 +134,7 @@ export class AdvisorCaptureRepository {
         retailer_id: args.retailerId,
         staff_id: args.staffId,
         ...(args.customerId ? { customer_id: args.customerId } : {}),
+        ...(args.appointmentId ? { appointment_id: args.appointmentId } : {}),
         source: args.source ?? "text",
         raw_text: args.rawText.trim(),
       })
