@@ -1,6 +1,12 @@
-import { createSupabaseAdminClient } from "@paon/database";
-import { asId } from "@paon/domain";
-import { expect, test } from "@playwright/test";
+import {
+  CorporateOpportunityRepository,
+  PlatformModuleRepository,
+  RetailerRepository,
+  RetailerStaffRepository,
+  createSupabaseAdminClient,
+} from "@paon/database";
+import { PLATFORM_MODULES, asId, type RetailerId } from "@paon/domain";
+import { expect, test, type Browser } from "@playwright/test";
 
 import {
   TEST_OWNER_EMAIL,
@@ -13,6 +19,37 @@ const PHASE_ITEM_ID = "18.1";
 const BROWSER_PROOF_SPEC = "apps/retailer/e2e/business-development.spec.ts";
 
 let proofPassed = false;
+
+async function activateAllModules(
+  admin: ReturnType<typeof createSupabaseAdminClient>,
+  retailerId: RetailerId,
+) {
+  const modules = new PlatformModuleRepository(admin);
+  for (const platformModule of PLATFORM_MODULES) {
+    await modules.configure({
+      retailerId,
+      moduleKey: platformModule.key,
+      state: "active",
+      authorityMode:
+        platformModule.key === "platform_core" ? "paon" : "co_managed",
+      source: "add_on",
+    });
+  }
+}
+
+async function loginAs(
+  browser: Browser,
+  credentials: { email: string; password: string },
+) {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto("/login");
+  await page.getByLabel("Email").fill(credentials.email);
+  await page.getByLabel("Password").fill(credentials.password);
+  await page.getByRole("button", { name: "Enter the atelier" }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  return { context, page };
+}
 
 test.afterAll(async () => {
   await writeBrowserProofRun({
@@ -145,5 +182,158 @@ test("a corporate opportunity is scored from its signals, staged forward, and wo
     if (accountId) {
       await admin.from("corporate_accounts").delete().eq("id", accountId);
     }
+  }
+});
+
+/**
+ * Proves tenant isolation (ADR-003) for corporate opportunities: a staff member
+ * at retailer B cannot access opportunities authored by retailer A, even with
+ * direct API access — RLS filters the request to zero rows, triggering a
+ * 404. The correct tenant's request succeeds and sees the opportunity.
+ */
+test("cross-tenant opportunity access is denied by RLS; same-tenant access succeeds", async ({
+  browser,
+}) => {
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
+  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+  const unique = Date.now();
+
+  // Retailer A: create it with staff and an opportunity
+  const retailerA = await new RetailerRepository(admin).create({
+    legalName: `E2E Opportunity Isolation A ${unique}, Inc.`,
+    displayName: `E2E Opportunity Isolation A ${unique}`,
+    slug: `e2e-opp-iso-a-${unique}`,
+    tier: "boutique",
+    defaultCurrency: "USD",
+    defaultLocale: "en-US",
+    billingAddress: {
+      line1: "1 Test Street",
+      city: "Testville",
+      postalCode: "00000",
+      countryCode: "US",
+    },
+  });
+  await admin
+    .from("retailers")
+    .update({ status: "active" })
+    .eq("id", retailerA.id);
+  await activateAllModules(admin, retailerA.id);
+
+  const emailA = `e2e-opp-iso-a-staff-${unique}@paon.test`;
+  const passwordA = "E2E-opportunity-isolation-password-789!";
+  const { data: userA, error: userAError } = await admin.auth.admin.createUser({
+    email: emailA,
+    password: passwordA,
+    email_confirm: true,
+  });
+  if (userAError || !userA.user) {
+    throw new Error(
+      `Failed to create retailer A user: ${userAError?.message ?? "unknown error"}`,
+    );
+  }
+  const staffA = await new RetailerStaffRepository(admin).create({
+    retailerId: retailerA.id,
+    userId: userA.user.id as never,
+    fullName: "E2E Opportunity Isolation A Staff",
+    email: emailA,
+    role: "manager",
+  });
+  await admin
+    .from("retailer_staff_members")
+    .update({ accepted_at: new Date().toISOString() })
+    .eq("id", staffA.id);
+
+  // Create an opportunity for Retailer A
+  const opportunityA = await new CorporateOpportunityRepository(admin).create({
+    retailerId: retailerA.id,
+    companyName: `E2E Isolation Test Company A ${unique}`,
+  });
+  if (!opportunityA.ok) throw new Error("failed to create opportunity A");
+
+  // Retailer B: create it with different staff
+  const retailerB = await new RetailerRepository(admin).create({
+    legalName: `E2E Opportunity Isolation B ${unique}, Inc.`,
+    displayName: `E2E Opportunity Isolation B ${unique}`,
+    slug: `e2e-opp-iso-b-${unique}`,
+    tier: "boutique",
+    defaultCurrency: "USD",
+    defaultLocale: "en-US",
+    billingAddress: {
+      line1: "1 Test Street",
+      city: "Testville",
+      postalCode: "00000",
+      countryCode: "US",
+    },
+  });
+  await admin
+    .from("retailers")
+    .update({ status: "active" })
+    .eq("id", retailerB.id);
+  await activateAllModules(admin, retailerB.id);
+
+  const emailB = `e2e-opp-iso-b-staff-${unique}@paon.test`;
+  const passwordB = "E2E-opportunity-isolation-password-789!";
+  const { data: userB, error: userBError } = await admin.auth.admin.createUser({
+    email: emailB,
+    password: passwordB,
+    email_confirm: true,
+  });
+  if (userBError || !userB.user) {
+    throw new Error(
+      `Failed to create retailer B user: ${userBError?.message ?? "unknown error"}`,
+    );
+  }
+  const staffB = await new RetailerStaffRepository(admin).create({
+    retailerId: retailerB.id,
+    userId: userB.user.id as never,
+    fullName: "E2E Opportunity Isolation B Staff",
+    email: emailB,
+    role: "manager",
+  });
+  await admin
+    .from("retailer_staff_members")
+    .update({ accepted_at: new Date().toISOString() })
+    .eq("id", staffB.id);
+
+  try {
+    // Test 1: Retailer B staff logs in and tries to reach Retailer A's
+    // opportunity page. RLS should block the opportunity, resulting in 404.
+    const sessionB = await loginAs(browser, {
+      email: emailB,
+      password: passwordB,
+    });
+    await sessionB.page.goto(
+      `/business-development/${opportunityA.opportunity.id}`,
+    );
+    await expect(
+      sessionB.page.getByRole("heading", { name: "404" }),
+    ).toBeVisible();
+    const pageContentB = await sessionB.page.content();
+    expect(pageContentB).not.toContain(opportunityA.opportunity.companyName);
+    await sessionB.context.close();
+
+    // Test 2: Retailer A staff logs in and can see their own opportunity.
+    const sessionA = await loginAs(browser, {
+      email: emailA,
+      password: passwordA,
+    });
+    await sessionA.page.goto(
+      `/business-development/${opportunityA.opportunity.id}`,
+    );
+    await expect(
+      sessionA.page.getByRole("heading", {
+        name: opportunityA.opportunity.companyName,
+      }),
+    ).toBeVisible();
+    await sessionA.context.close();
+  } finally {
+    // Cleanup
+    await admin
+      .from("corporate_opportunities")
+      .delete()
+      .eq("id", opportunityA.opportunity.id);
+    await admin.from("retailers").delete().eq("id", retailerA.id);
+    await admin.from("retailers").delete().eq("id", retailerB.id);
   }
 });
