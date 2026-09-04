@@ -176,6 +176,13 @@ export function TableServiceWidget({
   const formRef = useRef<HTMLFormElement>(null);
   const messageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const pillRef = useRef<HTMLDivElement>(null);
+  // Captured when the pill is clicked (before it unmounts) so the close
+  // animation has something to shrink back into — the pill itself is
+  // gone from the DOM by the time Close is pressed (only rendered while
+  // `!open`), so re-querying pillRef.current at close time would be null.
+  const pillRectRef = useRef<DOMRect | null>(null);
 
   const pathname = usePathname();
   const isLandingPage = /^\/r\/[^/]+\/?$/.test(pathname ?? "");
@@ -185,6 +192,19 @@ export function TableServiceWidget({
   // Hide floating widgets when actionable panels open to prevent covering
   // their interactive controls (filter panel, product detail, etc.).
   const [isHidden, setIsHidden] = useState(false);
+
+  // The bottom-right pill below is now the one entry point into this
+  // panel; it still also listens for this event so anything else that
+  // wants to open it (none currently) doesn't need a prop-drilled
+  // callback.
+  useEffect(() => {
+    function handleExternalOpen() {
+      setOpen(true);
+    }
+    window.addEventListener("paon:open-table-service", handleExternalOpen);
+    return () =>
+      window.removeEventListener("paon:open-table-service", handleExternalOpen);
+  }, []);
 
   useEffect(() => {
     const observer = new MutationObserver(() => {
@@ -463,6 +483,89 @@ export function TableServiceWidget({
     }
   }
 
+  function getGsap(): {
+    fromTo: (
+      target: Element,
+      fromVars: Record<string, unknown>,
+      toVars: Record<string, unknown>,
+    ) => void;
+    to: (target: Element, toVars: Record<string, unknown>) => void;
+  } | null {
+    if (typeof window === "undefined") return null;
+    return (
+      (
+        window as unknown as {
+          gsap?: {
+            fromTo: (
+              target: Element,
+              fromVars: Record<string, unknown>,
+              toVars: Record<string, unknown>,
+            ) => void;
+            to: (target: Element, toVars: Record<string, unknown>) => void;
+          };
+        }
+      ).gsap ?? null
+    );
+  }
+
+  function animatePanelOpen() {
+    const pillRect = pillRef.current?.getBoundingClientRect();
+    const gsap = getGsap();
+    if (!pillRect || !gsap) {
+      setOpen(true);
+      return;
+    }
+    pillRectRef.current = pillRect;
+    setOpen(true);
+    // Panel isn't in the DOM until after this render commits.
+    window.setTimeout(() => {
+      const panelDiv = panelRef.current;
+      const fromRect = pillRectRef.current;
+      if (!panelDiv || !fromRect) return;
+      const panelRect = panelDiv.getBoundingClientRect();
+      gsap.fromTo(
+        panelDiv,
+        {
+          x: fromRect.left - panelRect.left,
+          y: fromRect.top - panelRect.top,
+          width: fromRect.width,
+          height: fromRect.height,
+          opacity: 0,
+        },
+        {
+          x: 0,
+          y: 0,
+          width: panelRect.width,
+          height: panelRect.height,
+          opacity: 1,
+          duration: 0.3,
+          ease: "power2.out",
+        },
+      );
+    }, 0);
+  }
+
+  function animatePanelClose() {
+    const panelDiv = panelRef.current;
+    const toRect = pillRectRef.current;
+    const gsap = getGsap();
+    if (!panelDiv || !toRect || !gsap) {
+      setOpen(false);
+      return;
+    }
+    const panelRect = panelDiv.getBoundingClientRect();
+    gsap.to(panelDiv, {
+      x: toRect.left - panelRect.left,
+      y: toRect.top - panelRect.top,
+      width: toRect.width,
+      height: toRect.height,
+      opacity: 0,
+      duration: 0.3,
+      ease: "power2.in",
+      onComplete: () => setOpen(false),
+    });
+  }
+
   return (
     <div
       className={`fixed right-5 z-50 flex flex-col items-end gap-3 transition-opacity duration-200 ${
@@ -475,6 +578,7 @@ export function TableServiceWidget({
     >
       {open ? (
         <div
+          ref={panelRef}
           id="gilda-chat-widget"
           role="dialog"
           aria-label={`Message ${retailerName}`}
@@ -797,28 +901,53 @@ export function TableServiceWidget({
           <button
             type="button"
             className="w-full border-t border-black/10 py-2 text-center text-xs text-[var(--color-stone-500)]"
-            onClick={() => setOpen(false)}
+            onClick={animatePanelClose}
           >
             Close
           </button>
         </div>
       ) : null}
 
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        aria-expanded={open}
-        // No aria-label: it previously read "Contact us" while the button
-        // visibly reads "Ask us anything". aria-label overrides child text in
-        // the accessible name, so assistive tech announced a different label
-        // than sighted users saw, and voice control could not activate the
-        // button by its visible name (WCAG 2.5.3 Label in Name). Letting the
-        // name fall back to the visible text fixes that, and is also more
-        // informative because the text already reflects open/closed state.
-        className="rounded-[var(--radius-md)] bg-[var(--color-stone-900)] px-5 py-3 text-sm font-medium text-white shadow-lg"
-      >
-        {open ? "Close" : "Ask us anything"}
-      </button>
+      {!open ? (
+        <div
+          ref={pillRef}
+          role="button"
+          tabIndex={0}
+          aria-label="How may we be of service?"
+          onClick={animatePanelOpen}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              animatePanelOpen();
+            }
+          }}
+          className="table-service-pill cursor-pointer rounded-[var(--radius-md)] px-5 py-4 text-sm text-[var(--color-stone-800)] transition-colors duration-200"
+          style={{
+            background: "rgba(0,0,0,0.1)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+          }}
+        >
+          <style>{`
+            @keyframes table-service-shimmer {
+              0% { background-position: -200% 0; }
+              100% { background-position: 200% 0; }
+            }
+            .table-service-pill:hover {
+              background: rgba(0,0,0,0.18) !important;
+              background-image: linear-gradient(
+                110deg,
+                transparent 40%,
+                rgba(255,255,255,0.35) 50%,
+                transparent 60%
+              );
+              background-size: 200% 100%;
+              animation: table-service-shimmer 1.6s ease-in-out infinite;
+            }
+          `}</style>
+          How may we be of service?
+        </div>
+      ) : null}
     </div>
   );
 }
