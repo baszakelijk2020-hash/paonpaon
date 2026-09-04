@@ -34,11 +34,7 @@ export function Sidebar({ slug, retailerName, categoryNames }: SidebarProps) {
         </span>
         <span className={styles.contextSwitcherDivider} />
         <Link
-          href={`/dashboard?returnTo=${encodeURIComponent(
-            typeof window !== "undefined"
-              ? window.location.pathname + window.location.search
-              : `/r/${slug}`,
-          )}`}
+          href={`/dashboard?returnTo=${encodeURIComponent(`/r/${slug}`)}`}
           className={styles.contextSwitcherLink}
           style={{ color: "#8a8a87", opacity: 0.7 }}
         >

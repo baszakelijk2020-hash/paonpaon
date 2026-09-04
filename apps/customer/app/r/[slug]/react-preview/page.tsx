@@ -53,6 +53,7 @@ async function StorefrontShell({ slug }: { slug: string }) {
             entries={pageData.entries}
             categoryNames={pageData.categoryNames}
             defaultCategory={pageData.defaultCategory}
+            slug={slug}
           />
 
           <Footer

@@ -6,6 +6,7 @@ import type { StorefrontPageEntry } from "../../storefront-page-data-types";
 import styles from "../storefront-shell.module.css";
 
 import { CategoryFilter } from "./CategoryFilter";
+import { ProductDetail } from "./ProductDetail";
 import { ProductGrid } from "./ProductGrid";
 import { SortControl } from "./SortControl";
 
@@ -13,6 +14,7 @@ interface CatalogueSectionProps {
   entries: readonly StorefrontPageEntry[];
   categoryNames: readonly string[];
   defaultCategory: string;
+  slug: string;
 }
 
 // Extract catalogue number from product ID for sorting
@@ -52,18 +54,14 @@ export function CatalogueSection({
   entries,
   categoryNames,
   defaultCategory,
+  slug,
 }: CatalogueSectionProps) {
   const [selectedCategory, setSelectedCategory] =
     useState<string>(defaultCategory);
   const [sortBy, setSortBy] = useState<string>("newest");
-  // TODO: Wire selectedProduct to ProductDetail/MobileProductDetail components per contract
   const [selectedProduct, setSelectedProduct] =
     useState<StorefrontPageEntry | null>(null);
-  // Reference selectedProduct to suppress unused variable warning; will be used when ProductDetail/MobileProductDetail integrated
-  void selectedProduct;
 
-  // Handle product click — currently just sets selectedProduct state,
-  // will be wired to ProductDetail/MobileProductDetail per contract
   const handleProductClick = (productId: string) => {
     const product = entries.find((entry) => entry.id === productId);
     if (product) {
@@ -92,6 +90,13 @@ export function CatalogueSection({
         entries={filteredAndSortedEntries}
         onProductClick={handleProductClick}
       />
+      {selectedProduct ? (
+        <ProductDetail
+          product={selectedProduct}
+          slug={slug}
+          onClose={() => setSelectedProduct(null)}
+        />
+      ) : null}
     </div>
   );
 }
