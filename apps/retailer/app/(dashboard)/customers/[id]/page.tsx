@@ -14,6 +14,7 @@ import {
   FitProfileCandidateRepository,
   LoyaltyRepository,
   MeasurementMonitorRepository,
+  MessagingRepository,
   MetadataRepository,
   OrderRepository,
   OutfitRepository,
@@ -328,6 +329,20 @@ export default async function CustomerDetailPage({
   // sales_associate/manager even inside the Self-Portrait card.
   const openOpportunities = canViewRelationshipIntelligence
     ? await opportunityRepo.listForCustomer(session.retailerId, customer.id)
+    : [];
+
+  // Same ADR-075 boundary — message bodies are relationship intelligence.
+  const recentMessages = canViewRelationshipIntelligence
+    ? await (async () => {
+        const conversation = await new MessagingRepository(
+          supabase,
+        ).findByCustomer(customer.id);
+        if (!conversation) return [];
+        const messages = await new MessagingRepository(supabase).findMessages(
+          conversation.id,
+        );
+        return messages.slice(-5).reverse();
+      })()
     : [];
 
   // ADR-075: "the customer detail page gates full contact display on
@@ -730,6 +745,7 @@ export default async function CustomerDetailPage({
           appointments={appointments}
           alterations={alterations}
           openOpportunities={openOpportunities}
+          recentMessages={recentMessages}
           conceptLabels={
             new Map(
               rectangleConcepts.map((concept) => [

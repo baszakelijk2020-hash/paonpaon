@@ -9,6 +9,7 @@ import type {
   CustomerStyleProfile,
   LoyaltyAccount,
   LoyaltyMilestoneAward,
+  Message,
   Order,
 } from "@paon/domain";
 import { milestonePresentation } from "@paon/domain";
@@ -150,6 +151,7 @@ export function SelfPortrait({
   appointments,
   alterations,
   openOpportunities,
+  recentMessages,
   conceptLabels,
 }: {
   customerId: string;
@@ -164,6 +166,7 @@ export function SelfPortrait({
   appointments: readonly Appointment[];
   alterations: readonly Alteration[];
   openOpportunities: readonly ClientelingOpportunity[];
+  recentMessages: readonly Message[];
   conceptLabels: ReadonlyMap<string, string>;
 }) {
   const activeMilestones = milestoneAwards.filter(
@@ -444,6 +447,46 @@ export function SelfPortrait({
             ))}
           </ul>
         )}
+      </div>
+
+      <div className="mb-4">
+        <p className="mb-2 text-xs font-medium uppercase text-[var(--color-stone-500)]">
+          Recent conversation
+        </p>
+        {recentMessages.length === 0 ? (
+          <p className="text-sm text-[var(--color-stone-500)]">
+            No messages yet.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-1.5">
+            {recentMessages.map((message) => (
+              <li key={message.id} className="text-sm">
+                <span className="text-xs font-medium uppercase text-[var(--color-stone-500)]">
+                  {message.senderType === "customer"
+                    ? "Customer"
+                    : message.senderType === "staff"
+                      ? "Staff"
+                      : message.senderType === "ai_assistant"
+                        ? "AI assistant"
+                        : "Guest"}
+                  {" · "}
+                  {formatDate(message.createdAt, "en-US")}
+                </span>
+                <p className="text-[var(--color-stone-800)]">
+                  {message.body.length > 200
+                    ? `${message.body.slice(0, 200)}…`
+                    : message.body}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+        <Link
+          href="/messages"
+          className="mt-1 inline-block text-xs underline underline-offset-4"
+        >
+          Open full conversation
+        </Link>
       </div>
 
       <div className="mb-4">
