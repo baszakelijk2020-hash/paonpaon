@@ -30,6 +30,8 @@ async function requireCommerceModule(
 
 export interface CartFormState {
   formError?: string;
+  requiresAuth?: boolean;
+  redirectTo?: string;
 }
 
 export async function updateCartLine(
@@ -39,7 +41,7 @@ export async function updateCartLine(
 ): Promise<CartFormState> {
   const session = await getSession();
   if (!session || session.accountType !== "customer")
-    redirect(`/login?redirectTo=/r/${slug}/cart`);
+    return { requiresAuth: true, redirectTo: `/r/${slug}/cart` };
   const parsed = updateCartLineInputSchema.safeParse({
     lineId: formData.get("lineId"),
     quantity: formData.get("quantity"),
@@ -69,7 +71,7 @@ export async function checkoutCart(
 ): Promise<CartFormState> {
   const session = await getSession();
   if (!session || session.accountType !== "customer")
-    redirect(`/login?redirectTo=/r/${slug}/cart`);
+    return { requiresAuth: true, redirectTo: `/r/${slug}/cart` };
   const parsed = checkoutCartInputSchema.safeParse({
     orderId: formData.get("orderId"),
     shippingAddress: {

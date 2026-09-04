@@ -5,8 +5,7 @@ import { Card } from "@paon/ui/components/Card";
 import Link from "next/link";
 import { useState } from "react";
 
-import { MagicLinkForm } from "../login/magic-link-form";
-import { QuickDemoLogin } from "../login/quick-demo-login";
+import { InlineSignIn } from "../inline-sign-in";
 
 /**
  * Guest landing after the storefront profile icon. Three actions only —
@@ -15,9 +14,11 @@ import { QuickDemoLogin } from "../login/quick-demo-login";
  * "Sign in" used to navigate to the separate /login page — a founder-
  * designed distinct lander (ADR-046/047), fine as the storefront's own
  * front door, but a jarring click-away when someone is already inside
- * the dashboard shell. Clicking it now reveals the same MagicLinkForm/
- * QuickDemoLogin in place instead, so signing in never leaves this
- * screen.
+ * the dashboard shell. Clicking it now reveals the same InlineSignIn
+ * (MagicLinkForm/QuickDemoLogin) in place instead, so signing in never
+ * leaves this screen. Same InlineSignIn is reused by every mid-task
+ * auth prompt across the storefront — see docs/DECISIONS.md and this
+ * session's login-simplification pass.
  */
 export function GuestPortalPreview({
   storeHref = "/r/atelier-demo",
@@ -40,16 +41,11 @@ export function GuestPortalPreview({
           </h1>
 
           {signingIn ? (
-            <div className="mt-6 max-w-sm rounded-[var(--radius-md)] border border-white/15 bg-white/10 p-6 backdrop-blur-2xl [&_button[type='submit']]:!rounded-[var(--radius-md)] [&_button[type='submit']]:!border [&_button[type='submit']]:!border-white/25 [&_button[type='submit']]:!bg-white/15 [&_button[type='submit']]:!text-white [&_button[type='submit']]:!backdrop-blur-xl hover:[&_button[type='submit']]:!bg-white/25 [&_input]:!rounded-[var(--radius-md)] [&_input]:!border-white/25 [&_input]:!bg-white/90 [&_input]:!px-5 [&_input]:!text-[var(--color-stone-900)] [&_input]:!backdrop-blur-xl [&_label]:!text-white/85">
-              <MagicLinkForm redirectTo="/dashboard" />
-              <QuickDemoLogin redirectTo="/dashboard" />
-              <button
-                type="button"
-                onClick={() => setSigningIn(false)}
-                className="mt-5 text-xs text-white/60 underline underline-offset-4 hover:text-white/85"
-              >
-                Back
-              </button>
+            <div className="mt-6">
+              <InlineSignIn
+                redirectTo="/dashboard"
+                onCancel={() => setSigningIn(false)}
+              />
             </div>
           ) : (
             <>

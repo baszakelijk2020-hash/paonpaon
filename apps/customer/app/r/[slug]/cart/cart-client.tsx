@@ -11,6 +11,8 @@ import { useActionState, useEffect, useRef, useState } from "react";
 
 import { checkoutCart, updateCartLine, type CartFormState } from "./actions";
 
+import { InlineSignIn } from "@/app/inline-sign-in";
+
 const initial: CartFormState = {};
 type CartItem = { line: OrderLine; variant: ProductVariant; product: Product };
 
@@ -21,12 +23,24 @@ function CartLine({ slug, item }: { slug: string; item: CartItem }) {
   );
   const formRef = useRef<HTMLFormElement>(null);
   const quantityRef = useRef<HTMLInputElement>(null);
+  const [dismissedAuthPrompt, setDismissedAuthPrompt] = useState(false);
 
   function submitWithQuantity(nextQuantity: number) {
     if (quantityRef.current) {
       quantityRef.current.value = String(Math.max(0, nextQuantity));
     }
     formRef.current?.requestSubmit();
+  }
+
+  if (state.requiresAuth && !dismissedAuthPrompt) {
+    return (
+      <div className="border-b border-[var(--color-stone-100)] py-4 last:border-0">
+        <InlineSignIn
+          redirectTo={state.redirectTo ?? "/r/cart"}
+          onCancel={() => setDismissedAuthPrompt(true)}
+        />
+      </div>
+    );
   }
 
   return (
@@ -110,6 +124,8 @@ export function CartClient({
   );
   const checkoutFormRef = useRef<HTMLFormElement>(null);
   const appointmentHref = `/r/${slug}/appointments`;
+  const [dismissedCheckoutAuthPrompt, setDismissedCheckoutAuthPrompt] =
+    useState(false);
 
   // Hide floating widgets when actionable panels open to prevent covering
   // their interactive controls (filter panel, product detail, etc.).
@@ -174,66 +190,80 @@ export function CartClient({
             <summary className="cursor-pointer text-sm text-[var(--color-stone-500)]">
               Save as pending order instead
             </summary>
-            <form
-              ref={checkoutFormRef}
-              action={action}
-              className="mt-3 flex flex-col gap-3"
-            >
-              <input type="hidden" name="orderId" value={order.id} />
-              <Input
-                name="line1"
-                aria-label="Address"
-                placeholder="Address"
-                required
-              />
-              <Input
-                name="line2"
-                aria-label="Address line 2 (optional)"
-                placeholder="Address line 2 (optional)"
-              />
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  name="city"
-                  aria-label="City"
-                  placeholder="City"
-                  required
-                />
-                <Input name="region" aria-label="Region" placeholder="Region" />
-                <Input
-                  name="postalCode"
-                  aria-label="Postal code"
-                  placeholder="Postal code"
-                  required
-                />
-                <Input
-                  name="countryCode"
-                  aria-label="Country code"
-                  placeholder="Country code"
-                  maxLength={2}
-                  required
+            {state.requiresAuth && !dismissedCheckoutAuthPrompt ? (
+              <div className="mt-3">
+                <InlineSignIn
+                  redirectTo={state.redirectTo ?? `/r/${slug}/cart`}
+                  onCancel={() => setDismissedCheckoutAuthPrompt(true)}
+                  variant="light"
                 />
               </div>
-              {state.formError ? (
-                <p
-                  role="alert"
-                  className="text-sm text-[var(--color-danger-500)]"
-                >
-                  {state.formError}
-                </p>
-              ) : null}
-              <Button
-                type="submit"
-                variant="secondary"
-                disabled={pending}
-                className="rounded-[15px]"
+            ) : (
+              <form
+                ref={checkoutFormRef}
+                action={action}
+                className="mt-3 flex flex-col gap-3"
               >
-                {pending ? "Saving…" : "Save pending order"}
-              </Button>
-              <p className="text-xs text-[var(--color-stone-500)]">
-                No payment is collected. The order is saved as pending until
-                Stripe is connected.
-              </p>
-            </form>
+                <input type="hidden" name="orderId" value={order.id} />
+                <Input
+                  name="line1"
+                  aria-label="Address"
+                  placeholder="Address"
+                  required
+                />
+                <Input
+                  name="line2"
+                  aria-label="Address line 2 (optional)"
+                  placeholder="Address line 2 (optional)"
+                />
+                <div className="grid grid-cols-2 gap-3">
+                  <Input
+                    name="city"
+                    aria-label="City"
+                    placeholder="City"
+                    required
+                  />
+                  <Input
+                    name="region"
+                    aria-label="Region"
+                    placeholder="Region"
+                  />
+                  <Input
+                    name="postalCode"
+                    aria-label="Postal code"
+                    placeholder="Postal code"
+                    required
+                  />
+                  <Input
+                    name="countryCode"
+                    aria-label="Country code"
+                    placeholder="Country code"
+                    maxLength={2}
+                    required
+                  />
+                </div>
+                {state.formError ? (
+                  <p
+                    role="alert"
+                    className="text-sm text-[var(--color-danger-500)]"
+                  >
+                    {state.formError}
+                  </p>
+                ) : null}
+                <Button
+                  type="submit"
+                  variant="secondary"
+                  disabled={pending}
+                  className="rounded-[15px]"
+                >
+                  {pending ? "Saving…" : "Save pending order"}
+                </Button>
+                <p className="text-xs text-[var(--color-stone-500)]">
+                  No payment is collected. The order is saved as pending until
+                  Stripe is connected.
+                </p>
+              </form>
+            )}
           </details>
         </div>
       </Card>
