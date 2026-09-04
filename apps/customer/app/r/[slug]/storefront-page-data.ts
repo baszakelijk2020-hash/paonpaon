@@ -1,23 +1,39 @@
+import type {
+  StorefrontPageCatalogueByProduct,
+  StorefrontPageContextItem,
+  StorefrontPageEntry,
+  StorefrontPageKnowledgeByProduct,
+  StorefrontPageStore,
+} from "./storefront-page-data-types";
+
 export interface StorefrontPageData {
   readonly slug: string;
   readonly retailerId: string;
   readonly tableServiceSignedIn: boolean;
-  readonly weddingParties: readonly unknown[];
-  readonly garments: readonly unknown[];
+  readonly weddingParties: readonly StorefrontPageContextItem[];
+  readonly garments: readonly StorefrontPageContextItem[];
   readonly retailerName: string;
+  /**
+   * Unescaped retailer display name for consumers (React JSX) that apply
+   * their own text escaping. `retailerName` above is pre-escaped for direct
+   * substitution into the raw HTML template and must stay that way — do not
+   * consolidate the two without auditing every __PAON_RETAILER_NAME__ /
+   * safeName call site in get-storefront-page-data.ts.
+   */
+  readonly retailerNameRaw: string;
   readonly ogTitle: string;
   readonly ogDescription: string;
   readonly ogImage: string;
   readonly brandHead: string;
   readonly brandMark: string;
   readonly heroHtml: string;
-  readonly entries: readonly unknown[];
+  readonly entries: readonly StorefrontPageEntry[];
   readonly defaultCategory: string;
   readonly categoryNames: readonly string[];
   readonly landOnGrid: boolean;
-  readonly stores: readonly unknown[];
-  readonly knowledgeByProduct: unknown;
-  readonly catalogueByProduct: unknown;
+  readonly stores: readonly StorefrontPageStore[];
+  readonly knowledgeByProduct: StorefrontPageKnowledgeByProduct;
+  readonly catalogueByProduct: StorefrontPageCatalogueByProduct;
   readonly footerHtml: string;
 }
 
