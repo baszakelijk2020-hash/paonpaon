@@ -10482,10 +10482,18 @@ body.product-detail-open .header-back svg {
             ? __PAON_CATEGORY_NAMES_JSON__
             : ['Suits', 'Jackets', 'Pants', 'Knits', 'Shoes', 'Shirts', 'Outerwear', 'Evening', 'Wedding'];
 
+        // Display-only label alignment with the customer dashboard's own
+        // sidebar (apps/customer/app/(dashboard)/shop-category-sidebar.tsx's
+        // SIDEBAR_CATEGORY_LABELS) — the underlying category value passed
+        // to showCollectionGrid stays "Pants"/"Knits" so catalogue
+        // filtering keeps matching; only the shown text changes.
+        var CATEGORY_DISPLAY_LABELS = { Pants: 'Trousers', Knits: 'Knitwear' };
+
         categoryNames.forEach(function (name) {
             var item = document.createElement('div');
             item.className = 'cat-item' + (name === state.activeCat && state.view !== 'home' ? ' active' : '');
-            item.innerHTML = '<div class="cat-label">' + name + '</div>';
+            var displayLabel = CATEGORY_DISPLAY_LABELS[name] || name;
+            item.innerHTML = '<div class="cat-label">' + displayLabel + '</div>';
             item.addEventListener('click', function () {
                 if (state.view === 'detail') window.paonReturnHomeFromDetail = false;
                 showCollectionGrid(name);
@@ -16836,7 +16844,7 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
         </div>
         <button type="button" class="gcw-close" id="gcw-close">Close</button>
     </div>
-    <button type="button" id="gilda-chat-widget-toggle">How may we be of service?</button>
+    <button type="button" id="gilda-chat-widget-toggle">TableService</button>
 </div>
 
 <script id="paon-tableservice-widget-js">

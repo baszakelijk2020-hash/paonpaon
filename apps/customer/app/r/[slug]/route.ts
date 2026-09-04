@@ -403,16 +403,17 @@ export async function GET(
   const bodyFont = BODY_FONTS[theme.bodyFont] ?? BODY_FONTS.quiet_sans;
   const radius = CORNERS[theme.cornerStyle] ?? CORNERS.tailored;
 
-  // Store/My PAON context switcher: only for a signed-in customer (an
-  // anonymous shopper has no "My PAON" to switch to, and must see zero
-  // change to the founder's storefront). Injected purely via this existing
-  // __PAON_BRAND_HEAD__ placeholder — paon-template.html is never touched
-  // (ADR-046). Desktop only: it mounts as a sibling of #sidebar-logo inside
-  // <aside>, which the template's own `@media (max-width: 850px) { aside {
-  // display: none } }` rule already hides — the same pre-existing boundary
-  // that hides .cat-grid's category rail on mobile.
-  const contextSwitcherScript = tableServiceSignedIn
-    ? `<script id="paon-context-switcher-inject">
+  // Store/My PAON context switcher: shown for every visitor, signed in or
+  // not — matches the dashboard sidebar exactly (ShopCategorySidebar
+  // shows the same switcher for a signed-out guest, landing on the guest
+  // preview with its own inline sign-in). Injected purely via this
+  // existing __PAON_BRAND_HEAD__ placeholder — paon-template.html is
+  // never touched (ADR-046). Desktop only: it mounts as a sibling of
+  // #sidebar-logo inside <aside>, which the template's own
+  // `@media (max-width: 850px) { aside { display: none } }` rule already
+  // hides — the same pre-existing boundary that hides .cat-grid's
+  // category rail on mobile.
+  const contextSwitcherScript = `<script id="paon-context-switcher-inject">
 (function() {
   if (document.getElementById("paon-context-switcher")) return;
   function init() {
@@ -487,8 +488,7 @@ export async function GET(
     init();
   }
 })();
-</script>`
-    : "";
+</script>`;
 
   const dfrHandoffScript = `<script id="paon-dfr-handoff-inject">
 (function() {
