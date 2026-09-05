@@ -225,6 +225,9 @@ body:not(.paon-storefront-active) {
   inset: 0;
   z-index: 1;
   overflow-y: auto;
+  /* It flies in from the right, so it must not widen the page on its way. */
+  overflow-x: hidden;
+  will-change: transform, filter;
   background: var(--customer-page-bg, #f4f2ec);
   font-family: "Customer Body", "TN Web Use Only", sans-serif;
   font-size: 1rem;

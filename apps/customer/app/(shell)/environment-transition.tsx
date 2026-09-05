@@ -7,13 +7,13 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 const STORE_PREFIX = "/r/";
 
 /**
- * Crossfades between the two environments.
+ * Slides the customer environment over the storefront, and back off it.
  *
  * Both are alive at once: the storefront is a live subtree in <body> that is
  * never rebuilt, and the customer environment is a fixed overlay above it. So
- * moving between them is not a page change at all — it is one element fading
- * over another, and it is animated the way the founder's template animates its
- * own grid-to-detail transition rather than cutting.
+ * moving between them is not a page change at all — it is one panel flying in
+ * over another that never goes anywhere. It is animated to match the founder's
+ * own grid-to-detail entry, so the two feel like the same gesture.
  *
  * The overlay stays `position: fixed` in both states. Letting it return to
  * flow made it take space above the storefront, which is the band of customer
@@ -35,25 +35,61 @@ export function EnvironmentTransition() {
     if (first.current) {
       first.current = false;
       gsap.set(overlay, {
+        xPercent: inStore ? 100 : 0,
         autoAlpha: inStore ? 0 : 1,
+        filter: "blur(0px)",
         pointerEvents: inStore ? "none" : "auto",
       });
       return;
     }
 
     gsap.killTweensOf(overlay);
-    gsap.to(overlay, {
-      autoAlpha: inStore ? 0 : 1,
-      duration: 0.42,
-      ease: "power2.inOut",
-      // Nothing behind a fading overlay should be clickable mid-flight.
-      onStart: () => {
-        overlay.style.pointerEvents = "none";
+    // Nothing under a moving panel should be clickable while it moves.
+    overlay.style.pointerEvents = "none";
+
+    if (inStore) {
+      /*
+       * Leaving: the customer environment flies back out to the right and the
+       * storefront is simply there behind it, exactly as it was left — it is
+       * never unmounted, so there is nothing to reveal but itself.
+       */
+      gsap.to(overlay, {
+        xPercent: 100,
+        filter: "blur(18px)",
+        duration: 0.62,
+        ease: "power3.in",
+        force3D: true,
+        onComplete: () => {
+          gsap.set(overlay, { autoAlpha: 0, filter: "blur(0px)" });
+        },
+      });
+      return;
+    }
+
+    /*
+     * Arriving: in from the right over the storefront, out of a blur.
+     *
+     * 0.72s on a quartic ease-out is the founder's own detail-panel entry
+     * (paon-template.html's `duration = 720`, `easeOut4`), so opening the
+     * customer environment lands with the same weight as opening a jacket.
+     */
+    gsap.fromTo(
+      overlay,
+      { xPercent: 100, autoAlpha: 1, filter: "blur(18px)" },
+      {
+        xPercent: 0,
+        filter: "blur(0px)",
+        duration: 0.72,
+        ease: "power4.out",
+        force3D: true,
+        onComplete: () => {
+          overlay.style.pointerEvents = "auto";
+          // Leaving a filter on the element keeps a compositing layer alive and
+          // makes it the containing block for anything fixed inside it.
+          gsap.set(overlay, { clearProps: "filter" });
+        },
       },
-      onComplete: () => {
-        overlay.style.pointerEvents = inStore ? "none" : "auto";
-      },
-    });
+    );
   }, [inStore]);
 
   /*
