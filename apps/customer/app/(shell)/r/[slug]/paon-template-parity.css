@@ -1,5 +1,5 @@
 /*
- * Parity layer. Every rule here is required to make /react-preview render
+ * Parity layer. Every rule here is required to make the storefront route render
  * identically to the raw /r/[slug] page. Nothing here is a design choice —
  * each rule restores a value the raw page already has and that the surrounding
  * customer-app chrome would otherwise override.

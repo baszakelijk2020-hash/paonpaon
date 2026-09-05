@@ -5,7 +5,7 @@ import { ShopCategorySidebar } from "./(dashboard)/shop-category-sidebar";
  * storefront (r/[slug]).
  *
  * The sidebar used to be rendered twice — once in (dashboard)/layout.tsx and
- * once inside r/[slug]/react-preview/page.tsx — so moving between the two
+ * once inside the storefront page itself — so moving between the two
  * environments unmounted one instance and mounted a different one, re-running
  * its Supabase queries and visibly reloading it. Both route subtrees now live
  * under this one route group, whose layout Next.js preserves across every
