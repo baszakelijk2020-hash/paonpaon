@@ -204,3 +204,8 @@
    */
   border: 0 !important;
 }
+
+/* The storefront begins exactly at the sidebar edge on the home feed. */
+.paon-template-root #view-home {
+  padding-left: 0 !important;
+}

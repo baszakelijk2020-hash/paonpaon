@@ -58,7 +58,19 @@ export default function ShellLayout({
         See park() in r/[slug]/template-mount.tsx for why it is covered rather
         than hidden.
       */}
-      <EnvironmentTransition>{children}</EnvironmentTransition>
+      <div
+        data-paon-customer-layer
+        className="paon-shell-content"
+        aria-hidden="false"
+      >
+        <div
+          data-paon-customer-blur-veil
+          aria-hidden="true"
+          className="paon-customer-blur-veil"
+        />
+        <EnvironmentTransition />
+        {children}
+      </div>
       <div
         data-paon-shell-sidebar
         className="fixed left-0 top-0 z-[120] hidden h-screen w-[250px] lg:block"

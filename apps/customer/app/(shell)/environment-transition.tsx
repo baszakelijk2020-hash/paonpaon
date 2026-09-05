@@ -19,24 +19,24 @@ import { usePaonEnvironment } from "./environment-store";
  * flow made it take space above the storefront, which is the band of customer
  * environment that used to show across the storefront's page.
  */
-export function EnvironmentTransition({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function EnvironmentTransition() {
   const pathname = usePathname();
   const environment = usePaonEnvironment(pathname);
   const inStore = environment === "store";
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const veilRef = useRef<HTMLDivElement>(null);
   const first = useRef(true);
 
   useLayoutEffect(() => {
-    const overlay = overlayRef.current;
-    const veil = veilRef.current;
+    const overlay = document.querySelector<HTMLElement>(
+      "[data-paon-customer-layer]",
+    );
+    const veil = document.querySelector<HTMLElement>(
+      "[data-paon-customer-blur-veil]",
+    );
     if (!overlay || !veil) return;
 
     document.body.classList.toggle("paon-storefront-active", inStore);
+    overlay.setAttribute("aria-hidden", String(inStore));
+    overlay.inert = inStore;
     const hiddenTransform = "translate3d(-100%, 0, 0)";
     const visibleTransform = "translate3d(0%, 0, 0)";
     const reducedMotion = window.matchMedia(
@@ -113,21 +113,5 @@ export function EnvironmentTransition({
     return () => observer.disconnect();
   }, [inStore]);
 
-  return (
-    <div
-      ref={overlayRef}
-      data-paon-customer-layer
-      className="paon-shell-content"
-      aria-hidden={inStore}
-      inert={inStore ? true : undefined}
-    >
-      <div
-        ref={veilRef}
-        data-paon-customer-blur-veil
-        aria-hidden="true"
-        className="paon-customer-blur-veil"
-      />
-      {children}
-    </div>
-  );
+  return null;
 }

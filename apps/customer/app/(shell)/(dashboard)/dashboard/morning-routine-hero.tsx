@@ -47,7 +47,7 @@ function PurchaseAction({
     );
   }
   return (
-    <Link href={piece.buyHref} className="customer-button">
+    <Link href={piece.buyHref} prefetch={false} className="customer-button">
       Buy
     </Link>
   );
@@ -114,12 +114,14 @@ export function MorningRoutineDashboardHero({
           />
           <Link
             href={nextAppointmentHref ?? `/r/${retailerSlug}/appointments`}
+            prefetch={false}
             className="customer-button customer-button-light"
           >
             Book appointment
           </Link>
           <Link
             href="/concierge"
+            prefetch={false}
             className="customer-button customer-button-light"
           >
             Ask your advisor

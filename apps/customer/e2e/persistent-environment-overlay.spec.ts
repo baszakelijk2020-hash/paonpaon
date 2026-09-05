@@ -31,7 +31,7 @@ test("customer layer toggles without navigation or storefront state loss", async
   await page.setViewportSize({ width: 1512, height: 982 });
   await signIn(page);
   await page.goto("/r/atelier-demo?category=Pants", {
-    waitUntil: "networkidle",
+    waitUntil: "domcontentloaded",
   });
 
   const storefront = page.locator("[data-paon-storefront-root]");
@@ -124,10 +124,18 @@ test("customer layer toggles without navigation or storefront state loss", async
   expect(showStartMs).toBeLessThan(100);
   await expect(customerLayer).toHaveAttribute("aria-hidden", "false");
   await expect
-    .poll(() =>
-      customerLayer.evaluate((element) => getComputedStyle(element).transform),
-    )
-    .toMatch(/matrix(3d)?\(/);
+    .poll(async () => {
+      const [customerLeft, sidebarRight] = await Promise.all([
+        customerLayer.evaluate(
+          (element) => element.getBoundingClientRect().left,
+        ),
+        page
+          .locator("[data-paon-shell-sidebar]")
+          .evaluate((element) => element.getBoundingClientRect().right),
+      ]);
+      return Math.abs(customerLeft - sidebarRight);
+    })
+    .toBeLessThan(0.5);
 
   const geometry = await page.evaluate(() => {
     const layer = document.querySelector<HTMLElement>(
@@ -211,4 +219,18 @@ test("customer layer toggles without navigation or storefront state loss", async
     filters: true,
     mutations: ["opacity", "transform"],
   });
+
+  await page.evaluate(() => {
+    const showHome = (window as Window & { showHome?: () => void }).showHome;
+    if (!showHome) throw new Error("storefront home control is missing");
+    showHome();
+  });
+  await expect(page.locator("#view-home")).toHaveClass(/visible/);
+  await expect
+    .poll(() =>
+      page
+        .locator("#view-home")
+        .evaluate((element) => getComputedStyle(element).paddingLeft),
+    )
+    .toBe("0px");
 });
