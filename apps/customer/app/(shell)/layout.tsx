@@ -50,7 +50,6 @@ export default function ShellLayout({
   return (
     <>
       <StorefrontHost />
-      <EnvironmentTransition />
       <ScrollMemory />
       {/*
         The storefront is not unmounted when the visitor leaves it — it stays
@@ -59,7 +58,7 @@ export default function ShellLayout({
         See park() in r/[slug]/template-mount.tsx for why it is covered rather
         than hidden.
       */}
-      <div className="paon-shell-content">{children}</div>
+      <EnvironmentTransition>{children}</EnvironmentTransition>
       <div
         data-paon-shell-sidebar
         className="fixed left-0 top-0 z-[120] hidden h-screen w-[250px] lg:block"

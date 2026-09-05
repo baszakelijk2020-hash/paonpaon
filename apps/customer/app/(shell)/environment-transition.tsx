@@ -1,23 +1,10 @@
 "use client";
 
 import { gsap } from "gsap";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef } from "react";
 
-const STORE_PREFIX = "/r/";
-const SHELL_SIDEBAR_WIDTH = 250;
-
-function parkedX(overlay: HTMLElement): number {
-  const sidebarWidth = window.matchMedia("(min-width: 1024px)").matches
-    ? SHELL_SIDEBAR_WIDTH
-    : 0;
-
-  // The customer window remains full-width while open; its own dashboard grid
-  // already reserves the sidebar column. When hidden, park its right edge at
-  // that column so it can emerge from behind the sidebar without adding a
-  // second 250px gutter to the open customer view.
-  return -Math.max(overlay.getBoundingClientRect().width - sidebarWidth, 0);
-}
+import { usePaonEnvironment } from "./environment-store";
 
 /**
  * Slides the customer environment over the storefront, and back off it.
@@ -32,111 +19,115 @@ function parkedX(overlay: HTMLElement): number {
  * flow made it take space above the storefront, which is the band of customer
  * environment that used to show across the storefront's page.
  */
-export function EnvironmentTransition() {
+export function EnvironmentTransition({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
-  const router = useRouter();
-  const inStore = pathname.startsWith(STORE_PREFIX);
+  const environment = usePaonEnvironment(pathname);
+  const inStore = environment === "store";
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const veilRef = useRef<HTMLDivElement>(null);
   const first = useRef(true);
 
   useLayoutEffect(() => {
-    const overlay = document.querySelector<HTMLElement>(".paon-shell-content");
-    if (!overlay) return;
+    const overlay = overlayRef.current;
+    const veil = veilRef.current;
+    if (!overlay || !veil) return;
 
     document.body.classList.toggle("paon-storefront-active", inStore);
-    const hiddenX = parkedX(overlay);
+    const hiddenTransform = "translate3d(-100%, 0, 0)";
+    const visibleTransform = "translate3d(0%, 0, 0)";
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
 
-    // The first paint should simply be correct, with nothing to animate from.
     if (first.current) {
       first.current = false;
       gsap.set(overlay, {
-        x: inStore ? hiddenX : 0,
-        xPercent: 0,
-        autoAlpha: inStore ? 0 : 1,
-        filter: "blur(0px)",
-        pointerEvents: inStore ? "none" : "auto",
+        transform: inStore ? hiddenTransform : visibleTransform,
+        opacity: inStore ? 0 : 1,
       });
+      gsap.set(veil, { opacity: 0 });
       return;
     }
 
-    gsap.killTweensOf(overlay);
-    // Nothing under a moving panel should be clickable while it moves.
-    overlay.style.pointerEvents = "none";
+    gsap.killTweensOf([overlay, veil]);
+    const duration = reducedMotion ? 0 : 0.38;
 
     if (inStore) {
-      /*
-       * Leaving: the customer environment flies back behind the left sidebar and the
-       * storefront is simply there behind it, exactly as it was left — it is
-       * never unmounted, so there is nothing to reveal but itself.
-       */
+      gsap.to(veil, {
+        opacity: 0.42,
+        duration: duration * 0.55,
+        ease: "power2.in",
+      });
       gsap.to(overlay, {
-        x: hiddenX,
-        xPercent: 0,
-        filter: "blur(18px)",
-        duration: 0.62,
-        ease: "power3.in",
+        transform: hiddenTransform,
+        opacity: 0,
+        duration,
+        ease: "power4.inOut",
         force3D: true,
         onComplete: () => {
-          gsap.set(overlay, { autoAlpha: 0, filter: "blur(0px)" });
+          gsap.set(veil, { opacity: 0 });
         },
       });
       return;
     }
 
-    /*
-     * Arriving: in from behind the left sidebar over the storefront, out of a blur.
-     *
-     * 0.72s on a quartic ease-out is the founder's own detail-panel entry
-     * (paon-template.html's `duration = 720`, `easeOut4`), so opening the
-     * customer environment lands with the same weight as opening a jacket.
-     */
+    gsap.set(veil, { opacity: 0.42 });
     gsap.fromTo(
       overlay,
-      { x: hiddenX, xPercent: 0, autoAlpha: 1, filter: "blur(18px)" },
+      { transform: hiddenTransform, opacity: 0 },
       {
-        x: 0,
-        xPercent: 0,
-        filter: "blur(0px)",
-        duration: 0.72,
+        transform: visibleTransform,
+        opacity: 1,
+        duration,
         ease: "power4.out",
         force3D: true,
-        onComplete: () => {
-          overlay.style.pointerEvents = "auto";
-          // Leaving a filter on the element keeps a compositing layer alive and
-          // makes it the containing block for anything fixed inside it.
-          gsap.set(overlay, { clearProps: "filter" });
-        },
       },
     );
+    gsap.to(veil, {
+      opacity: 0,
+      duration: duration * 0.82,
+      ease: "power2.out",
+    });
   }, [inStore]);
 
-  /*
-   * Warm the other side before it is asked for.
-   *
-   * Whichever environment you are in, the other one is a single click away and
-   * is the click most visitors make. Prefetching both directions on arrival
-   * means the payload is already in the router cache by the time the pill is
-   * pressed, so the crossfade is the only thing that has to happen.
-   */
   useEffect(() => {
-    const warm = () => {
-      router.prefetch("/dashboard");
-      const store = document.querySelector<HTMLAnchorElement>(
-        '[data-paon-shell-sidebar] a[href^="/r/"]',
+    const applyStorefrontAccessibility = () => {
+      const storefront = document.querySelector<HTMLElement>(
+        ".paon-template-root",
       );
-      if (store)
-        router.prefetch(store.getAttribute("href") ?? "/r/atelier-demo");
+      if (!storefront) return false;
+      storefront.inert = !inStore;
+      storefront.setAttribute("aria-hidden", String(!inStore));
+      return true;
     };
-    const idle = window as Window & {
-      requestIdleCallback?: (cb: () => void) => number;
-      cancelIdleCallback?: (handle: number) => void;
-    };
-    if (idle.requestIdleCallback) {
-      const handle = idle.requestIdleCallback(warm);
-      return () => idle.cancelIdleCallback?.(handle);
-    }
-    const timer = window.setTimeout(warm, 200);
-    return () => window.clearTimeout(timer);
-  }, [pathname, router]);
 
-  return null;
+    if (applyStorefrontAccessibility()) return;
+    const observer = new MutationObserver(() => {
+      if (applyStorefrontAccessibility()) observer.disconnect();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [inStore]);
+
+  return (
+    <div
+      ref={overlayRef}
+      data-paon-customer-layer
+      className="paon-shell-content"
+      aria-hidden={inStore}
+      inert={inStore ? true : undefined}
+    >
+      <div
+        ref={veilRef}
+        data-paon-customer-blur-veil
+        aria-hidden="true"
+        className="paon-customer-blur-veil"
+      />
+      {children}
+    </div>
+  );
 }

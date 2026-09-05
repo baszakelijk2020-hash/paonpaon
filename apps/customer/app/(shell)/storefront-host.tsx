@@ -1,7 +1,12 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { memo, useEffect } from "react";
+
+import {
+  getEnvironmentSnapshot,
+  showCustomerEnvironment,
+} from "./environment-store";
 
 interface Payload {
   bodyHtml: string;
@@ -71,9 +76,8 @@ function slugFromPath(pathname: string): string | null {
  * Nothing here reacts to that. The only thing the route still says is which
  * category to show, and that is handed to the template's own navigation.
  */
-export function StorefrontHost() {
+export const StorefrontHost = memo(function StorefrontHost() {
   const pathname = usePathname();
-  const router = useRouter();
 
   const slug = slugFromPath(pathname) ?? DEFAULT_SLUG;
 
@@ -116,6 +120,10 @@ export function StorefrontHost() {
 
       const root = document.createElement("div");
       root.className = "paon-template-root";
+      root.dataset["paonStorefrontRoot"] = "";
+      const customerOpen = getEnvironmentSnapshot() === "customer";
+      root.inert = customerOpen;
+      root.setAttribute("aria-hidden", String(customerOpen));
       root.innerHTML = payload.bodyHtml;
       // First child, not appended: the template's last inline script does
       // `document.querySelector('aside')` and rebuilds what it finds, meaning
@@ -198,13 +206,16 @@ export function StorefrontHost() {
       if (!href || !href.startsWith("/") || href.startsWith("//")) return;
       if (TEMPLATE_OWNED.test(href)) return;
 
+      const url = new URL(href, window.location.origin);
+      if (url.pathname !== "/dashboard") return;
+
       event.preventDefault();
-      router.push(href);
+      showCustomerEnvironment();
     }
 
     document.addEventListener("click", onClick, true);
     return () => document.removeEventListener("click", onClick, true);
-  }, [router]);
+  }, []);
 
   useEffect(() => {
     const w = window as typeof window & {
@@ -223,20 +234,19 @@ export function StorefrontHost() {
       w.__paonPortalPatched = true;
       window.clearInterval(timer);
       w.paonOpenCustomerPortal = () => {
-        const returnTo = `${location.pathname}${location.search}`;
-        router.push(`/dashboard?returnTo=${encodeURIComponent(returnTo)}`);
+        showCustomerEnvironment();
       };
     }, 100);
 
     return () => window.clearInterval(timer);
-  }, [router]);
+  }, []);
 
   // Nothing is rendered into React's tree: the template lives in <body>, above
   // React's root, so it is outside React's event delegation. React DOM
   // installs a non-passive scroll listener on `document`, which made scrolling
   // the feed run React on every frame.
   return null;
-}
+});
 
 function ensureStylesheet(href: string): Promise<void> {
   return new Promise((resolve) => {

@@ -33,8 +33,7 @@ export default async function DashboardLayout({
 
   if (!isCustomer) {
     return (
-      <div className="customer-page min-h-screen lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
-        <div aria-hidden="true" className="hidden lg:block" />
+      <div className="customer-page min-h-screen">
         <div className="min-w-0">
           <nav className="sticky top-0 z-40 flex h-[60px] items-center justify-end border-b border-black/10 bg-white px-4 py-3">
             <Link
@@ -55,11 +54,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div
-      data-customer-shell
-      className="customer-page min-h-screen lg:grid lg:grid-cols-[250px_minmax(0,1fr)]"
-    >
-      <div aria-hidden="true" className="hidden lg:block" />
+    <div data-customer-shell className="customer-page min-h-screen">
       <div className="min-w-0">
         <CustomerNavigationLifecycle />
         <AccountTopTabs

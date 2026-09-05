@@ -1,10 +1,14 @@
 "use client";
 
 import { gsap } from "gsap";
-import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
+import { useLayoutEffect, useRef } from "react";
 
-import { IntentPrefetchLink } from "./intent-prefetch-link";
+import {
+  showCustomerEnvironment,
+  showStoreEnvironment,
+  usePaonEnvironment,
+} from "../environment-store";
 
 interface ContextSwitcherProps {
   /** Where the Store segment goes — the last storefront path, or its root. */
@@ -25,8 +29,6 @@ const SEGMENT: React.CSSProperties = {
   transition: "color 220ms ease",
 };
 
-const VALID_STORE_RETURN = /^\/r\/[A-Za-z0-9_-]+(?:[/?].*)?$/;
-
 /**
  * The Store / My PAON switcher.
  *
@@ -43,68 +45,33 @@ const VALID_STORE_RETURN = /^\/r\/[A-Za-z0-9_-]+(?:[/?].*)?$/;
  */
 export function ContextSwitcher({ storeHref }: ContextSwitcherProps) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const inStore = pathname.startsWith("/r/");
-  const returnTo = searchParams.get("returnTo");
-  const activeStoreHref =
-    returnTo && VALID_STORE_RETURN.test(returnTo) ? returnTo : storeHref;
-
-  const trackRef = useRef<HTMLDivElement>(null);
+  const environment = usePaonEnvironment(pathname);
+  const inStore = environment === "store";
+  void storeHref;
   const pillRef = useRef<HTMLSpanElement>(null);
-  const storeRef = useRef<HTMLAnchorElement>(null);
-  const paonRef = useRef<HTMLAnchorElement>(null);
   const positioned = useRef(false);
 
   useLayoutEffect(() => {
     const pill = pillRef.current;
-    const track = trackRef.current;
-    const target = (inStore ? storeRef : paonRef).current;
-    if (!pill || !track || !target) return;
-
-    const move = () => {
-      const trackBox = track.getBoundingClientRect();
-      const targetBox = target.getBoundingClientRect();
-      const to = {
-        x: targetBox.left - trackBox.left,
-        width: targetBox.width,
-        height: targetBox.height,
-      };
-
-      if (!positioned.current) {
-        // First paint: be where we belong, with no travel.
-        positioned.current = true;
-        gsap.set(pill, { ...to, autoAlpha: 1 });
-        return;
-      }
-      gsap.to(pill, {
-        ...to,
-        duration: 0.42,
-        // Settles without overshooting into the other half — the two segments
-        // are only a few pixels apart.
-        ease: "power3.out",
-      });
-    };
-
-    move();
-
-    // The labels are webfont text (GTBold3); their widths change when the font
-    // finishes loading, which would otherwise leave the pill sized to the
-    // fallback metrics.
-    const observer = new ResizeObserver(move);
-    observer.observe(track);
-    return () => observer.disconnect();
+    if (!pill) return;
+    const transform = inStore
+      ? "translate3d(0%, 0, 0)"
+      : "translate3d(100%, 0, 0)";
+    if (!positioned.current) {
+      positioned.current = true;
+      gsap.set(pill, { transform, opacity: 1 });
+      return;
+    }
+    gsap.to(pill, {
+      transform,
+      opacity: 1,
+      duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? 0
+        : 0.32,
+      ease: "power3.out",
+      force3D: true,
+    });
   }, [inStore]);
-
-  // Respect a reduced-motion preference: jump rather than slide.
-  useEffect(() => {
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const apply = () => {
-      gsap.globalTimeline.timeScale(media.matches ? 1000 : 1);
-    };
-    apply();
-    media.addEventListener("change", apply);
-    return () => media.removeEventListener("change", apply);
-  }, []);
 
   return (
     <div
@@ -117,7 +84,6 @@ export function ContextSwitcher({ storeHref }: ContextSwitcherProps) {
       }}
     >
       <div
-        ref={trackRef}
         role="group"
         aria-label="Switch between the store and your account"
         style={{
@@ -138,7 +104,9 @@ export function ContextSwitcher({ storeHref }: ContextSwitcherProps) {
           style={{
             position: "absolute",
             top: "3px",
-            left: 0,
+            left: "3px",
+            width: "calc(50% - 3px)",
+            height: "calc(100% - 6px)",
             // Hidden until useLayoutEffect has measured where it belongs.
             visibility: "hidden",
             borderRadius: "999px",
@@ -146,26 +114,35 @@ export function ContextSwitcher({ storeHref }: ContextSwitcherProps) {
             border: "1px solid rgba(255,255,255,.13)",
             boxShadow: "0 1px 1px rgba(0,0,0,.22)",
             pointerEvents: "none",
+            willChange: "transform, opacity",
           }}
         />
-        <IntentPrefetchLink
-          ref={storeRef}
-          href={activeStoreHref}
+        <button
+          type="button"
+          onClick={showStoreEnvironment}
           className="pcs-store"
           aria-current={inStore ? "page" : undefined}
-          style={{ ...SEGMENT, color: inStore ? "#e4e4e1" : "#8a8a87" }}
+          style={{
+            ...SEGMENT,
+            width: "76px",
+            color: inStore ? "#e4e4e1" : "#8a8a87",
+          }}
         >
           Store
-        </IntentPrefetchLink>
-        <IntentPrefetchLink
-          ref={paonRef}
-          href="/dashboard"
+        </button>
+        <button
+          type="button"
+          onClick={showCustomerEnvironment}
           className="pcs-mypaon"
           aria-current={inStore ? undefined : "page"}
-          style={{ ...SEGMENT, color: inStore ? "#8a8a87" : "#e4e4e1" }}
+          style={{
+            ...SEGMENT,
+            width: "76px",
+            color: inStore ? "#8a8a87" : "#e4e4e1",
+          }}
         >
           My PAON
-        </IntentPrefetchLink>
+        </button>
       </div>
     </div>
   );

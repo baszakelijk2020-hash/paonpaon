@@ -1,4 +1,8 @@
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
+
+import DashboardPage from "../../(dashboard)/dashboard/page";
+import DashboardLayout from "../../(dashboard)/layout";
 
 import { getStorefrontPageData } from "./get-storefront-page-data";
 import { StorefrontCategory } from "./storefront-category";
@@ -33,5 +37,14 @@ export default async function Page({ params, searchParams }: PageProps) {
     notFound();
   }
 
-  return <StorefrontCategory category={category ?? null} />;
+  return (
+    <>
+      <StorefrontCategory category={category ?? null} />
+      <Suspense fallback={<div data-customer-shell-pending />}>
+        <DashboardLayout>
+          <DashboardPage />
+        </DashboardLayout>
+      </Suspense>
+    </>
+  );
 }

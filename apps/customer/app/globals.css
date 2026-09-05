@@ -223,16 +223,41 @@ body:not(.paon-storefront-active) {
 .paon-shell-content {
   position: fixed;
   inset: 0;
-  z-index: 1;
+  z-index: 110;
   overflow-y: auto;
   /* It flies in from behind the left sidebar, so it must not widen the page. */
   overflow-x: hidden;
-  will-change: transform, filter;
+  will-change: transform, opacity;
+  contain: layout paint style;
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
   background: var(--customer-page-bg, #f4f2ec);
   font-family: "Customer Body", "TN Web Use Only", sans-serif;
   font-size: 1rem;
   line-height: 1.5;
   color: var(--color-stone-900, rgb(23, 25, 22));
+}
+
+.paon-shell-content[aria-hidden="true"] {
+  pointer-events: none;
+}
+
+.paon-customer-blur-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  pointer-events: none;
+  opacity: 0;
+  background: rgba(244, 242, 236, 0.08);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  will-change: opacity;
+}
+
+@media (min-width: 1024px) {
+  .paon-shell-content {
+    left: 250px;
+  }
 }
 
 /* The template's `main { height:100vh; overflow:auto }` would otherwise trap
