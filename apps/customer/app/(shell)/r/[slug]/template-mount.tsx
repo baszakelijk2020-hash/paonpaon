@@ -71,47 +71,43 @@ function mountTemplate(root: HTMLElement): void {
 }
 
 /**
- * Hide the template without taking it out of the document.
- *
- * Detaching and re-attaching it preserved everything but still cost a full
- * layout of ~42,000px of catalogue on the way back, which reads as the page
- * loading again. Parked, it keeps its boxes and its scroll offsets, so
- * returning is a paint and nothing more.
- *
- * `visibility: hidden` rather than `display: none` on purpose: `display: none`
- * throws away the layout, and with it `main#main`'s scrollTop — the visitor
- * would land back at the top of the grid. Absolute positioning takes it out of
- * flow so the customer environment is not pushed down the page by a storefront
- * nobody can see.
- */
-/**
- * Set while the template is being hidden or shown, so the scroll the browser
- * fires as a side effect of that is not mistaken for the visitor scrolling.
+ * Set while the template is being parked or brought back, so the scroll the
+ * browser fires as a side effect of that is not mistaken for the visitor
+ * scrolling.
  */
 let suspendScrollTracking = false;
 
+/**
+ * Step aside for the customer environment — without moving, resizing or
+ * hiding the template.
+ *
+ * Three earlier attempts each cost the thing they were meant to preserve.
+ * `display: none` throws the layout away and with it the scroll position.
+ * `visibility: hidden` tells the template's IntersectionObserver that every
+ * card left the viewport, so returning replays the whole blur-and-fade reveal.
+ * And repositioning it — `position: fixed; inset: 0` — resizes it, which is a
+ * full relayout of ~42,000px of catalogue in each direction, the black feed
+ * backdrop showing through until the images paint again.
+ *
+ * So its box is not touched at all. It stays exactly where it is, laid out,
+ * painted and intersecting; the customer environment covers it as an opaque
+ * overlay (see .paon-shell-content in globals.css). All that changes here is
+ * that nothing behind the overlay stays reachable.
+ */
 function park(root: HTMLElement): void {
   suspendScrollTracking = true;
-  root.style.position = "absolute";
-  root.style.top = "0";
-  root.style.left = "0";
-  root.style.width = "100%";
-  root.style.visibility = "hidden";
   root.style.pointerEvents = "none";
   root.setAttribute("aria-hidden", "true");
   root.setAttribute("inert", "");
+  document.body.classList.remove("paon-storefront-active");
 }
 
 function unpark(root: HTMLElement): void {
   suspendScrollTracking = true;
-  root.style.removeProperty("position");
-  root.style.removeProperty("top");
-  root.style.removeProperty("left");
-  root.style.removeProperty("width");
-  root.style.removeProperty("visibility");
   root.style.removeProperty("pointer-events");
   root.removeAttribute("aria-hidden");
   root.removeAttribute("inert");
+  document.body.classList.add("paon-storefront-active");
 }
 
 /** Re-enable scroll tracking once the browser has settled the change. */
@@ -184,15 +180,9 @@ export function TemplateMount({
    */
   useEffect(() => {
     const selector = `link[data-paon-template-styles="${stylesheetHref}"]`;
-    const existing = document.querySelector<HTMLLinkElement>(selector);
-    if (existing) {
-      // Already fetched and parsed on an earlier visit: re-enabling is a style
-      // recalculation with no network and no re-parse.
-      existing.disabled = false;
+    if (document.querySelector<HTMLLinkElement>(selector)) {
       setTemplateReady(true);
-      return () => {
-        existing.disabled = true;
-      };
+      return;
     }
 
     const link = document.createElement("link");
@@ -206,12 +196,19 @@ export function TemplateMount({
     link.addEventListener("error", reveal);
     document.head.appendChild(link);
 
-    return () => {
-      // Disabled, not removed: the parked template keeps its layout and its
-      // scroll offsets, so coming back is a repaint rather than a rebuild.
-      // Removing it would also unstyle 42,000px of catalogue while parked.
-      link.disabled = true;
-    };
+    /*
+     * Deliberately never removed or disabled.
+     *
+     * Disabling it while the visitor is elsewhere looked harmless and was the
+     * worst thing here: `main#main` takes its `height: 100vh` and its own
+     * scrolling from this sheet, so without it the template relayouts from one
+     * viewport to its full ~84,000px, then back on return. That relayout is
+     * the flash of black feed backdrop.
+     *
+     * Its bare `body`/`main`/`aside` rules do reach the customer environment,
+     * which is why this used to be torn down; that leak is answered where it
+     * lands instead — see .paon-shell-content in globals.css.
+     */
   }, [stylesheetHref]);
 
   /*

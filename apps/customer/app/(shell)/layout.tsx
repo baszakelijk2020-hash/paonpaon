@@ -43,7 +43,14 @@ export default function ShellLayout({
   return (
     <>
       <ScrollMemory />
-      {children}
+      {/*
+        The storefront is not unmounted when the visitor leaves it — it stays
+        laid out and painted, pinned behind this. So the customer environment
+        has to be opaque and above it, or the storefront would show through.
+        See park() in r/[slug]/template-mount.tsx for why it is covered rather
+        than hidden.
+      */}
+      <div className="paon-shell-content">{children}</div>
       <div
         data-paon-shell-sidebar
         className="fixed left-0 top-0 z-[120] hidden h-screen w-[250px] lg:block"

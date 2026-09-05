@@ -17,6 +17,17 @@ import { useEffect, useRef } from "react";
  */
 const offsets = new Map<string, number>();
 
+/**
+ * What actually scrolls.
+ *
+ * The customer environment is a fixed overlay above the parked storefront
+ * (.paon-shell-content), so it scrolls itself rather than the window. Reading
+ * window.scrollY here returned 0 for every page.
+ */
+function scroller(): HTMLElement | null {
+  return document.querySelector<HTMLElement>(".paon-shell-content");
+}
+
 export function ScrollMemory() {
   const pathname = usePathname();
   // Read by the click handler, which is registered once and must always see
@@ -40,7 +51,8 @@ export function ScrollMemory() {
       if (!anchor) return;
       const href = anchor.getAttribute("href");
       if (!href || !href.startsWith("/") || href.startsWith("//")) return;
-      offsets.set(currentPath.current, window.scrollY);
+      const el = scroller();
+      offsets.set(currentPath.current, el ? el.scrollTop : window.scrollY);
     }
     // Pointerdown, not click: it precedes any handler that might navigate.
     document.addEventListener("pointerdown", onPointerDown, true);
@@ -63,15 +75,26 @@ export function ScrollMemory() {
     let frames = 0;
     let raf = 0;
     const restore = () => {
-      const reachable =
-        document.documentElement.scrollHeight >=
-        remembered + window.innerHeight;
-      if (reachable) window.scrollTo(0, remembered);
-      const settled = reachable && Math.abs(window.scrollY - remembered) < 2;
-      // ~0.5s at 60fps: long enough to outlast the router's reset, short
-      // enough that a deliberate scroll during it is not fought for long.
-      if (settled && frames > 6) return;
-      if (frames++ > 30) return;
+      const el = scroller();
+      const height = el
+        ? el.scrollHeight
+        : document.documentElement.scrollHeight;
+      const view = el ? el.clientHeight : window.innerHeight;
+      const reachable = height >= remembered + view;
+      if (reachable) {
+        if (el) el.scrollTop = remembered;
+        else window.scrollTo(0, remembered);
+      }
+      const here = el ? el.scrollTop : window.scrollY;
+      const settled = reachable && Math.abs(here - remembered) < 2;
+      /*
+       * Hold the offset for a beat after it first sticks, not only until it
+       * sticks: Server Components stream in after the restore, and the growth
+       * that causes otherwise lands the page back at the top a few frames
+       * later.
+       */
+      if (settled && frames > 40) return;
+      if (frames++ > 90) return;
       raf = requestAnimationFrame(restore);
     };
     raf = requestAnimationFrame(restore);

@@ -198,3 +198,44 @@ h3 {
     animation: none !important;
   }
 }
+
+/*
+ * The customer environment covers the storefront rather than the storefront
+ * getting out of its way.
+ *
+ * The storefront route keeps its DOM, its layout and its stylesheet alive
+ * across navigations — hiding it replays its scroll-reveal, resizing it or
+ * dropping its stylesheet relayouts tens of thousands of pixels of catalogue,
+ * and each of those is a visible flash. It is left completely untouched
+ * underneath, and this is an opaque overlay on top of it.
+ *
+ * Because that stylesheet stays live, its bare element rules (body, main,
+ * aside, and its 13px OptimaKlein type) now reach in here. This is where that
+ * is answered: the values below are the customer environment's own, and
+ * inherit down to everything inside it.
+ */
+.paon-shell-content {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  overflow-y: auto;
+  background: var(--customer-page-bg, #f4f2ec);
+  font-family: "Customer Body", "TN Web Use Only", sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--color-stone-900, rgb(23, 25, 22));
+}
+
+/* The template's `main { height:100vh; overflow:auto }` would otherwise trap
+   every customer page in its own scroller. */
+.paon-shell-content main {
+  height: auto;
+  overflow: visible;
+}
+
+/* On the storefront there is nothing to cover, and nothing to correct. */
+body.paon-storefront-active .paon-shell-content {
+  position: static;
+  overflow: visible;
+  background: transparent;
+}

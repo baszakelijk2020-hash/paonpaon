@@ -212,8 +212,21 @@ function diffSignatures(rawSig, reactSig, label) {
   // Class order carries no meaning to the cascade here (no selector in the
   // template depends on it), and the template's scripts add its state classes
   // in a different order than React's initial render, so compare as sets.
+  /*
+   * `paon-storefront-active` marks, for the React route only, that the
+   * storefront is the page in view rather than parked behind the customer
+   * environment. The raw route has no customer environment to be behind, so it
+   * has no reason to carry it.
+   */
+  const REACT_ONLY_BODY_CLASSES = new Set(["paon-storefront-active"]);
+
   const classSet = (value) =>
-    value.trim().split(/\s+/).filter(Boolean).sort().join(" ");
+    value
+      .trim()
+      .split(/\s+/)
+      .filter((name) => name && !REACT_ONLY_BODY_CLASSES.has(name))
+      .sort()
+      .join(" ");
 
   if (classSet(rawSig.htmlClass) !== classSet(reactSig.htmlClass)) {
     findings.push({
