@@ -64,7 +64,63 @@ function templateScroller(root: HTMLElement): HTMLElement | null {
  * position:fixed above it, so document order changes nothing visually.
  */
 function mountTemplate(root: HTMLElement): void {
-  document.body.insertBefore(root, document.body.firstChild);
+  if (root.parentElement !== document.body) {
+    document.body.insertBefore(root, document.body.firstChild);
+  }
+  unpark(root);
+}
+
+/**
+ * Hide the template without taking it out of the document.
+ *
+ * Detaching and re-attaching it preserved everything but still cost a full
+ * layout of ~42,000px of catalogue on the way back, which reads as the page
+ * loading again. Parked, it keeps its boxes and its scroll offsets, so
+ * returning is a paint and nothing more.
+ *
+ * `visibility: hidden` rather than `display: none` on purpose: `display: none`
+ * throws away the layout, and with it `main#main`'s scrollTop — the visitor
+ * would land back at the top of the grid. Absolute positioning takes it out of
+ * flow so the customer environment is not pushed down the page by a storefront
+ * nobody can see.
+ */
+/**
+ * Set while the template is being hidden or shown, so the scroll the browser
+ * fires as a side effect of that is not mistaken for the visitor scrolling.
+ */
+let suspendScrollTracking = false;
+
+function park(root: HTMLElement): void {
+  suspendScrollTracking = true;
+  root.style.position = "absolute";
+  root.style.top = "0";
+  root.style.left = "0";
+  root.style.width = "100%";
+  root.style.visibility = "hidden";
+  root.style.pointerEvents = "none";
+  root.setAttribute("aria-hidden", "true");
+  root.setAttribute("inert", "");
+}
+
+function unpark(root: HTMLElement): void {
+  suspendScrollTracking = true;
+  root.style.removeProperty("position");
+  root.style.removeProperty("top");
+  root.style.removeProperty("left");
+  root.style.removeProperty("width");
+  root.style.removeProperty("visibility");
+  root.style.removeProperty("pointer-events");
+  root.removeAttribute("aria-hidden");
+  root.removeAttribute("inert");
+}
+
+/** Re-enable scroll tracking once the browser has settled the change. */
+function resumeScrollTracking(): void {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      suspendScrollTracking = false;
+    });
+  });
 }
 
 const liveTemplates = new Map<string, { node: HTMLElement; scrollY: number }>();
@@ -127,18 +183,22 @@ export function TemplateMount({
    * never painted unstyled on the way in.
    */
   useEffect(() => {
-    const existing = document.querySelector<HTMLLinkElement>(
-      `link[data-paon-template-styles][href="${stylesheetHref}"]`,
-    );
+    const selector = `link[data-paon-template-styles="${stylesheetHref}"]`;
+    const existing = document.querySelector<HTMLLinkElement>(selector);
     if (existing) {
+      // Already fetched and parsed on an earlier visit: re-enabling is a style
+      // recalculation with no network and no re-parse.
+      existing.disabled = false;
       setTemplateReady(true);
-      return;
+      return () => {
+        existing.disabled = true;
+      };
     }
 
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.href = stylesheetHref;
-    link.dataset["paonTemplateStyles"] = "true";
+    link.dataset["paonTemplateStyles"] = stylesheetHref;
     const reveal = () => setTemplateReady(true);
     link.addEventListener("load", reveal);
     // A failed stylesheet must not leave a blank page: show the markup anyway,
@@ -147,8 +207,10 @@ export function TemplateMount({
     document.head.appendChild(link);
 
     return () => {
-      link.remove();
-      setTemplateReady(false);
+      // Disabled, not removed: the parked template keeps its layout and its
+      // scroll offsets, so coming back is a repaint rather than a rebuild.
+      // Removing it would also unstyle 42,000px of catalogue while parked.
+      link.disabled = true;
     };
   }, [stylesheetHref]);
 
@@ -165,17 +227,35 @@ export function TemplateMount({
       mountTemplate(cached.node);
       // Put the visitor back where they were, once the browser has laid the
       // restored subtree out again.
-      requestAnimationFrame(() => {
+      /*
+       * Reassert until it holds. Unparking relays the subtree out, and for a
+       * frame or two `main#main` is short enough that the browser clamps the
+       * offset back to the top.
+       */
+      const target = cached.scrollY;
+      let frames = 0;
+      const restore = () => {
         const scroller = templateScroller(cached.node);
-        if (scroller) scroller.scrollTop = cached.scrollY;
-        else window.scrollTo(0, cached.scrollY);
-      });
+        if (scroller) scroller.scrollTop = target;
+        else window.scrollTo(0, target);
+        const here = scroller ? scroller.scrollTop : window.scrollY;
+        if ((Math.abs(here - target) < 2 && frames > 2) || frames++ > 20) {
+          resumeScrollTracking();
+          return;
+        }
+        requestAnimationFrame(restore);
+      };
+      requestAnimationFrame(restore);
     } else {
       const root = document.createElement("div");
       root.className = "paon-template-root";
       root.innerHTML = bodyHtml;
       mountTemplate(root);
       liveTemplates.set(cacheKey, { node: root, scrollY: 0 });
+      // mountTemplate unparks, which suspends tracking; the cached branch
+      // resumes after restoring, and the first mount has to do the same or no
+      // scroll is ever recorded.
+      resumeScrollTracking();
     }
 
     /*
@@ -187,6 +267,10 @@ export function TemplateMount({
     const scroller = entry ? templateScroller(entry.node) : null;
     let ticking = false;
     const onScroll = () => {
+      // Parking and unparking move the scroller themselves, and the browser
+      // fires scroll for it. Those are not the visitor moving, and recording
+      // them overwrote the remembered offset with 0.
+      if (suspendScrollTracking) return;
       if (ticking || !entry || !scroller) return;
       ticking = true;
       requestAnimationFrame(() => {
@@ -198,9 +282,11 @@ export function TemplateMount({
 
     return () => {
       scroller?.removeEventListener("scroll", onScroll);
-      // Detach rather than destroy. The node keeps its listeners and its built
-      // state while it sits in the cache.
-      liveTemplates.get(cacheKey)?.node.remove();
+      // Park rather than detach: the node stays in the document, laid out and
+      // scrolled where it was, so coming back costs a repaint and no layout.
+      const parked = liveTemplates.get(cacheKey)?.node;
+      if (parked) park(parked);
+      resumeScrollTracking();
     };
   }, [templateReady, cacheKey, bodyHtml]);
 
