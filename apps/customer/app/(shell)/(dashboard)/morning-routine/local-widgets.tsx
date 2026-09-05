@@ -399,7 +399,13 @@ export function LocalWidgets({
             </div>
           </div>
 
+          {/* The observer above looks for a visible [data-morning-stream-slot]
+              to decide when to start the city cameras. Only the routine
+              variant carried the attribute, so on the dashboard it found
+              nothing, `streamReady` stayed false forever and these iframes
+              could never mount — the branch below was unreachable. */}
           <div
+            data-morning-stream-slot
             className={`relative col-span-2 overflow-hidden border-t border-black/10 bg-white/15 lg:col-span-1 lg:flex lg:h-auto lg:border-t-0 ${
               recommendation?.imageUrl ? "flex h-44" : "hidden lg:flex"
             }`}

@@ -29,11 +29,17 @@ function isConstrainedConnection(): boolean {
 }
 
 /**
- * `router.prefetch()` only warms Next.js page segments — for a target like
- * `/r/[slug]` that Next resolves to a Route Handler (raw HTML, no RSC
- * segment), it silently no-ops, so a manual `<link rel="prefetch">` is
- * added alongside it to warm that same-origin document in the HTTP cache
- * too. Harmless, deduped no-op for real page targets.
+ * Warms the target ahead of the click.
+ *
+ * `/r/[slug]` used to be a Route Handler serving raw HTML — no RSC segment
+ * for `router.prefetch()` to warm, hence the manual `<link rel="prefetch">`
+ * that this used instead. It is a real page now, so `router.prefetch()` warms
+ * the actual React payload, and `prefetch` on the Link itself lets Next warm
+ * it as soon as the link is in the viewport rather than only on intent.
+ *
+ * The document-level `<link rel="prefetch">` is deliberately gone: for a page
+ * route it warms a full HTML response the client navigation never uses, and
+ * on the storefront that response embeds the whole serialized template.
  */
 export function IntentPrefetchLink({ children, href, ...props }: Props) {
   const router = useRouter();
@@ -42,11 +48,6 @@ export function IntentPrefetchLink({ children, href, ...props }: Props) {
     if (prefetched.current) return;
     prefetched.current = true;
     router.prefetch(href);
-    const link = document.createElement("link");
-    link.rel = "prefetch";
-    link.as = "document";
-    link.href = href;
-    document.head.appendChild(link);
   }, [href, router]);
 
   useEffect(() => {
@@ -67,7 +68,6 @@ export function IntentPrefetchLink({ children, href, ...props }: Props) {
     <Link
       {...props}
       href={href}
-      prefetch={false}
       onPointerEnter={prefetch}
       onFocus={prefetch}
       onTouchStart={prefetch}

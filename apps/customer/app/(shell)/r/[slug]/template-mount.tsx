@@ -170,6 +170,13 @@ export function TemplateMount({
     }
 
     document.addEventListener("click", onClick, true);
+
+    // Warm the customer environment before the click. The template's own
+    // "My PAON" anchor is plain markup, so it gets none of the prefetching a
+    // <Link> would do, and this is the one navigation every storefront
+    // visitor is expected to make.
+    router.prefetch("/dashboard");
+
     return () => document.removeEventListener("click", onClick, true);
   }, [templateReady, router]);
 

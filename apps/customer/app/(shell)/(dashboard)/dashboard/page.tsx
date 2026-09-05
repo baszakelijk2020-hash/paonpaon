@@ -10,6 +10,7 @@ import { Suspense } from "react";
 
 import { ensureTodaysMorningRoutineSelection } from "../morning-routine/generation";
 import { LocalWidgets } from "../morning-routine/local-widgets";
+import { RoutineSections } from "../morning-routine/routine-sections";
 import { buildVariantIdByProductSlug } from "../wishlist/favorites-map";
 import {
   MergeFavorites,
@@ -248,6 +249,15 @@ export default async function DashboardPage() {
           />
         )}
       </Suspense>
+      {/* The full morning routine — occasions, the daily edit, delivery
+          preferences, complete-the-look — the same sections /morning-routine
+          renders. Overview previously stopped after the daily look hero, so
+          everything below it was reachable only from that other tab. */}
+      <div className="mx-4 flex flex-col gap-4 py-8 sm:mx-7 lg:mx-10 xl:mx-14">
+        <Suspense fallback={null}>
+          <RoutineSections />
+        </Suspense>
+      </div>
     </div>
   );
 }

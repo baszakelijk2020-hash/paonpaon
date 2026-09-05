@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 import { notFound } from "next/navigation";
+import { cache } from "react";
 
 import { getStorefrontPageData } from "./get-storefront-page-data";
 import "./paon-preflight-reset.css";
@@ -9,6 +10,19 @@ import { serializeStorefrontPage } from "./storefront-page-data";
 import { TemplateMount } from "./template-mount";
 
 import { getSupabaseServerClient } from "@/lib/supabase-server";
+
+/**
+ * The template is ~700KB and never changes at runtime, so it is read from disk
+ * once per server process rather than on every storefront request.
+ * `cache()` also dedupes it across the page and its sibling data fetches
+ * within a single render.
+ */
+const readTemplate = cache(async () =>
+  readFile(
+    path.join(process.cwd(), "app/(shell)/r/[slug]/paon-template.html"),
+    "utf8",
+  ),
+);
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -45,10 +59,7 @@ export default async function Page({ params, searchParams }: PageProps) {
     notFound();
   }
 
-  const template = await readFile(
-    path.join(process.cwd(), "app/(shell)/r/[slug]/paon-template.html"),
-    "utf8",
-  );
+  const template = await readTemplate();
   const html = serializeStorefrontPage(template, pageData);
 
   // External scripts (GSAP, ScrollTrigger) in document order.
