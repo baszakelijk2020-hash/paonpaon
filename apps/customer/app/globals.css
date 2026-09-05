@@ -235,15 +235,6 @@ body:not(.paon-storefront-active) {
   color: var(--color-stone-900, rgb(23, 25, 22));
 }
 
-/* On desktop the customer panel begins immediately to the right of the shared
-   sidebar. A -100% GSAP translation therefore parks it behind that sidebar;
-   it never crosses the store from the right. */
-@media (min-width: 1024px) {
-  .paon-shell-content {
-    left: 250px;
-  }
-}
-
 /* The template's `main { height:100vh; overflow:auto }` would otherwise trap
    every customer page in its own scroller. */
 .paon-shell-content main {

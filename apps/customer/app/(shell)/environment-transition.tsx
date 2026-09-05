@@ -5,6 +5,19 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef } from "react";
 
 const STORE_PREFIX = "/r/";
+const SHELL_SIDEBAR_WIDTH = 250;
+
+function parkedX(overlay: HTMLElement): number {
+  const sidebarWidth = window.matchMedia("(min-width: 1024px)").matches
+    ? SHELL_SIDEBAR_WIDTH
+    : 0;
+
+  // The customer window remains full-width while open; its own dashboard grid
+  // already reserves the sidebar column. When hidden, park its right edge at
+  // that column so it can emerge from behind the sidebar without adding a
+  // second 250px gutter to the open customer view.
+  return -Math.max(overlay.getBoundingClientRect().width - sidebarWidth, 0);
+}
 
 /**
  * Slides the customer environment over the storefront, and back off it.
@@ -30,12 +43,14 @@ export function EnvironmentTransition() {
     if (!overlay) return;
 
     document.body.classList.toggle("paon-storefront-active", inStore);
+    const hiddenX = parkedX(overlay);
 
     // The first paint should simply be correct, with nothing to animate from.
     if (first.current) {
       first.current = false;
       gsap.set(overlay, {
-        xPercent: inStore ? -100 : 0,
+        x: inStore ? hiddenX : 0,
+        xPercent: 0,
         autoAlpha: inStore ? 0 : 1,
         filter: "blur(0px)",
         pointerEvents: inStore ? "none" : "auto",
@@ -54,7 +69,8 @@ export function EnvironmentTransition() {
        * never unmounted, so there is nothing to reveal but itself.
        */
       gsap.to(overlay, {
-        xPercent: -100,
+        x: hiddenX,
+        xPercent: 0,
         filter: "blur(18px)",
         duration: 0.62,
         ease: "power3.in",
@@ -75,8 +91,9 @@ export function EnvironmentTransition() {
      */
     gsap.fromTo(
       overlay,
-      { xPercent: -100, autoAlpha: 1, filter: "blur(18px)" },
+      { x: hiddenX, xPercent: 0, autoAlpha: 1, filter: "blur(18px)" },
       {
+        x: 0,
         xPercent: 0,
         filter: "blur(0px)",
         duration: 0.72,
