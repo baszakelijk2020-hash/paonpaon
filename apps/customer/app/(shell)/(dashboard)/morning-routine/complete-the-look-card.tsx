@@ -5,7 +5,7 @@ import { Card } from "@paon/ui/components/Card";
 import {
   SuggestedLookTile,
   type SuggestedLookSuggestionView,
-} from "@/app/(dashboard)/wardrobe/suggested-look-tile";
+} from "@/app/(shell)/(dashboard)/wardrobe/suggested-look-tile";
 
 export type CompleteTheLookSuggestionView = SuggestedLookSuggestionView;
 

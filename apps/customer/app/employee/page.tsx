@@ -18,7 +18,7 @@ import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate, formatMoney } from "@paon/utils";
 
-import { AppointmentStatusBadge } from "../(dashboard)/appointments/status-badge";
+import { AppointmentStatusBadge } from "../(shell)/(dashboard)/appointments/status-badge";
 
 import { RaiseRequestForm } from "./raise-request-form";
 import { RequestAppointmentForm } from "./request-appointment-form";

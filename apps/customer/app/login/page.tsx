@@ -16,6 +16,10 @@ const ERROR_MESSAGES: Record<string, string> = {
   invalid_input: "Enter a valid email and password.",
   not_a_customer_account: "That account doesn't have Customer Portal access.",
   invalid_invite: "That sign-in link is invalid or has expired.",
+  use_admin_portal:
+    "That's a platform account. Sign in at the admin app instead.",
+  use_retailer_portal:
+    "That's a retailer account. Sign in at the retailer app instead.",
 };
 
 /**

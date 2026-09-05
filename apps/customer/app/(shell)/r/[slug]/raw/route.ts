@@ -3,8 +3,8 @@ import path from "node:path";
 
 import { NextResponse } from "next/server";
 
-import { getStorefrontPageData } from "./get-storefront-page-data";
-import { serializeStorefrontPage } from "./storefront-page-data";
+import { getStorefrontPageData } from "../get-storefront-page-data";
+import { serializeStorefrontPage } from "../storefront-page-data";
 
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -23,7 +23,7 @@ async function loadTemplate(): Promise<string> {
   }
   const templatePath = path.join(
     process.cwd(),
-    "app/r/[slug]/paon-template.html",
+    "app/(shell)/r/[slug]/paon-template.html",
   );
   const raw = await readFile(templatePath, "utf8");
   templateCache = raw;

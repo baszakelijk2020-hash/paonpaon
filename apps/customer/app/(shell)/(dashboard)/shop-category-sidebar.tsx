@@ -12,7 +12,7 @@ import { IntentPrefetchLink } from "./intent-prefetch-link";
 import {
   CANONICAL_CATEGORIES,
   canonicalCategoryFor,
-} from "@/app/r/[slug]/canonical-category";
+} from "@/app/(shell)/r/[slug]/canonical-category";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 /**

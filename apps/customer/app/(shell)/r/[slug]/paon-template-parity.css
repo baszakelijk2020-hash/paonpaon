@@ -1,0 +1,196 @@
+/*
+ * Parity layer. Every rule here is required to make /react-preview render
+ * identically to the raw /r/[slug] page. Nothing here is a design choice —
+ * each rule restores a value the raw page already has and that the surrounding
+ * customer-app chrome would otherwise override.
+ *
+ * DEVIATION 1 — font inheritance.
+ *   Raw page:  <body> carries the template's own rule
+ *                body { font-family: OptimaKlein, serif; font-size: 13px; ... }
+ *              so every text node inherits OptimaKlein.
+ *   React page: apps/customer/app/layout.tsx wraps the route in
+ *              <RetailerTheme> -> div.retailer-theme, which sets
+ *                font-family: "TN Web Use Only", ui-sans-serif, system-ui, sans-serif
+ *              That div is a closer ancestor than <body>, so it wins the
+ *              inheritance and every text node renders in the wrong typeface.
+ *   Fix: re-assert the template's own body declarations at the template root,
+ *   verbatim from paon-template.css. Values are copied, not invented.
+ *
+ * DEVIATION 2 — duplicate TableService widget.
+ *   The template already contains its own TableService widget
+ *   (#gilda-chat-widget-launcher). layout.tsx additionally renders the React
+ *   <TableServiceWidget> (.table-service-pill) for every /r/[slug]/* route.
+ *   The raw page is served by route.ts, which bypasses layouts, so it has only
+ *   one. Hiding the React one restores parity. layout.tsx itself is shared and
+ *   deliberately left untouched.
+ */
+
+.paon-template-root {
+  font-family: OptimaKlein, serif;
+  font-size: 13px;
+  color: var(--text);
+  /*
+   * The raw page has no Tailwind preflight, so line-height is the browser
+   * default `normal`. The customer app's global CSS sets `line-height: 1.5`
+   * on body, which every template element then inherited (13px -> 19.5px),
+   * changing the vertical rhythm of all storefront text.
+   */
+  line-height: normal;
+
+  /*
+   * The template's own generated <style id="paon-retailer-brand"> sets
+   *   --font-retailer-display: var(--font-display);
+   *   --font-retailer-body:    var(--font-sans);
+   * and the footer / .paon-catalogue-note use those. On the raw page
+   * --font-sans and --font-display are never defined, so those declarations
+   * are invalid at computed-value time and the elements simply inherit
+   * OptimaKlein. In the React route the customer app defines both, so the
+   * footer and the "Fabric & archetype are inspiration ..." note rendered in
+   * the app's sans/serif faces instead.
+   *
+   * `initial` resets a custom property to the guaranteed-invalid value, i.e.
+   * exactly the "not defined" state the raw page is in — including keeping
+   * `var(--x, fallback)` fallbacks working.
+   */
+  --font-sans: initial;
+  --font-display: initial;
+}
+
+.table-service-pill {
+  display: none !important;
+}
+
+/*
+ * DEVIATION 4 — sidebar swap.
+ *   The storefront shows the customer environment's ShopCategorySidebar
+ *   (apps/customer/app/(shell)/(dashboard)/shop-category-sidebar.tsx) instead of the
+ *   template's own <aside>.
+ *
+ *   The template's <aside> stays in the markup, untouched, so the HTML parser
+ *   produces exactly the DOM it produces on the raw page — its `.layout` and
+ *   `<main>` are never closed in the source, so removing or re-wrapping the
+ *   aside changed where the footer and TableService widget ended up nesting.
+ *   `visibility: hidden` keeps the element (and therefore its 250px grid
+ *   column) in place so `main` still starts at x=250, while painting nothing.
+ *   The shared (shell) layout's sidebar is then laid over that same column.
+ *   That wrapper ([data-paon-shell-sidebar], app/(shell)/layout.tsx) already
+ *   carries the fixed 250px positioning; the rules below only undo what the
+ *   template's own stylesheet does to a bare `aside` on this page.
+ */
+.paon-template-root .layout > aside {
+  visibility: hidden;
+}
+
+[data-paon-shell-sidebar] > aside {
+  position: static;
+  height: 100vh;
+  min-height: 100vh;
+}
+
+/*
+ * DEVIATION 5 — sidebar grid rows.
+ *   The storefront shares the customer environment's ShopCategorySidebar
+ *   (apps/customer/app/(shell)/(dashboard)/shop-category-sidebar.tsx) in place of the
+ *   template's own <aside>. That component is a 4-row grid
+ *   (60px logo / auto context-switcher / 1fr nav / 210px footer), but the
+ *   template stylesheet carries a bare `aside { grid-template-rows:
+ *   var(--header-h) 1fr 200px }` (3 rows) which wins over the component's
+ *   utility class. With only 3 declared rows the context switcher lands in
+ *   the stretched 1fr track and the nav is pushed into the 200px track, so
+ *   the sidebar reads completely differently from /dashboard.
+ *   Fix: re-assert the component's own row template inside the storefront.
+ */
+[data-paon-shell-sidebar] > aside {
+  grid-template-rows: 60px auto minmax(0, 1fr) 210px !important;
+}
+
+/*
+ * DEVIATION 6 — keep the shared sidebar out of the template's cascade.
+ *
+ *   The sidebar is now rendered once, by app/(shell)/layout.tsx, above both
+ *   this route's <RetailerTheme> and the customer environment's own chrome.
+ *   Being outside RetailerTheme, it no longer inherits the customer app's
+ *   typography; and being an <aside>, it is matched directly by the
+ *   template stylesheet's bare `aside { ... }` rules. Both only happen on
+ *   this route, because only this route loads the template's 63 style
+ *   blocks — which is exactly why the same component rendered identically
+ *   at /dashboard looked different here.
+ *
+ *   Values below are the computed values measured on /dashboard by
+ *   scripts/sidebar-parity-diff.mjs, not new design decisions. Run that
+ *   script after changing anything here; it must report 0 findings.
+ */
+[data-paon-shell-sidebar] {
+  /* Inherited by all 23 descendants, which is what the template's
+     `body { font-family: OptimaKlein, serif; color: var(--text) }` was
+     overriding wholesale. */
+  font-family: "Customer Body", "TN Web Use Only", sans-serif;
+  color: rgb(23, 25, 22);
+}
+
+[data-paon-shell-sidebar] > aside {
+  /* Template: `aside { position: relative }`, declared !important in one of
+     the template's trailing override blocks, hence !important here. */
+  position: sticky !important;
+}
+
+/*
+ * The brand wordmark's sweep: a gradient painted into the glyphs via
+ * background-clip:text with a transparent text fill, moved by the component's
+ * own `shop-sidebar-shimmer` keyframes (declared in the component's <style>,
+ * so the keyframes exist on both pages). The template's trailing
+ * `.sidebar-*` blocks set background/animation/color with !important, which
+ * blanked the gradient and stopped the animation outright — the logo simply
+ * sat static and white here while it swept at /dashboard.
+ */
+[data-paon-shell-sidebar] .shop-sidebar-shimmer {
+  font-family: "Brand Display", Aviano, serif !important;
+  color: rgb(23, 25, 22) !important;
+  background-image: linear-gradient(
+    90deg,
+    rgb(64, 64, 64),
+    rgb(255, 255, 255),
+    rgb(64, 64, 64)
+  ) !important;
+  background-size: 200% 100% !important;
+  background-clip: text !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  animation: 8s linear infinite shop-sidebar-shimmer !important;
+}
+
+/*
+ * The TableService row. The template's `.sidebar-footer a` block paints the
+ * Book Appointment gradient and OptimaKlein onto every anchor in the footer
+ * region, which caught this row too.
+ */
+[data-paon-shell-sidebar] a.absolute.left-5.right-5 {
+  /*
+   * The TableService row. The template's `.sidebar-footer a` block repaints
+   * every anchor in the footer region — its gradient, OptimaKlein, and its own
+   * box metrics — which shrank this row to 217.5x35.75 with no padding and
+   * shifted it 4px left. Values are the ones measured at /dashboard.
+   */
+  font-family: "TN Web Use Only", sans-serif !important;
+  background-image: none !important;
+  left: 20px !important;
+  right: 20px !important;
+  width: auto !important;
+  height: 44px !important;
+  padding: 0 16px !important;
+}
+
+[data-paon-shell-sidebar] .pcs-store,
+[data-paon-shell-sidebar] .pcs-mypaon {
+  /* Template supplies its own border colour for these. */
+  border-color: rgb(205, 201, 194) !important;
+}
+
+[data-paon-shell-sidebar] .pcs-inactive {
+  /*
+   * Only the INACTIVE half is static. The active one must stay `relative`:
+   * it is the containing block for its absolutely-positioned underline, and
+   * forcing it static sent that underline to the page bottom at full width.
+   */
+  position: static !important;
+}

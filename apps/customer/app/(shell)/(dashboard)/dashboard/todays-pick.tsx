@@ -7,7 +7,7 @@ import { useActionState } from "react";
 
 import { generateTodaysPick, type TodaysPickState } from "./actions";
 
-import { startConversation } from "@/app/(dashboard)/messages/actions";
+import { startConversation } from "@/app/(shell)/(dashboard)/messages/actions";
 
 const initial: TodaysPickState = {};
 

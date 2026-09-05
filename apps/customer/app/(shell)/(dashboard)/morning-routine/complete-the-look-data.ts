@@ -9,7 +9,7 @@ import {
 import {
   buildCategorizedCatalogue,
   buildWardrobeCandidates,
-} from "@/app/(dashboard)/wardrobe/complete-the-look-catalogue";
+} from "@/app/(shell)/(dashboard)/wardrobe/complete-the-look-catalogue";
 
 /**
  * MorningRoutine's wardrobe-level Complete the Look card (PHASE 17.10).

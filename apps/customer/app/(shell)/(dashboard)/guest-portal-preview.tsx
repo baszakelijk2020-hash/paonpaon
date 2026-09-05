@@ -5,7 +5,7 @@ import { Card } from "@paon/ui/components/Card";
 import Link from "next/link";
 import { useState } from "react";
 
-import { InlineSignIn } from "../inline-sign-in";
+import { InlineSignIn } from "../../inline-sign-in";
 
 /**
  * Guest landing after the storefront profile icon. Three actions only —

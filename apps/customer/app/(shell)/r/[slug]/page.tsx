@@ -1,0 +1,107 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+
+import { notFound } from "next/navigation";
+
+import { getStorefrontPageData } from "./get-storefront-page-data";
+import "./paon-preflight-reset.css";
+import { serializeStorefrontPage } from "./storefront-page-data";
+import { TemplateMount } from "./template-mount";
+
+import { getSupabaseServerClient } from "@/lib/supabase-server";
+
+interface PageProps {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ category?: string }>;
+}
+
+/**
+ * The storefront. Renders the founder template itself, not a
+ * reimplementation of it.
+ *
+ * `route.ts` serves paon-template.html byte-for-byte at /r/[slug]. This page
+ * runs the identical data path (getStorefrontPageData -> serializeStorefrontPage)
+ * and mounts the identical output inside the React tree, so the DOM, class
+ * names, ids, inline styles and the 38 <script> blocks are the same bytes
+ * rather than a transcription.
+ *
+ * The 63 <style> blocks live in ./paon-template.css, extracted verbatim in
+ * document order so the cascade is unchanged. It is imported (not rendered as
+ * an inline <style>) because a <style> element emitted into <body> is made
+ * visible as text by the template's own aggressive display rules.
+ */
+export default async function Page({ params, searchParams }: PageProps) {
+  const { slug } = await params;
+  const { category } = await searchParams;
+
+  const supabase = await getSupabaseServerClient();
+  const { data: authData } = await supabase.auth.getUser();
+  const pageData = await getStorefrontPageData(
+    slug,
+    authData,
+    category ?? null,
+  );
+  if (!pageData) {
+    notFound();
+  }
+
+  const template = await readFile(
+    path.join(process.cwd(), "app/(shell)/r/[slug]/paon-template.html"),
+    "utf8",
+  );
+  const html = serializeStorefrontPage(template, pageData);
+
+  // External scripts (GSAP, ScrollTrigger) in document order.
+  const externalScripts = [
+    ...html.matchAll(/<script[^>]*\bsrc="([^"]+)"[^>]*>\s*<\/script>/g),
+  ].map((match) => match[1] as string);
+
+  // Inline scripts in document order (head first, then body), re-executed
+  // client-side because innerHTML-inserted scripts never run.
+  const inlineScripts = [
+    ...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g),
+  ].map((match) => match[1] as string);
+
+  // Anchor the body scan after </head>: a CSS comment in the head styles
+  // contains the literal text "<body>", which a naive /<body[^>]*>/ match
+  // would latch onto and drag the whole head into the output.
+  const headEnd = html.indexOf("</head>");
+  const afterHead = headEnd === -1 ? html : html.slice(headEnd);
+  const bodyOpen = afterHead.search(/<body[^>]*>/);
+  const bodyInner =
+    bodyOpen === -1
+      ? ""
+      : afterHead
+          .slice(afterHead.indexOf(">", bodyOpen) + 1)
+          .replace(/<\/body>[\s\S]*$/, "");
+
+  const bodyHtml = bodyInner
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/g, "")
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/g, "");
+
+  // The template's own <aside> is left in the markup untouched so the HTML
+  // parser builds exactly the DOM it builds on the raw page (its `.layout`
+  // and `<main>` are never closed, so nesting of later siblings depends on
+  // the parser). It is hidden by paon-template-parity.css, which keeps its
+  // 250px grid column occupied, and the customer environment's
+  // ShopCategorySidebar is laid over that column instead.
+  return (
+    <>
+      {/* Template CSS comes from a Route Handler so it is byte-exact and
+          includes the per-request <style id="paon-retailer-brand"> block.
+          ./paon-template-parity.css is appended to it there, so the parity
+          rules always land after the template's own blocks and can win an
+          !important collision. See ./template-styles/route.ts. */}
+      <link
+        rel="stylesheet"
+        href={`/r/${slug}/template-styles`}
+        precedence="default"
+      />
+      <TemplateMount
+        bodyHtml={bodyHtml}
+        externalScripts={externalScripts}
+        inlineScripts={inlineScripts}
+      />
+    </>
+  );
+}

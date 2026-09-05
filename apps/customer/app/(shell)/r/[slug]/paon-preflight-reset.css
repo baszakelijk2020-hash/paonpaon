@@ -1,0 +1,43 @@
+/*
+ * Tailwind preflight neutralisation for the storefront template.
+ *
+ * This file is a normal bundled import in page.tsx, deliberately kept apart
+ * from paon-template-parity.css (which template-styles/route.ts appends AFTER
+ * the template's own stylesheet). These rules must land BEFORE it: their job
+ * is only to undo the customer app's Tailwind preflight, and `all: revert`
+ * discards author-level declarations wholesale. Served after the template,
+ * it also wiped the template's own `padding: 0` off .paon-fav-chip,
+ * #detail-toggle-btn, .fp-clear and .fp-apply, which then picked up the
+ * browser's 1px 6px button default.
+ */
+
+:where(.paon-template-root) :where(*, ::before, ::after) {
+  /* preflight: `border: 0 solid` pins border-color to a theme value; the raw
+     page uses the UA default, currentColor. Only visible where a border is
+     actually drawn, e.g. the footer's top rule. */
+  border-color: revert;
+}
+
+:where(.paon-template-root)
+  :where(img, svg, video, canvas, audio, iframe, embed, object) {
+  /* preflight: `display: block; vertical-align: middle` — the raw page keeps
+     these inline, which changes baseline alignment of header icons and of
+     the TableService intent thumbnails. */
+  display: revert;
+  vertical-align: revert;
+}
+
+:where(.paon-template-root) :where(button, input, select, textarea, optgroup) {
+  /*
+   * preflight rewrites form controls wholesale — `font: inherit`,
+   * `color: inherit`, `background-color: transparent`, `background-image:
+   * none`, `border: 0 solid`. The raw page keeps UA defaults throughout,
+   * which is why #gcw-attachment-input lost Arial/13.3333px and the mobile
+   * hamburger #paon-menu-btn lost its buttonface background and 2px border.
+   *
+   * `all: revert` restores the UA defaults for every property at once rather
+   * than chasing them one at a time. It is still inside :where(), so it
+   * contributes no specificity and any real template rule continues to win.
+   */
+  all: revert;
+}

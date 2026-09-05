@@ -12,7 +12,7 @@ import {
   type MorningRoutineActionState,
 } from "./actions";
 
-import { startConversation } from "@/app/(dashboard)/messages/actions";
+import { startConversation } from "@/app/(shell)/(dashboard)/messages/actions";
 
 /**
  * FT-06 complete-look canvas. `pag1.html` was checked directly for a
