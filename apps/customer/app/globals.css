@@ -214,6 +214,12 @@ h3 {
  * is answered: the values below are the customer environment's own, and
  * inherit down to everything inside it.
  */
+/* The storefront stays in flow behind the overlay, so its height must not give
+   the window a scrollbar the overlay cannot use. */
+body:not(.paon-storefront-active) {
+  overflow: hidden;
+}
+
 .paon-shell-content {
   position: fixed;
   inset: 0;

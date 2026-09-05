@@ -83,7 +83,7 @@ function mountTemplate(root: HTMLElement, cacheKey: string): void {
    * this, arriving at Jackets left Suits still showing underneath it.
    */
   for (const [key, entry] of liveTemplates) {
-    if (key !== cacheKey) park(entry.node);
+    if (key !== cacheKey) detach(entry.node);
   }
   unpark(root);
 }
@@ -112,24 +112,43 @@ let suspendScrollTracking = false;
  * overlay (see .paon-shell-content in globals.css). All that changes here is
  * that nothing behind the overlay stays reachable.
  */
+/**
+ * Leaving the storefront for the customer environment.
+ *
+ * Nothing about the template changes: it stays attached, laid out, painted and
+ * intersecting, because that is the only way returning to it can be free. The
+ * customer environment is a fixed, opaque overlay that simply covers it, so
+ * there is nothing to hide. All that happens here is that what is behind the
+ * overlay stops being reachable.
+ */
 function park(root: HTMLElement): void {
   suspendScrollTracking = true;
   root.style.pointerEvents = "none";
-  /*
-   * `content-visibility: hidden` rather than `visibility` or `display`: it
-   * stops the subtree painting while keeping its layout — and, unlike
-   * `visibility: hidden`, it does not tell the template's IntersectionObserver
-   * that its cards left the viewport, so nothing replays on return.
-   */
-  root.style.contentVisibility = "hidden";
   root.setAttribute("aria-hidden", "true");
   root.setAttribute("inert", "");
+}
+
+/**
+ * A different rendering is taking over — another category, or another
+ * retailer.
+ *
+ * This one is detached outright rather than hidden. Hiding it is what broke
+ * category switching: `content-visibility: hidden` stops a subtree painting
+ * but keeps its box, so each previously visited category went on occupying its
+ * full height and the new one rendered below thousands of pixels of stacked,
+ * invisible storefronts — an empty screen, with the customer environment
+ * showing further down.
+ *
+ * The node is kept in the cache, so coming back to that category re-attaches
+ * it with its scripts, listeners and scroll position intact.
+ */
+function detach(root: HTMLElement): void {
+  root.remove();
 }
 
 function unpark(root: HTMLElement): void {
   suspendScrollTracking = true;
   root.style.removeProperty("pointer-events");
-  root.style.removeProperty("content-visibility");
   root.removeAttribute("aria-hidden");
   root.removeAttribute("inert");
 }
@@ -167,6 +186,8 @@ interface TemplateMountProps {
   stylesheetHref: string;
   /** Identifies this rendering of the template for the live-DOM cache below. */
   cacheKey: string;
+  /** The category the URL is asking for, or null for the home view. */
+  category: string | null;
 }
 
 /**
@@ -188,6 +209,7 @@ export function TemplateMount({
   inlineScripts,
   stylesheetHref,
   cacheKey,
+  category,
 }: TemplateMountProps) {
   const router = useRouter();
   const scriptsStarted = useRef(false);
@@ -404,6 +426,47 @@ export function TemplateMount({
       window.setTimeout(replayImageLoads, 600);
     })();
   }, [templateReady, externalScripts, inlineScripts]);
+
+  /*
+   * Follow the URL's category using the template's own navigation.
+   *
+   * Building a fresh template per category was what broke category switching.
+   * The template's scripts own global state — body classes like
+   * `home-view-active`, and window functions — so a second copy running in the
+   * same document left the page disagreeing with itself: the grid collapsed to
+   * zero height with all 76 of its cards still inside it.
+   *
+   * `showCollectionGrid` and `showHome` are the template's own entry points,
+   * the ones its in-page category list calls. Driving those is the same path a
+   * visitor clicking inside the storefront already takes.
+   */
+  useEffect(() => {
+    if (!templateReady) return;
+
+    const w = window as typeof window & {
+      showCollectionGrid?: (categoryName: string) => void;
+      showHome?: () => void;
+    };
+
+    // The scripts are appended asynchronously, so wait for them to define it.
+    let cancelled = false;
+    const timer = window.setInterval(() => {
+      if (cancelled) return;
+      if (category) {
+        if (typeof w.showCollectionGrid !== "function") return;
+        w.showCollectionGrid(category);
+      } else {
+        if (typeof w.showHome !== "function") return;
+        w.showHome();
+      }
+      window.clearInterval(timer);
+    }, 60);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [templateReady, category]);
 
   /*
    * Keep in-app navigation on the client router.

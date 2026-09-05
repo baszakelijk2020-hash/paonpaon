@@ -115,9 +115,12 @@ export default async function Page({ params, searchParams }: PageProps) {
       externalScripts={externalScripts}
       inlineScripts={inlineScripts}
       stylesheetHref={`/r/${slug}/template-styles`}
-      // Distinguishes the markup the server built for this retailer and
-      // category, so returning to the same view reuses that exact subtree.
-      cacheKey={`${slug}:${category ?? ""}`}
+      // One rendering per retailer, not per category. The template owns global
+      // state — body classes, window functions — so building a second one in
+      // the same document leaves the page contradicting itself. Category
+      // changes are driven through the template's own navigation instead.
+      cacheKey={slug}
+      category={category ?? null}
     />
   );
 }
