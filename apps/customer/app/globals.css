@@ -234,8 +234,28 @@ h3 {
 }
 
 /* On the storefront there is nothing to cover, and nothing to correct. */
-body.paon-storefront-active .paon-shell-content {
-  position: static;
-  overflow: visible;
-  background: transparent;
+/*
+ * Confine the storefront's painting to itself.
+ *
+ * The template positions plenty of its own chrome `fixed` at z-indexes in the
+ * hundreds. Without a stacking context of its own those escape upward and
+ * paint straight through this overlay — the storefront's feed showing over the
+ * customer environment. `isolation` creates that context without touching
+ * layout, position or size, so everything inside the template is ordered
+ * within it and this overlay is simply above the whole thing.
+ *
+ * The shared sidebar sits outside the template at a higher index, so it still
+ * paints above both.
+ */
+.paon-template-root {
+  isolation: isolate;
+  position: relative;
+  z-index: 0;
 }
+
+/*
+ * The overlay stays fixed in both states — EnvironmentTransition fades it in
+ * and out instead. Returning it to flow on the storefront made it take space
+ * above the template, which showed as a band of customer environment across
+ * the store page.
+ */

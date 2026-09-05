@@ -63,9 +63,27 @@ function templateScroller(root: HTMLElement): HTMLElement | null {
  * first in the document or it rebuilds the wrong one. The sidebar is
  * position:fixed above it, so document order changes nothing visually.
  */
-function mountTemplate(root: HTMLElement): void {
+/** Drop the least recently shown renderings, never the one on screen. */
+function evictOldest(keep: string): void {
+  while (liveTemplates.size > MAX_LIVE_TEMPLATES) {
+    const oldest = [...liveTemplates.keys()].find((key) => key !== keep);
+    if (!oldest) return;
+    liveTemplates.get(oldest)?.node.remove();
+    liveTemplates.delete(oldest);
+  }
+}
+
+function mountTemplate(root: HTMLElement, cacheKey: string): void {
   if (root.parentElement !== document.body) {
     document.body.insertBefore(root, document.body.firstChild);
+  }
+  /*
+   * Every other rendering steps back first. Each retailer/category combination
+   * keeps its own live subtree, and they all live in <body> together — without
+   * this, arriving at Jackets left Suits still showing underneath it.
+   */
+  for (const [key, entry] of liveTemplates) {
+    if (key !== cacheKey) park(entry.node);
   }
   unpark(root);
 }
@@ -97,17 +115,23 @@ let suspendScrollTracking = false;
 function park(root: HTMLElement): void {
   suspendScrollTracking = true;
   root.style.pointerEvents = "none";
+  /*
+   * `content-visibility: hidden` rather than `visibility` or `display`: it
+   * stops the subtree painting while keeping its layout — and, unlike
+   * `visibility: hidden`, it does not tell the template's IntersectionObserver
+   * that its cards left the viewport, so nothing replays on return.
+   */
+  root.style.contentVisibility = "hidden";
   root.setAttribute("aria-hidden", "true");
   root.setAttribute("inert", "");
-  document.body.classList.remove("paon-storefront-active");
 }
 
 function unpark(root: HTMLElement): void {
   suspendScrollTracking = true;
   root.style.removeProperty("pointer-events");
+  root.style.removeProperty("content-visibility");
   root.removeAttribute("aria-hidden");
   root.removeAttribute("inert");
-  document.body.classList.add("paon-storefront-active");
 }
 
 /** Re-enable scroll tracking once the browser has settled the change. */
@@ -118,6 +142,17 @@ function resumeScrollTracking(): void {
     });
   });
 }
+
+/*
+ * How many renderings to keep alive at once.
+ *
+ * Each is a full storefront subtree — tens of thousands of pixels of
+ * catalogue and its images — so they cannot accumulate for a whole session of
+ * browsing categories. Four covers moving between a handful of categories and
+ * back, which is the pattern this exists for; the least recently shown is
+ * dropped beyond that and simply rebuilds if it is asked for again.
+ */
+const MAX_LIVE_TEMPLATES = 4;
 
 const liveTemplates = new Map<string, { node: HTMLElement; scrollY: number }>();
 
@@ -221,7 +256,10 @@ export function TemplateMount({
     const cached = liveTemplates.get(cacheKey);
     if (cached) {
       restoredFromCache.current = true;
-      mountTemplate(cached.node);
+      // Re-inserting makes this the most recently used entry.
+      liveTemplates.delete(cacheKey);
+      liveTemplates.set(cacheKey, cached);
+      mountTemplate(cached.node, cacheKey);
       // Put the visitor back where they were, once the browser has laid the
       // restored subtree out again.
       /*
@@ -247,8 +285,9 @@ export function TemplateMount({
       const root = document.createElement("div");
       root.className = "paon-template-root";
       root.innerHTML = bodyHtml;
-      mountTemplate(root);
+      mountTemplate(root, cacheKey);
       liveTemplates.set(cacheKey, { node: root, scrollY: 0 });
+      evictOldest(cacheKey);
       // mountTemplate unparks, which suspends tracking; the cached branch
       // resumes after restoring, and the first mount has to do the same or no
       // scroll is ever recorded.
@@ -281,6 +320,12 @@ export function TemplateMount({
       scroller?.removeEventListener("scroll", onScroll);
       // Park rather than detach: the node stays in the document, laid out and
       // scrolled where it was, so coming back costs a repaint and no layout.
+      /*
+       * Park only this rendering. Whether the storefront as a whole is still
+       * on screen is EnvironmentTransition's to decide, from the path — this
+       * cleanup runs after the next rendering has already mounted, so saying
+       * anything about it here contradicts what just happened.
+       */
       const parked = liveTemplates.get(cacheKey)?.node;
       if (parked) park(parked);
       resumeScrollTracking();

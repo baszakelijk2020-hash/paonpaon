@@ -1,5 +1,6 @@
 import { ScrollMemory } from "./(dashboard)/scroll-memory";
 import { ShopCategorySidebar } from "./(dashboard)/shop-category-sidebar";
+import { EnvironmentTransition } from "./environment-transition";
 
 /**
  * The single shell shared by the customer environment ((dashboard)) and the
@@ -42,6 +43,7 @@ export default function ShellLayout({
    */
   return (
     <>
+      <EnvironmentTransition />
       <ScrollMemory />
       {/*
         The storefront is not unmounted when the visitor leaves it — it stays
