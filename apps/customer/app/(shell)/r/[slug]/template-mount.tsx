@@ -46,6 +46,27 @@ function templateScroller(root: HTMLElement): HTMLElement | null {
   return root.querySelector<HTMLElement>("main#main");
 }
 
+/**
+ * Puts the template where the raw page has it: a direct child of <body>,
+ * ahead of React's root.
+ *
+ * Inside React's container it was covered by React DOM's event delegation,
+ * which installs a NON-PASSIVE scroll listener on `document` — the browser
+ * then has to run React before it can paint each scroll frame. Measured
+ * against the byte-identical raw route, that alone took the home feed from 2
+ * dropped frames to 23. The raw page has no such listener because nothing
+ * there is React.
+ *
+ * First child, not appended: the template's last inline script does
+ * `document.querySelector('aside')` and rebuilds what it finds, meaning its
+ * own. The shared sidebar is an <aside> too, so the template has to come
+ * first in the document or it rebuilds the wrong one. The sidebar is
+ * position:fixed above it, so document order changes nothing visually.
+ */
+function mountTemplate(root: HTMLElement): void {
+  document.body.insertBefore(root, document.body.firstChild);
+}
+
 const liveTemplates = new Map<string, { node: HTMLElement; scrollY: number }>();
 
 interface TemplateMountProps {
@@ -82,7 +103,6 @@ export function TemplateMount({
   cacheKey,
 }: TemplateMountProps) {
   const router = useRouter();
-  const hostRef = useRef<HTMLDivElement>(null);
   const scriptsStarted = useRef(false);
   const restoredFromCache = useRef(false);
   // The template's `.layout` and `<main>` are never closed in the source, so
@@ -137,13 +157,12 @@ export function TemplateMount({
    * visited before, otherwise build it once from the server markup.
    */
   useEffect(() => {
-    const host = hostRef.current;
-    if (!templateReady || !host) return;
+    if (!templateReady) return;
 
     const cached = liveTemplates.get(cacheKey);
     if (cached) {
       restoredFromCache.current = true;
-      host.appendChild(cached.node);
+      mountTemplate(cached.node);
       // Put the visitor back where they were, once the browser has laid the
       // restored subtree out again.
       requestAnimationFrame(() => {
@@ -155,7 +174,7 @@ export function TemplateMount({
       const root = document.createElement("div");
       root.className = "paon-template-root";
       root.innerHTML = bodyHtml;
-      host.appendChild(root);
+      mountTemplate(root);
       liveTemplates.set(cacheKey, { node: root, scrollY: 0 });
     }
 
@@ -341,9 +360,9 @@ export function TemplateMount({
   }, [templateReady, router]);
 
   /*
-   * React renders an empty host and never the template itself. The subtree is
-   * attached imperatively so it can outlive this component and be handed back
-   * on return — React would otherwise reconcile it away.
+   * React renders nothing. The template is attached to <body> imperatively so
+   * it survives this component being unmounted, and so it stays outside
+   * React's event delegation — see mountTemplate.
    */
-  return <div ref={hostRef} data-paon-template-host />;
+  return null;
 }
