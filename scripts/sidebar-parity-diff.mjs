@@ -183,12 +183,12 @@ for (const [path, d] of dashMap) {
    */
   if (d.pill) continue;
   const ACTIVE_STATE_PROPS = new Set([
-      "color",
-      "backgroundColor",
-      "borderColor",
-      "boxShadow",
-      "webkitTextFillColor",
-    ]);
+    "color",
+    "backgroundColor",
+    "borderColor",
+    "boxShadow",
+    "webkitTextFillColor",
+  ]);
   for (const p of STYLE_PROPS) {
     if (bothHidden) break;
     if (isSwitcherSegment && ACTIVE_STATE_PROPS.has(p)) continue;

@@ -14264,6 +14264,181 @@ requestAnimationFrame(fixFeedImages);
         background: linear-gradient(to bottom, var(--cream) 0%, var(--warm-mid) 100%);
     }
 
+    /*
+     * Progressive booking steps.
+     *
+     * An answered step is one quiet line — label, answer, Change — and only
+     * the step being asked shows its options. Rules rather than cards: the
+     * panel already sits on its own surface, and boxing every row inside it
+     * was what made the old layout read as clutter.
+     */
+    .paon-appt-step {
+      border-bottom: 1px solid rgba(0, 0, 0, .08);
+    }
+    .paon-appt-step:last-of-type { border-bottom: 0; }
+
+    .paon-appt-step-head {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      width: 100%;
+      padding: 16px 0;
+      background: none;
+      border: 0;
+      text-align: left;
+      cursor: default;
+      font: inherit;
+      color: inherit;
+    }
+    .paon-appt-step.answered .paon-appt-step-head { cursor: pointer; }
+
+    .paon-appt-step-label {
+      flex: 0 0 74px;
+      font-family: GTBold3, Arial, sans-serif;
+      font-size: 8px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: #8d8d87;
+    }
+    .paon-appt-step-value {
+      flex: 1 1 auto;
+      font-size: 14px;
+      color: #2a2925;
+    }
+    /* Only an answered, collapsed step offers to change. */
+    .paon-appt-step-action {
+      flex: 0 0 auto;
+      font-family: GTBold3, Arial, sans-serif;
+      font-size: 8px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: #8d8d87;
+      opacity: 0;
+      transition: opacity 160ms ease;
+    }
+    .paon-appt-step.answered .paon-appt-step-action { opacity: 1; }
+    .paon-appt-step.answered .paon-appt-step-head:hover .paon-appt-step-action { color: #2a2925; }
+
+    .paon-appt-step:not(.open):not(.answered) .paon-appt-step-label { opacity: .45; }
+
+    .paon-appt-step-body {
+      display: none;
+      padding: 0 0 22px;
+    }
+    .paon-appt-step.open .paon-appt-step-body { display: block; }
+    /* The open step has not been answered yet, so it shows no value line. */
+    .paon-appt-step.open .paon-appt-step-value { display: none; }
+
+    /* Store: two plain rows, no imagery — the address is the useful part. */
+    /*
+     * A later block sizes `.paon-store-btn` around a 84px store photograph
+     * with `height: 104px !important` and !important on every other property,
+     * so these have to match that weight rather than out-specify it. The row
+     * is text now; the photograph is gone.
+     */
+    .paon-appt-step-body .paon-store-btn {
+      display: flex !important;
+      align-items: baseline !important;
+      gap: 14px !important;
+      width: 100% !important;
+      height: auto !important;
+      padding: 11px 14px !important;
+      margin: 0 0 6px !important;
+      background: none !important;
+      border: 1px solid rgba(0, 0, 0, .10) !important;
+      border-radius: 10px !important;
+      box-shadow: none !important;
+      opacity: 1 !important;
+      cursor: pointer !important;
+      text-align: left !important;
+      transition: border-color 160ms ease, background-color 160ms ease !important;
+    }
+    .paon-appt-step-body .paon-store-btn:hover {
+      border-color: rgba(0, 0, 0, .26) !important;
+    }
+    .paon-appt-step-body .paon-store-btn.selected {
+      border-color: #2a2925 !important;
+      background: rgba(0, 0, 0, .03) !important;
+      box-shadow: none !important;
+    }
+    .paon-appt-step-body .paon-store-city {
+      flex: 0 0 auto;
+      font-size: 14px;
+      color: #2a2925;
+    }
+    .paon-appt-step-body .paon-store-addr {
+      flex: 1 1 auto;
+      font-size: 12px;
+      color: #8d8d87;
+    }
+
+    /*
+     * The fields match the summary rows above them: a hairline, not a filled
+     * pill. The template's own `#paon-appt-name` block styles them as raised
+     * white capsules with !important, which read as a different form sitting
+     * inside this one.
+     */
+    #paon-appt-form {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 0 !important;
+    }
+    #paon-appt-form #paon-appt-name,
+    #paon-appt-form #paon-appt-email,
+    #paon-appt-form #paon-appt-phone {
+      width: 100% !important;
+      padding: 14px 2px !important;
+      background: none !important;
+      border: 0 !important;
+      border-bottom: 1px solid rgba(0, 0, 0, .10) !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      font-size: 14px !important;
+      color: #2a2925 !important;
+    }
+    #paon-appt-form #paon-appt-name:focus,
+    #paon-appt-form #paon-appt-email:focus,
+    #paon-appt-form #paon-appt-phone:focus {
+      outline: none !important;
+      border-bottom-color: #2a2925 !important;
+    }
+    #paon-appt-form #paon-appt-name::placeholder,
+    #paon-appt-form #paon-appt-email::placeholder,
+    #paon-appt-form #paon-appt-phone::placeholder {
+      color: #9b9b95 !important;
+    }
+
+    #paon-appt-form .paon-appt-confirm {
+      margin-top: 22px !important;
+      border-radius: 999px !important;
+    }
+
+    .paon-appt-note-toggle {
+      align-self: flex-start;
+      padding: 14px 0 2px;
+      background: none;
+      border: 0;
+      cursor: pointer;
+      font-family: GTBold3, Arial, sans-serif;
+      font-size: 8px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: #8d8d87;
+    }
+    .paon-appt-note-toggle:hover { color: #2a2925; }
+
+    #paon-appt-msg {
+      width: 100%;
+      margin-top: 8px;
+      padding: 12px 14px;
+      border: 1px solid rgba(0, 0, 0, .10);
+      border-radius: 10px;
+      background: none;
+      font: inherit;
+      font-size: 13px;
+      resize: vertical;
+    }
+
     .paon-appt-heading {
         font-family: OptimaKlein, serif;
         font-size: 18px;
@@ -16231,6 +16406,15 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
         /* Destroy old content and rebuild */
         apptSection.innerHTML = '';
 
+        /*
+         * One decision at a time.
+         *
+         * The panel used to ask everything at once — two large store cards, a
+         * thirty-day strip, a full day of half-hour slots and four stacked
+         * fields — which made a one-minute booking look like paperwork. Each
+         * step now opens only when the one before it is answered, and collapses
+         * to a single line you can click to change.
+         */
         var heading = document.createElement('div');
         heading.className = 'paon-appt-heading';
         heading.textContent = 'Book Your Fitting';
@@ -16241,46 +16425,114 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
         sub.textContent = 'Reserve a complimentary in-store consultation';
         apptSection.appendChild(sub);
 
-        /* Store location buttons — injected from the live retailer / Demo Studio. */
+        var steps = [];
+
+        /** A step: its label, the answer once given, and the body that asks. */
+        function makeStep(label) {
+            var wrap = document.createElement('div');
+            wrap.className = 'paon-appt-step';
+
+            var head = document.createElement('button');
+            head.type = 'button';
+            head.className = 'paon-appt-step-head';
+
+            var labelEl = document.createElement('span');
+            labelEl.className = 'paon-appt-step-label';
+            labelEl.textContent = label;
+
+            var valueEl = document.createElement('span');
+            valueEl.className = 'paon-appt-step-value';
+
+            var actionEl = document.createElement('span');
+            actionEl.className = 'paon-appt-step-action';
+            actionEl.textContent = 'Change';
+
+            head.appendChild(labelEl);
+            head.appendChild(valueEl);
+            head.appendChild(actionEl);
+
+            var body = document.createElement('div');
+            body.className = 'paon-appt-step-body';
+
+            wrap.appendChild(head);
+            wrap.appendChild(body);
+            apptSection.appendChild(wrap);
+
+            var step = { wrap: wrap, head: head, value: valueEl, body: body, answered: false };
+            head.addEventListener('click', function () {
+                if (!step.answered) return;
+                openStep(step);
+            });
+            steps.push(step);
+            return step;
+        }
+
+        /** Exactly one step is open; answered ones sit above it as one line. */
+        function openStep(target) {
+            steps.forEach(function (s) {
+                var open = s === target;
+                s.wrap.classList.toggle('open', open);
+                s.wrap.classList.toggle('answered', s.answered && !open);
+            });
+        }
+
+        function answerStep(step, text) {
+            step.answered = true;
+            step.value.textContent = text;
+            /* Move to the first step still unanswered, else stay put. */
+            var next = null;
+            for (var n = 0; n < steps.length; n++) {
+                if (!steps[n].answered) { next = steps[n]; break; }
+            }
+            openStep(next || step);
+            checkApptReady();
+        }
+
+        /* ---- Atelier ---- */
+        var storeStep = makeStep('Atelier');
         var stores = __PAON_STORES_JSON__;
         stores.forEach(function (s) {
             var btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'paon-store-btn';
-            var imgEl = document.createElement('img');
-            imgEl.alt = s.city;
-            imgEl.src = s.img;
-            /* Fallback: if the image fails, show a solid dark placeholder */
-            imgEl.onerror = function () {
-                this.style.background = '#333';
-                this.style.objectFit = 'contain';
-                this.removeAttribute('src');
-            };
-            btn.appendChild(imgEl);
-            var infoDiv = document.createElement('div');
-            infoDiv.className = 'paon-store-info';
-            infoDiv.innerHTML =
-                '<div class="paon-store-city">' + s.city + '</div>' +
-                '<div class="paon-store-addr">' + s.address.replace(/\n/g, '<br>') + '</div>';
-            btn.appendChild(infoDiv);
+            var line = s.address.replace(/,?\n/g, ', ');
+            /* textContent, not innerHTML: these values come from retailer data
+               and a store name is not markup. */
+            var cityEl = document.createElement('span');
+            cityEl.className = 'paon-store-city';
+            cityEl.textContent = s.city;
+            var addrEl = document.createElement('span');
+            addrEl.className = 'paon-store-addr';
+            addrEl.textContent = line;
+            btn.appendChild(cityEl);
+            btn.appendChild(addrEl);
             btn.addEventListener('click', function () {
-                apptSection.querySelectorAll('.paon-store-btn').forEach(function (b) {
+                storeStep.body.querySelectorAll('.paon-store-btn').forEach(function (b) {
                     b.classList.remove('selected');
                 });
                 btn.classList.add('selected');
                 apptSection.dataset.store = s.city;
-                checkApptReady();
+                answerStep(storeStep, s.city);
             });
-            apptSection.appendChild(btn);
+            storeStep.body.appendChild(btn);
         });
 
-        /* Calendar: 30 days starting today */
+        /* ---- Date ---- */
+        var dateStep = makeStep('Date');
         var cal = document.createElement('div');
         cal.className = 'calendar';
         cal.id = 'paon-appt-calendar';
-        apptSection.appendChild(cal);
+        dateStep.body.appendChild(cal);
+
+        /* ---- Time ---- */
+        var timeStep = makeStep('Time');
+        var timesWrap = document.createElement('div');
+        timesWrap.className = 'paon-appt-times';
+        timeStep.body.appendChild(timesWrap);
 
         var weekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+        var months = ['January', 'February', 'March', 'April', 'May', 'June',
+                      'July', 'August', 'September', 'October', 'November', 'December'];
         var now = new Date();
         function localDateKey(date) {
             var y = date.getFullYear();
@@ -16288,62 +16540,55 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
             var day = String(date.getDate()).padStart(2, '0');
             return y + '-' + m + '-' + day;
         }
+
         for (var i = 0; i < 30; i++) {
-            var d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
-            var dayDiv = document.createElement('div');
-            dayDiv.className = 'day';
-            dayDiv.dataset.date = localDateKey(d);
-            dayDiv.dataset.isToday = i === 0 ? '1' : '0';
-            dayDiv.innerHTML = '<div class="weekday">' + weekdays[d.getDay()] + '</div><div class="date">' + d.getDate() + '</div>';
-            (function (dayEl, dateStr, isToday) {
+            (function (offset) {
+                var d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);
+                var dayEl = document.createElement('div');
+                dayEl.className = 'day';
+                var dowEl = document.createElement('div');
+                dowEl.className = 'dow';
+                dowEl.textContent = weekdays[d.getDay()];
+                var dnumEl = document.createElement('div');
+                dnumEl.className = 'dnum';
+                dnumEl.textContent = d.getDate();
+                dayEl.appendChild(dowEl);
+                dayEl.appendChild(dnumEl);
                 dayEl.addEventListener('click', function () {
                     cal.querySelectorAll('.day').forEach(function (x) { x.classList.remove('selected'); });
                     dayEl.classList.add('selected');
-                    apptSection.dataset.selectedDate = dateStr;
-                    buildTimeSlots(isToday, false);
-                    checkApptReady();
+                    apptSection.dataset.selectedDate = localDateKey(d);
+                    /* A different day invalidates the time already chosen. */
+                    delete apptSection.dataset.selectedTime;
+                    timeStep.answered = false;
+                    timeStep.value.textContent = '';
+                    buildTimeSlots(offset === 0, false);
+                    answerStep(dateStep, weekdays[d.getDay()] + ' ' + d.getDate() + ' ' + months[d.getMonth()]);
                 });
-            })(dayDiv, dayDiv.dataset.date, i === 0);
-            cal.appendChild(dayDiv);
+                cal.appendChild(dayEl);
+            })(i);
         }
 
-        /* Time slots container */
-        var timesWrap = document.createElement('div');
-        timesWrap.className = 'paon-appt-times';
-        timesWrap.id = 'paon-appt-times';
-        apptSection.appendChild(timesWrap);
-
-        /* Slots render immediately on open (disabled, greyed) rather than
-         * only appearing after a day is picked — a visitor can see the
-         * full 09:00-18:00 grid up front, then picking a day just enables
-         * the real availability for that day (today's past-time filtering
-         * only applies once "today" is actually the selected day). */
         function buildTimeSlots(isToday, disabled) {
             timesWrap.innerHTML = '';
-            var currentHour = new Date().getHours();
-            var currentMin = new Date().getMinutes();
-            for (var h = 9; h <= 18; h++) {
-                var mins = [0, 30];
-                for (var mi = 0; mi < mins.length; mi++) {
-                    var m = mins[mi];
-                    if (h === 18 && m === 30) continue;
-                    /* If today, skip past times — round up to next half hour */
-                    if (isToday && !disabled) {
-                        var slotMinutes = h * 60 + m;
-                        /* next available = current hour * 60 + current minutes, rounded up to next 30 */
-                        var nowMinutes = currentHour * 60 + currentMin;
-                        var nextAvail = Math.ceil(nowMinutes / 30) * 30;
-                        if (slotMinutes < nextAvail) continue;
-                    }
+            var startH = 9, endH = 18;
+            for (var h = startH; h < endH; h++) {
+                for (var m = 0; m < 60; m += 30) {
                     var slot = document.createElement('div');
-                    slot.className = 'paon-time-slot' + (disabled ? ' disabled' : '');
+                    slot.className = 'paon-time-slot';
+                    if (disabled) slot.classList.add('disabled');
+                    if (isToday) {
+                        var slotDate = new Date();
+                        slotDate.setHours(h, m, 0, 0);
+                        if (slotDate.getTime() <= Date.now()) slot.classList.add('disabled');
+                    }
                     slot.textContent = (h < 10 ? '0' + h : h) + ':' + (m === 0 ? '00' : '30');
                     slot.addEventListener('click', function () {
                         if (this.classList.contains('disabled')) return;
                         timesWrap.querySelectorAll('.paon-time-slot').forEach(function (x) { x.classList.remove('selected'); });
                         this.classList.add('selected');
                         apptSection.dataset.selectedTime = this.textContent;
-                        checkApptReady();
+                        answerStep(timeStep, this.textContent);
                     });
                     timesWrap.appendChild(slot);
                 }
@@ -16352,30 +16597,49 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
 
         buildTimeSlots(false, true);
 
-        /* Form fields */
+        /* ---- Details ---- */
+        var detailStep = makeStep('Details');
         var form = document.createElement('div');
         form.id = 'paon-appt-form';
+        detailStep.body.appendChild(form);
 
-        var nameInput = document.createElement('input');
-        nameInput.type = 'text'; nameInput.id = 'paon-appt-name';
-        nameInput.placeholder = 'Name'; nameInput.autocomplete = 'name';
+        function apptField(el, id, placeholder, autocomplete) {
+            el.id = id;
+            el.placeholder = placeholder;
+            if (autocomplete) el.autocomplete = autocomplete;
+            el.addEventListener('input', checkApptReady);
+            return el;
+        }
 
-        var emailInput = document.createElement('input');
-        emailInput.type = 'email'; emailInput.id = 'paon-appt-email';
-        emailInput.placeholder = 'E-mail address'; emailInput.autocomplete = 'email';
+        var nameInput = apptField(document.createElement('input'), 'paon-appt-name', 'Name', 'name');
+        nameInput.type = 'text';
+        var emailInput = apptField(document.createElement('input'), 'paon-appt-email', 'E-mail address', 'email');
+        emailInput.type = 'email';
+        var phoneInput = apptField(document.createElement('input'), 'paon-appt-phone', 'Phone number', 'tel');
+        phoneInput.type = 'tel';
+        [nameInput, emailInput, phoneInput].forEach(function (el) { form.appendChild(el); });
 
-        var phoneInput = document.createElement('input');
-        phoneInput.type = 'tel'; phoneInput.id = 'paon-appt-phone';
-        phoneInput.placeholder = 'Phone number'; phoneInput.autocomplete = 'tel';
-
+        /* Optional, so it stays out of the way until it is wanted. */
         var msgInput = document.createElement('textarea');
         msgInput.id = 'paon-appt-msg';
-        msgInput.placeholder = 'Message';
+        msgInput.placeholder = 'Anything we should know before your fitting?';
+        msgInput.rows = 3;
+        msgInput.hidden = true;
 
-        [nameInput, emailInput, phoneInput, msgInput].forEach(function (el) {
-            el.addEventListener('input', checkApptReady);
-            form.appendChild(el);
+        var noteToggle = document.createElement('button');
+        noteToggle.type = 'button';
+        noteToggle.className = 'paon-appt-note-toggle';
+        noteToggle.textContent = 'Add a note';
+        noteToggle.addEventListener('click', function () {
+            msgInput.hidden = false;
+            noteToggle.hidden = true;
+            msgInput.focus();
         });
+        form.appendChild(noteToggle);
+        form.appendChild(msgInput);
+
+        /* The first question is the only one open to begin with. */
+        openStep(storeStep);
 
         var confirmBtn = document.createElement('button');
         confirmBtn.type = 'button';
@@ -16444,17 +16708,18 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
         msg.id = 'paon-appt-message';
         form.appendChild(msg);
 
-        apptSection.appendChild(form);
-
         function checkApptReady() {
             var dateOk = apptSection.dataset.selectedDate;
             var timeOk = apptSection.dataset.selectedTime;
             var storeOk = apptSection.dataset.store;
             var nameOk = nameInput.value.trim();
             var emailOk = emailInput.value.trim() && emailInput.checkValidity();
+            /* Phone is required: a fitting is confirmed by calling. The note
+               stays optional. */
+            var phoneOk = phoneInput.value.trim();
             confirmBtn.classList.toggle(
                 'enabled',
-                !!(dateOk && timeOk && storeOk && nameOk && emailOk),
+                !!(dateOk && timeOk && storeOk && nameOk && emailOk && phoneOk),
             );
         }
     }
