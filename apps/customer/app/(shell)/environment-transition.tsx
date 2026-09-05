@@ -35,7 +35,7 @@ export function EnvironmentTransition() {
     if (first.current) {
       first.current = false;
       gsap.set(overlay, {
-        xPercent: inStore ? 100 : 0,
+        xPercent: inStore ? -100 : 0,
         autoAlpha: inStore ? 0 : 1,
         filter: "blur(0px)",
         pointerEvents: inStore ? "none" : "auto",
@@ -49,12 +49,12 @@ export function EnvironmentTransition() {
 
     if (inStore) {
       /*
-       * Leaving: the customer environment flies back out to the right and the
+       * Leaving: the customer environment flies back behind the left sidebar and the
        * storefront is simply there behind it, exactly as it was left — it is
        * never unmounted, so there is nothing to reveal but itself.
        */
       gsap.to(overlay, {
-        xPercent: 100,
+        xPercent: -100,
         filter: "blur(18px)",
         duration: 0.62,
         ease: "power3.in",
@@ -67,7 +67,7 @@ export function EnvironmentTransition() {
     }
 
     /*
-     * Arriving: in from the right over the storefront, out of a blur.
+     * Arriving: in from behind the left sidebar over the storefront, out of a blur.
      *
      * 0.72s on a quartic ease-out is the founder's own detail-panel entry
      * (paon-template.html's `duration = 720`, `easeOut4`), so opening the
@@ -75,7 +75,7 @@ export function EnvironmentTransition() {
      */
     gsap.fromTo(
       overlay,
-      { xPercent: 100, autoAlpha: 1, filter: "blur(18px)" },
+      { xPercent: -100, autoAlpha: 1, filter: "blur(18px)" },
       {
         xPercent: 0,
         filter: "blur(0px)",
