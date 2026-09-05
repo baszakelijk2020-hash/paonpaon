@@ -24,6 +24,8 @@ interface TemplateMountProps {
   externalScripts: readonly string[];
   /** Inline script bodies from the template, in document order. */
   inlineScripts: readonly string[];
+  /** URL of the template's stylesheet (./template-styles). */
+  stylesheetHref: string;
 }
 
 /**
@@ -43,6 +45,7 @@ export function TemplateMount({
   bodyHtml,
   externalScripts,
   inlineScripts,
+  stylesheetHref,
 }: TemplateMountProps) {
   const router = useRouter();
   const scriptsStarted = useRef(false);
@@ -52,9 +55,46 @@ export function TemplateMount({
   // Rendering the markup only after mount removes the hydration comparison.
   const [templateReady, setTemplateReady] = useState(false);
 
+  /*
+   * The template's stylesheet is owned here so its lifetime matches the
+   * template's.
+   *
+   * Rendered as <link precedence="default"> it was hoisted into <head> and
+   * deliberately kept there across client navigations — so returning to the
+   * customer environment left the template's 63 style blocks applied to it.
+   * Its bare `body`/`main` rules then took over: <main> lost its 32px 56px
+   * padding, every text node switched to OptimaKlein, and the page collapsed
+   * from 2774px to 2174px. A full reload looked fine, which is what made it
+   * read as a spacing bug rather than a stylesheet that outlived its page.
+   *
+   * The markup is also gated on the sheet having loaded, so the template is
+   * never painted unstyled on the way in.
+   */
   useEffect(() => {
-    setTemplateReady(true);
-  }, []);
+    const existing = document.querySelector<HTMLLinkElement>(
+      `link[data-paon-template-styles][href="${stylesheetHref}"]`,
+    );
+    if (existing) {
+      setTemplateReady(true);
+      return;
+    }
+
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = stylesheetHref;
+    link.dataset["paonTemplateStyles"] = "true";
+    const reveal = () => setTemplateReady(true);
+    link.addEventListener("load", reveal);
+    // A failed stylesheet must not leave a blank page: show the markup anyway,
+    // exactly as the browser would on the raw page.
+    link.addEventListener("error", reveal);
+    document.head.appendChild(link);
+
+    return () => {
+      link.remove();
+      setTemplateReady(false);
+    };
+  }, [stylesheetHref]);
 
   useEffect(() => {
     if (!templateReady) return;

@@ -96,23 +96,25 @@ export default async function Page({ params, searchParams }: PageProps) {
   // the parser). It is hidden by paon-template-parity.css, which keeps its
   // 250px grid column occupied, and the customer environment's
   // ShopCategorySidebar is laid over that column instead.
+  /*
+   * The stylesheet is handed to TemplateMount rather than rendered here as
+   * <link precedence="default">. React keeps a stylesheet with a precedence
+   * mounted across client navigations, so the template's rules followed the
+   * visitor back into the customer environment and restyled it. TemplateMount
+   * attaches and removes it alongside the markup it belongs to.
+   *
+   * It comes from a Route Handler so it is byte-exact and includes the
+   * per-request <style id="paon-retailer-brand"> block;
+   * ./paon-template-parity.css is appended there, after the template's own
+   * blocks, so the parity rules can win an !important collision.
+   * See ./template-styles/route.ts.
+   */
   return (
-    <>
-      {/* Template CSS comes from a Route Handler so it is byte-exact and
-          includes the per-request <style id="paon-retailer-brand"> block.
-          ./paon-template-parity.css is appended to it there, so the parity
-          rules always land after the template's own blocks and can win an
-          !important collision. See ./template-styles/route.ts. */}
-      <link
-        rel="stylesheet"
-        href={`/r/${slug}/template-styles`}
-        precedence="default"
-      />
-      <TemplateMount
-        bodyHtml={bodyHtml}
-        externalScripts={externalScripts}
-        inlineScripts={inlineScripts}
-      />
-    </>
+    <TemplateMount
+      bodyHtml={bodyHtml}
+      externalScripts={externalScripts}
+      inlineScripts={inlineScripts}
+      stylesheetHref={`/r/${slug}/template-styles`}
+    />
   );
 }

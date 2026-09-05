@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
 
+import { ContextSwitcher } from "./context-switcher";
 import { IntentPrefetchLink } from "./intent-prefetch-link";
 
 import {
@@ -115,65 +116,7 @@ export async function ShopCategorySidebar() {
           Nebel &amp; Spiegel
         </span>
       </IntentPrefetchLink>
-      <div
-        id="paon-context-switcher"
-        className="paon-context-switcher flex shrink-0 items-center justify-center"
-        style={{
-          gap: "16px",
-          background:
-            "linear-gradient(to right, rgba(255,255,255,.045), rgba(255,255,255,0)), linear-gradient(to right, #262626, #1d1d1d)",
-          padding: "14px 25px",
-        }}
-      >
-        <IntentPrefetchLink
-          href={storeHref}
-          className="pcs-store pcs-inactive"
-          style={{
-            fontFamily: "GTBold3, Arial, sans-serif",
-            fontSize: "7px",
-            textTransform: "uppercase",
-            letterSpacing: "0.04em",
-            color: "#8a8a87",
-            opacity: 0.7,
-            textDecoration: "none",
-          }}
-        >
-          Store
-        </IntentPrefetchLink>
-        <span
-          aria-hidden="true"
-          style={{
-            width: "1px",
-            height: "14px",
-            background: "rgba(255,255,255,.18)",
-          }}
-        />
-        <span
-          className="pcs-mypaon pcs-active"
-          style={{
-            position: "relative",
-            fontFamily: "GTBold3, Arial, sans-serif",
-            fontSize: "7px",
-            textTransform: "uppercase",
-            letterSpacing: "0.04em",
-            color: "#d9d9d9",
-            opacity: 1,
-          }}
-        >
-          My PAON
-          <span
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              bottom: "-4px",
-              left: 0,
-              right: 0,
-              height: "2px",
-              background: "rgba(217,217,217,.72)",
-            }}
-          />
-        </span>
-      </div>
+      <ContextSwitcher storeHref={storeHref} />
       <div
         className="flex flex-1 flex-col overflow-y-auto"
         style={{

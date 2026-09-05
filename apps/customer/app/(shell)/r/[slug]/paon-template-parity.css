@@ -180,17 +180,21 @@
   padding: 0 16px !important;
 }
 
-[data-paon-shell-sidebar] .pcs-store,
-[data-paon-shell-sidebar] .pcs-mypaon {
-  /* Template supplies its own border colour for these. */
-  border-color: rgb(205, 201, 194) !important;
+/*
+ * The Store / My PAON segmented control. The template's own `.pcs-*` and
+ * `.paon-context-switcher` rules predate it and still match by class name,
+ * setting a 16px gap, `position: relative` and a border colour of their own.
+ * Its two halves are styled inline by context-switcher.tsx, so the only job
+ * here is to stop the template overriding the box itself; the colours are
+ * deliberately left alone, since which half is lit legitimately differs
+ * between the storefront and the customer environment.
+ */
+[data-paon-shell-sidebar] .paon-context-switcher {
+  gap: normal !important;
 }
 
-[data-paon-shell-sidebar] .pcs-inactive {
-  /*
-   * Only the INACTIVE half is static. The active one must stay `relative`:
-   * it is the containing block for its absolutely-positioned underline, and
-   * forcing it static sent that underline to the page bottom at full width.
-   */
+[data-paon-shell-sidebar] .pcs-store,
+[data-paon-shell-sidebar] .pcs-mypaon {
   position: static !important;
+  border-style: solid !important;
 }

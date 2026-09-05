@@ -168,8 +168,23 @@ for (const [path, d] of dashMap) {
     });
   }
   const bothHidden = d.w === 0 && d.h === 0 && s.w === 0 && s.h === 0;
+  /*
+   * The Store / My PAON control is meant to look different in the two
+   * environments — whichever half you are currently in is the lit one. Its
+   * active-state paint is therefore not a parity defect; everything else
+   * about it, including its box metrics, still is.
+   */
+  const isSwitcherSegment = /\bpcs-(store|mypaon)\b/.test(d.cls);
+  const ACTIVE_STATE_PROPS = new Set([
+      "color",
+      "backgroundColor",
+      "borderColor",
+      "boxShadow",
+      "webkitTextFillColor",
+    ]);
   for (const p of STYLE_PROPS) {
     if (bothHidden) break;
+    if (isSwitcherSegment && ACTIVE_STATE_PROPS.has(p)) continue;
     if (d.styles[p] !== s.styles[p]) {
       findings.push({
         kind: "style",
