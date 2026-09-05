@@ -125,6 +125,35 @@ function destinationFor(session: AppSession | null): string | null {
 }
 
 /**
+ * The portal that owns this account, when it is not one this app serves.
+ *
+ * Platform and retailer-staff accounts belong to the admin and retailer apps,
+ * which are separate Next apps on their own origins. Returning null means the
+ * account either belongs here or has nowhere configured to go.
+ */
+function siblingPortalFor(session: AppSession | null): string | null {
+  if (session?.accountType === "platform") return env.adminAppUrl ?? null;
+  if (session?.accountType === "retailer_staff")
+    return env.retailerAppUrl ?? null;
+  return null;
+}
+
+/**
+ * Whether a sibling portal is on this app's own host, and so can already see
+ * the session cookie the browser just stored. Ports are excluded deliberately:
+ * cookies ignore them, which is why the three apps share a session on
+ * localhost. An unparseable or unset URL is treated as a different host, the
+ * conservative answer.
+ */
+function sharesHostWith(portalUrl: string): boolean {
+  try {
+    return new URL(portalUrl).hostname === new URL(env.appUrl).hostname;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * The single sign-in for this app: one email+password form for shoppers,
  * corporate managers and corporate wearers alike, routed by account type.
  *
@@ -157,14 +186,35 @@ export async function signIn(formData: FormData): Promise<void> {
   const session = resolveAppSession(data.user);
   const destination = destinationFor(session);
 
-  // Checked BEFORE honouring redirectTo. A platform or retailer-staff account
-  // is a valid login whose portal is another origin, and leaving its session
-  // on this origin is what the sign-out exists to prevent — so a `redirectTo`
-  // must not be able to skip it. Middleware's /manager and /employee branches
-  // deliberately do not sign out a wrong-type session (they protect customers
-  // who wandered onto the wrong sub-path), so with the two steps in the other
-  // order those two paths left the cookie behind indefinitely.
+  // Checked BEFORE honouring redirectTo, so a `redirectTo` cannot smuggle a
+  // platform or retailer-staff account onto a customer path. Middleware's
+  // /manager and /employee branches deliberately leave a wrong-type session
+  // alone (they protect customers who wandered onto the wrong sub-path), so
+  // with the two steps in the other order those paths were reachable.
   if (!destination) {
+    const portal = siblingPortalFor(session);
+    if (portal) {
+      /*
+       * Their portal is a separate app, so send them to it.
+       *
+       * Whether the session travels depends on the cookie, which the browser
+       * scopes to the host and not the origin. Same host (the three apps on
+       * localhost, where the port is ignored) means it is already there and
+       * they arrive signed in — the point of a single sign-in. A different
+       * host means it cannot follow them, so keeping it here buys nothing and
+       * would leave an authenticated session on an origin whose every route
+       * rejects it; it is cleared, and the sibling app asks them to sign in
+       * exactly as it would have anyway.
+       *
+       * No token is placed in the URL in either case.
+       */
+      if (!sharesHostWith(portal)) {
+        await supabase.auth.signOut();
+      }
+      redirect(portal);
+    }
+    // No URL configured for that portal: sign out rather than leave a session
+    // on an origin where every route would reject it.
     await supabase.auth.signOut();
     redirect(
       session?.accountType === "platform"

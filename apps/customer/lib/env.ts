@@ -75,9 +75,14 @@ export const env = {
   get openWeatherApiKey() {
     return optionalEnv("OPENWEATHER_API_KEY");
   },
-  /** Retailer Portal base URL — private demo Mission Control CTA. */
+  /** Retailer Portal base URL — private demo Mission Control CTA, and where
+   * the shared sign-in sends a retailer-staff account. */
   get retailerAppUrl() {
     return optionalEnv("NEXT_PUBLIC_RETAILER_APP_URL");
+  },
+  /** Admin Portal base URL — where the shared sign-in sends a platform account. */
+  get adminAppUrl() {
+    return optionalEnv("NEXT_PUBLIC_ADMIN_APP_URL");
   },
   /**
    * Explicit opt-in for `simulateDemoPayment`. Absence of a Stripe key is
