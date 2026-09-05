@@ -14,17 +14,24 @@ const migration = readFileSync(
 
 const templatePath = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  "../../../../apps/customer/app/r/[slug]/paon-template.html",
+  "../../../../apps/customer/app/(shell)/r/[slug]/paon-template.html",
 );
 
-const routePath = path.resolve(
+/*
+ * The catalogue query and its facet/derive helpers were extracted out of the
+ * storefront Route Handler into this shared module, so both the React page
+ * and the byte-exact raw route build their data through one path. The
+ * assertions below follow the code; pointing them at the handler kept them
+ * green only while the handler still held the logic.
+ */
+const catalogueSourcePath = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  "../../../../apps/customer/app/r/[slug]/route.ts",
+  "../../../../apps/customer/app/(shell)/r/[slug]/get-storefront-page-data.ts",
 );
 
 const pageDataPath = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  "../../../../apps/customer/app/r/[slug]/storefront-page-data.ts",
+  "../../../../apps/customer/app/(shell)/r/[slug]/storefront-page-data.ts",
 );
 
 /**
@@ -48,7 +55,7 @@ describe("public storefront catalogue query contract", () => {
 describe("founder storefront catalogue DOM allowlist", () => {
   it("only introduces authorized catalogue-query markers", () => {
     const template = readFileSync(templatePath, "utf8");
-    const route = readFileSync(routePath, "utf8");
+    const catalogueSource = readFileSync(catalogueSourcePath, "utf8");
     const pageData = readFileSync(pageDataPath, "utf8");
 
     expect(template).toContain("__PAON_CATALOGUE_BY_PRODUCT_JSON__");
@@ -56,13 +63,13 @@ describe("founder storefront catalogue DOM allowlist", () => {
     expect(template).toContain("conceptIds");
     expect(template).toContain("productMatchesCatalogFilters");
 
-    expect(route).toContain("loadStorefrontCatalogueByProduct");
+    expect(catalogueSource).toContain("loadStorefrontCatalogueByProduct");
     expect(pageData).toContain("__PAON_CATALOGUE_BY_PRODUCT_JSON__");
-    expect(route).toContain("preferCatalogueFacetValue");
+    expect(catalogueSource).toContain("preferCatalogueFacetValue");
     // Heuristics remain until parity coverage retires them.
-    expect(route).toContain("deriveColor");
-    expect(route).toContain("derivePattern");
-    expect(route).toContain("deriveSeason");
+    expect(catalogueSource).toContain("deriveColor");
+    expect(catalogueSource).toContain("derivePattern");
+    expect(catalogueSource).toContain("deriveSeason");
 
     const catalogueMentions = [
       ...template.matchAll(/__PAON_CATALOGUE_[A-Z0-9_]+__/g),

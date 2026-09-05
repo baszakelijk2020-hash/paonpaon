@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 
 /**
  * PHASE 20.22: the customer wardrobe has no external-garment entry path.
- * `addExternalWardrobeItem` (apps/customer/app/(dashboard)/wardrobe/actions.ts)
+ * `addExternalWardrobeItem` (apps/customer/app/(shell)/(dashboard)/wardrobe/actions.ts)
  * was removed as dead code with no UI caller; product forbids external-garment
  * entry entirely (docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md:15).
  */

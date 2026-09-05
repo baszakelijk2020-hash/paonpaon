@@ -366,7 +366,7 @@ for (const [viewport, kind] of [
 
       // The rendered "Request changes" control is a bare submit button —
       // there is no note/reason input anywhere in its form
-      // (apps/customer/app/(dashboard)/wardrobe/wardrobe-panel.tsx). This
+      // (apps/customer/app/(shell)/(dashboard)/wardrobe/wardrobe-panel.tsx). This
       // is the complete real action a customer can take today; no note is
       // fabricated. Recorded in
       // docs/evidence/runs/customer-v3-roadmap-approval-rls/REPORT.md.

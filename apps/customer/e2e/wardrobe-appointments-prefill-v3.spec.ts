@@ -18,7 +18,7 @@ import { TEST_CUSTOMER_EMAIL, TEST_RETAILER_SLUG } from "./fixtures";
  * Fixed: both links now carry only typed, allowlisted params
  * (`prefillReason` — one of the real `AppointmentReason` values —
  * plus exactly one of `prefillWardrobeItemId` / `prefillRoadmapGapId`).
- * `apps/customer/app/(dashboard)/appointments/page.tsx` re-resolves and
+ * `apps/customer/app/(shell)/(dashboard)/appointments/page.tsx` re-resolves and
  * re-authorizes whichever garment/gap id is present against this
  * customer's own data server-side before ever opening the wizard; on
  * success the real booking flow auto-opens with the reason and a

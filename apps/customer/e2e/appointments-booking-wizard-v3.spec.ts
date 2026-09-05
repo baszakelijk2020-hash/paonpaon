@@ -17,7 +17,7 @@ import { TEST_CUSTOMER_EMAIL, TEST_RETAILER_SLUG } from "./fixtures";
  * real success result and desktop + mobile browser proof.
  *
  * This spec drives BOTH entry points into `BookingFlow`
- * (apps/customer/app/(dashboard)/appointments/booking-flow.tsx):
+ * (apps/customer/app/(shell)/(dashboard)/appointments/booking-flow.tsx):
  *  - a "Suggestions to book" inspiration card, which preselects a reason
  *    and opens straight on the location step (matching the Wardrobe
  *    prefill behaviour already proven in

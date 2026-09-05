@@ -23,7 +23,7 @@ import {
  * Re-verifies the full first-run → workflow → saved-drafts contract on the
  * current release branch, with a real approved Style Portrait so the real
  * post-drafts surface (`FittingRoomStudio`, gated by `canGenerate` in
- * apps/customer/app/(dashboard)/digital-fitting-room/page.tsx) actually
+ * apps/customer/app/(shell)/(dashboard)/digital-fitting-room/page.tsx) actually
  * renders — not just the pre-portrait upload gate:
  *
  *  1. an authenticated customer can open `/digital-fitting-room` (HTTP 200);

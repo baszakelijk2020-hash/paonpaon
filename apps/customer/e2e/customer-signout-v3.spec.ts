@@ -16,7 +16,7 @@ import { TEST_CUSTOMER_EMAIL, TEST_RETAILER_DISPLAY_NAME } from "./fixtures";
  * 2026-09-01).
  *
  * The customer shell exposes the `signOut` server action
- * (apps/customer/app/(dashboard)/actions.ts) as a real "Sign out" control:
+ * (apps/customer/app/(shell)/(dashboard)/actions.ts) as a real "Sign out" control:
  * once in the desktop top-nav trailing slot, once inline on mobile /account
  * (each viewport shows exactly one). `supabase.auth.signOut()` is called
  * with NO `scope` argument — the default is `scope: "global"` — so signing

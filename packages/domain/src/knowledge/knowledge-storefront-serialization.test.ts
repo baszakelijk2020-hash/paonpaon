@@ -20,7 +20,7 @@ function serializeStorefrontKnowledgeJson(
 
 const templatePath = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  "../../../../apps/customer/app/r/[slug]/paon-template.html",
+  "../../../../apps/customer/app/(shell)/r/[slug]/paon-template.html",
 );
 
 describe("storefront knowledge route serialization", () => {

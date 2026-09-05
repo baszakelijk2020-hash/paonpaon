@@ -21,7 +21,7 @@ import {
  * Digital Fitting Room — currently-rendered supported-actions proof.
  *
  * Covers only DFR actions that are actually rendered today, each backed by
- * a real existing Server Action (apps/customer/app/(dashboard)/
+ * a real existing Server Action (apps/customer/app/(shell)/(dashboard)/
  * digital-fitting-room/virtual-studio-actions.ts) — no invented behaviour:
  *
  *  - "Create all saved looks" (generateAllSavedLooks) really enqueues one

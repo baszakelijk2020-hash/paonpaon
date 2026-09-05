@@ -632,7 +632,7 @@ test.describe("V3 Wardrobe real-action proof", () => {
 
       // The current customer-facing "Request changes" control is a bare
       // submit button with no note/reason field anywhere in its form (see
-      // apps/customer/app/(dashboard)/wardrobe/wardrobe-panel.tsx, the
+      // apps/customer/app/(shell)/(dashboard)/wardrobe/wardrobe-panel.tsx, the
       // pending-approval banner JSX) — there is no real UI affordance to
       // type a note through. Submitting it is the real, complete action a
       // customer can currently take; a note is not fabricated to simulate
