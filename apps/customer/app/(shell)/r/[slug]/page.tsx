@@ -115,6 +115,9 @@ export default async function Page({ params, searchParams }: PageProps) {
       externalScripts={externalScripts}
       inlineScripts={inlineScripts}
       stylesheetHref={`/r/${slug}/template-styles`}
+      // Distinguishes the markup the server built for this retailer and
+      // category, so returning to the same view reuses that exact subtree.
+      cacheKey={`${slug}:${category ?? ""}`}
     />
   );
 }

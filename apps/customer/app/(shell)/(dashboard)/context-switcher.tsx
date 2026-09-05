@@ -1,6 +1,8 @@
 "use client";
 
+import { gsap } from "gsap";
 import { usePathname } from "next/navigation";
+import { useEffect, useLayoutEffect, useRef } from "react";
 
 import { IntentPrefetchLink } from "./intent-prefetch-link";
 
@@ -10,43 +12,93 @@ interface ContextSwitcherProps {
 }
 
 const SEGMENT: React.CSSProperties = {
+  position: "relative",
+  zIndex: 1,
   fontFamily: "GTBold3, Arial, sans-serif",
   fontSize: "7px",
   textTransform: "uppercase",
   letterSpacing: "0.04em",
   textDecoration: "none",
-  padding: "6px 14px",
-  borderRadius: "7px",
+  padding: "7px 16px",
+  borderRadius: "999px",
   lineHeight: 1,
-  transition: "background-color 140ms ease, color 140ms ease",
-  border: "1px solid transparent",
-};
-
-const ACTIVE: React.CSSProperties = {
-  ...SEGMENT,
-  color: "#e4e4e1",
-  backgroundColor: "rgba(255,255,255,.10)",
-  borderColor: "rgba(255,255,255,.16)",
-  boxShadow: "0 1px 2px rgba(0,0,0,.28)",
-};
-
-const INACTIVE: React.CSSProperties = {
-  ...SEGMENT,
-  color: "#8a8a87",
-  backgroundColor: "transparent",
+  transition: "color 220ms ease",
 };
 
 /**
- * The Store / My PAON switcher, as a segmented control.
+ * The Store / My PAON switcher.
  *
- * Which half is current is derived from the path rather than hard-coded. The
- * sidebar is one shared component now, so the previous fixed "My PAON is
- * active" marking was wrong on the storefront — it told the visitor they were
- * in My PAON while they were browsing the Store.
+ * Which half is current is derived from the path, not hard-coded: the sidebar
+ * is one shared component now, so a fixed "My PAON is active" told storefront
+ * visitors they were somewhere they weren't.
+ *
+ * The lit state is a single pill element that GSAP slides between the two
+ * halves, rather than a background on whichever half is active — a background
+ * can only cut, and the founder's template animates everything else on the
+ * page with GSAP, so this matches it. Its first paint is positioned without
+ * animation (useLayoutEffect, before the browser paints) so the pill does not
+ * fly in from the corner on load.
  */
 export function ContextSwitcher({ storeHref }: ContextSwitcherProps) {
   const pathname = usePathname();
   const inStore = pathname.startsWith("/r/");
+
+  const trackRef = useRef<HTMLDivElement>(null);
+  const pillRef = useRef<HTMLSpanElement>(null);
+  const storeRef = useRef<HTMLAnchorElement>(null);
+  const paonRef = useRef<HTMLAnchorElement>(null);
+  const positioned = useRef(false);
+
+  useLayoutEffect(() => {
+    const pill = pillRef.current;
+    const track = trackRef.current;
+    const target = (inStore ? storeRef : paonRef).current;
+    if (!pill || !track || !target) return;
+
+    const move = () => {
+      const trackBox = track.getBoundingClientRect();
+      const targetBox = target.getBoundingClientRect();
+      const to = {
+        x: targetBox.left - trackBox.left,
+        width: targetBox.width,
+        height: targetBox.height,
+      };
+
+      if (!positioned.current) {
+        // First paint: be where we belong, with no travel.
+        positioned.current = true;
+        gsap.set(pill, { ...to, autoAlpha: 1 });
+        return;
+      }
+      gsap.to(pill, {
+        ...to,
+        duration: 0.42,
+        // Settles without overshooting into the other half — the two segments
+        // are only a few pixels apart.
+        ease: "power3.out",
+      });
+    };
+
+    move();
+
+    // The labels are webfont text (GTBold3); their widths change when the font
+    // finishes loading, which would otherwise leave the pill sized to the
+    // fallback metrics.
+    const observer = new ResizeObserver(move);
+    observer.observe(track);
+    return () => observer.disconnect();
+  }, [inStore]);
+
+  // Respect a reduced-motion preference: jump rather than slide.
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const apply = () => {
+      gsap.globalTimeline.timeScale(media.matches ? 1000 : 1);
+    };
+    apply();
+    media.addEventListener("change", apply);
+    return () => media.removeEventListener("change", apply);
+  }, []);
 
   return (
     <div
@@ -59,31 +111,52 @@ export function ContextSwitcher({ storeHref }: ContextSwitcherProps) {
       }}
     >
       <div
+        ref={trackRef}
         role="group"
         aria-label="Switch between the store and your account"
         style={{
+          position: "relative",
           display: "inline-flex",
           alignItems: "center",
-          gap: "3px",
+          gap: 0,
           padding: "3px",
-          borderRadius: "10px",
-          backgroundColor: "rgba(0,0,0,.28)",
-          border: "1px solid rgba(255,255,255,.07)",
+          borderRadius: "999px",
+          backgroundColor: "rgba(0,0,0,.30)",
+          border: "none",
         }}
       >
+        <span
+          ref={pillRef}
+          data-paon-switcher-pill
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            top: "3px",
+            left: 0,
+            // Hidden until useLayoutEffect has measured where it belongs.
+            visibility: "hidden",
+            borderRadius: "999px",
+            backgroundColor: "rgba(255,255,255,.055)",
+            border: "1px solid rgba(255,255,255,.13)",
+            boxShadow: "0 1px 1px rgba(0,0,0,.22)",
+            pointerEvents: "none",
+          }}
+        />
         <IntentPrefetchLink
+          ref={storeRef}
           href={storeHref}
           className="pcs-store"
           aria-current={inStore ? "page" : undefined}
-          style={inStore ? ACTIVE : INACTIVE}
+          style={{ ...SEGMENT, color: inStore ? "#e4e4e1" : "#8a8a87" }}
         >
           Store
         </IntentPrefetchLink>
         <IntentPrefetchLink
+          ref={paonRef}
           href="/dashboard"
           className="pcs-mypaon"
           aria-current={inStore ? undefined : "page"}
-          style={inStore ? INACTIVE : ACTIVE}
+          style={{ ...SEGMENT, color: inStore ? "#8a8a87" : "#e4e4e1" }}
         >
           My PAON
         </IntentPrefetchLink>

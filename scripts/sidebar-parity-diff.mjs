@@ -97,6 +97,7 @@ const SIGNATURE_FN = `() => {
         path,
         tag: child.tagName,
         cls: typeof child.className === "string" ? child.className.trim().slice(0, 50) : "",
+        pill: child.hasAttribute("data-paon-switcher-pill"),
         text: ownText.replace(/\\s+/g, " ").trim().slice(0, 40),
         w: Math.round(rect.width),
         h: Math.round(rect.height),
@@ -175,6 +176,12 @@ for (const [path, d] of dashMap) {
    * about it, including its box metrics, still is.
    */
   const isSwitcherSegment = /\bpcs-(store|mypaon)\b/.test(d.cls);
+  /*
+   * The sliding pill marks which half you are in, so it is meant to sit over a
+   * different label — and therefore at a different width and offset — in each
+   * environment. Comparing it would report the toggle working as a defect.
+   */
+  if (d.pill) continue;
   const ACTIVE_STATE_PROPS = new Set([
       "color",
       "backgroundColor",

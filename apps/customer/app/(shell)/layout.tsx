@@ -1,3 +1,4 @@
+import { ScrollMemory } from "./(dashboard)/scroll-memory";
 import { ShopCategorySidebar } from "./(dashboard)/shop-category-sidebar";
 
 /**
@@ -41,6 +42,7 @@ export default function ShellLayout({
    */
   return (
     <>
+      <ScrollMemory />
       {children}
       <div
         data-paon-shell-sidebar

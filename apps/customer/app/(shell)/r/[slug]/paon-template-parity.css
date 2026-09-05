@@ -195,6 +195,12 @@
 
 [data-paon-shell-sidebar] .pcs-store,
 [data-paon-shell-sidebar] .pcs-mypaon {
-  position: static !important;
-  border-style: solid !important;
+  /*
+   * The template still styles `.pcs-*` by class from when the switcher was two
+   * plain labels, and drew a border on each half. The lit state is now a
+   * single pill sliding between them, which carries the only border there
+   * should be — without this both halves were outlined on the storefront and
+   * neither was in the customer environment.
+   */
+  border: 0 !important;
 }

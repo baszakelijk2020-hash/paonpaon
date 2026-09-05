@@ -17,6 +17,37 @@ function isInternalHref(href: string | null): href is string {
   return href.startsWith("/") && !href.startsWith("//");
 }
 
+/**
+ * Live template DOM, kept across navigations away from the storefront.
+ *
+ * Leaving for the customer environment used to unmount this subtree, and
+ * coming back re-injected the markup and re-ran all 38 inline scripts: the
+ * grid rebuilt itself, images reloaded, scroll jumped to the top and every
+ * open panel closed — the visitor lost their place in a store they had
+ * already loaded. The scripts also re-registered their document/window
+ * listeners each time, so a second visit ran every handler twice.
+ *
+ * Instead the built subtree is detached on unmount and re-attached on the way
+ * back, exactly as it was. Its listeners are bound to those nodes and survive
+ * the move; the template's globals were never torn down. Nothing is
+ * re-executed.
+ *
+ * Keyed per rendering (retailer + category), because the server serialises
+ * different markup for each. The cache holds at most a handful of entries for
+ * one browsing session and is discarded with the page.
+ */
+/**
+ * The template scrolls its own `<main id="main">` (tens of thousands of pixels
+ * of catalogue), not the window — the document itself is exactly one viewport
+ * tall. Reading window.scrollY here always returned 0, so a restored view
+ * silently snapped back to the top.
+ */
+function templateScroller(root: HTMLElement): HTMLElement | null {
+  return root.querySelector<HTMLElement>("main#main");
+}
+
+const liveTemplates = new Map<string, { node: HTMLElement; scrollY: number }>();
+
 interface TemplateMountProps {
   /** The template's <body> markup, scripts and styles stripped. */
   bodyHtml: string;
@@ -26,6 +57,8 @@ interface TemplateMountProps {
   inlineScripts: readonly string[];
   /** URL of the template's stylesheet (./template-styles). */
   stylesheetHref: string;
+  /** Identifies this rendering of the template for the live-DOM cache below. */
+  cacheKey: string;
 }
 
 /**
@@ -46,9 +79,12 @@ export function TemplateMount({
   externalScripts,
   inlineScripts,
   stylesheetHref,
+  cacheKey,
 }: TemplateMountProps) {
   const router = useRouter();
+  const hostRef = useRef<HTMLDivElement>(null);
   const scriptsStarted = useRef(false);
+  const restoredFromCache = useRef(false);
   // The template's `.layout` and `<main>` are never closed in the source, so
   // the DOM the browser builds does not match React's SSR string and
   // hydration fails, making React discard and regenerate the subtree.
@@ -96,8 +132,64 @@ export function TemplateMount({
     };
   }, [stylesheetHref]);
 
+  /*
+   * Attach the template: reuse the live subtree if this rendering has been
+   * visited before, otherwise build it once from the server markup.
+   */
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!templateReady || !host) return;
+
+    const cached = liveTemplates.get(cacheKey);
+    if (cached) {
+      restoredFromCache.current = true;
+      host.appendChild(cached.node);
+      // Put the visitor back where they were, once the browser has laid the
+      // restored subtree out again.
+      requestAnimationFrame(() => {
+        const scroller = templateScroller(cached.node);
+        if (scroller) scroller.scrollTop = cached.scrollY;
+        else window.scrollTo(0, cached.scrollY);
+      });
+    } else {
+      const root = document.createElement("div");
+      root.className = "paon-template-root";
+      root.innerHTML = bodyHtml;
+      host.appendChild(root);
+      liveTemplates.set(cacheKey, { node: root, scrollY: 0 });
+    }
+
+    /*
+     * Track the offset as it changes rather than reading it on the way out:
+     * by the time this effect is cleaned up the router has already moved on,
+     * and the reading came back 0 every time.
+     */
+    const entry = liveTemplates.get(cacheKey);
+    const scroller = entry ? templateScroller(entry.node) : null;
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking || !entry || !scroller) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        entry.scrollY = scroller.scrollTop;
+      });
+    };
+    scroller?.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => {
+      scroller?.removeEventListener("scroll", onScroll);
+      // Detach rather than destroy. The node keeps its listeners and its built
+      // state while it sits in the cache.
+      liveTemplates.get(cacheKey)?.node.remove();
+    };
+  }, [templateReady, cacheKey, bodyHtml]);
+
   useEffect(() => {
     if (!templateReady) return;
+    // A restored subtree has already run these; running them again would
+    // rebuild the grid and double-register every listener.
+    if (restoredFromCache.current) return;
     if (scriptsStarted.current) return;
     scriptsStarted.current = true;
 
@@ -248,14 +340,10 @@ export function TemplateMount({
     return () => window.clearInterval(timer);
   }, [templateReady, router]);
 
-  return (
-    <>
-      <div
-        className="paon-template-root"
-        {...(templateReady
-          ? { dangerouslySetInnerHTML: { __html: bodyHtml } }
-          : {})}
-      />
-    </>
-  );
+  /*
+   * React renders an empty host and never the template itself. The subtree is
+   * attached imperatively so it can outlive this component and be handed back
+   * on return — React would otherwise reconcile it away.
+   */
+  return <div ref={hostRef} data-paon-template-host />;
 }

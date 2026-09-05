@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { ComponentProps, ReactNode } from "react";
+import type { ComponentProps, ReactNode, Ref } from "react";
 import { useCallback, useEffect, useRef } from "react";
 
 type Props = Omit<ComponentProps<typeof Link>, "href" | "prefetch"> & {
   children: ReactNode;
   href: string;
+  /** Forwarded so callers can measure the rendered anchor — the context
+   * switcher sizes its sliding pill from these boxes. */
+  ref?: Ref<HTMLAnchorElement>;
 };
 
 interface NetworkInformation {
@@ -41,7 +44,7 @@ function isConstrainedConnection(): boolean {
  * route it warms a full HTML response the client navigation never uses, and
  * on the storefront that response embeds the whole serialized template.
  */
-export function IntentPrefetchLink({ children, href, ...props }: Props) {
+export function IntentPrefetchLink({ children, href, ref, ...props }: Props) {
   const router = useRouter();
   const prefetched = useRef(false);
   const prefetch = useCallback(() => {
@@ -67,6 +70,7 @@ export function IntentPrefetchLink({ children, href, ...props }: Props) {
   return (
     <Link
       {...props}
+      ref={ref}
       href={href}
       onPointerEnter={prefetch}
       onFocus={prefetch}
