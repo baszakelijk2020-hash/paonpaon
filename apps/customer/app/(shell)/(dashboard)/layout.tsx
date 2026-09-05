@@ -6,7 +6,6 @@ import { AccountTopTabs, type AccountTab } from "./account-top-tabs";
 import { SignOutButton } from "./components/sign-out-button";
 import { CustomerNavigationLifecycle } from "./customer-navigation-lifecycle";
 import { GuestPortalPreview } from "./guest-portal-preview";
-import { StoreReturnCapture } from "./store-return-capture";
 
 import { getSession } from "@/lib/session";
 
@@ -35,9 +34,6 @@ export default async function DashboardLayout({
   if (!isCustomer) {
     return (
       <div className="customer-page min-h-screen lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
-        <Suspense fallback={null}>
-          <StoreReturnCapture />
-        </Suspense>
         <div aria-hidden="true" className="hidden lg:block" />
         <div className="min-w-0">
           <nav className="sticky top-0 z-40 flex h-[60px] items-center justify-end border-b border-black/10 bg-white px-4 py-3">
@@ -63,9 +59,6 @@ export default async function DashboardLayout({
       data-customer-shell
       className="customer-page min-h-screen lg:grid lg:grid-cols-[250px_minmax(0,1fr)]"
     >
-      <Suspense fallback={null}>
-        <StoreReturnCapture />
-      </Suspense>
       <div aria-hidden="true" className="hidden lg:block" />
       <div className="min-w-0">
         <CustomerNavigationLifecycle />

@@ -1,7 +1,7 @@
 "use client";
 
 import { gsap } from "gsap";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef } from "react";
 
 import { IntentPrefetchLink } from "./intent-prefetch-link";
@@ -25,6 +25,8 @@ const SEGMENT: React.CSSProperties = {
   transition: "color 220ms ease",
 };
 
+const VALID_STORE_RETURN = /^\/r\/[A-Za-z0-9_-]+(?:[/?].*)?$/;
+
 /**
  * The Store / My PAON switcher.
  *
@@ -41,7 +43,11 @@ const SEGMENT: React.CSSProperties = {
  */
 export function ContextSwitcher({ storeHref }: ContextSwitcherProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const inStore = pathname.startsWith("/r/");
+  const returnTo = searchParams.get("returnTo");
+  const activeStoreHref =
+    returnTo && VALID_STORE_RETURN.test(returnTo) ? returnTo : storeHref;
 
   const trackRef = useRef<HTMLDivElement>(null);
   const pillRef = useRef<HTMLSpanElement>(null);
@@ -144,7 +150,7 @@ export function ContextSwitcher({ storeHref }: ContextSwitcherProps) {
         />
         <IntentPrefetchLink
           ref={storeRef}
-          href={storeHref}
+          href={activeStoreHref}
           className="pcs-store"
           aria-current={inStore ? "page" : undefined}
           style={{ ...SEGMENT, color: inStore ? "#e4e4e1" : "#8a8a87" }}

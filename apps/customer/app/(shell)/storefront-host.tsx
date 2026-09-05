@@ -223,7 +223,8 @@ export function StorefrontHost() {
       w.__paonPortalPatched = true;
       window.clearInterval(timer);
       w.paonOpenCustomerPortal = () => {
-        router.push(`/dashboard?from=${encodeURIComponent(location.pathname)}`);
+        const returnTo = `${location.pathname}${location.search}`;
+        router.push(`/dashboard?returnTo=${encodeURIComponent(returnTo)}`);
       };
     }, 100);
 
