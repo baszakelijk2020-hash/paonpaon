@@ -1,6 +1,12 @@
 import { ScrollMemory } from "./(dashboard)/scroll-memory";
 import { ShopCategorySidebar } from "./(dashboard)/shop-category-sidebar";
 import { EnvironmentTransition } from "./environment-transition";
+// Undoes the customer app's Tailwind preflight inside the storefront. Bundled
+// here rather than imported by the storefront route, so it lands in <head>
+// ahead of the template stylesheet the host injects at runtime — these rules
+// must only ever beat preflight, never the template's own.
+import "./r/[slug]/paon-preflight-reset.css";
+import { StorefrontHost } from "./storefront-host";
 
 /**
  * The single shell shared by the customer environment ((dashboard)) and the
@@ -43,6 +49,7 @@ export default function ShellLayout({
    */
   return (
     <>
+      <StorefrontHost />
       <EnvironmentTransition />
       <ScrollMemory />
       {/*
