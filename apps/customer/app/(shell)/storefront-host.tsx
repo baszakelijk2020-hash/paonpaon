@@ -23,6 +23,7 @@ const TEMPLATE_OWNED = /^\/r\/[^/]+(?:\/raw)?(?:[?#]|$)/;
 
 /** The retailer whose storefront is already built, for this document. */
 let builtSlug: string | null = null;
+let pendingCategoryTimer: number | null = null;
 
 /*
  * Which category the storefront is showing.
@@ -42,20 +43,38 @@ export function showStorefrontCategory(category: string | null): void {
     showHome?: () => void;
   };
 
-  let attempts = 0;
-  // The template's scripts are appended asynchronously; wait for them.
-  const timer = window.setInterval(() => {
+  const show = (): boolean => {
     if (category) {
       if (typeof w.showCollectionGrid === "function") {
         w.showCollectionGrid(category);
-        window.clearInterval(timer);
+        return true;
       }
     } else if (typeof w.showHome === "function") {
       w.showHome();
-      window.clearInterval(timer);
+      return true;
     }
-    if (attempts++ > 200) window.clearInterval(timer);
-  }, 60);
+    return false;
+  };
+
+  // Once the template is ready this is the entire hot path. Do not put even
+  // one timer tick between the pointer event and the template's own view
+  // switch.
+  if (show()) return;
+
+  // Only the first interaction during template startup needs to wait. Keep a
+  // single poll alive so repeated early clicks cannot build a timer backlog.
+  if (pendingCategoryTimer !== null) {
+    window.clearInterval(pendingCategoryTimer);
+  }
+  let attempts = 0;
+  pendingCategoryTimer = window.setInterval(() => {
+    if (show() || attempts++ > 750) {
+      if (pendingCategoryTimer !== null) {
+        window.clearInterval(pendingCategoryTimer);
+        pendingCategoryTimer = null;
+      }
+    }
+  }, 16);
 }
 
 function slugFromPath(pathname: string): string | null {
@@ -215,6 +234,17 @@ export const StorefrontHost = memo(function StorefrontHost() {
 
     document.addEventListener("click", onClick, true);
     return () => document.removeEventListener("click", onClick, true);
+  }, []);
+
+  useEffect(() => {
+    const onPopState = () => {
+      const url = new URL(window.location.href);
+      if (!url.pathname.startsWith(STORE_PREFIX)) return;
+      showStorefrontCategory(url.searchParams.get("category"));
+      window.dispatchEvent(new Event("paon:storefront-location"));
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
   useEffect(() => {

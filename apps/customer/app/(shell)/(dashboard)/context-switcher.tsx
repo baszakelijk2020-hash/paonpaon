@@ -59,7 +59,7 @@ export function ContextSwitcher({ storeHref }: ContextSwitcherProps) {
       : "translate3d(100%, 0, 0)";
     if (!positioned.current) {
       positioned.current = true;
-      gsap.set(pill, { transform, opacity: 1 });
+      gsap.set(pill, { transform, opacity: 1, visibility: "visible" });
       return;
     }
     gsap.to(pill, {
@@ -94,7 +94,7 @@ export function ContextSwitcher({ storeHref }: ContextSwitcherProps) {
           padding: "3px",
           borderRadius: "999px",
           backgroundColor: "rgba(0,0,0,.30)",
-          border: "none",
+          border: "1px solid rgba(255,255,255,.12)",
         }}
       >
         <span
@@ -107,7 +107,7 @@ export function ContextSwitcher({ storeHref }: ContextSwitcherProps) {
             left: "3px",
             width: "calc(50% - 3px)",
             height: "calc(100% - 6px)",
-            // Hidden until useLayoutEffect has measured where it belongs.
+            // useLayoutEffect reveals it at the correct end before paint.
             visibility: "hidden",
             borderRadius: "999px",
             backgroundColor: "rgba(255,255,255,.055)",

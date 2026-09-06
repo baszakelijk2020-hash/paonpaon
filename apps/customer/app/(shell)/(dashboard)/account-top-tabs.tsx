@@ -1,12 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { type ReactNode, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { type PointerEvent, type ReactNode, useEffect, useState } from "react";
 
 export interface AccountTab {
   href: string;
   label: string;
+}
+
+function markOptimisticTab(
+  event: PointerEvent<HTMLAnchorElement>,
+  href: string,
+): void {
+  const nav = event.currentTarget.closest("nav");
+  if (!nav) return;
+  for (const link of nav.querySelectorAll<HTMLElement>(
+    "[data-customer-top-menu]",
+  )) {
+    link.dataset["optimisticActive"] = String(
+      link.dataset["customerTabHref"] === href,
+    );
+  }
 }
 
 /** The entire account nav lives here now (sticky, full-width, top) instead
@@ -24,7 +39,20 @@ export function AccountTopTabs({
   trailing?: ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [optimisticHref, setOptimisticHref] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  useEffect(() => {
+    setOptimisticHref(null);
+    for (const link of document.querySelectorAll<HTMLElement>(
+      "[data-customer-top-menu]",
+    )) {
+      delete link.dataset["optimisticActive"];
+    }
+  }, [pathname]);
+  useEffect(() => {
+    for (const tab of tabs) router.prefetch(tab.href);
+  }, [router, tabs]);
   const mobilePrimaryTabs = tabs.slice(0, 3);
   const mobileOverflowTabs = [
     ...tabs.slice(3),
@@ -39,16 +67,23 @@ export function AccountTopTabs({
       className="sticky top-0 z-40 flex h-[60px] w-full items-stretch border-b border-[var(--customer-border)] bg-[rgba(244,242,237,0.92)] backdrop-blur-md"
     >
       {tabs.map((tab, index) => {
+        const activePath = optimisticHref ?? pathname;
         const active =
-          pathname === tab.href || pathname.startsWith(`${tab.href}/`);
+          activePath === tab.href || activePath.startsWith(`${tab.href}/`);
         return (
           <Link
             key={tab.href}
             href={tab.href}
-            prefetch={false}
+            prefetch
             data-customer-top-menu
+            data-customer-tab-href={tab.href}
+            onPointerDown={(event) => {
+              markOptimisticTab(event, tab.href);
+              setOptimisticHref(tab.href);
+            }}
+            onClick={() => setOptimisticHref(tab.href)}
             aria-current={active ? "page" : undefined}
-            className={`${index < mobilePrimaryTabs.length ? "flex" : "hidden sm:flex"} flex-1 items-center justify-center border-r border-black/10 px-2 text-center text-[12px] font-medium tracking-[0.01em] transition-colors duration-200 sm:px-3 sm:text-[13px] ${
+            className={`${index < mobilePrimaryTabs.length ? "flex" : "hidden sm:flex"} flex-1 items-center justify-center border-r border-black/10 px-2 text-center text-[12px] font-medium tracking-[0.01em] data-[optimistic-active=false]:!bg-transparent data-[optimistic-active=true]:!bg-[var(--customer-moss)] data-[optimistic-active=false]:!text-[var(--color-stone-600)] data-[optimistic-active=true]:!text-[var(--customer-ink)] sm:px-3 sm:text-[13px] ${
               active
                 ? "bg-[var(--customer-moss)] text-[var(--customer-ink)]"
                 : "text-[var(--color-stone-600)] hover:bg-white/60 hover:text-[var(--customer-ink)]"
@@ -68,7 +103,8 @@ export function AccountTopTabs({
             className={`flex w-full items-center justify-center border-r border-black/10 px-2 text-center text-[12px] font-medium tracking-[0.01em] transition-colors duration-200 ${
               mobileOverflowTabs.some(
                 (tab) =>
-                  pathname === tab.href || pathname.startsWith(`${tab.href}/`),
+                  (optimisticHref ?? pathname) === tab.href ||
+                  (optimisticHref ?? pathname).startsWith(`${tab.href}/`),
               )
                 ? "bg-[var(--customer-moss)] text-[var(--customer-ink)]"
                 : "text-[var(--color-stone-600)] hover:bg-white/60 hover:text-[var(--customer-ink)]"
@@ -82,17 +118,27 @@ export function AccountTopTabs({
               className="absolute right-2 top-[calc(100%+8px)] z-50 w-[min(19rem,calc(100vw-1rem))] overflow-hidden rounded-[15px] bg-[var(--customer-ink)] p-1.5 shadow-[0_18px_45px_rgba(21,31,25,0.24)]"
             >
               {mobileOverflowTabs.map((tab) => {
+                const activePath = optimisticHref ?? pathname;
                 const active =
-                  pathname === tab.href || pathname.startsWith(`${tab.href}/`);
+                  activePath === tab.href ||
+                  activePath.startsWith(`${tab.href}/`);
                 return (
                   <Link
                     key={tab.href}
                     href={tab.href}
-                    prefetch={false}
+                    prefetch
                     data-customer-top-menu
+                    data-customer-tab-href={tab.href}
                     aria-current={active ? "page" : undefined}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex min-h-12 items-center rounded-[11px] px-4 text-[14px] font-medium transition-colors ${
+                    onPointerDown={(event) => {
+                      markOptimisticTab(event, tab.href);
+                      setOptimisticHref(tab.href);
+                    }}
+                    onClick={() => {
+                      setOptimisticHref(tab.href);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`flex min-h-12 items-center rounded-[11px] px-4 text-[14px] font-medium ${
                       active
                         ? "bg-[var(--customer-moss)] text-[var(--customer-ink)]"
                         : "text-[var(--color-paper)] hover:bg-white/10"

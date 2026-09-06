@@ -47,13 +47,14 @@ export function EnvironmentTransition() {
       first.current = false;
       gsap.set(overlay, {
         transform: inStore ? hiddenTransform : visibleTransform,
-        opacity: inStore ? 0 : 1,
+        opacity: 1,
       });
       gsap.set(veil, { opacity: 0 });
       return;
     }
 
     gsap.killTweensOf([overlay, veil]);
+    gsap.set(overlay, { opacity: 1 });
     const duration = reducedMotion ? 0 : 0.38;
 
     if (inStore) {
@@ -64,7 +65,6 @@ export function EnvironmentTransition() {
       });
       gsap.to(overlay, {
         transform: hiddenTransform,
-        opacity: 0,
         duration,
         ease: "power4.inOut",
         force3D: true,
@@ -78,10 +78,9 @@ export function EnvironmentTransition() {
     gsap.set(veil, { opacity: 0.42 });
     gsap.fromTo(
       overlay,
-      { transform: hiddenTransform, opacity: 0 },
+      { transform: hiddenTransform },
       {
         transform: visibleTransform,
-        opacity: 1,
         duration,
         ease: "power4.out",
         force3D: true,

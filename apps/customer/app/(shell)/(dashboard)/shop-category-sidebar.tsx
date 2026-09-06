@@ -8,7 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { ContextSwitcher } from "./context-switcher";
-import { IntentPrefetchLink } from "./intent-prefetch-link";
+import { StorefrontCategoryControl } from "./storefront-category-control";
 
 import {
   CANONICAL_CATEGORIES,
@@ -97,8 +97,9 @@ export async function ShopCategorySidebar() {
         background: "linear-gradient(to right, #333333, #1a1a1a)",
       }}
     >
-      <IntentPrefetchLink
-        href="/r/atelier-demo"
+      <StorefrontCategoryControl
+        baseHref="/r/atelier-demo"
+        category={null}
         className="flex shrink-0 items-center justify-center overflow-hidden"
         style={{
           height: "60px",
@@ -115,7 +116,7 @@ export async function ShopCategorySidebar() {
         >
           Nebel &amp; Spiegel
         </span>
-      </IntentPrefetchLink>
+      </StorefrontCategoryControl>
       <ContextSwitcher storeHref={storeHref} />
       <div
         className="flex flex-1 flex-col overflow-y-auto"
@@ -125,8 +126,9 @@ export async function ShopCategorySidebar() {
             "linear-gradient(to right, rgba(255,255,255,.043), rgba(255,255,255,0)), linear-gradient(to right, #262626, #1d1d1d)",
         }}
       >
-        <IntentPrefetchLink
-          href="/r/atelier-demo"
+        <StorefrontCategoryControl
+          baseHref="/r/atelier-demo"
+          category={null}
           className="block cursor-pointer text-left uppercase transition-colors hover:text-white"
           style={{
             fontFamily: "GTBold3, Arial, sans-serif",
@@ -138,7 +140,7 @@ export async function ShopCategorySidebar() {
           }}
         >
           Home
-        </IntentPrefetchLink>
+        </StorefrontCategoryControl>
         <p
           className="block uppercase"
           style={{
@@ -153,10 +155,11 @@ export async function ShopCategorySidebar() {
           Collection
         </p>
         {categories.map((category) => (
-          <IntentPrefetchLink
+          <StorefrontCategoryControl
             key={category}
-            href={`/r/atelier-demo?category=${encodeURIComponent(category)}`}
-            className="group flex items-center opacity-[.76] transition-[opacity,transform] duration-200 hover:translate-x-[3px] hover:opacity-100"
+            baseHref="/r/atelier-demo"
+            category={category}
+            className="group flex items-center opacity-[.76] transition-transform duration-200 hover:translate-x-[3px] hover:opacity-100 data-[active=true]:opacity-100"
             style={{ height: "28px", minHeight: "28px", paddingLeft: "20px" }}
           >
             <span
@@ -169,7 +172,7 @@ export async function ShopCategorySidebar() {
             >
               {SIDEBAR_CATEGORY_LABELS[category] ?? category}
             </span>
-          </IntentPrefetchLink>
+          </StorefrontCategoryControl>
         ))}
       </div>
       <div

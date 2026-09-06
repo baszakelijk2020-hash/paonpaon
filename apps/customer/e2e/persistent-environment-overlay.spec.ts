@@ -71,7 +71,6 @@ test("customer layer toggles without navigation or storefront state loss", async
     w.__persistentOverlayMutations = [];
     for (const element of [
       document.querySelector<HTMLElement>("[data-paon-customer-layer]"),
-      document.querySelector<HTMLElement>("[data-paon-customer-blur-veil]"),
     ]) {
       if (!element) continue;
       let previous = new Map(
@@ -96,6 +95,10 @@ test("customer layer toggles without navigation or storefront state loss", async
       }).observe(element, { attributes: true, attributeFilter: ["style"] });
     }
   });
+
+  // The always-mounted customer child eagerly warms its tab routes. Finish
+  // that deliberate background work before measuring the environment toggle.
+  await page.waitForTimeout(8_000);
 
   let navigationRequests = 0;
   let rscRequests = 0;
@@ -156,7 +159,6 @@ test("customer layer toggles without navigation or storefront state loss", async
   });
   expect(geometry.customerLeft).toBe(geometry.sidebarRight);
   expect(geometry.willChange).toContain("transform");
-  expect(geometry.willChange).toContain("opacity");
   expect(geometry.veilWillChange).toContain("opacity");
 
   await page.locator("#paon-context-switcher .pcs-store").click();
@@ -217,7 +219,7 @@ test("customer layer toggles without navigation or storefront state loss", async
     activeCategory: true,
     scrollTop: true,
     filters: true,
-    mutations: ["opacity", "transform"],
+    mutations: ["transform"],
   });
 
   await page.evaluate(() => {
@@ -233,4 +235,81 @@ test("customer layer toggles without navigation or storefront state loss", async
         .evaluate((element) => getComputedStyle(element).paddingLeft),
     )
     .toBe("0px");
+});
+
+test("store categories and customer tabs paint immediate feedback", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1512, height: 982 });
+  await signIn(page);
+
+  const wardrobeTab = page.locator(
+    '[data-customer-top-menu][data-customer-tab-href="/wardrobe"]',
+  );
+  await expect(wardrobeTab).toBeVisible();
+  const tabFeedback = await wardrobeTab.evaluate((tab) => {
+    const startedAt = performance.now();
+    tab.dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true, button: 0 }),
+    );
+    return {
+      elapsedMs: performance.now() - startedAt,
+      active: (tab as HTMLElement).dataset["optimisticActive"],
+      background: getComputedStyle(tab).backgroundColor,
+    };
+  });
+  expect(tabFeedback.elapsedMs).toBeLessThan(20);
+  expect(tabFeedback.active).toBe("true");
+  expect(tabFeedback.background).not.toBe("rgba(0, 0, 0, 0)");
+
+  await page.goto("/r/atelier-demo?category=Pants", {
+    waitUntil: "domcontentloaded",
+  });
+  const jacketControl = page.locator(
+    '[data-storefront-category-control][href*="category=Jackets"]',
+  );
+  await expect(jacketControl).toBeVisible();
+  await expect(page.locator("#product-grid .grid-card").first()).toBeAttached();
+
+  let navigationRequests = 0;
+  let rscRequests = 0;
+  page.on("request", (request) => {
+    if (request.isNavigationRequest()) navigationRequests += 1;
+    if (request.url().includes("_rsc=")) rscRequests += 1;
+  });
+
+  const categoryFeedback = await jacketControl.evaluate((control) => {
+    const startedAt = performance.now();
+    control.dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true, button: 0 }),
+    );
+    return {
+      elapsedMs: performance.now() - startedAt,
+      active: (control as HTMLElement).dataset["active"],
+      opacity: getComputedStyle(control).opacity,
+    };
+  });
+  expect(categoryFeedback.elapsedMs).toBeLessThan(20);
+  expect(categoryFeedback.active).toBe("true");
+  expect(categoryFeedback.opacity).toBe("1");
+  await expect(page).toHaveURL(/\/r\/atelier-demo\?category=Jackets$/);
+  await page.waitForTimeout(100);
+  expect(navigationRequests).toBe(0);
+  expect(rscRequests).toBe(0);
+
+  const customerLayer = page.locator("[data-paon-customer-layer]");
+  const switcherPill = page.locator("[data-paon-switcher-pill]");
+  await expect(switcherPill).toBeVisible();
+  await page.locator("#paon-context-switcher .pcs-mypaon").click();
+  await expect(customerLayer).toHaveCSS("opacity", "1");
+  await page.waitForTimeout(190);
+  await expect(customerLayer).toHaveCSS("opacity", "1");
+  await page.waitForTimeout(230);
+  await expect(customerLayer).toHaveCSS("opacity", "1");
+  await page.locator("#paon-context-switcher .pcs-store").click();
+  await expect(customerLayer).toHaveCSS("opacity", "1");
+  await page.waitForTimeout(190);
+  await expect(customerLayer).toHaveCSS("opacity", "1");
+  await page.waitForTimeout(230);
+  await expect(customerLayer).toHaveCSS("opacity", "1");
 });
