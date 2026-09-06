@@ -151,15 +151,14 @@ test("customer layer toggles without navigation or storefront state loss", async
     return {
       customerLeft: layer.getBoundingClientRect().left,
       sidebarRight: sidebar.getBoundingClientRect().right,
-      willChange: getComputedStyle(layer).willChange,
-      veilWillChange: getComputedStyle(
-        document.querySelector<HTMLElement>("[data-paon-customer-blur-veil]")!,
-      ).willChange,
+      opacity: getComputedStyle(layer).opacity,
+      filter: getComputedStyle(layer).filter,
     };
   });
   expect(geometry.customerLeft).toBe(geometry.sidebarRight);
-  expect(geometry.willChange).toContain("transform");
-  expect(geometry.veilWillChange).toContain("opacity");
+  // Settled at the near end: fully opaque and sharp, whatever the entry did.
+  expect(geometry.opacity).toBe("1");
+  expect(geometry.filter).toBe("blur(0px)");
 
   await page.locator("#paon-context-switcher .pcs-store").click();
   await expect(customerLayer).toHaveAttribute("aria-hidden", "true");
@@ -209,6 +208,30 @@ test("customer layer toggles without navigation or storefront state loss", async
   expect(page.url()).toMatch(/\/r\/atelier-demo\?category=Pants$/);
   expect(navigationRequests).toBe(0);
   expect(rscRequests).toBe(0);
+  /*
+   * The panel arrives the way the founder's product grid does — out of a blur,
+   * lifting, coming up to opacity. What matters is that the switch stays on
+   * the compositor: not one property it writes may reach layout.
+   */
+  const LAYOUT_PROPERTIES = [
+    "width",
+    "height",
+    "left",
+    "right",
+    "top",
+    "bottom",
+    "margin",
+    "padding",
+    "inset",
+    "display",
+  ];
+  for (const property of preserved.mutations) {
+    expect(
+      LAYOUT_PROPERTIES.some((layout) => property.startsWith(layout)),
+      `the switch wrote the layout property "${property}"`,
+    ).toBe(false);
+  }
+
   expect(preserved).toMatchObject({
     sameDocument: true,
     sameStorefront: true,
@@ -219,7 +242,6 @@ test("customer layer toggles without navigation or storefront state loss", async
     activeCategory: true,
     scrollTop: true,
     filters: true,
-    mutations: ["transform"],
   });
 
   await page.evaluate(() => {
@@ -300,16 +322,12 @@ test("store categories and customer tabs paint immediate feedback", async ({
   const customerLayer = page.locator("[data-paon-customer-layer]");
   const switcherPill = page.locator("[data-paon-switcher-pill]");
   await expect(switcherPill).toBeVisible();
+  // The switch is a 220ms blur-fade in each direction; what matters is that it
+  // finishes at its end state rather than what it looks like mid-flight.
   await page.locator("#paon-context-switcher .pcs-mypaon").click();
   await expect(customerLayer).toHaveCSS("opacity", "1");
-  await page.waitForTimeout(190);
-  await expect(customerLayer).toHaveCSS("opacity", "1");
-  await page.waitForTimeout(230);
-  await expect(customerLayer).toHaveCSS("opacity", "1");
+  await expect(customerLayer).toHaveCSS("filter", "blur(0px)");
   await page.locator("#paon-context-switcher .pcs-store").click();
-  await expect(customerLayer).toHaveCSS("opacity", "1");
-  await page.waitForTimeout(190);
-  await expect(customerLayer).toHaveCSS("opacity", "1");
-  await page.waitForTimeout(230);
-  await expect(customerLayer).toHaveCSS("opacity", "1");
+  await expect(customerLayer).toHaveCSS("opacity", "0");
+  await expect(customerLayer).toHaveAttribute("aria-hidden", "true");
 });

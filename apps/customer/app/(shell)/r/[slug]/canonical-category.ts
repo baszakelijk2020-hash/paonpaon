@@ -30,6 +30,10 @@ export const CATEGORY_KEYWORDS: Record<
   // ran, mis-sorting real suit/jacket fabrics into Knits by coincidence
   // of material, not garment type. Same class of bug the "mélange" removal
   // above already fixed once.
+  // "merino" used to live here too, and it is a fiber rather than a garment
+  // in exactly the way "cashmere" and "mélange" were before it — a merino
+  // SUITING cloth ("Smoke Grey Mélange S130 Merino Wool Twill") was landing in
+  // Knitwear on the strength of the wool it is woven from.
   Knits: [
     "knit",
     "sweater",
@@ -40,7 +44,6 @@ export const CATEGORY_KEYWORDS: Record<
     "turtleneck",
     "crew",
     "polo",
-    "merino",
     "quarter-zip",
     "cable",
   ],
@@ -51,13 +54,31 @@ export const CATEGORY_KEYWORDS: Record<
   Wedding: ["wedding", "groom"],
 };
 
-/** Categories with an unambiguous name-keyword — checked before the
- * Suits/Jackets id-range fallback so an explicit garment word (e.g. a
- * "Sport Coat" or "Overcoat" that happens to reuse a suit fabric's own
- * product photo) always wins over which numbered fabric photo it reuses. */
-const UNAMBIGUOUS_CATEGORY_ORDER = CANONICAL_CATEGORIES.filter(
-  (category) => category !== "Suits",
-);
+/**
+ * Categories with an unambiguous name-keyword, in the order their keywords are
+ * checked — all of them before the Suits/Jackets id-range fallback, so an
+ * explicit garment word (a "Sport Coat" or "Overcoat" that happens to reuse a
+ * suit fabric's own product photo) always wins over which numbered fabric
+ * photo it reuses.
+ *
+ * The order is by how much of the garment each list's words actually name, not
+ * the display order. Words for the shape of the thing come first and words for
+ * how it is made come last: "Navy Knit Lifestyle Sneaker" is a shoe that
+ * happens to be knitted, and Knits used to claim it because "knit" was read
+ * before "sneaker". "Dinner jacket" is evening wear for the same reason.
+ * Suits is absent on purpose — "suit" appears in the name of every suiting
+ * cloth, so it is only consulted once nothing else has settled the garment.
+ */
+const UNAMBIGUOUS_CATEGORY_ORDER = [
+  "Shoes",
+  "Evening",
+  "Wedding",
+  "Outerwear",
+  "Shirts",
+  "Pants",
+  "Jackets",
+  "Knits",
+] as const satisfies readonly (typeof CANONICAL_CATEGORIES)[number][];
 
 /** Names with no real garment type at all (accessories) shouldn't fall
  * into the Suits/Jackets id-range guess just because they reuse one of

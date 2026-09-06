@@ -127,3 +127,59 @@ test("signing in straight into the store still builds the storefront", async ({
     "true",
   );
 });
+
+/**
+ * Every transition in the founder's storefront is a class on <body> read by a
+ * rule written as `body.<state> …`. The template's stylesheet is scoped to the
+ * template root now so it cannot restyle the customer environment, and that
+ * scoping rewrites those selectors — while the scripts kept writing to <body>.
+ * Opening a product set `--paon-entry-x` and `--paon-entry-opacity` on every
+ * frame with nothing reading them: the detail view appeared with no blur, no
+ * fade and no motion.
+ */
+test("opening a product still plays the storefront's own entry", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1512, height: 982 });
+  await page.goto("/r/atelier-demo?category=Suits", {
+    waitUntil: "domcontentloaded",
+  });
+
+  const root = page.locator("[data-paon-storefront-root]");
+  await expect(root).toHaveCount(1);
+  await expect(page.locator("#product-grid .grid-card").first()).toBeAttached();
+
+  const entry = await page.evaluate(async () => {
+    const template = document.querySelector<HTMLElement>(
+      "[data-paon-storefront-root]",
+    )!;
+    const detailMain = template.querySelector<HTMLElement>("#detail-main")!;
+    const seen: { opacity: number; x: string }[] = [];
+    let stop = false;
+    const sample = () => {
+      const style = getComputedStyle(detailMain);
+      seen.push({ opacity: Number(style.opacity), x: style.transform });
+      if (!stop) requestAnimationFrame(sample);
+    };
+    requestAnimationFrame(sample);
+    template.querySelector<HTMLElement>("#product-grid .grid-card")!.click();
+    await new Promise((resolve) => setTimeout(resolve, 900));
+    stop = true;
+    return {
+      // The state class has to reach the root, or none of the scoped rules fire.
+      rootCarriesState: template.classList.contains("product-detail-open"),
+      startedTransparent: seen.some((frame) => frame.opacity < 0.2),
+      startedOffset: seen.some(
+        (frame) => frame.x !== "none" && !frame.x.endsWith("0, 0)"),
+      ),
+      endedOpaque: seen[seen.length - 1]?.opacity === 1,
+    };
+  });
+
+  expect(entry).toEqual({
+    rootCarriesState: true,
+    startedTransparent: true,
+    startedOffset: true,
+    endedOpaque: true,
+  });
+});

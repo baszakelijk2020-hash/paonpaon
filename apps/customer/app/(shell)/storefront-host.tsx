@@ -118,6 +118,42 @@ function documentParsed(): Promise<void> {
   });
 }
 
+/** Classes on <body> that belong to the shell, not to the template. */
+const SHELL_BODY_CLASSES = new Set(["paon-storefront-active"]);
+
+/**
+ * Gives the template root the state classes the template writes on <body>.
+ *
+ * Almost every transition in the founder's storefront is a class on <body> —
+ * `product-detail-open` and `paon-detail-entering` for the product entry,
+ * `grid-header-hidden`, `header-is-hidden`, `filter-active`, `home-view-active`
+ * and the rest for the chrome — read by rules written as `body.<state> …`.
+ *
+ * The template's stylesheet is scoped to the template root now, so it cannot
+ * restyle the customer environment (template-styles/route.ts), and that scoping
+ * rewrites `body.<state>` to `.paon-template-root.<state>`. The scripts kept
+ * writing to <body>, which nothing was scoped to any more: the detail view set
+ * its `--paon-entry-x` and `--paon-entry-opacity` on every frame and no rule
+ * read them, so the product opened with no blur, no fade and no motion.
+ *
+ * Copying the classes down is what reconnects the two. The shell's own body
+ * classes are left behind.
+ */
+function mirrorBodyState(root: HTMLElement): void {
+  const apply = () => {
+    const state = [...document.body.classList].filter(
+      (name) => !SHELL_BODY_CLASSES.has(name),
+    );
+    const next = ["paon-template-root", ...state].join(" ");
+    if (root.className !== next) root.className = next;
+  };
+  apply();
+  new MutationObserver(apply).observe(document.body, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
+}
+
 /** Builds the storefront at most once per document. */
 function buildStorefrontOnce(slug: string): void {
   if (builtSlug !== null) return;
@@ -166,6 +202,7 @@ async function buildStorefront(slug: string): Promise<void> {
   // own. The shared sidebar is an <aside> too, so the template has to come
   // first in the document.
   document.body.insertBefore(root, document.body.firstChild);
+  mirrorBodyState(root);
 
   for (const src of payload.externalScripts) {
     await loadExternalScript(src);
@@ -257,6 +294,11 @@ export const StorefrontHost = memo(function StorefrontHost() {
       }
       const anchor = (event.target as Element | null)?.closest?.("a");
       if (!anchor) return;
+      // Only links inside the storefront. This handler exists for the two
+      // exits the founder's template leaves the page by; on the whole document
+      // it also swallowed the customer environment's own Overview tab, which
+      // points at /dashboard too — that tab simply did nothing.
+      if (!anchor.closest(".paon-template-root")) return;
       if (anchor.target && anchor.target !== "_self") return;
       if (anchor.hasAttribute("download")) return;
 

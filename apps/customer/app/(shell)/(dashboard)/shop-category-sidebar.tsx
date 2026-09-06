@@ -1,8 +1,3 @@
-import {
-  CollectionRepository,
-  ProductRepository,
-  RetailerRepository,
-} from "@paon/database";
 import { cookies } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
@@ -10,11 +5,8 @@ import Link from "next/link";
 import { ContextSwitcher } from "./context-switcher";
 import { StorefrontCategoryControl } from "./storefront-category-control";
 
-import {
-  CANONICAL_CATEGORIES,
-  canonicalCategoryFor,
-} from "@/app/(shell)/r/[slug]/canonical-category";
-import { getSupabaseServerClient } from "@/lib/supabase-server";
+import { CANONICAL_CATEGORIES } from "@/app/(shell)/r/[slug]/canonical-category";
+import { getSession } from "@/lib/session";
 
 /**
  * Pixel match of the storefront's own left sidebar, not an approximation —
@@ -44,35 +36,14 @@ const SIDEBAR_CATEGORY_LABELS: Partial<
   Knits: "Knitwear",
 };
 
-async function populatedCategories(): Promise<
-  readonly (typeof CANONICAL_CATEGORIES)[number][]
-> {
-  const supabase = await getSupabaseServerClient();
-  const retailer = await new RetailerRepository(supabase).findBySlug(
-    "atelier-demo",
-  );
-  if (!retailer) return [];
-  const [products, collections] = await Promise.all([
-    new ProductRepository(supabase).findByRetailer(retailer.id),
-    new CollectionRepository(supabase).findByRetailer(retailer.id),
-  ]);
-  const collectionNameById = new Map(
-    collections.map((collection) => [collection.id, collection.name]),
-  );
-  const present = new Set(
-    products.map((product) => {
-      const collectionName = product.collectionIds
-        .map((id) => collectionNameById.get(id))
-        .find((name): name is string => Boolean(name));
-      return canonicalCategoryFor(
-        product.name,
-        collectionName,
-        product.primaryImageUrl ?? "",
-      );
-    }),
-  );
-  return CANONICAL_CATEGORIES.filter((category) => present.has(category));
-}
+/**
+ * The whole collection, always — Shirts, Outerwear, Evening and Wedding are
+ * carried with nothing in them yet, and a rail that appears and disappears
+ * with the seed reads as the shop being broken rather than the rail being
+ * empty. Same list the storefront's own category nav shows
+ * (get-storefront-page-data.ts).
+ */
+const SIDEBAR_CATEGORIES = CANONICAL_CATEGORIES;
 
 /** Same open-redirect guard as `store-return-capture.tsx`'s client-side
  * validation — the cookie is trusted only if it still matches on read. */
@@ -87,8 +58,12 @@ async function storeReturnHref(): Promise<string> {
 }
 
 export async function ShopCategorySidebar() {
-  const categories = await populatedCategories();
-  const storeHref = await storeReturnHref();
+  const categories = SIDEBAR_CATEGORIES;
+  const [storeHref, session] = await Promise.all([
+    storeReturnHref(),
+    getSession(),
+  ]);
+  const isSignedIn = session?.accountType === "customer";
   return (
     <aside
       className="sticky top-0 hidden h-screen min-h-screen grid-rows-[60px_auto_minmax(0,1fr)_210px] self-start overflow-hidden lg:grid"
@@ -203,23 +178,47 @@ export async function ShopCategorySidebar() {
             {link.label}
           </Link>
         ))}
-        <Link
-          href="/concierge"
-          className="absolute left-5 right-5 flex h-11 items-center justify-between border border-white/15 bg-white/[0.06] px-4 text-[13px] text-[#d9d9d9] no-underline"
-          style={{
-            bottom: "82px",
-            borderRadius: "15px",
-            fontFamily: "TN Web Use Only, sans-serif",
-          }}
-        >
-          <span>TableService</span>
-          <span aria-hidden="true">→</span>
-        </Link>
+        {isSignedIn ? null : (
+          <div
+            className="absolute left-5 right-5 flex items-center justify-between gap-3"
+            style={{ bottom: "20px" }}
+          >
+            <p
+              className="m-0"
+              style={{
+                fontFamily: "OptimaKlein, serif",
+                fontSize: "11px",
+                lineHeight: 1.35,
+                color: "#8f8f8c",
+              }}
+            >
+              Log in to see your pieces, fittings and invitations.
+            </p>
+            <Link
+              href="/login"
+              className="shrink-0 border border-white/20 bg-white/[0.07] no-underline transition-colors hover:bg-white/[0.14]"
+              style={{
+                padding: "7px 18px",
+                borderRadius: "999px",
+                fontFamily: "GTBold3, Arial, sans-serif",
+                fontSize: "7px",
+                letterSpacing: "0.04em",
+                textTransform: "uppercase",
+                lineHeight: 1,
+                color: "#e4e4e1",
+              }}
+            >
+              Log in
+            </Link>
+          </div>
+        )}
         <Link
           href="/appointments"
           className="absolute flex items-center no-underline"
           style={{
-            bottom: "20px",
+            // Clear of the sign-in row when there is one; the row is the
+            // bottom-most thing in the sidebar and this sits above it.
+            bottom: isSignedIn ? "20px" : "82px",
             left: "20px",
             right: "20px",
             height: "50px",

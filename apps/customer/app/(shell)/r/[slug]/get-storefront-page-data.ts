@@ -399,7 +399,7 @@ export async function getStorefrontPageData(
     })),
   );
 
-  const entries = productsWithVariants.map(({ product, variants }) => {
+  const allEntries = productsWithVariants.map(({ product, variants }) => {
     const collectionName = product.collectionIds
       .map((id) => collectionNameById.get(id))
       .find((name): name is string => Boolean(name));
@@ -447,6 +447,48 @@ export async function getStorefrontPageData(
       weightGsm: catalogue?.weightGsm ?? null,
     };
   });
+
+  /*
+   * One card per fabric.
+   *
+   * The founder's own record (paon.html's `sanveneroProductData`) carries each
+   * cloth under two names: `title`, which leads with the mill ("Di Pray Burnt
+   * Orange Mélange Wool, Silk & Linen Twill"), and `gridTitle`, the same name
+   * with the mill stripped ("Burnt Orange Mélange…"); where there is no
+   * gridTitle the title is simply the mill ("Drago"). The seed made a separate
+   * product of each, so every fabric arrived on the grid twice — most visibly
+   * in Suits. They are the same cloth and share one photograph, so the
+   * photograph is the identity.
+   *
+   * Which of the two names survives: if the longer name ends with the shorter
+   * one, the shorter is that stripped grid title and is what the grid shows.
+   * Otherwise the shorter name is the bare mill and the longer one names the
+   * cloth.
+   */
+  const entries: typeof allEntries = [];
+  const entryByImage = new Map<string, number>();
+  for (const entry of allEntries) {
+    const key = entry.img;
+    const seen = key ? entryByImage.get(key) : undefined;
+    if (seen === undefined) {
+      if (key) entryByImage.set(key, entries.length);
+      entries.push(entry);
+      continue;
+    }
+    const kept = entries[seen]!;
+    const keptName = kept.name.trim();
+    const nextName = entry.name.trim();
+    const [shorter, longer] =
+      keptName.length <= nextName.length
+        ? ([kept, entry] as const)
+        : ([entry, kept] as const);
+    entries[seen] = longer.name
+      .trim()
+      .toLowerCase()
+      .endsWith(shorter.name.trim().toLowerCase())
+      ? shorter
+      : longer;
+  }
 
   // The category with the most matching products, so the first thing a
   // visitor sees is the fullest grid the catalog can show — not just
@@ -504,28 +546,23 @@ export async function getStorefrontPageData(
     entries.find((entry) => entry.img)?.img ??
     "https://www.nebelspiegel.com/images/smaller/6088.webp";
 
-  // CANONICAL_CATEGORIES here, not UNAMBIGUOUS_CATEGORY_ORDER: that list
-  // deliberately excludes "Suits" (it exists only to control keyword-check
-  // priority in canonicalCategoryFor, checked before the Suits fallback),
-  // so reusing it for the sidebar nav meant Suits could never appear there
-  // no matter how many suit products existed.
-  const categoryNames = CANONICAL_CATEGORIES.filter((category) =>
-    allActiveCategoryNames.has(category),
-  );
-  const resolvedCategories =
-    categoryNames.length > 0 ? categoryNames : [...CANONICAL_CATEGORIES];
+  /*
+   * The whole taxonomy, always, in its canonical order — not only the
+   * categories that happen to have stock today.
+   *
+   * The collection a house offers is part of what it is, and a category that
+   * appears and disappears with the seed reads as the shop being broken rather
+   * than the rail being empty. Shirts, Outerwear, Evening and Wedding are
+   * carried deliberately with nothing in them yet.
+   */
+  void allActiveCategoryNames;
+  const resolvedCategories = [...CANONICAL_CATEGORIES];
   // An explicit category click (account-side shop sidebar, or any other
   // "take me to this category" link) is unambiguous shopping intent — it
   // always lands on the grid, even for the canonical demo retailer whose
   // organic visits open on the curated story/gate page first.
   const landOnGrid =
     slug !== CANONICAL_DEMO_RETAILER_SLUG || requestedCategoryHasProducts;
-
-  const footerYear = new Date().getFullYear();
-  const footerCities = [...new Set(stores.map((store) => store.city))].slice(
-    0,
-    4,
-  );
 
   // Build script injections and brand CSS (matching route.ts structure exactly)
   // Store/My PAON context switcher: shown for every visitor, signed in or
@@ -947,30 +984,15 @@ ${
 </div>`
     : "";
 
-  const footerHtml = `<footer style="margin-top:64px;background:linear-gradient(160deg,#1a1a1a 0%,#2b2b2b 100%);color:rgba(255,255,255,.72);font-family:var(--font-retailer-body),system-ui,sans-serif;">
-<div style="max-width:1240px;margin:0 auto;padding:56px 24px 28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:32px;">
-<div>
-<p style="margin:0 0 14px;font-family:var(--font-retailer-display),Georgia,serif;font-size:20px;letter-spacing:.03em;color:#fff;">${safeName}</p>
-<p style="margin:0;font-size:12px;line-height:1.7;color:rgba(255,255,255,.5);">Tailored pieces, made to measure and kept by one house.</p>
-</div>
-<div>
-<p style="margin:0 0 12px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.4);">Client Services</p>
-<p style="margin:0 0 8px;font-size:13px;"><a href="/r/${slug}/appointments" style="color:inherit;text-decoration:none;">Book an appointment</a></p>
-<p style="margin:0 0 8px;font-size:13px;"><a href="#gilda-chat-widget" style="color:inherit;text-decoration:none;">Table service</a></p>
-<p style="margin:0;font-size:13px;"><a href="/dashboard" style="color:inherit;text-decoration:none;">Your account</a></p>
-</div>
-${
-  footerCities.length > 0
-    ? `<div>
-<p style="margin:0 0 12px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.4);">Ateliers</p>
-${footerCities.map((city) => `<p style="margin:0 0 8px;font-size:13px;">${escapeHtml(city)}</p>`).join("\n")}
-<p style="margin:8px 0 0;font-size:13px;"><a href="/r/${slug}/locations" style="color:inherit;text-decoration:none;">All locations</a></p>
-</div>`
-    : ""
-}
-</div>
-<div style="max-width:1240px;margin:0 auto;padding:20px 24px;border-top:1px solid rgba(255,255,255,.1);font-size:11px;letter-spacing:.04em;color:rgba(255,255,255,.35);">© ${footerYear} ${safeName}. All rights reserved.</div>
-</footer>`;
+  /*
+   * No footer.
+   *
+   * It repeated the sidebar's own destinations — book an appointment, table
+   * service, your account, the ateliers — under every grid and every product,
+   * on a dark band the founder's storefront never had. The template ends where
+   * the collection ends.
+   */
+  const footerHtml = "";
 
   const pageData: StorefrontPageData = {
     slug,

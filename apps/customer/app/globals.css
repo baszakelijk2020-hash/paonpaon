@@ -233,8 +233,19 @@ body {
   overflow-y: auto;
   /* It flies in from behind the left sidebar, so it must not widen the page. */
   overflow-x: hidden;
-  will-change: transform, opacity;
-  contain: layout paint style;
+  /*
+   * `contain: paint` is deliberately absent. It licenses the browser to skip
+   * painting this subtree, and on a full-viewport layer whose size changes
+   * with the window that showed as the storefront flashing through the
+   * customer environment while the window was being dragged. Layout and style
+   * containment carry the isolation that is actually wanted here.
+   *
+   * `will-change` is not set here either: a permanently promoted layer this
+   * size is re-rastered on every resize frame, which is the same artifact from
+   * the other direction. EnvironmentTransition turns it on for the length of a
+   * switch and off again; the translate below keeps the layer real in between.
+   */
+  contain: layout style;
   backface-visibility: hidden;
   transform: translate3d(0, 0, 0);
   background: var(--customer-page-bg, #f4f2ec);
@@ -248,33 +259,8 @@ body {
   pointer-events: none;
 }
 
-/*
- * The blur the two environments cross behind — the same blur-fade the
- * founder's product grid reveals its images with, applied to the switch.
- *
- * Above the sliding panel (110) and below the sidebar (120): the sidebar is
- * the fixed edge the panel slides out from and stays crisp, everything the
- * panel travels across goes soft for the length of the move.
- */
-.paon-customer-blur-veil {
-  position: fixed;
-  inset: 0;
-  z-index: 115;
-  pointer-events: none;
-  opacity: 0;
-  /* Painting a full-viewport backdrop-filter every frame is the one thing that
-     can cost this transition its 60fps, so it is only ever composited while a
-     switch is in flight — EnvironmentTransition sets this. */
-  visibility: hidden;
-  background: rgba(244, 242, 236, 0.08);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  will-change: opacity;
-}
-
 @media (min-width: 1024px) {
-  .paon-shell-content,
-  .paon-customer-blur-veil {
+  .paon-shell-content {
     left: 250px;
   }
 }
