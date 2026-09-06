@@ -63,14 +63,21 @@ export default function ShellLayout({
         className="paon-shell-content"
         aria-hidden="false"
       >
-        <div
-          data-paon-customer-blur-veil
-          aria-hidden="true"
-          className="paon-customer-blur-veil"
-        />
         <EnvironmentTransition />
         {children}
       </div>
+      {/*
+        A sibling of the sliding panel, not a child of it. `.paon-shell-content`
+        carries a transform, which makes it the containing block for any
+        `position: fixed` descendant — the veil used to travel with the panel
+        (and be clipped by its `contain: paint`) instead of holding still over
+        the seam between the two environments.
+      */}
+      <div
+        data-paon-customer-blur-veil
+        aria-hidden="true"
+        className="paon-customer-blur-veil"
+      />
       <div
         data-paon-shell-sidebar
         className="fixed left-0 top-0 z-[120] hidden h-screen w-[250px] lg:block"

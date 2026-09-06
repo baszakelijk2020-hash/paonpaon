@@ -21,7 +21,17 @@ const DEFAULT_SLUG = "atelier-demo";
 /** Routes the template owns and must keep handling itself. */
 const TEMPLATE_OWNED = /^\/r\/[^/]+(?:\/raw)?(?:[?#]|$)/;
 
-/** The retailer whose storefront is already built, for this document. */
+/**
+ * The retailer whose storefront is already built, for this document.
+ *
+ * Module scope, and deliberately never cleared by an unmount: building is a
+ * one-time, unabortable act. It used to be guarded by an effect-local
+ * `cancelled` flag, and any teardown of the first attempt — StrictMode's
+ * double mount, or arriving in the shell through a client-side navigation
+ * (signing in at /login and being sent here) — cancelled the build *after* the
+ * guard had been claimed. The storefront was then never built, and could never
+ * be built again for that slug: pressing Store revealed nothing.
+ */
 let builtSlug: string | null = null;
 let pendingCategoryTimer: number | null = null;
 
@@ -83,6 +93,115 @@ function slugFromPath(pathname: string): string | null {
 }
 
 /**
+ * Resolves once the document has finished parsing.
+ *
+ * Nothing below may touch <body> — and above all nothing may synthesise a
+ * `DOMContentLoaded` — while the App Router's payload is still streaming in.
+ * Next.js closes its RSC stream writer on the real `DOMContentLoaded`
+ * (next/dist/client/app-index.js), so firing that event early made it close
+ * mid-stream: every remaining `self.__next_f.push` chunk in the document then
+ * threw "Unexpected server data: missing bootstrap script", the stream ended
+ * with "Connection closed.", and the rest of the page — the shared sidebar and
+ * the customer environment among it — never arrived. That truncation is what
+ * read as the page reloading and taking seconds to settle.
+ *
+ * Waiting for the real event costs nothing: it fires when the document is
+ * parsed, which is exactly when the last of those chunks has run, and the
+ * payload fetch below has already been in flight the whole time.
+ */
+function documentParsed(): Promise<void> {
+  if (document.readyState !== "loading") return Promise.resolve();
+  return new Promise((resolve) => {
+    document.addEventListener("DOMContentLoaded", () => resolve(), {
+      once: true,
+    });
+  });
+}
+
+/** Builds the storefront at most once per document. */
+function buildStorefrontOnce(slug: string): void {
+  if (builtSlug !== null) return;
+  builtSlug = slug;
+  void buildStorefront(slug);
+}
+
+async function buildStorefront(slug: string): Promise<void> {
+  /*
+   * Build in the state the visitor asked for. Arriving straight at a category
+   * URL should look exactly like the server rendering of it, not the home feed
+   * built first and then switched — that leaves both views in the document.
+   * Later category changes are client-side, through the template's own
+   * navigation.
+   */
+  const initialCategory = new URLSearchParams(window.location.search).get(
+    "category",
+  );
+  const payloadUrl = initialCategory
+    ? `/r/${slug}/template-payload?category=${encodeURIComponent(initialCategory)}`
+    : `/r/${slug}/template-payload`;
+
+  const [payloadRes] = await Promise.all([
+    fetch(payloadUrl, { credentials: "same-origin" }),
+    ensureStylesheet(`/r/${slug}/template-styles`),
+  ]);
+  if (!payloadRes.ok) {
+    // Release the claim so a later mount can try again rather than leaving the
+    // session with no store at all.
+    builtSlug = null;
+    return;
+  }
+  const payload = (await payloadRes.json()) as Payload;
+
+  await documentParsed();
+
+  const root = document.createElement("div");
+  root.className = "paon-template-root";
+  root.dataset["paonStorefrontRoot"] = "";
+  const customerOpen = getEnvironmentSnapshot() === "customer";
+  root.inert = customerOpen;
+  root.setAttribute("aria-hidden", String(customerOpen));
+  root.innerHTML = payload.bodyHtml;
+  // First child, not appended: the template's last inline script does
+  // `document.querySelector('aside')` and rebuilds what it finds, meaning its
+  // own. The shared sidebar is an <aside> too, so the template has to come
+  // first in the document.
+  document.body.insertBefore(root, document.body.firstChild);
+
+  for (const src of payload.externalScripts) {
+    await loadExternalScript(src);
+  }
+  for (const code of payload.inlineScripts) {
+    const el = document.createElement("script");
+    el.textContent = code;
+    document.body.appendChild(el);
+  }
+
+  // On the raw page these scripts are parsed before DOMContentLoaded, so their
+  // own `DOMContentLoaded` handlers run. Injected here they register after the
+  // real event, so the same lifecycle is re-fired for them. Safe only because
+  // documentParsed() above guarantees the App Router's stream is already
+  // closed — see the note there.
+  document.dispatchEvent(new Event("DOMContentLoaded", { bubbles: true }));
+  window.dispatchEvent(new Event("load"));
+  window.dispatchEvent(new Event("resize"));
+
+  /*
+   * Replay `load` for images that finished before the scripts existed. The
+   * feed's blur-fade reveal is driven by those handlers, and an image already
+   * in cache completes with none attached.
+   */
+  const replay = () => {
+    for (const img of document.querySelectorAll("img")) {
+      if (img.complete && img.naturalWidth > 0) {
+        img.dispatchEvent(new Event("load"));
+      }
+    }
+  };
+  replay();
+  window.setTimeout(replay, 600);
+}
+
+/**
  * Owns the storefront for the whole session.
  *
  * This is mounted by the (shell) layout, which wraps both environments and is
@@ -107,86 +226,7 @@ export const StorefrontHost = memo(function StorefrontHost() {
    * store — so that pressing Store is only ever the overlay sliding away.
    */
   useEffect(() => {
-    // Module scope, not a ref: a ref resets if this component is ever
-    // remounted, and rebuilding is the one thing that must never happen.
-    if (builtSlug === slug) return;
-    builtSlug = slug;
-
-    let cancelled = false;
-
-    const run = async () => {
-      /*
-       * Build in the state the visitor asked for. Arriving straight at a
-       * category URL should look exactly like the server rendering of it, not
-       * the home feed built first and then switched — that leaves both views
-       * in the document. Later category changes are client-side, through the
-       * template's own navigation.
-       */
-      const initialCategory = new URLSearchParams(window.location.search).get(
-        "category",
-      );
-      const payloadUrl = initialCategory
-        ? `/r/${slug}/template-payload?category=${encodeURIComponent(initialCategory)}`
-        : `/r/${slug}/template-payload`;
-
-      const [payloadRes] = await Promise.all([
-        fetch(payloadUrl, { credentials: "same-origin" }),
-        ensureStylesheet(`/r/${slug}/template-styles`),
-      ]);
-      if (!payloadRes.ok || cancelled) return;
-      const payload = (await payloadRes.json()) as Payload;
-      if (cancelled) return;
-
-      const root = document.createElement("div");
-      root.className = "paon-template-root";
-      root.dataset["paonStorefrontRoot"] = "";
-      const customerOpen = getEnvironmentSnapshot() === "customer";
-      root.inert = customerOpen;
-      root.setAttribute("aria-hidden", String(customerOpen));
-      root.innerHTML = payload.bodyHtml;
-      // First child, not appended: the template's last inline script does
-      // `document.querySelector('aside')` and rebuilds what it finds, meaning
-      // its own. The shared sidebar is an <aside> too, so the template has to
-      // come first in the document.
-      document.body.insertBefore(root, document.body.firstChild);
-
-      for (const src of payload.externalScripts) {
-        await loadExternalScript(src);
-        if (cancelled) return;
-      }
-      for (const code of payload.inlineScripts) {
-        const el = document.createElement("script");
-        el.textContent = code;
-        document.body.appendChild(el);
-      }
-
-      // On the raw page these scripts are parsed before DOMContentLoaded, so
-      // their own `DOMContentLoaded` handlers run. Injected here they register
-      // after the real event, so the same lifecycle is re-fired for them.
-      document.dispatchEvent(new Event("DOMContentLoaded", { bubbles: true }));
-      window.dispatchEvent(new Event("load"));
-      window.dispatchEvent(new Event("resize"));
-
-      /*
-       * Replay `load` for images that finished before the scripts existed.
-       * The feed's blur-fade reveal is driven by those handlers, and an image
-       * already in cache completes with none attached.
-       */
-      const replay = () => {
-        for (const img of document.querySelectorAll("img")) {
-          if (img.complete && img.naturalWidth > 0) {
-            img.dispatchEvent(new Event("load"));
-          }
-        }
-      };
-      replay();
-      window.setTimeout(replay, 600);
-    };
-
-    void run();
-    return () => {
-      cancelled = true;
-    };
+    buildStorefrontOnce(slug);
   }, [slug]);
 
   /*

@@ -214,9 +214,15 @@ h3 {
  * is answered: the values below are the customer environment's own, and
  * inherit down to everything inside it.
  */
-/* The storefront stays in flow behind the overlay, so its height must not give
-   the window a scrollbar the overlay cannot use. */
-body:not(.paon-storefront-active) {
+/*
+ * Neither environment scrolls the window: the storefront template scrolls its
+ * own `main#main`, and the customer panel scrolls itself. Constant, rather
+ * than toggled per environment — toggling it added and removed the window's
+ * scrollbar on every switch, and that width change relaid out the storefront
+ * underneath and dropped it back to the top of the category the visitor was
+ * halfway down.
+ */
+body {
   overflow: hidden;
 }
 
@@ -242,12 +248,24 @@ body:not(.paon-storefront-active) {
   pointer-events: none;
 }
 
+/*
+ * The blur the two environments cross behind — the same blur-fade the
+ * founder's product grid reveals its images with, applied to the switch.
+ *
+ * Above the sliding panel (110) and below the sidebar (120): the sidebar is
+ * the fixed edge the panel slides out from and stays crisp, everything the
+ * panel travels across goes soft for the length of the move.
+ */
 .paon-customer-blur-veil {
   position: fixed;
   inset: 0;
-  z-index: 999;
+  z-index: 115;
   pointer-events: none;
   opacity: 0;
+  /* Painting a full-viewport backdrop-filter every frame is the one thing that
+     can cost this transition its 60fps, so it is only ever composited while a
+     switch is in flight — EnvironmentTransition sets this. */
+  visibility: hidden;
   background: rgba(244, 242, 236, 0.08);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
@@ -255,7 +273,8 @@ body:not(.paon-storefront-active) {
 }
 
 @media (min-width: 1024px) {
-  .paon-shell-content {
+  .paon-shell-content,
+  .paon-customer-blur-veil {
     left: 250px;
   }
 }

@@ -6,18 +6,24 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 
 import { usePaonEnvironment } from "./environment-store";
 
+/** Long enough to read as a move, short enough to feel like a toggle. */
+const DURATION = 0.42;
+
 /**
- * Slides the customer environment over the storefront, and back off it.
+ * Slides the customer environment out from behind the left sidebar, over the
+ * storefront, and back again.
  *
  * Both are alive at once: the storefront is a live subtree in <body> that is
  * never rebuilt, and the customer environment is a fixed overlay above it. So
- * moving between them is not a page change at all — it is one panel flying in
- * over another that never goes anywhere. It is animated to match the founder's
- * own grid-to-detail entry, so the two feel like the same gesture.
+ * moving between them is not a page change at all — it is one panel sliding
+ * over another that never goes anywhere. Nothing is fetched, nothing is
+ * routed, nothing is remounted; the only thing that changes is a transform.
  *
- * The overlay stays `position: fixed` in both states. Letting it return to
- * flow made it take space above the storefront, which is the band of customer
- * environment that used to show across the storefront's page.
+ * Only `transform` and `opacity` are animated, both on their own compositor
+ * layer, so the move never touches layout and never blocks the main thread.
+ * The blur veil is a sibling of the panel (see (shell)/layout.tsx) and is only
+ * made visible for the length of the move — a full-viewport `backdrop-filter`
+ * left permanently composited is the one thing here that can cost frames.
  */
 export function EnvironmentTransition() {
   const pathname = usePathname();
@@ -37,60 +43,52 @@ export function EnvironmentTransition() {
     document.body.classList.toggle("paon-storefront-active", inStore);
     overlay.setAttribute("aria-hidden", String(inStore));
     overlay.inert = inStore;
-    const hiddenTransform = "translate3d(-100%, 0, 0)";
-    const visibleTransform = "translate3d(0%, 0, 0)";
+
+    // First paint: put the panel at the right end with no animation, or it
+    // flies in from the corner on load.
+    if (first.current) {
+      first.current = false;
+      gsap.set(overlay, { xPercent: inStore ? -100 : 0, force3D: true });
+      gsap.set(veil, { opacity: 0, visibility: "hidden" });
+      return;
+    }
+
     const reducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
+    const duration = reducedMotion ? 0 : DURATION;
 
-    if (first.current) {
-      first.current = false;
-      gsap.set(overlay, {
-        transform: inStore ? hiddenTransform : visibleTransform,
-        opacity: 1,
-      });
-      gsap.set(veil, { opacity: 0 });
-      return;
-    }
-
+    // A switch pressed mid-switch continues from where the panel actually is,
+    // rather than restarting from the far end.
     gsap.killTweensOf([overlay, veil]);
-    gsap.set(overlay, { opacity: 1 });
-    const duration = reducedMotion ? 0 : 0.38;
 
-    if (inStore) {
-      gsap.to(veil, {
-        opacity: 0.42,
-        duration: duration * 0.55,
-        ease: "power2.in",
-      });
-      gsap.to(overlay, {
-        transform: hiddenTransform,
-        duration,
-        ease: "power4.inOut",
-        force3D: true,
-        onComplete: () => {
-          gsap.set(veil, { opacity: 0 });
+    const settle = () => {
+      gsap.set(veil, { opacity: 0, visibility: "hidden" });
+    };
+
+    gsap.set(veil, { visibility: "visible" });
+    gsap
+      .timeline({ defaults: { overwrite: "auto" }, onComplete: settle })
+      .to(
+        veil,
+        { opacity: 0.42, duration: duration * 0.4, ease: "power2.out" },
+        0,
+      )
+      .to(
+        overlay,
+        {
+          xPercent: inStore ? -100 : 0,
+          duration,
+          ease: "power3.inOut",
+          force3D: true,
         },
-      });
-      return;
-    }
-
-    gsap.set(veil, { opacity: 0.42 });
-    gsap.fromTo(
-      overlay,
-      { transform: hiddenTransform },
-      {
-        transform: visibleTransform,
-        duration,
-        ease: "power4.out",
-        force3D: true,
-      },
-    );
-    gsap.to(veil, {
-      opacity: 0,
-      duration: duration * 0.82,
-      ease: "power2.out",
-    });
+        0,
+      )
+      .to(
+        veil,
+        { opacity: 0, duration: duration * 0.6, ease: "power2.in" },
+        duration * 0.4,
+      );
   }, [inStore]);
 
   useEffect(() => {
