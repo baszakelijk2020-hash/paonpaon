@@ -9181,6 +9181,14 @@ body.product-detail-open .sidebar-footer {
     pointer-events: auto !important;
 }
 
+/* Keep the header icon controls mounted for their existing listeners while
+   removing this visual group from the storefront. */
+#paon-icons-bar .hb-icons {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
 #paon-icons-bar .header-icon {
     position: relative !important;
     z-index: 1002 !important;
@@ -16771,38 +16779,35 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
 
     #gilda-chat-widget-launcher {
         position: fixed;
-        right: 20px;
+        left: var(--sidebar-w);
+        right: 0;
         bottom: 20px;
         z-index: 500;
         display: flex;
         flex-direction: column;
-        align-items: flex-end;
+        align-items: center;
         gap: 12px;
     }
-    /* Keep TableService available without covering the founder detail
-       footer's primary action. The detail itself controls this body class. */
-    body.product-detail-open #gilda-chat-widget-launcher {
-        bottom: 88px;
-    }
     #gilda-chat-widget-toggle {
-        border: 0;
-        border-radius: 6px;
+        border: none;
+        border-radius: 20px;
         min-height: 48px;
-        padding: clamp(12px, 3vw, 15px) clamp(18px, 4vw, 26px);
-        background: rgba(0, 0, 0, 0.1);
+        min-width: 220px;
+        padding: 12px 20px;
+        background: rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         color: var(--text);
         font-family: 'lvreg', sans-serif;
         font-size: clamp(13px, 2vw, 15px);
+        text-align: left;
         cursor: pointer;
-        box-shadow: 0 12px 30px rgba(0,0,0,.12);
-        border: 1px solid rgba(0, 0, 0, 0.14);
+        box-shadow: none;
         transition: background 200ms ease;
         background-size: 200% 100%;
     }
     #gilda-chat-widget-toggle:hover {
-        background-color: rgba(0, 0, 0, 0.16);
+        background-color: rgba(255, 255, 255, 0.16);
         background-image: linear-gradient(110deg, transparent 40%, rgba(255,255,255,.4) 50%, transparent 60%);
         animation: paon-tableservice-shimmer 1.6s ease-in-out infinite;
     }
@@ -17031,11 +17036,10 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
     #gilda-chat-widget .gcw-wedding-party-row select { flex: 1; min-width: 0; border-radius: 7px; border: 1px solid rgba(0,0,0,.2); padding: 2px 4px; font-size: 12px; }
     #gilda-chat-widget .gcw-error { min-height: 0; margin: 0 20px 8px; color: #a3261d; font: 12px/1.35 'lvreg', sans-serif; }
     @media (max-width: 600px) {
-        #gilda-chat-widget-launcher { right: 12px; left: 12px; bottom: 76px; align-items: stretch; }
-        body.product-detail-open #gilda-chat-widget-launcher { bottom: 88px; }
+        #gilda-chat-widget-launcher { left: var(--sidebar-w); right: 0; bottom: 20px; align-items: center; }
         #gilda-chat-widget { width: 100%; }
         #gilda-chat-widget .gcw-chat-wrapper { height: min(560px, 68vh); }
-        #gilda-chat-widget-toggle { align-self: flex-end; }
+        #gilda-chat-widget-toggle { align-self: center; }
         #gilda-chat-widget .gcw-chat-pics .gcw-panel-wrapper { width: 150px; height: 118px; }
     }
     @media (prefers-reduced-motion: reduce) {
@@ -17354,7 +17358,7 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
         gsap.fromTo(
             chatWidget,
             {
-                transformOrigin: 'bottom right',
+                transformOrigin: 'top left',
                 x: pillRect.left - panelRect.left,
                 y: pillRect.top - panelRect.top,
                 width: pillRect.width,
@@ -17382,6 +17386,7 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
         var pillRect = toggleBtn.getBoundingClientRect();
         var panelRect = chatWidget.getBoundingClientRect();
         gsap.to(chatWidget, {
+            transformOrigin: 'top left',
             x: pillRect.left - panelRect.left,
             y: pillRect.top - panelRect.top,
             width: pillRect.width,
