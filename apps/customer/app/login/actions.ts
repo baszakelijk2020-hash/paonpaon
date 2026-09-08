@@ -1,10 +1,16 @@
 "use server";
 
+import { createHmac } from "node:crypto";
+import { isIP } from "node:net";
+
 import { type AppSession, resolveAppSession } from "@paon/auth";
+import { CustomerRepository } from "@paon/database";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { env } from "@/lib/env";
+import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 /**
@@ -25,8 +31,9 @@ const internalPath = z
     message: "redirectTo must be a path on this site",
   });
 
-const requestMagicLinkInputSchema = z.object({
+const emailOtpInputSchema = z.object({
   email: z.string().trim().toLowerCase().email(),
+  redirectTo: internalPath.optional(),
 });
 
 const demoSignInInputSchema = z.object({
@@ -40,51 +47,413 @@ const demoSignInInputSchema = z.object({
   redirectTo: internalPath.optional(),
 });
 
-export interface RequestMagicLinkFormState {
+export interface EmailOtpFormState {
+  email?: string;
+  fieldErrors: Record<string, string>;
+  formError?: string;
+  next?: "password" | "register" | "verify-email";
+}
+
+export interface VerifyEmailOtpFormState {
+  formError?: string;
+  verified: boolean;
+}
+
+export interface ResendEmailOtpFormState {
+  formError?: string;
+  sent: boolean;
+}
+
+export interface PasswordEnrollmentFormState {
+  formError?: string;
+}
+
+export interface EmailLinkFormState {
+  formError?: string;
+  sent: boolean;
+}
+
+export interface RegistrationFormState {
   email?: string;
   fieldErrors: Record<string, string>;
   formError?: string;
   sent: boolean;
 }
 
-export async function requestMagicLink(
-  _prevState: RequestMagicLinkFormState,
+export interface RecoveryPasswordFormState {
+  formError?: string;
+}
+
+function appOrigin(): string {
+  // This comes exclusively from the server-only deployment configuration.
+  // FormData must never decide where an authentication email sends someone.
+  return new URL(env.appUrl).origin;
+}
+
+function confirmationUrl(next: string): string {
+  return `${appOrigin()}/auth/confirm?next=${encodeURIComponent(next)}`;
+}
+
+const recognitionResultSchema = z.object({
+  allowed: z.boolean(),
+  existing: z.boolean().optional(),
+});
+
+type RecognitionAdminClient = {
+  rpc(
+    functionName: "recognize_customer_login_email",
+    args: {
+      p_normalized_email: string;
+      p_email_hash: string;
+      p_ip_hash: string;
+      p_pair_hash: string;
+    },
+  ): Promise<{ data: unknown; error: { message: string } | null }>;
+};
+
+function hashRecognitionValue(value: string): string {
+  // This is a server-only secret already required by the customer app. The
+  // hashes are solely rate-limit keys and are never returned to the browser.
+  return createHmac("sha256", env.supabaseServiceRoleKey)
+    .update(value)
+    .digest("hex");
+}
+
+async function sourceClientIp(): Promise<string> {
+  const requestHeaders = await headers();
+  const candidates = [
+    requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim(),
+    requestHeaders.get("x-real-ip")?.trim(),
+    requestHeaders.get("cf-connecting-ip")?.trim(),
+  ];
+  return (
+    candidates.find((candidate) => candidate && isIP(candidate)) ?? "unknown"
+  );
+}
+
+export async function requestEmailOtp(
+  _prevState: EmailOtpFormState,
   formData: FormData,
-): Promise<RequestMagicLinkFormState> {
-  const parsed = requestMagicLinkInputSchema.safeParse({
+): Promise<EmailOtpFormState> {
+  const parsed = emailOtpInputSchema.safeParse({
     email: formData.get("email"),
+    redirectTo: formData.get("redirectTo") || undefined,
   });
-  const redirectToRaw = String(formData.get("redirectTo") ?? "/dashboard");
-  const redirectTo =
-    redirectToRaw.startsWith("/") && !redirectToRaw.startsWith("//")
-      ? redirectToRaw
-      : "/dashboard";
 
   if (!parsed.success) {
     return {
       fieldErrors: { email: "Enter a valid email address." },
-      sent: false,
     };
+  }
+
+  const ip = await sourceClientIp();
+  const emailHash = hashRecognitionValue(parsed.data.email);
+  const ipHash = hashRecognitionValue(ip);
+  const pairHash = hashRecognitionValue(`${ip}\u0000${parsed.data.email}`);
+  // The forward migration introduces this internal RPC. Keep its narrow
+  // response contract here until generated database types are refreshed by
+  // the migration pipeline.
+  const admin = getSupabaseAdminClient() as unknown as RecognitionAdminClient;
+  const { data, error: recognitionError } = await admin.rpc(
+    "recognize_customer_login_email",
+    {
+      p_normalized_email: parsed.data.email,
+      p_email_hash: emailHash,
+      p_ip_hash: ipHash,
+      p_pair_hash: pairHash,
+    },
+  );
+  const recognition = recognitionResultSchema.safeParse(data);
+  if (recognitionError || !recognition.success || !recognition.data.allowed) {
+    return {
+      email: parsed.data.email,
+      fieldErrors: {},
+      formError: "We could not continue right now. Please try again shortly.",
+    };
+  }
+
+  if (recognition.data.existing) {
+    return {
+      email: parsed.data.email,
+      fieldErrors: {},
+      next: "password",
+    };
+  }
+
+  return {
+    email: parsed.data.email,
+    fieldErrors: {},
+    next: "register",
+  };
+}
+
+/** Sends a passwordless sign-in email only for the already-recognized path.
+ * `shouldCreateUser: false` is non-negotiable: this action must never turn a
+ * typo or stale client state into a new account. */
+export async function requestExistingEmailMagicLink(
+  _prevState: EmailLinkFormState,
+  formData: FormData,
+): Promise<EmailLinkFormState> {
+  const parsed = emailOtpInputSchema.safeParse({
+    email: formData.get("email"),
+  });
+  if (!parsed.success) {
+    return { formError: "Enter a valid email address.", sent: false };
   }
 
   const supabase = await getSupabaseServerClient();
   const { error } = await supabase.auth.signInWithOtp({
     email: parsed.data.email,
     options: {
-      emailRedirectTo: `${env.appUrl}/auth/confirm?next=${encodeURIComponent(redirectTo)}`,
+      shouldCreateUser: false,
+      emailRedirectTo: confirmationUrl("/dashboard"),
     },
   });
+  return error
+    ? {
+        formError: "We could not send that sign-in email. Please try again.",
+        sent: false,
+      }
+    : { sent: true };
+}
 
-  if (error) {
+/** Password recovery intentionally has the same success response whether an
+ * address exists or not. This avoids turning the reset endpoint into an
+ * account-enumeration oracle. */
+export async function requestPasswordReset(
+  _prevState: EmailLinkFormState,
+  formData: FormData,
+): Promise<EmailLinkFormState> {
+  const parsed = emailOtpInputSchema.safeParse({
+    email: formData.get("email"),
+  });
+  if (!parsed.success) {
+    return { formError: "Enter a valid email address.", sent: false };
+  }
+
+  const supabase = await getSupabaseServerClient();
+  await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+    redirectTo: confirmationUrl("/account/update-password"),
+  });
+  return { sent: true };
+}
+
+const registrationInputSchema = z.object({
+  email: z.string().trim().toLowerCase().email(),
+  password: z.string().min(12),
+  firstName: z.string().trim().min(1).max(100),
+  lastName: z.string().trim().min(1).max(100),
+  // E.164 only. The UI may format a number while it is being typed, but this
+  // server boundary persists a normalized value, never a locale guess.
+  phone: z
+    .string()
+    .trim()
+    .regex(/^\+?[1-9]\d{6,14}$/),
+  newsletterOptIn: z.boolean(),
+});
+
+/** Creates an unknown visitor's Auth account. Profile and newsletter rows are
+ * deliberately not created here: without a retailer relationship there is no
+ * tenant-safe destination for them. Metadata is display-only, never authz. */
+export async function registerEmailPassword(
+  _prevState: RegistrationFormState,
+  formData: FormData,
+): Promise<RegistrationFormState> {
+  const parsed = registrationInputSchema.safeParse({
+    email: formData.get("email"),
+    password: formData.get("password"),
+    firstName: formData.get("firstName"),
+    lastName: formData.get("lastName"),
+    phone: formData.get("phone"),
+    newsletterOptIn:
+      formData.get("newsletterOptIn") === "true" ||
+      formData.get("newsletterOptIn") === "on",
+  });
+  if (!parsed.success) {
+    const fields = parsed.error.flatten().fieldErrors;
+    const submittedEmail = formData.get("email");
     return {
-      email: parsed.data.email,
-      fieldErrors: {},
-      formError: error.message,
+      ...(typeof submittedEmail === "string" ? { email: submittedEmail } : {}),
+      fieldErrors: {
+        ...(fields.email ? { email: "Enter a valid email address." } : {}),
+        ...(fields.password
+          ? { password: "Use a password with at least 12 characters." }
+          : {}),
+        ...(fields.firstName ? { firstName: "Enter your first name." } : {}),
+        ...(fields.lastName ? { lastName: "Enter your last name." } : {}),
+        ...(fields.phone ? { phone: "Enter a valid phone number." } : {}),
+      },
       sent: false,
     };
   }
 
+  const supabase = await getSupabaseServerClient();
+  const { error } = await supabase.auth.signUp({
+    email: parsed.data.email,
+    password: parsed.data.password,
+    options: {
+      emailRedirectTo: confirmationUrl("/dashboard"),
+      data: {
+        first_name: parsed.data.firstName,
+        last_name: parsed.data.lastName,
+        phone: parsed.data.phone,
+        newsletter_opt_in: parsed.data.newsletterOptIn,
+      },
+    },
+  });
+  if (error) {
+    return {
+      email: parsed.data.email,
+      fieldErrors: {},
+      formError: "We could not create your account. Please try again.",
+      sent: false,
+    };
+  }
   return { email: parsed.data.email, fieldErrors: {}, sent: true };
+}
+
+export async function resendEmailOtp(
+  _prevState: ResendEmailOtpFormState,
+  formData: FormData,
+): Promise<ResendEmailOtpFormState> {
+  const parsed = emailOtpInputSchema.safeParse({
+    email: formData.get("email"),
+    redirectTo: formData.get("redirectTo") || undefined,
+  });
+  if (!parsed.success) {
+    return {
+      formError: "We could not send a confirmation code. Please start again.",
+      sent: false,
+    };
+  }
+  const supabase = await getSupabaseServerClient();
+  const { error } = await supabase.auth.signInWithOtp({
+    email: parsed.data.email,
+    options: { shouldCreateUser: true },
+  });
+  return error
+    ? {
+        formError:
+          "We could not send a confirmation code. Please try again shortly.",
+        sent: false,
+      }
+    : { sent: true };
+}
+
+const verifyEmailOtpInputSchema = z.object({
+  email: z.string().trim().toLowerCase().email(),
+  token: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/),
+  redirectTo: internalPath.optional(),
+});
+
+const enrollPasswordInputSchema = z
+  .object({
+    password: z.string().min(12),
+    passwordConfirmation: z.string().min(12),
+    redirectTo: internalPath.optional(),
+  })
+  .refine((value) => value.password === value.passwordConfirmation, {
+    path: ["passwordConfirmation"],
+  });
+
+export async function verifyEmailOtp(
+  _prevState: VerifyEmailOtpFormState,
+  formData: FormData,
+): Promise<VerifyEmailOtpFormState> {
+  const parsed = verifyEmailOtpInputSchema.safeParse({
+    email: formData.get("email"),
+    token: formData.get("token"),
+    redirectTo: formData.get("redirectTo") || undefined,
+  });
+  if (!parsed.success) {
+    return {
+      formError:
+        "That code could not be verified. Request a new code and try again.",
+      verified: false,
+    };
+  }
+  const supabase = await getSupabaseServerClient();
+  const { error } = await supabase.auth.verifyOtp({
+    email: parsed.data.email,
+    token: parsed.data.token,
+    type: "email",
+  });
+  if (error) {
+    return {
+      formError:
+        "That code could not be verified. Request a new code and try again.",
+      verified: false,
+    };
+  }
+  await new CustomerRepository(supabase).linkMyAccounts();
+  return { verified: true };
+}
+
+export async function enrollPassword(
+  _prevState: PasswordEnrollmentFormState,
+  formData: FormData,
+): Promise<PasswordEnrollmentFormState> {
+  const parsed = enrollPasswordInputSchema.safeParse({
+    password: formData.get("password"),
+    passwordConfirmation: formData.get("passwordConfirmation"),
+    redirectTo: formData.get("redirectTo") || undefined,
+  });
+  if (!parsed.success) {
+    return { formError: "Use matching passwords with at least 12 characters." };
+  }
+  const supabase = await getSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user)
+    return { formError: "Your confirmation has expired. Please start again." };
+  const { error } = await supabase.auth.updateUser({
+    password: parsed.data.password,
+  });
+  if (error) {
+    return { formError: "We could not set that password. Please try again." };
+  }
+  await new CustomerRepository(supabase).linkMyAccounts();
+  redirect(parsed.data.redirectTo ?? "/dashboard");
+}
+
+/** Completes a recovery-link session. The recovery confirmation route has
+ * already verified the one-time token; still require its resulting user here
+ * so a direct visit to the public page cannot change a password. */
+export async function updateRecoveredPassword(
+  _prevState: RecoveryPasswordFormState,
+  formData: FormData,
+): Promise<RecoveryPasswordFormState> {
+  const parsed = enrollPasswordInputSchema.safeParse({
+    password: formData.get("password"),
+    passwordConfirmation: formData.get("passwordConfirmation"),
+  });
+  if (!parsed.success) {
+    return { formError: "Use matching passwords with at least 12 characters." };
+  }
+
+  const supabase = await getSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return {
+      formError: "Your password-reset link has expired. Request a new one.",
+    };
+  }
+
+  const { error } = await supabase.auth.updateUser({
+    password: parsed.data.password,
+  });
+  if (error) {
+    return {
+      formError: "We could not update that password. Please try again.",
+    };
+  }
+  redirect("/dashboard");
 }
 
 const isRealProduction =
@@ -183,6 +552,8 @@ export async function signIn(formData: FormData): Promise<void> {
     redirect("/login?error=invalid_credentials");
   }
 
+  await new CustomerRepository(supabase).linkMyAccounts();
+
   const session = resolveAppSession(data.user);
   const destination = destinationFor(session);
 
@@ -258,8 +629,10 @@ export async function signInInline(
     password: parsed.data.password,
   });
   if (error) {
-    return { formError: "That email and password don't match an account." };
+    return { formError: "Those sign-in details could not be verified." };
   }
+
+  await new CustomerRepository(supabase).linkMyAccounts();
 
   redirect(parsed.data.redirectTo ?? "/dashboard");
 }

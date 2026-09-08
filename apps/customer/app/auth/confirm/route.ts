@@ -4,18 +4,20 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 /**
- * Only "magiclink" is issued today (Customer Portal login is
- * passwordless-only, per docs/PRODUCT.md — no OAuth provider is wired
- * up, since that needs external provider credentials this session
- * doesn't have; see docs/PROJECT_STATE.md). Deliberately a local
+ * Email signup, magic-link sign-in, and password recovery all land here.
+ * Deliberately a local
  * literal type, not `@supabase/supabase-js`'s `EmailOtpType` — see
  * apps/retailer/app/auth/confirm/route.ts for why.
  */
-const ALLOWED_TYPES = ["magiclink"] as const;
+const ALLOWED_TYPES = ["magiclink", "recovery", "signup"] as const;
 type ConfirmationType = (typeof ALLOWED_TYPES)[number];
 
 function isAllowedType(value: string | null): value is ConfirmationType {
   return (ALLOWED_TYPES as readonly string[]).includes(value ?? "");
+}
+
+function safeInternalPath(value: string): string | null {
+  return value.startsWith("/") && !/^\/[/\\]/.test(value) ? value : null;
 }
 
 /**
@@ -32,11 +34,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const { searchParams, origin } = request.nextUrl;
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type");
-  const nextRaw = searchParams.get("next") ?? "/dashboard";
-  const next =
-    nextRaw.startsWith("/") && !nextRaw.startsWith("//")
-      ? nextRaw
-      : "/dashboard";
+  const next = safeInternalPath(searchParams.get("next") ?? "") ?? "/dashboard";
 
   if (!tokenHash || !isAllowedType(type)) {
     return NextResponse.redirect(`${origin}/login?error=invalid_invite`);
@@ -52,7 +50,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.redirect(`${origin}/login?error=invalid_invite`);
   }
 
-  await new CustomerRepository(supabase).linkMyAccounts();
+  // Linking is an account-claim operation, so only a genuine sign-in link
+  // receives it. Recovery and signup confirmations merely establish the
+  // Auth session and must not create or attach customer records.
+  if (type === "magiclink") {
+    await new CustomerRepository(supabase).linkMyAccounts();
+  }
 
-  return NextResponse.redirect(`${origin}${next}`);
+  // Recovery URLs always land on the dedicated public password-update page;
+  // never accept a destination from an email URL for this sensitive flow.
+  return NextResponse.redirect(
+    `${origin}${type === "recovery" ? "/account/update-password" : next}`,
+  );
 }
