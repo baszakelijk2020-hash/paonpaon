@@ -25,7 +25,7 @@ export function StoreVisitCard({ storeHref }: StoreVisitCardProps) {
       }}
     >
       Visit in-store
-        <img
+      <img
         src="https://www.nebelspiegel.com/images/store100.png"
         alt=""
         aria-hidden="true"

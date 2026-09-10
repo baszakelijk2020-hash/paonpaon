@@ -88,7 +88,7 @@ export async function ShopCategorySidebar() {
       // Raster marks cannot take currentColor, so they are tinted instead. Both source
       // PNGs are pure white, and 181/255 = .71 is the same #b5b5b2 the vector glyphs
       // inherit — so the whole row stays one colour.
-        <img
+      <img
         src={d}
         alt=""
         aria-hidden="true"
