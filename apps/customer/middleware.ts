@@ -79,6 +79,18 @@ function redirectWithCookies(url: URL, from: NextResponse): NextResponse {
 
 const PWA_METADATA_PATHS = ["/manifest.webmanifest", "/icon", "/apple-icon"];
 
+/** The eight account tabs and the id /hub selects them by. */
+const ACCOUNT_TAB_PATHS: Record<string, string> = {
+  "/dashboard": "dashboard",
+  "/wardrobe": "wardrobe",
+  "/appointments": "appointments",
+  "/orders": "orders",
+  "/digital-fitting-room": "digital-fitting-room",
+  "/loyalty": "loyalty",
+  "/account": "account",
+  "/private-offers": "private-offers",
+};
+
 export async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith(SERVER_TO_SERVER_PATH_PREFIX)) {
     return NextResponse.next({ request });
@@ -86,6 +98,24 @@ export async function middleware(request: NextRequest) {
 
   if (PWA_METADATA_PATHS.includes(request.nextUrl.pathname)) {
     return NextResponse.next({ request });
+  }
+
+  /*
+   * The eight account tabs are served by /hub, which renders them all together
+   * so switching between them is a class toggle rather than eight separate
+   * server renders. Landing on one of their own routes redirects into the hub
+   * with that tab selected.
+   *
+   * /hub itself is not in this list, so there is no loop — and the hub imports
+   * these pages as components rather than navigating to them, so middleware
+   * never sees those and they keep working as the panels.
+   */
+  const hubTab = ACCOUNT_TAB_PATHS[request.nextUrl.pathname];
+  if (hubTab) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/hub";
+    url.searchParams.set("tab", hubTab);
+    return NextResponse.redirect(url);
   }
 
   let response = NextResponse.next({ request });
