@@ -7,15 +7,15 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 import { usePaonEnvironment } from "./environment-store";
 
 /**
- * Fast enough to read as a toggle rather than a journey. The move used to take
- * 0.42s and felt like waiting for it.
+ * A 100px left-origin focus reveal for the My PAON environment.
  */
-const DURATION = 0.22;
-
-/** The founder's own reveal, from the product grid: blur 14px, 22px of rise. */
-const BLUR = "blur(14px)";
+const ENTER_DURATION = 0.24;
+const ENTER_OPACITY_DURATION = 0.12;
+const EXIT_DURATION = 0.2;
+const PRODUCT_BLUR_DURATION = 0.9;
+const STOREFRONT_BLUR_DURATION = 1.3;
+const PRODUCT_BLUR = "blur(14px)";
 const SHARP = "blur(0px)";
-const RISE = 22;
 
 /**
  * Slides the customer environment out from behind the left sidebar, over the
@@ -27,11 +27,9 @@ const RISE = 22;
  * over another that never goes anywhere. Nothing is fetched, nothing is
  * routed, nothing is remounted; the only thing that changes is a transform.
  *
- * The panel arrives the way the founder's product grid arrives: out of a blur,
- * lifting, coming up to full opacity — `#product-grid .grid-card` in
- * paon-template.html, whose numbers (14px of blur, 22px of rise, the
- * .22/.61/.36/1 curve) are the ones used here. Only compositor properties are
- * touched — transform, opacity, filter — so the move never reaches layout.
+ * The panel begins 100px left of its final position, then shoots right into
+ * place from zero opacity and a product-card blur. It never moves vertically
+ * or scales.
  */
 export function EnvironmentTransition() {
   const pathname = usePathname();
@@ -50,15 +48,13 @@ export function EnvironmentTransition() {
     overlay.inert = inStore;
 
     const away = {
-      xPercent: -100,
-      y: RISE,
+      x: -100,
       opacity: 0,
-      filter: BLUR,
+      filter: PRODUCT_BLUR,
       force3D: true,
     };
     const here = {
-      xPercent: 0,
-      y: 0,
+      x: 0,
       opacity: 1,
       filter: SHARP,
       force3D: true,
@@ -72,10 +68,14 @@ export function EnvironmentTransition() {
       return;
     }
 
-    const duration = window.matchMedia("(prefers-reduced-motion: reduce)")
-      .matches
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const duration = reducedMotion
       ? 0
-      : DURATION;
+      : inStore
+        ? EXIT_DURATION
+        : ENTER_DURATION;
 
     // A switch pressed mid-switch continues from where the panel actually is,
     // rather than restarting from the far end.
@@ -84,15 +84,75 @@ export function EnvironmentTransition() {
     // this size is re-rastered on every window-resize frame, and the storefront
     // shows through while it is being redrawn.
     overlay.style.willChange = "transform, opacity, filter";
-    gsap.to(overlay, {
-      ...(inStore ? away : here),
-      duration,
-      // Out of the gate immediately, settling rather than easing in — the
-      // gesture should be over before it is thought about.
-      ease: inStore ? "power2.in" : "expo.out",
-      overwrite: "auto",
+    const target = inStore ? away : here;
+    const transition = gsap.timeline({
       onComplete: () => {
         overlay.style.willChange = "";
+      },
+    });
+    if (inStore) {
+      transition.to(
+        overlay,
+        {
+          x: target.x,
+          opacity: target.opacity,
+          duration,
+          ease: "power3.in",
+          force3D: true,
+        },
+        0,
+      );
+    } else {
+      transition
+        .to(
+          overlay,
+          {
+            x: target.x,
+            duration,
+            ease: "power4.out",
+            force3D: true,
+          },
+          0,
+        )
+        .to(
+          overlay,
+          {
+            opacity: target.opacity,
+            duration: reducedMotion ? 0 : ENTER_OPACITY_DURATION,
+            ease: "power2.out",
+          },
+          0,
+        );
+    }
+    transition.to(
+      overlay,
+      {
+        filter: target.filter,
+        duration: inStore ? EXIT_DURATION : PRODUCT_BLUR_DURATION,
+        ease: inStore ? "power3.in" : "power3.out",
+      },
+      0,
+    );
+
+    const storefront = document.querySelector<HTMLElement>(
+      ".paon-template-root",
+    );
+    if (!storefront) return;
+
+    gsap.killTweensOf(storefront);
+    if (!inStore) {
+      gsap.set(storefront, { filter: PRODUCT_BLUR });
+      return;
+    }
+
+    storefront.style.willChange = "filter";
+    gsap.to(storefront, {
+      filter: SHARP,
+      duration: reducedMotion ? 0 : STOREFRONT_BLUR_DURATION,
+      ease: "power3.out",
+      overwrite: "auto",
+      onComplete: () => {
+        storefront.style.willChange = "";
       },
     });
   }, [inStore]);
@@ -118,8 +178,8 @@ export function EnvironmentTransition() {
         gsap.set(
           overlay,
           inStore
-            ? { xPercent: -100, y: RISE, opacity: 0, filter: BLUR }
-            : { xPercent: 0, y: 0, opacity: 1, filter: SHARP },
+            ? { x: -100, opacity: 0, filter: PRODUCT_BLUR }
+            : { x: 0, opacity: 1, filter: SHARP },
         );
       });
     };

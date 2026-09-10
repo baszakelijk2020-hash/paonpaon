@@ -46,7 +46,7 @@ enable_signup = true
 [auth.email]
 enable_signup = true
 double_confirm_changes = true
-enable_confirmations = false
+enable_confirmations = true
 
 # Uses {{ .RedirectTo }} (set per invite call, e.g.
 # `${retailerAppUrl}/auth/confirm`) rather than the fixed
@@ -57,12 +57,11 @@ enable_confirmations = false
 subject = "You've been invited to PAON"
 content_path = "./supabase/templates/invite.html"
 
-# Customer Portal login is passwordless (docs/PRODUCT.md) — this is the
-# only sign-in path it has. Same {{ .RedirectTo }} reasoning as above;
-# set via signInWithOtp's emailRedirectTo
-# (apps/customer/app/login/actions.ts).
+# Customer Portal uses the numeric {{ .Token }} email OTP for both existing
+# sign-in and first-account confirmation. The application verifies it with
+# verifyOtp({ email, token, type: "email" }) before allowing password setup.
 [auth.email.template.magic_link]
-subject = "Sign in to PAON"
+subject = "Your PAON confirmation code"
 content_path = "./supabase/templates/magic-link.html"
 
 [edge_runtime]

@@ -1,6 +1,5 @@
 import {
   CustomerFactRepository,
-  CustomerRepository,
   MorningRoutineDeliveryRepository,
   MorningRoutineRepository,
   RetailerRepository,
@@ -13,6 +12,7 @@ import { MorningRoutineDeliveryPanel } from "./delivery-panel";
 import { MorningRoutinePanel } from "./routine-panel";
 import { UpcomingOccasionsCard } from "./upcoming-occasions-card";
 
+import { getCustomersForUser } from "@/lib/customer-context";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -37,9 +37,7 @@ export async function RoutineSections() {
   const supabase = await getSupabaseServerClient();
   const forDate = todayUtcDate();
 
-  const customers = await new CustomerRepository(supabase).findByUserId(
-    session.userId,
-  );
+  const customers = await getCustomersForUser(session.userId);
   const retailerRepo = new RetailerRepository(supabase);
   const routineRepo = new MorningRoutineRepository(supabase);
   const deliveryRepo = new MorningRoutineDeliveryRepository(supabase);

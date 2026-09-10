@@ -207,5 +207,10 @@
 
 /* The storefront begins exactly at the sidebar edge on the home feed. */
 .paon-template-root #view-home {
-  padding-left: 0 !important;
+  padding-left: 7px !important;
+  padding-right: 7px !important;
+}
+
+.paon-template-root.home-view-active {
+  background: #161616;
 }

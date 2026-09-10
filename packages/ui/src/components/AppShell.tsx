@@ -60,7 +60,7 @@ function SidebarGroups({
   const activeGroup = activeGroupFor(groups, pathname);
 
   return (
-    <nav aria-label="Primary" className="flex flex-col gap-0.5">
+    <nav aria-label="Primary" className="flex flex-col gap-px">
       {groups.map((group) => {
         const active = group.label === activeGroup?.label;
         const target = group.items[0]?.href ?? "#";
@@ -71,22 +71,20 @@ function SidebarGroups({
             {...(active ? { "aria-current": "page" as const } : {})}
             {...(onNavigate ? { onClick: onNavigate } : {})}
             className={cn(
-              "group relative rounded-[var(--radius-md)] px-3 py-2.5 text-[13px] transition-[background-color,color,transform] duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)]",
+              "group relative flex h-8 items-center pl-2.5 pr-3 text-[13px] leading-none transition-[color,opacity,transform] duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)]",
               active
-                ? "bg-white/[0.09] text-white"
-                : "text-white/55 hover:translate-x-0.5 hover:bg-white/[0.04] hover:text-white/85",
+                ? "text-[#d9d9d9] opacity-100"
+                : "text-[#c4c4c1] opacity-[0.76] hover:translate-x-[3px] hover:text-[#d9d9d9] hover:opacity-90",
             )}
           >
             <span
               aria-hidden="true"
               className={cn(
-                "absolute inset-y-3 left-0 w-px bg-white transition-opacity",
-                active ? "opacity-70" : "opacity-0",
+                "absolute left-0 top-1/2 h-px -translate-y-1/2 bg-[rgba(217,217,217,0.72)] transition-all",
+                active ? "w-3 opacity-100" : "w-0 opacity-0",
               )}
             />
-            <span className="font-display block uppercase tracking-[0.08em]">
-              {group.label}
-            </span>
+            {group.label}
           </Link>
         );
       })}
@@ -215,39 +213,42 @@ export function AppShell({
 
   return (
     <div className="min-h-screen bg-[var(--color-stone-50)] text-[var(--color-stone-900)]">
-      <aside className="fixed inset-y-0 left-0 z-50 hidden w-64 grid-rows-[4.5rem_1fr_auto] overflow-hidden bg-[linear-gradient(110deg,#333_0%,#171716_72%)] text-white lg:grid">
+      <aside className="fixed inset-y-0 left-0 z-50 hidden w-[250px] grid-rows-[4.5rem_1fr_auto] overflow-hidden bg-[linear-gradient(to_right,#333,#1a1a1a)] text-white lg:grid">
         <Link
           href={homeHref}
-          className="flex items-center border-b border-white/10 px-7"
+          className="flex items-center justify-center gap-3 border-b border-white/10 px-6"
         >
-          <span className="font-display text-xl tracking-[0.14em]">
+          <span className="font-display text-[19px] leading-none tracking-[0.14em]">
             {brand}
           </span>
-          <span className="ml-3 border-l border-white/20 pl-3 text-[9px] uppercase tracking-[0.18em] text-white/45">
+          <span className="border-l border-white/15 pl-3 text-[8px] uppercase leading-[1.2] tracking-[0.18em] text-white/40">
             {product}
           </span>
         </Link>
-        <div className="overflow-y-auto px-4 py-9">
+        <div className="overflow-y-auto px-[25px] pb-7 pt-[52px]">
+          <p className="font-accent mb-2.5 text-[7px] uppercase leading-none tracking-[0.02em] text-[#b5b5b2]">
+            Navigation
+          </p>
           <SidebarGroups groups={navigation} />
         </div>
-        <div className="border-t border-white/10 bg-black/10 px-7 py-6">
+        <div className="border-t border-white/10 bg-black/10 px-[25px] py-6">
           <p className="font-accent text-[7px] uppercase tracking-[0.16em] text-white/35">
             Signed in as
           </p>
           <p
-            className="font-display mt-2 text-sm text-white/90"
+            className="font-display mt-2 text-[13px] text-white/85"
             {...(personaTitle ? { title: personaTitle } : {})}
           >
             {persona}
           </p>
-          <p className="mt-1 truncate text-[10px] text-white/40">{email}</p>
-          <div className="mt-4 [&_button]:!h-8 [&_button]:!px-0 [&_button]:!text-white/55 hover:[&_button]:!bg-transparent hover:[&_button]:!text-white">
+          <p className="mt-1 truncate text-[11px] text-white/40">{email}</p>
+          <div className="mt-3 [&_button]:!h-auto [&_button]:!px-0 [&_button]:!py-0 [&_button]:!text-[12px] [&_button]:!font-normal [&_button]:!text-[#808080] hover:[&_button]:!bg-transparent hover:[&_button]:!text-white">
             {signOutControl}
           </div>
         </div>
       </aside>
 
-      <div className="lg:pl-64">
+      <div className="lg:pl-[250px]">
         <header className="glass-panel sticky top-0 z-40 border-b border-black/[0.07]">
           <div className="flex h-16 items-center justify-between px-4 sm:px-7 lg:h-[4.5rem] lg:px-10">
             <div className="flex items-center gap-4">
@@ -346,7 +347,7 @@ export function AppShell({
             onClick={() => setMenuOpen(false)}
             className="absolute inset-0 bg-black/55 backdrop-blur-sm"
           />
-          <aside className="absolute inset-y-0 left-0 grid w-[min(86vw,22rem)] grid-rows-[4.5rem_1fr_auto] overflow-hidden bg-[linear-gradient(110deg,#333_0%,#171716_72%)] text-white shadow-[20px_0_60px_rgba(0,0,0,.35)]">
+          <aside className="absolute inset-y-0 left-0 grid w-[min(86vw,22rem)] grid-rows-[4.5rem_1fr_auto] overflow-hidden bg-[linear-gradient(to_right,#333,#1a1a1a)] text-white shadow-[20px_0_60px_rgba(0,0,0,.35)]">
             <div className="flex items-center justify-between border-b border-white/10 px-6">
               <Link
                 href={homeHref}

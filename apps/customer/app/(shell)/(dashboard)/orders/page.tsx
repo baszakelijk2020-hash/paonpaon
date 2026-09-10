@@ -1,5 +1,4 @@
 import {
-  CustomerRepository,
   OrderRepository,
   ProductRepository,
   ProductVariantRepository,
@@ -15,6 +14,7 @@ import { buildCategorizedCatalogue } from "../wardrobe/complete-the-look-catalog
 
 import { SeasonalStaffFavourites } from "./seasonal-staff-favourites";
 
+import { getCustomersForUser } from "@/lib/customer-context";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -276,9 +276,7 @@ export default async function OrdersPage() {
   const session = await requireSession();
   const supabase = await getSupabaseServerClient();
 
-  const customers = await new CustomerRepository(supabase).findByUserId(
-    session.userId,
-  );
+  const customers = await getCustomersForUser(session.userId);
   const orderRepo = new OrderRepository(supabase);
   const retailerRepo = new RetailerRepository(supabase);
   const variantRepo = new ProductVariantRepository(supabase);

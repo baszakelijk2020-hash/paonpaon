@@ -1,7 +1,6 @@
 import {
   CampaignRepository,
   CustomerConsentRepository,
-  CustomerRepository,
   ProductRepository,
   RetailerRepository,
   StyleProfileRepository,
@@ -26,6 +25,7 @@ import {
   saveCampaignChallengeLook,
 } from "./actions";
 
+import { getCustomersForUser } from "@/lib/customer-context";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -42,9 +42,7 @@ const DAY_LABELS = [
 export default async function PrivateOffersPage() {
   const session = await requireSession();
   const supabase = await getSupabaseServerClient();
-  const customers = await new CustomerRepository(supabase).findByUserId(
-    session.userId,
-  );
+  const customers = await getCustomersForUser(session.userId);
   const campaignRepo = new CampaignRepository(supabase);
   const retailerRepo = new RetailerRepository(supabase);
   const consentRepo = new CustomerConsentRepository(supabase);

@@ -2,6 +2,7 @@ import "server-only";
 
 import { createSupabaseServerClient } from "@paon/database";
 import { cookies } from "next/headers";
+import { cache } from "react";
 
 import { env } from "./env";
 
@@ -12,21 +13,23 @@ import { env } from "./env";
  * cookies (middleware refreshes the session cookie on the next request
  * instead) — the documented @supabase/ssr Next.js App Router pattern.
  */
-export async function getSupabaseServerClient() {
-  const cookieStore = await cookies();
+export const getSupabaseServerClient = cache(
+  async function getSupabaseServerClient() {
+    const cookieStore = await cookies();
 
-  return createSupabaseServerClient(env.supabaseUrl, env.supabaseAnonKey, {
-    getAll() {
-      return cookieStore.getAll();
-    },
-    setAll(cookiesToSet) {
-      try {
-        cookiesToSet.forEach(({ name, value, options }) => {
-          cookieStore.set(name, value, options);
-        });
-      } catch {
-        // Called from a Server Component — no response to write to.
-      }
-    },
-  });
-}
+    return createSupabaseServerClient(env.supabaseUrl, env.supabaseAnonKey, {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
+        } catch {
+          // Called from a Server Component — no response to write to.
+        }
+      },
+    });
+  },
+);

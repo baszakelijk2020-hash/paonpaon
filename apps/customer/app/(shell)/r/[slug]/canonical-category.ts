@@ -8,6 +8,7 @@ export const CANONICAL_CATEGORIES = [
   "Outerwear",
   "Evening",
   "Wedding",
+  "Accessories",
 ] as const;
 
 export const CATEGORY_KEYWORDS: Record<
@@ -52,6 +53,26 @@ export const CATEGORY_KEYWORDS: Record<
   Outerwear: ["overcoat", "parka", "topcoat"],
   Evening: ["tuxedo", "evening", "black tie", "dinner jacket"],
   Wedding: ["wedding", "groom"],
+  // Names with no real garment type — worn/carried extras. Kept in sync with
+  // NON_GARMENT_NAME_HINTS below (same list, single source).
+  Accessories: [
+    "pocket square",
+    "tie",
+    "cufflink",
+    "belt",
+    "briefcase",
+    "bag",
+    "wallet",
+    "satchel",
+    "tote",
+    "pouch",
+    "watch",
+    "sunglasses",
+    "hat",
+    "scarf",
+    "glove",
+    "sock",
+  ],
 };
 
 /**
@@ -70,6 +91,7 @@ export const CATEGORY_KEYWORDS: Record<
  * cloth, so it is only consulted once nothing else has settled the garment.
  */
 const UNAMBIGUOUS_CATEGORY_ORDER = [
+  "Accessories",
   "Shoes",
   "Evening",
   "Wedding",
@@ -83,22 +105,7 @@ const UNAMBIGUOUS_CATEGORY_ORDER = [
 /** Names with no real garment type at all (accessories) shouldn't fall
  * into the Suits/Jackets id-range guess just because they reuse one of
  * those fabrics' product photography. */
-const NON_GARMENT_NAME_HINTS = [
-  "pocket square",
-  "tie",
-  "cufflink",
-  "belt",
-  "briefcase",
-  "bag",
-  "wallet",
-  "satchel",
-  "tote",
-  "pouch",
-  "watch",
-  "sunglasses",
-  "hat",
-  "scarf",
-];
+const NON_GARMENT_NAME_HINTS = CATEGORY_KEYWORDS.Accessories;
 
 /**
  * The founder's own real catalog (`paon.html`) numbers suit fabrics

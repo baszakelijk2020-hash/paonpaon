@@ -115,10 +115,10 @@ test("customer layer toggles without navigation or storefront state loss", async
       "#paon-context-switcher .pcs-mypaon",
     );
     if (!layer || !button) throw new Error("overlay controls are missing");
-    const initial = getComputedStyle(layer).transform;
+    const initialOpacity = getComputedStyle(layer).opacity;
     const startedAt = performance.now();
     button.click();
-    while (getComputedStyle(layer).transform === initial) {
+    while (getComputedStyle(layer).opacity === initialOpacity) {
       if (performance.now() - startedAt > 100) return 101;
       await new Promise(requestAnimationFrame);
     }
@@ -138,7 +138,7 @@ test("customer layer toggles without navigation or storefront state loss", async
       ]);
       return Math.abs(customerLeft - sidebarRight);
     })
-    .toBeLessThan(0.5);
+    .toBeLessThan(0.01);
 
   const geometry = await page.evaluate(() => {
     const layer = document.querySelector<HTMLElement>(
@@ -155,7 +155,9 @@ test("customer layer toggles without navigation or storefront state loss", async
       filter: getComputedStyle(layer).filter,
     };
   });
-  expect(geometry.customerLeft).toBe(geometry.sidebarRight);
+  expect(Math.abs(geometry.customerLeft - geometry.sidebarRight)).toBeLessThan(
+    0.01,
+  );
   // Settled at the near end: fully opaque and sharp, whatever the entry did.
   expect(geometry.opacity).toBe("1");
   expect(geometry.filter).toBe("blur(0px)");
@@ -209,9 +211,9 @@ test("customer layer toggles without navigation or storefront state loss", async
   expect(navigationRequests).toBe(0);
   expect(rscRequests).toBe(0);
   /*
-   * The panel arrives the way the founder's product grid does — out of a blur,
-   * lifting, coming up to opacity. What matters is that the switch stays on
-   * the compositor: not one property it writes may reach layout.
+   * The panel travels horizontally from zero to full opacity while staying
+   * level. The switch stays on the compositor: not one property it writes may
+   * reach layout.
    */
   const LAYOUT_PROPERTIES = [
     "width",
@@ -322,8 +324,7 @@ test("store categories and customer tabs paint immediate feedback", async ({
   const customerLayer = page.locator("[data-paon-customer-layer]");
   const switcherPill = page.locator("[data-paon-switcher-pill]");
   await expect(switcherPill).toBeVisible();
-  // The switch is a 220ms blur-fade in each direction; what matters is that it
-  // finishes at its end state rather than what it looks like mid-flight.
+  // The switch uses the jacket-detail power slide and opacity reveal.
   await page.locator("#paon-context-switcher .pcs-mypaon").click();
   await expect(customerLayer).toHaveCSS("opacity", "1");
   await expect(customerLayer).toHaveCSS("filter", "blur(0px)");

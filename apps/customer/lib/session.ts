@@ -8,19 +8,34 @@ import {
   type AppSession,
 } from "@paon/auth";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 
 import { getSupabaseServerClient } from "./supabase-server";
 
-export async function getSession(): Promise<AppSession | null> {
-  const supabase = await getSupabaseServerClient();
-  const { data, error } = await supabase.auth.getUser();
+/**
+ * Deduplicated per request.
+ *
+ * Every dashboard route resolved its own session even though `(dashboard)/layout.tsx`
+ * had already resolved one for the same request — and `/dashboard` did it three times,
+ * because `RoutineSections` resolves independently again. Each of those is a real
+ * `supabase.auth.getUser()` round trip, paid on every tab switch.
+ *
+ * React's `cache()` collapses all callers within one request into a single call, so the
+ * layout, the page and any nested server component now share one result. Nothing about
+ * the call sites has to change.
+ */
+export const getSession = cache(
+  async function getSession(): Promise<AppSession | null> {
+    const supabase = await getSupabaseServerClient();
+    const { data, error } = await supabase.auth.getUser();
 
-  if (error || !data.user) {
-    return null;
-  }
+    if (error || !data.user) {
+      return null;
+    }
 
-  return resolveAppSession(data.user);
-}
+    return resolveAppSession(data.user);
+  },
+);
 
 /** Server Component / Server Action guard: redirects to /login instead of throwing when unauthenticated. */
 export async function requireSession(): Promise<

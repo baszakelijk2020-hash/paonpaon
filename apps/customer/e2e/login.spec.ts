@@ -1,12 +1,7 @@
-import { createSupabaseAdminClient } from "@paon/database";
 import { DEMO_PASSWORD, seedDemoData } from "@paon/database/demo-seed";
 import { expect, test } from "@playwright/test";
 
-import {
-  AUTH_DELIVERABLE_DOMAIN,
-  TEST_CUSTOMER_EMAIL,
-  TEST_RETAILER_DISPLAY_NAME,
-} from "./fixtures";
+import { AUTH_DELIVERABLE_DOMAIN, TEST_CUSTOMER_EMAIL } from "./fixtures";
 
 // Its own empty context. /dashboard deliberately offers a private-client
 // preview before sign-in; the contract is that no private account data leaks
@@ -82,56 +77,60 @@ test.describe("unauthenticated dashboard shop shell", () => {
   });
 });
 
-test("requesting a sign-in link shows a confirmation, not an error", async ({
+test("an unknown email presents only confirmation-code account creation", async ({
   page,
 }) => {
   await page.goto("/login");
   await page
     .getByLabel("Email")
     .fill(`e2e-new-shopper-${Date.now()}@${AUTH_DELIVERABLE_DOMAIN}`);
-  await page.getByRole("button", { name: "Send sign-in link" }).click();
-  await expect(page.getByRole("status")).toContainText("Check");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page.getByRole("status")).toContainText(
+    "6-digit confirmation code",
+  );
+  await expect(page.getByLabel("6-digit confirmation code")).toBeVisible();
+  await expect(page.getByLabel("Password")).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Send a new code" }),
+  ).toBeVisible();
+  expect(page.url()).not.toContain("e2e-new-shopper-");
 });
 
-/**
- * Signs in via a real `verifyOtp` call against a token
- * `admin.auth.admin.generateLink` returns synchronously — the same
- * token a real magic-link email would carry — rather than reading the
- * email out of the local Inbucket mailer. This exercises the actual
- * `/auth/confirm` route and `link_my_customer_accounts` RPC end to
- * end; `apps/retailer/e2e/accept-invite.spec.ts` uses the same
- * technique for its invite flow.
- */
-test("an existing customer signs in and sees their linked retailer", async ({
+test("a known email presents only password sign-in and retains a safe local URL", async ({
   page,
 }) => {
   const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
+  const anonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"];
   const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
-  if (!supabaseUrl || !serviceRoleKey) {
+  if (!supabaseUrl || !anonKey || !serviceRoleKey) {
     throw new Error(
-      "requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
+      "Known-email login test requires the local Supabase variables.",
     );
   }
-  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+  await seedDemoData({ supabaseUrl, anonKey, serviceRoleKey });
 
-  const { data, error } = await admin.auth.admin.generateLink({
-    type: "magiclink",
-    email: TEST_CUSTOMER_EMAIL,
-  });
-  if (error || !data.properties) {
-    throw new Error(
-      `Failed to generate magic link: ${error?.message ?? "unknown error"}`,
-    );
-  }
+  await page.goto("/login?redirectTo=%2Fdashboard");
+  await page.getByLabel("Email").fill("contact+isabelle@nebelspiegel.com");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page.getByRole("status")).toContainText("Enter your password");
+  await expect(page.getByLabel("Password")).toBeVisible();
+  await expect(page.getByLabel("6-digit confirmation code")).toHaveCount(0);
+  expect(page.url()).not.toContain("contact%2Bisabelle");
+});
 
-  await page.goto(
-    `/auth/confirm?token_hash=${data.properties.hashed_token}&type=magiclink`,
-  );
-
-  await expect(page).toHaveURL(/\/dashboard$/);
+test("email recognition rejects an external redirect before branching", async ({
+  page,
+}) => {
+  await page.goto("/login?redirectTo=%2F%2Fevil.example");
+  await page
+    .getByLabel("Email")
+    .fill(`safe-${Date.now()}@${AUTH_DELIVERABLE_DOMAIN}`);
+  await page.getByRole("button", { name: "Continue" }).click();
   await expect(
-    page.getByText(TEST_RETAILER_DISPLAY_NAME, { exact: true }),
-  ).toBeVisible();
+    page.getByText("Enter a valid email address and password."),
+  ).toHaveCount(0);
+  await expect(page.getByText("Enter a valid email address.")).toBeVisible();
+  await expect(page).toHaveURL(/\/login\?redirectTo=%2F%2Fevil\.example$/);
 });
 
 test("a seeded private-client persona has deterministic demo access", async ({

@@ -18,16 +18,65 @@ interface ContextSwitcherProps {
 const SEGMENT: React.CSSProperties = {
   position: "relative",
   zIndex: 1,
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: "4px",
   fontFamily: "GTBold3, Arial, sans-serif",
   fontSize: "7px",
   textTransform: "uppercase",
   letterSpacing: "0.04em",
   textDecoration: "none",
-  padding: "7px 16px",
+  padding: "8px 14px 12px",
   borderRadius: "999px",
   lineHeight: 1,
+  whiteSpace: "nowrap",
   transition: "color 220ms ease",
 };
+
+/** Solid garment bag with a cut-out centre zipper. */
+function ShoppingIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 20 20"
+      style={{
+        width: "14px",
+        height: "14px",
+        display: "block",
+      }}
+    >
+      <path
+        d="M10 1.5a2.2 2.2 0 0 0-2.2 2.2v.7L3.8 6.2v11.6h12.4V6.2L12.2 4.4v-.7A2.2 2.2 0 0 0 10 1.5Zm0 1.5c.4 0 .7.3.7.7v.2l-.7-.3-.7.3v-.2c0-.4.3-.7.7-.7ZM9.35 7.3h1.3v8.8h-1.3Z"
+        fill="currentColor"
+        fillRule="evenodd"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+
+/** Solid wardrobe / armoire mark. */
+function WardrobeIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      style={{
+        width: "14px",
+        height: "14px",
+        display: "block",
+        fill: "currentColor",
+      }}
+    >
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M5 3.5h6v16H6a1 1 0 0 1-1-1V3.5Zm8 0h6v15a1 1 0 0 1-1 1h-5V3.5ZM8.9 7.5h1.3v9H8.9v-9Zm4.9 0h1.3v9h-1.3v-9Z"
+      />
+    </svg>
+  );
+}
 
 /**
  * The Store / My PAON switcher.
@@ -78,9 +127,9 @@ export function ContextSwitcher({ storeHref }: ContextSwitcherProps) {
       id="paon-context-switcher"
       className="paon-context-switcher flex shrink-0 items-center justify-center"
       style={{
+        marginTop: "20px",
         padding: "14px 25px",
-        background:
-          "linear-gradient(to right, rgba(255,255,255,.045), rgba(255,255,255,0)), linear-gradient(to right, #262626, #1d1d1d)",
+        background: "transparent",
       }}
     >
       <div
@@ -92,9 +141,9 @@ export function ContextSwitcher({ storeHref }: ContextSwitcherProps) {
           alignItems: "center",
           gap: 0,
           padding: "3px",
+          border: "none",
           borderRadius: "999px",
-          backgroundColor: "rgba(0,0,0,.30)",
-          border: "1px solid rgba(255,255,255,.12)",
+          background: "rgba(0,0,0,0.35)",
         }}
       >
         <span
@@ -110,9 +159,9 @@ export function ContextSwitcher({ storeHref }: ContextSwitcherProps) {
             // useLayoutEffect reveals it at the correct end before paint.
             visibility: "hidden",
             borderRadius: "999px",
-            backgroundColor: "rgba(255,255,255,.055)",
-            border: "1px solid rgba(255,255,255,.13)",
-            boxShadow: "0 1px 1px rgba(0,0,0,.22)",
+            backgroundColor: "rgba(255,255,255,.09)",
+            border: "none",
+            boxShadow: "none",
             pointerEvents: "none",
             willChange: "transform, opacity",
           }}
@@ -124,11 +173,12 @@ export function ContextSwitcher({ storeHref }: ContextSwitcherProps) {
           aria-current={inStore ? "page" : undefined}
           style={{
             ...SEGMENT,
-            width: "76px",
+            width: "96px",
             color: inStore ? "#e4e4e1" : "#8a8a87",
           }}
         >
-          Store
+          <ShoppingIcon />
+          <span style={{ position: "relative", top: "4px" }}>Store</span>
         </button>
         <button
           type="button"
@@ -137,11 +187,12 @@ export function ContextSwitcher({ storeHref }: ContextSwitcherProps) {
           aria-current={inStore ? undefined : "page"}
           style={{
             ...SEGMENT,
-            width: "76px",
+            width: "96px",
             color: inStore ? "#8a8a87" : "#e4e4e1",
           }}
         >
-          My PAON
+          <WardrobeIcon />
+          <span style={{ position: "relative", top: "4px" }}>Wardrobe</span>
         </button>
       </div>
     </div>

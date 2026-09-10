@@ -1,8 +1,11 @@
+/* eslint-disable @next/next/no-img-element -- remote artwork tinted with
+   filter(); next/image adds nothing for these and cannot optimise them. */
 import { cookies } from "next/headers";
-import Image from "next/image";
 import Link from "next/link";
 
 import { ContextSwitcher } from "./context-switcher";
+import { GuestSignInButton } from "./guest-sign-in-button";
+import { StoreVisitCard } from "./store-visit-card";
 import { StorefrontCategoryControl } from "./storefront-category-control";
 
 import { CANONICAL_CATEGORIES } from "@/app/(shell)/r/[slug]/canonical-category";
@@ -64,12 +67,77 @@ export async function ShopCategorySidebar() {
     getSession(),
   ]);
   const isSignedIn = session?.accountType === "customer";
+
+  // Tiny sidebar marks. 8px so they read as bullets beside the 7px GTBold3 labels
+  // instead of competing with them, and painted from currentColor so each one inherits
+  // its row's colour and hover state. Called as a function rather than rendered as a
+  // <NavIcon/> component so it has no component identity to remount on each render.
+  // Every icon renders into an identical 19px box so their centres line up in the
+  // column. Apparent glyph size is tuned with the viewBox, never the box size — a
+  // narrower box would shift that glyph's centre relative to its neighbours.
+  // `inset` shrinks the artwork WITHOUT shrinking the box: a smaller box would move the
+  // glyph's centre off the shared column, which is what misaligned these icons before.
+  const navIcon = (
+    d: string,
+    viewBox = "0 0 24 24",
+    size = 19,
+    inset = 0,
+    rotate = 0,
+  ) =>
+    d.startsWith("http") ? (
+      // Raster marks cannot take currentColor, so they are tinted instead. Both source
+      // PNGs are pure white, and 181/255 = .71 is the same #b5b5b2 the vector glyphs
+      // inherit — so the whole row stays one colour.
+        <img
+        src={d}
+        alt=""
+        aria-hidden="true"
+        style={{
+          width: `${size}px`,
+          height: `${size}px`,
+          display: "block",
+          flexShrink: 0,
+          objectFit: "contain",
+          boxSizing: "border-box",
+          padding: `${inset}px`,
+          transform: rotate ? `rotate(${rotate}deg)` : undefined,
+          filter: "brightness(.71)",
+        }}
+      />
+    ) : (
+      <svg
+        aria-hidden="true"
+        viewBox={viewBox}
+        style={{
+          width: `${size}px`,
+          height: `${size}px`,
+          display: "block",
+          flexShrink: 0,
+          fill: "currentColor",
+        }}
+      >
+        <path d={d} fillRule="evenodd" clipRule="evenodd" />
+      </svg>
+    );
+  const ICON_HOME =
+    "M12 2.75 2.75 10.4h2.2v10.85h5.05v-6.1h4v6.1h5.05V10.4h2.2L12 2.75Z";
+  const ICON_COLLECTION =
+    "M3 3h7.5v7.5H3V3Zm10.5 0H21v7.5h-7.5V3ZM3 13.5h7.5V21H3v-7.5Zm10.5 0H21V21h-7.5v-7.5Z";
+  const ICON_LOCATIONS =
+    "M12 2.25c-3.5 0-6.25 2.7-6.25 6.1 0 4.4 5.35 12.1 5.6 12.45a.8.8 0 0 0 1.3 0c.25-.35 5.6-8.05 5.6-12.45 0-3.4-2.75-6.1-6.25-6.1Zm0 8.6a2.4 2.4 0 1 1 0-4.8 2.4 2.4 0 0 1 0 4.8Z";
+  const ICON_HOW_IT_WORKS = "https://www.nebelspiegel.com/images/book100.png";
+  const ICON_ABOUT_US = "https://www.nebelspiegel.com/images/by1000.png";
+  const ICON_CONTACT = "https://www.nebelspiegel.com/images/mail100.png";
+
   return (
     <aside
       className="sticky top-0 hidden h-screen min-h-screen grid-rows-[60px_auto_minmax(0,1fr)_210px] self-start overflow-hidden lg:grid"
       style={{
         width: "250px",
-        background: "linear-gradient(to right, #333333, #1a1a1a)",
+        // Whole gradient lifted 10%, both stops: #333333 (51) x 1.1 -> #383838 (56),
+        // #1d1d1d (29) x 1.1 -> #202020 (32). Same multiplicative step the footer
+        // surface below already uses in the other direction.
+        background: "linear-gradient(to right, #383838, #202020)",
       }}
     >
       <StorefrontCategoryControl
@@ -78,7 +146,7 @@ export async function ShopCategorySidebar() {
         className="flex shrink-0 items-center justify-center overflow-hidden"
         style={{
           height: "60px",
-          background: "linear-gradient(to right, #1a1a1a, #1a1a1a)",
+          background: "rgba(0, 0, 0, 0.1)",
           borderRadius: 0,
         }}
       >
@@ -97,14 +165,13 @@ export async function ShopCategorySidebar() {
         className="flex flex-1 flex-col overflow-y-auto"
         style={{
           padding: "40px 25px 28px",
-          background:
-            "linear-gradient(to right, rgba(255,255,255,.043), rgba(255,255,255,0)), linear-gradient(to right, #262626, #1d1d1d)",
+          background: "transparent",
         }}
       >
         <StorefrontCategoryControl
           baseHref="/r/atelier-demo"
           category={null}
-          className="block cursor-pointer text-left uppercase transition-colors hover:text-white"
+          className="flex cursor-pointer items-center gap-[6px] text-left uppercase transition-colors hover:text-white"
           style={{
             fontFamily: "GTBold3, Arial, sans-serif",
             fontSize: "7px",
@@ -114,10 +181,13 @@ export async function ShopCategorySidebar() {
             margin: "0 0 20px 0",
           }}
         >
+          {/* Tighter viewBox, not a bigger box: the house fills more of the shared 19px
+              square, so it reads ~3px larger while its centre stays on the column. */}
+          {navIcon(ICON_HOME, "2 2 20 20")}
           Home
         </StorefrontCategoryControl>
         <p
-          className="block uppercase"
+          className="flex items-center gap-[6px] uppercase"
           style={{
             fontFamily: "GTBold3, Arial, sans-serif",
             fontSize: "7px",
@@ -127,131 +197,178 @@ export async function ShopCategorySidebar() {
             margin: "0 0 10px 0",
           }}
         >
+          {navIcon(ICON_COLLECTION)}
           Collection
         </p>
-        {categories.map((category) => (
-          <StorefrontCategoryControl
-            key={category}
-            baseHref="/r/atelier-demo"
-            category={category}
-            className="group flex items-center opacity-[.76] transition-transform duration-200 hover:translate-x-[3px] hover:opacity-100 data-[active=true]:opacity-100"
-            style={{ height: "28px", minHeight: "28px", paddingLeft: "20px" }}
-          >
-            <span
-              className="whitespace-nowrap text-[#a6a6a6] group-hover:text-[#d9d9d9]"
-              style={{
-                fontFamily: "OptimaKlein, serif",
-                fontSize: "13px",
-                lineHeight: 1,
-              }}
-            >
-              {SIDEBAR_CATEGORY_LABELS[category] ?? category}
-            </span>
-          </StorefrontCategoryControl>
-        ))}
-      </div>
-      <div
-        className="relative flex shrink-0 flex-col overflow-hidden"
-        style={{
-          background: "linear-gradient(to right, #333333, #1a1a1a)",
-          padding: "20px 25px 0",
-        }}
-      >
-        {[
-          { href: "/discover/platform", label: "How it works" },
-          { href: "/founder", label: "About Us" },
-          { href: "/consultation", label: "Contact" },
-        ].map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className="uppercase no-underline"
-            style={{
-              fontFamily: "GTBold3, Arial, sans-serif",
-              fontSize: "7px",
-              lineHeight: 1.4,
-              letterSpacing: 0,
-              color: "#b5b5b2",
-              marginBottom: "5px",
-            }}
-          >
-            {link.label}
-          </Link>
-        ))}
-        {isSignedIn ? null : (
-          <div
-            className="absolute left-5 right-5 flex items-center justify-between gap-3"
-            style={{ bottom: "20px" }}
-          >
-            <p
-              className="m-0"
-              style={{
-                fontFamily: "OptimaKlein, serif",
-                fontSize: "11px",
-                lineHeight: 1.35,
-                color: "#8f8f8c",
-              }}
-            >
-              Log in to see your pieces, fittings and invitations.
-            </p>
-            <Link
-              href="/login"
-              className="shrink-0 border border-white/20 bg-white/[0.07] no-underline transition-colors hover:bg-white/[0.14]"
-              style={{
-                padding: "7px 18px",
-                borderRadius: "999px",
-                fontFamily: "GTBold3, Arial, sans-serif",
-                fontSize: "7px",
-                letterSpacing: "0.04em",
-                textTransform: "uppercase",
-                lineHeight: 1,
-                color: "#e4e4e1",
-              }}
-            >
-              Log in
-            </Link>
-          </div>
-        )}
-        <Link
-          href="/appointments"
-          className="absolute flex items-center no-underline"
-          style={{
-            // Clear of the sign-in row when there is one; the row is the
-            // bottom-most thing in the sidebar and this sits above it.
-            bottom: isSignedIn ? "20px" : "82px",
-            left: "20px",
-            right: "20px",
-            height: "50px",
-            borderRadius: "15px",
-            background: "linear-gradient(to right, #999999, #666666)",
-            color: "#d9d9d9",
-            fontFamily: "OptimaKlein, serif",
-            fontSize: "14px",
-            padding: "0 20px",
-            justifyContent: "flex-end",
-          }}
-        >
-          <Image
-            src="https://www.nebelspiegel.com/images/calendar10.png"
-            alt=""
+        {/* The rule is a sibling of the rows, absolutely positioned, so it spans exactly
+            from the first category to the last without needing a hardcoded height. */}
+        <div className="relative flex flex-col">
+          <span
             aria-hidden="true"
-            width={20}
-            height={20}
-            unoptimized
             style={{
-              width: 20,
-              height: 20,
-              objectFit: "contain",
-              display: "block",
-              flexShrink: 0,
-              marginRight: "auto",
-              opacity: 0.75,
-              position: "relative",
-              top: -1,
+              position: "absolute",
+              // Centred under the Collection icon. That icon's 19px box starts at the
+              // same content edge as this wrapper, so its centre is 9.5px in; minus half
+              // the 3px rule gives 8px.
+              left: "8px",
+              top: 0,
+              bottom: 0,
+              width: "3px",
+              background: "rgba(255,255,255,.10)",
             }}
           />
-          Book Appointment
-        </Link>
+          {categories.map((category) => (
+            <StorefrontCategoryControl
+              key={category}
+              baseHref="/r/atelier-demo"
+              category={category}
+              className="group flex items-center opacity-[.76] transition-transform duration-200 hover:translate-x-[3px] hover:opacity-100 data-[active=true]:opacity-100"
+              // 19px icon + 6px gap puts the rows above at 25px; the extra 1px is a
+              // deliberate optical nudge so the serif category labels sit right.
+              style={{ height: "28px", minHeight: "28px", paddingLeft: "26px" }}
+            >
+              <span
+                className="whitespace-nowrap text-[#a6a6a6] group-hover:text-[#d9d9d9]"
+                style={{
+                  fontFamily: "OptimaKlein, serif",
+                  fontSize: "13px",
+                  lineHeight: 1,
+                }}
+              >
+                {SIDEBAR_CATEGORY_LABELS[category] ?? category}
+              </span>
+            </StorefrontCategoryControl>
+          ))}
+        </div>
+      </div>
+      <div className="relative flex shrink-0 flex-col">
+        <nav
+          // relative z-10 is load-bearing: the footer surface below is
+          // `absolute inset-x-0 bottom-0 h-[305px]`, so it is a positioned element that
+          // comes later in the DOM. Against a static nav it wins the paint order and
+          // covered these links completely (nav sits at y 560-665, the panel starts at
+          // y 565). Making the nav positioned lifts it back above that surface.
+          // Height grew with the 15px row spacing below: four rows of a 12px icon plus
+          // 15px margin no longer fit the old 105px and would have clipped Contact.
+          className="relative z-10 flex h-[150px] flex-col px-[25px] pt-[20px]"
+          aria-label="Storefront information"
+          style={{ transform: "translateY(-100px)" }}
+        >
+          {[
+            {
+              href: "/r/atelier-demo/locations",
+              label: "Locations",
+              icon: ICON_LOCATIONS,
+              // The pin only spans ~12.5 of a 24 viewBox, where the other glyphs span
+              // ~18, so at a shared viewBox it rendered visibly smaller. A tighter box
+              // scales it up to match them.
+              // Square box centred on the pin (x 5.75-18.25, y 2.25-20.8), tight enough
+              // that the pin fills the 19px square like the enlarged house does.
+              viewBox: "2 1.5 20 20",
+              inset: 0,
+              rotate: 0,
+            },
+            {
+              href: "/discover/platform",
+              label: "How it works",
+              icon: ICON_HOW_IT_WORKS,
+              viewBox: "0 0 24 24",
+              // 3px smaller than the 19px box, inset so the centre does not move.
+              inset: 1.5,
+              rotate: 0,
+            },
+            {
+              href: "/founder",
+              label: "About Us",
+              icon: ICON_ABOUT_US,
+              viewBox: "0 0 24 24",
+              inset: 0,
+              rotate: 0,
+            },
+            {
+              href: "/consultation",
+              label: "Contact",
+              icon: ICON_CONTACT,
+              viewBox: "0 0 24 24",
+              // 2px smaller than the 19px box.
+              inset: 1,
+              rotate: 0,
+            },
+          ].map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="flex items-center gap-[6px] uppercase no-underline"
+              style={{
+                fontFamily: "GTBold3, Arial, sans-serif",
+                fontSize: "7px",
+                lineHeight: 1.4,
+                letterSpacing: 0,
+                color: "#b5b5b2",
+                marginBottom: "15px",
+              }}
+            >
+              {navIcon(link.icon, link.viewBox, 19, link.inset, link.rotate)}
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+        {/* No background here any more. This used to paint its own surface (a gradient
+            10% darker than the sidebar), which read as a dark block over the lower left
+            of the sidebar. It is now just a positioning container for the cards. */}
+        <div className="absolute inset-x-0 bottom-0 h-[305px]">
+          {isSignedIn ? (
+            <div className="absolute" style={{ bottom: "20px", left: "20px" }}>
+              <StoreVisitCard storeHref={storeHref} />
+            </div>
+          ) : (
+            <>
+              <div
+                className="absolute"
+                style={{ bottom: "78px", left: "20px" }}
+              >
+                <StoreVisitCard storeHref={storeHref} />
+              </div>
+              <GuestSignInButton
+                className="paon-sidebar-signin absolute flex items-center justify-between no-underline transition-colors duration-[400ms] ease-out hover:bg-white/[0.1]"
+                style={{
+                  // Same footprint and vertical position as the TableService pill:
+                  // 48px tall, full pill, 20px off the bottom.
+                  bottom: "20px",
+                  left: "20px",
+                  right: "20px",
+                  height: "48px",
+                  borderRadius: "999px",
+                  background:
+                    "linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.055))",
+                  color: "#e4e4e1",
+                  fontFamily: "OptimaKlein, serif",
+                  fontSize: "14px",
+                  letterSpacing: "0.01em",
+                  padding: "0 20px",
+                }}
+              >
+                Sign in
+                <svg
+                  aria-hidden="true"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  style={{
+                    flexShrink: 0,
+                    opacity: 0.85,
+                    position: "relative",
+                    left: "3.6px",
+                  }}
+                >
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+                </svg>
+              </GuestSignInButton>
+            </>
+          )}
+        </div>
       </div>
       <style>{`
         @font-face {

@@ -1,8 +1,4 @@
-import {
-  CustomerRepository,
-  LoyaltyRepository,
-  RetailerRepository,
-} from "@paon/database";
+import { LoyaltyRepository, RetailerRepository } from "@paon/database";
 import {
   LOYALTY_TIER_LABELS,
   milestonePresentation,
@@ -17,6 +13,7 @@ import { RelatedLinks } from "../related-links";
 import { inviteFriend, joinLoyalty, redeemReward } from "./actions";
 import { BadgesShelf } from "./badges-shelf";
 
+import { getCustomersForUser } from "@/lib/customer-context";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -37,20 +34,24 @@ const REFERRAL_TONE = {
 export default async function LoyaltyPage() {
   const session = await requireSession();
   const client = await getSupabaseServerClient();
-  const customers = await new CustomerRepository(client).findByUserId(
-    session.userId,
-  );
+  const customers = await getCustomersForUser(session.userId);
   const loyalty = new LoyaltyRepository(client);
   const retailers = new RetailerRepository(client);
+  // These five are independent of one another. Awaited as object-literal fields they
+  // ran strictly one after the next — five round trips deep per customer. Batched, the
+  // whole set costs one round trip's worth of latency.
   const relationships = await Promise.all(
-    customers.map(async (customer) => ({
-      customer,
-      retailer: await retailers.findById(customer.retailerId),
-      account: await loyalty.findAccountByCustomer(customer.id),
-      rewards: await loyalty.findRewards(customer.retailerId),
-      referrals: await loyalty.findReferrals(customer.id),
-      milestones: await loyalty.findMilestoneAwardsForCustomer(customer.id),
-    })),
+    customers.map(async (customer) => {
+      const [retailer, account, rewards, referrals, milestones] =
+        await Promise.all([
+          retailers.findById(customer.retailerId),
+          loyalty.findAccountByCustomer(customer.id),
+          loyalty.findRewards(customer.retailerId),
+          loyalty.findReferrals(customer.id),
+          loyalty.findMilestoneAwardsForCustomer(customer.id),
+        ]);
+      return { customer, retailer, account, rewards, referrals, milestones };
+    }),
   );
   return (
     <div className="customer-page flex flex-col gap-6">

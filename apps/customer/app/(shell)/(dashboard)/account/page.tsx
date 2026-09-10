@@ -1,6 +1,5 @@
 import {
   CustomerPreferencesRepository,
-  CustomerRepository,
   RetailerRepository,
 } from "@paon/database";
 
@@ -9,6 +8,7 @@ import { RelatedLinks } from "../related-links";
 
 import { PreferencesForm } from "./preferences-form";
 
+import { getCustomersForUser } from "@/lib/customer-context";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -16,16 +16,17 @@ export default async function AccountPage() {
   const session = await requireSession();
   const supabase = await getSupabaseServerClient();
 
-  const customers = await new CustomerRepository(supabase).findByUserId(
-    session.userId,
-  );
+  const customers = await getCustomersForUser(session.userId);
   const retailerRepo = new RetailerRepository(supabase);
   const preferencesRepo = new CustomerPreferencesRepository(supabase);
 
   const groups = await Promise.all(
     customers.map(async (customer) => {
-      const retailer = await retailerRepo.findById(customer.retailerId);
-      const preferences = await preferencesRepo.findByCustomer(customer.id);
+      // Independent of each other — batched rather than chained.
+      const [retailer, preferences] = await Promise.all([
+        retailerRepo.findById(customer.retailerId),
+        preferencesRepo.findByCustomer(customer.id),
+      ]);
       return {
         customer,
         retailer,

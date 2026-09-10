@@ -1,5 +1,4 @@
 import {
-  CustomerRepository,
   ProductRepository,
   RetailerRepository,
   WardrobeRepository,
@@ -16,6 +15,7 @@ import {
   type OwnedCardModel,
 } from "./wardrobe-panel";
 
+import { getCustomersForUser } from "@/lib/customer-context";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -48,9 +48,7 @@ export default async function WardrobePage() {
   const supabase = await getSupabaseServerClient();
   const nowIso = new Date().toISOString();
 
-  const customers = await new CustomerRepository(supabase).findByUserId(
-    session.userId,
-  );
+  const customers = await getCustomersForUser(session.userId);
   const retailerRepo = new RetailerRepository(supabase);
   const wardrobeRepo = new WardrobeRepository(supabase);
   const roadmapRepo = new WardrobeRoadmapRepository(supabase);

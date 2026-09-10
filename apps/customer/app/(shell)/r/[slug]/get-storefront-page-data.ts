@@ -339,9 +339,10 @@ export async function getStorefrontPageData(
       );
     }),
   );
-  // Resolve the intent from the retailer-scoped product catalogue before
-  // loading variants and metadata. A category request must not pay for the
-  // full catalogue's expensive downstream projections.
+  // Resolve the requested category before loading variants and metadata. It
+  // is only the first view of the already-mounted storefront: later category
+  // changes call the template's local `showCollectionGrid`, so that template
+  // must receive the whole active catalogue in this one payload.
   const requestedCategoryHasProducts =
     !!requestedCategory &&
     activeProducts.some((product) => {
@@ -356,20 +357,7 @@ export async function getStorefrontPageData(
         ) === requestedCategory
       );
     });
-  const productsForRequest = requestedCategoryHasProducts
-    ? activeProducts.filter((product) => {
-        const collectionName = product.collectionIds
-          .map((id) => collectionNameById.get(id))
-          .find((name): name is string => Boolean(name));
-        return (
-          canonicalCategoryFor(
-            product.name,
-            collectionName,
-            product.primaryImageUrl ?? "",
-          ) === requestedCategory
-        );
-      })
-    : activeProducts;
+  const productsForRequest = activeProducts;
 
   const variantsByProduct = await variantRepo.findByProducts(
     productsForRequest.map((product) => product.id),
@@ -656,66 +644,54 @@ export async function getStorefrontPageData(
     dfrModule.innerHTML = \`
       <style>
         .paon-dfr-module {
-          margin: 24px 0;
-          padding: 20px;
-          background: linear-gradient(135deg, rgba(220, 227, 214, 0.08), rgba(255, 255, 255, 0.04));
-          border-radius: 12px;
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          box-sizing: border-box;
+          width: calc(100% - 40px);
+          height: 100px;
+          margin: 24px 20px;
+          padding: 16px;
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          overflow: hidden;
+          border: 0;
+          border-radius: 24px;
+          background: linear-gradient(118deg, #545a5d 0%, #31383b 52%, #202627 100%);
         }
-        .paon-dfr-module-heading {
-          font-size: 16px;
-          font-weight: 600;
-          margin: 0 0 16px 0;
-          line-height: 1.3;
-          letter-spacing: 0.01em;
-        }
-        .paon-dfr-module-steps {
-          list-style: none;
-          margin: 0 0 20px 0;
-          padding: 0;
-        }
-        .paon-dfr-module-step {
-          margin: 0 0 12px 0;
-          padding: 0 0 0 24px;
-          position: relative;
-          font-size: 13px;
-          line-height: 1.5;
-          color: rgba(255, 255, 255, 0.75);
-        }
-        .paon-dfr-module-step::before {
-          content: '';
-          position: absolute;
-          left: 0;
-          top: 2px;
-          width: 6px;
-          height: 6px;
-          background: rgba(220, 227, 214, 0.6);
-          border-radius: 50%;
+        .paon-dfr-module-photo {
+          width: 68px;
+          height: 68px;
+          flex: 0 0 68px;
+          overflow: hidden;
+          border-radius: 17px;
+          object-fit: cover;
+          object-position: center 18%;
         }
         .paon-dfr-module-cta {
-          display: inline-block;
-          padding: 10px 20px;
-          background: #dce3d6;
-          color: #182018;
+          display: flex;
+          min-width: 0;
+          height: 42px;
+          flex: 1;
+          align-items: center;
+          justify-content: center;
+          padding: 0 14px;
+          background: rgba(255, 255, 255, 0.94);
+          color: #252a2b;
           text-decoration: none;
-          border: none;
-          border-radius: 15px;
-          font-size: 13px;
-          font-weight: 500;
+          border-radius: 21px;
+          font-size: 10px;
+          font-weight: 600;
+          letter-spacing: 0.08em;
+          white-space: nowrap;
           cursor: pointer;
-          transition: background-color 200ms ease;
+          transition: background-color 400ms ease, color 400ms ease;
         }
         .paon-dfr-module-cta:hover {
-          background: white;
+          background: #ffffff;
+          color: #111516;
         }
       </style>
-      <div class="paon-dfr-module-heading">Try in Digital Fitting Room</div>
-      <ol class="paon-dfr-module-steps">
-        <li class="paon-dfr-module-step">Upload two reference photos to create your digital portrait.</li>
-        <li class="paon-dfr-module-step">Select this piece and compose it with other items you own or are considering.</li>
-        <li class="paon-dfr-module-step">See how the look takes shape before you ask your advisor to make it real.</li>
-      </ol>
-      <a href="#" class="paon-dfr-module-cta" id="paon-dfr-cta">Start creating</a>
+      <img class="paon-dfr-module-photo" src="https://www.nebelspiegel.com/images/virtualfittingroom.png" alt="" />
+      <a href="#" class="paon-dfr-module-cta" id="paon-dfr-cta">ADD TO VIRTUAL FITTING ROOM</a>
     \`;
 
     infoCardsFlow.parentNode.insertBefore(dfrModule, infoCardsFlow.nextSibling);
@@ -972,12 +948,6 @@ ${
   const catalogueNoteHtml = usesSharedCataloguePhotography
     ? `<p class="paon-catalogue-note" style="margin:6px 12px 0;font-size:10px;line-height:1.35;letter-spacing:.04em;text-transform:uppercase;opacity:.45;font-family:var(--font-retailer-body),system-ui,sans-serif;">Shared catalogue photography · ${safeName}</p>`
     : "";
-  // Always shown, not only alongside shared photography (Critical 1):
-  // fabric/archetype naming on this grid is inspiration copy, not a
-  // confirmed mill or measurement — the advisor confirms both in the
-  // fitting. Same note style as the catalogue-photography disclosure.
-  const configHonestyNoteHtml = `<p class="paon-catalogue-note" style="margin:6px 12px 0;font-size:10px;line-height:1.35;letter-spacing:.04em;text-transform:uppercase;opacity:.45;font-family:var(--font-retailer-body),system-ui,sans-serif;">Fabric &amp; archetype are inspiration — your advisor confirms mill and measurements in fitting.</p>`;
-
   const storyHtml = storyLine
     ? `<div class="paon-story" style="margin:10px 12px 2px;padding:0 0 10px;border-bottom:1px solid color-mix(in srgb, var(--paon-ink) 12%, transparent);">
 <p style="margin:0;font-family:var(--font-retailer-display),Georgia,serif;font-size:13px;line-height:1.3;letter-spacing:.01em;color:var(--paon-ink);">${escapeHtml(storyLine)}</p>
@@ -1007,7 +977,7 @@ ${
     ogImage: escapeHtml(ogImage),
     brandHead,
     brandMark,
-    heroHtml: heroHtml + storyHtml + catalogueNoteHtml + configHonestyNoteHtml,
+    heroHtml: heroHtml + storyHtml + catalogueNoteHtml,
     entries,
     defaultCategory,
     categoryNames: resolvedCategories,

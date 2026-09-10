@@ -19,12 +19,23 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
  * The template is ~700KB and never changes at runtime, so it is read once per
  * server process.
  */
-const readTemplate = cache(async () =>
+const readTemplateFile = async () =>
   readFile(
     path.join(process.cwd(), "app/(shell)/r/[slug]/paon-template.html"),
     "utf8",
-  ),
-);
+  );
+
+/**
+ * In production the template never changes at runtime, so it is read once per
+ * server process. In development it is read on every request so that edits to
+ * `paon-template.html` show up on the next reload without restarting the dev
+ * server (`React.cache` at module scope would otherwise pin the first read for
+ * the life of the process).
+ */
+const readTemplate =
+  process.env.NODE_ENV === "production"
+    ? cache(readTemplateFile)
+    : readTemplateFile;
 
 export async function GET(
   request: Request,

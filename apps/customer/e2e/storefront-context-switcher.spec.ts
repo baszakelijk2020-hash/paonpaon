@@ -44,6 +44,37 @@ async function signIn(page: Page): Promise<void> {
 test.describe("desktop", () => {
   test.use({ viewport: DESKTOP_VIEWPORT });
 
+  test("switching from Pants to Jackets uses the mounted full catalogue", async ({
+    page,
+  }) => {
+    await page.goto(`/r/${DEMO_RETAILER_SLUG}?category=Pants`);
+
+    await expect(
+      page.locator("#cat-grid .cat-item.active .cat-label"),
+    ).toHaveText("Pants");
+    await expect(
+      page.locator("#product-grid .grid-card").first(),
+    ).toBeVisible();
+
+    const postLoadCatalogueRequests: string[] = [];
+    page.on("request", (request) => {
+      const url = request.url();
+      if (url.includes("/template-payload") || url.includes("_rsc=")) {
+        postLoadCatalogueRequests.push(url);
+      }
+    });
+
+    await page.locator("#cat-grid .cat-item", { hasText: "Jackets" }).click();
+
+    await expect(
+      page.locator("#cat-grid .cat-item.active .cat-label"),
+    ).toHaveText("Jackets");
+    await expect(
+      page.locator("#product-grid .grid-card").first(),
+    ).toBeVisible();
+    expect(postLoadCatalogueRequests).toEqual([]);
+  });
+
   test("storefront context switcher shows full category list and persists on return", async ({
     page,
   }) => {

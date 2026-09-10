@@ -1,7 +1,6 @@
 import {
   AlterationCatalogueRepository,
   AppointmentRepository,
-  CustomerRepository,
   PaidCareServicePriceRepository,
   RetailerBranchRepository,
   RetailerRepository,
@@ -25,6 +24,7 @@ import type { PricedOperation } from "./paid-care-flow";
 import { PaidCareLauncher } from "./paid-care-launcher";
 import { AppointmentStatusBadge } from "./status-badge";
 
+import { getCustomersForUser } from "@/lib/customer-context";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -136,9 +136,7 @@ export default async function AppointmentsPage({
   const supabase = await getSupabaseServerClient();
   const resolvedSearchParams = await searchParams;
 
-  const customers = await new CustomerRepository(supabase).findByUserId(
-    session.userId,
-  );
+  const customers = await getCustomersForUser(session.userId);
   const appointmentRepo = new AppointmentRepository(supabase);
   const retailerRepo = new RetailerRepository(supabase);
   const branchRepo = new RetailerBranchRepository(supabase);

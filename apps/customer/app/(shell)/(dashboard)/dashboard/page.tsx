@@ -1,6 +1,6 @@
 import {
   AppointmentRepository,
-  CustomerRepository,
+  type CustomerRepository,
   ProductVariantRepository,
   RetailerRepository,
 } from "@paon/database";
@@ -22,6 +22,7 @@ import {
   type HeroPiece,
 } from "./morning-routine-hero";
 
+import { getCustomersForUser } from "@/lib/customer-context";
 import { getSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -195,9 +196,7 @@ export default async function DashboardPage() {
   if (!session || session.accountType !== "customer") return null;
 
   const supabase = await getSupabaseServerClient();
-  const customers = await new CustomerRepository(supabase).findByUserId(
-    session.userId,
-  );
+  const customers = await getCustomersForUser(session.userId);
   const retailerRepo = new RetailerRepository(supabase);
   const appointmentRepo = new AppointmentRepository(supabase);
   const relationships = await Promise.all(

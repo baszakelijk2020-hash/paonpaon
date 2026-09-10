@@ -11,6 +11,8 @@ import { env } from "./env";
  * - Wedding-party join photo upload after `join_wedding_party` — the
  *   joiner is anonymous and storage RLS is organizer/staff-only
  *   (ADR-055). The invite token already gated membership creation.
+ * - Customer email recognition in `app/login/actions.ts` — the Server Action
+ *   hashes request identifiers and returns only the next local form stage.
  *
  * See docs/DATABASE.md "Row Level Security".
  */

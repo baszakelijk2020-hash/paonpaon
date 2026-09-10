@@ -1,5 +1,4 @@
 import {
-  CustomerRepository,
   MetadataRepository,
   OutfitRepository,
   ProductRepository,
@@ -25,6 +24,7 @@ import type { ComposableItem } from "./fitting-room-studio";
 import { FittingRoomStudio } from "./fitting-room-studio";
 import { StylePortraitPanel } from "./style-portrait-panel";
 
+import { getCustomersForUser } from "@/lib/customer-context";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -41,9 +41,7 @@ export default async function DigitalFittingRoomPage({
   const session = await requireSession();
   const supabase = await getSupabaseServerClient();
 
-  const customers = await new CustomerRepository(supabase).findByUserId(
-    session.userId,
-  );
+  const customers = await getCustomersForUser(session.userId);
   const retailerRepo = new RetailerRepository(supabase);
   const wardrobeRepo = new WardrobeRepository(supabase);
   const wishlistRepo = new WishlistRepository(supabase);
