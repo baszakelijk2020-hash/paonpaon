@@ -17019,8 +17019,8 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
     #gilda-chat-widget-toggle:focus,
     #gilda-chat-widget-toggle:focus-visible,
     #gilda-chat-widget-toggle:active { outline: 0; border: 0; box-shadow: none; }
-    /* Every glyph in the widget is a photographic negative of the content it
-       covers — never a flat colour. */
+    /* Every glyph in the widget uses adaptive ink chosen for the content it
+       covers. */
     @keyframes paon-tableservice-shimmer {
         0% { background-position: -200% 0; }
         100% { background-position: 200% 0; }
@@ -17235,8 +17235,8 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
         transition: opacity 160ms ease;
     }
     #gilda-chat-widget .gcw-send-button:hover { opacity: 0.82; }
-    /* Ink is black or white depending on the inverted-glass luminance behind
-       the panel (set by updateGcwInk). */
+    /* Ink is dark or white depending on the underlying luminance behind the
+       panel (set by updateGcwInk). */
     #gilda-chat-widget .gcw-message,
     #gilda-chat-widget .gcw-close,
     #gilda-chat-widget .gcw-field,
@@ -17497,13 +17497,11 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
     };
     chatInput.placeholder = placeholders[step];
 
-    /* Ink colour follows the inverted-glass luminance behind the panel: the
-       feed is sampled through a handful of points; where it is light the
-       inverted panel is dark, so the ink goes white, and vice versa. */
+    /* Ink colour follows the underlying luminance behind the panel: the feed
+       is sampled through a handful of points; light imagery gets dark ink,
+       while nearly-all-dark backing gets white ink. */
     /* Is the storefront under this screen point a light surface (a product
-       photo / card) or the dark feed backing? The panel inverts whatever is
-       there, so a light patch becomes a dark panel — which wants white ink —
-       and a dark patch becomes a light panel, wanting black ink. */
+       photo / card) or the dark feed backing? */
     function feedIsLightAt(x, y) {
         var stack = document.elementsFromPoint(x, y);
         for (var i = 0; i < stack.length; i++) {
@@ -17532,9 +17530,8 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
     function inkFor(el) {
         var r = el.getBoundingClientRect();
         if (r.width < 1 || r.height < 1) return null;
-        // Light is the default. Sample several points across the element and
-        // only switch to dark ink when the storefront behind it is clearly,
-        // mostly dark (so the inverted surface it sits on is light).
+        // Sample several points across the element. Dark ink is the default
+        // over imagery; only switch to white when the backing is nearly all dark.
         var dark = 0, n = 0;
         for (var f = 0.15; f <= 0.85; f += 0.14) {
             for (var g = 0.3; g <= 0.7; g += 0.4) {
@@ -17542,9 +17539,7 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
                 if (!feedIsLightAt(r.left + r.width * f, r.top + r.height * g)) dark++;
             }
         }
-        // Light is the default; only flip to dark when almost everything
-        // behind the element is dark (so its inverted surface is light).
-        return dark / n >= 0.85 ? '#3a3a3a' : '#ffffff';
+        return dark / n >= 0.85 ? '#ffffff' : '#3a3a3a';
     }
 
     function updateGcwInk() {
