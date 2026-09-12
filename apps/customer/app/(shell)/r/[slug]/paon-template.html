@@ -775,6 +775,12 @@ __PAON_BRAND_HEAD__
         color: #808080;
         line-height: 1.4;
     }
+    /* The overlay prints two names: the mill first, the cloth second. The
+       mill carries the weight, and the ink so it does not read as a caption. */
+    .grid-card-overlay .grid-card-name:first-child:not(:empty) {
+        font-weight: 600;
+        color: #3a3a3a;
+    }
 
     .grid-card-price {
         font-size: 12px;
@@ -5647,7 +5653,7 @@ function renderGrid() {
             })
         );
         const cols = window.paonGridColumnsForCategory ? window.paonGridColumnsForCategory(state.activeCat) : (state.activeCat === 'Pants' ? 3 : 2);
-        grid.style.gridTemplateColumns = 'repeat(' + cols + ', minmax(0, 1fr))';
+        paonApplyIntegerColumns(grid, cols);
         if (window.syncCatalogGridSelector) window.syncCatalogGridSelector();
 
         if (!filtered.length) {
@@ -5663,7 +5669,6 @@ function renderGrid() {
 
         filtered.forEach((p, i) => {
             const columnIndex = cols > 0 ? (i % cols) : 0;
-            const isRight = cols === 2 ? (i % 2 === 1) : (i % 3 !== 0);
             const card = document.createElement('article');
             card.className = 'grid-card' + (state.activeCat === 'Shoes' ? ' shoe-card' : '') + (state.activeCat === 'Knits' ? ' knit-card' : '') + (state.activeCat === 'Pants' ? ' pants-card' : '');
             card.dataset.productId = p.id;
@@ -5673,10 +5678,14 @@ function renderGrid() {
             card.innerHTML =
                 '<div class="grid-card-inner"><img src="' + p.img + '" alt="' + p.name + '" loading="lazy" decoding="async"' +
                 (p.fallbackImg ? ' data-fallback-src="' + p.fallbackImg + '"' : '') +
-                /* A two-column collection reads as paired editorial imagery: let the
-                   right image follow its left-hand partner, without changing the
-                   timing used by the three-column trouser layout. */
-                (cols === 2 && columnIndex === 1 ? ' data-reveal-delay="0.2"' : '') +
+                /* Each card follows the one to its left by 0.2s, whatever the
+                   column count the drawer has chosen — 2, 3 or 4. The delay
+                   is the card's column index, so every row reads left to
+                   right in the same cadence and a new row starts on the beat
+                   again. (This used to fire only for the right half of a
+                   two-column grid; three- and four-column grids all landed
+                   at once.) */
+                (columnIndex > 0 ? ' data-reveal-delay="' + (columnIndex * 0.2).toFixed(1) + '"' : '') +
                 '' +
                 ' ></div><button type="button" class="paon-fav-chip' + (favOn ? ' on' : '') + '" aria-label="Favorite" data-fav-id="' + p.id + '"></button><div class="grid-card-overlay"><div class="grid-card-name">' + gridTitleParts.brand + '</div><div class="grid-card-name">' + gridTitleParts.title + '</div><div class="grid-card-price">' + p.price + '</div></div>';
 
@@ -6816,6 +6825,46 @@ function renderGrid() {
         return m ? parseInt(m[1], 10) : 0;
     }
 
+    /* catalogue number → index within its category grid. 6109 (the black-white
+       wool glencheck) is the highest-numbered suit and would otherwise open
+       every Suits grid; the founder wants it twenty places in. */
+    var CATALOG_PLACEMENT = { 6109: 20 };
+
+    /* Column tracks snapped to whole pixels.
+       `repeat(3, 1fr)` across a 1430px grid gives 476.664px tracks, so every
+       column boundary lands between device pixels. Each card paints its own
+       photo snapped to the pixel grid, and along that fractional boundary a
+       one-pixel sliver of the page behind (#f4f1ec) shows through — the pale
+       hairline between columns 2 and 3 on the three-column grid. The first
+       n-1 tracks get the floored width and the last one absorbs the
+       remainder (at most n-1 px), which no eye can see. Two columns of a
+       1430px grid divide exactly, which is why two never showed it. */
+    function paonApplyIntegerColumns(grid, cols) {
+        var width = grid.clientWidth;
+        if (!width || cols < 2) {
+            grid.style.gridTemplateColumns = 'repeat(' + cols + ', minmax(0, 1fr))';
+            grid.style.justifyContent = '';
+            return;
+        }
+        var each = Math.floor(width / cols);
+        /* Every column the same whole-pixel width. Giving the leftover pixels
+           to the last column made it a hair wider and — the photographs
+           keeping their aspect — a few pixels TALLER than its neighbours, so
+           the row boundaries no longer lined up and a pale hairline ran
+           across the grid. The remainder (never more than cols-1 px) is left
+           at the grid's outer edges instead, where it sits on the page ground
+           and cannot be seen. */
+        grid.style.gridTemplateColumns = 'repeat(' + cols + ', ' + each + 'px)';
+        grid.style.justifyContent = 'center';
+        grid.dataset.paonIntegerCols = String(cols);
+    }
+    window.paonApplyIntegerColumns = paonApplyIntegerColumns;
+    window.addEventListener('resize', function () {
+        var grid = document.getElementById('product-grid');
+        var cols = grid && Number(grid.dataset.paonIntegerCols);
+        if (grid && cols) paonApplyIntegerColumns(grid, cols);
+    });
+
     function sortCatalogProducts(list) {
         var sort = (state.catalogFilters && state.catalogFilters.sort) || 'newest';
         var copy = list.slice();
@@ -6824,12 +6873,25 @@ function renderGrid() {
         } else if (sort === 'price-desc') {
             copy.sort(function(a, b) { return (b.priceMinor || 0) - (a.priceMinor || 0); });
         } else {
-            // 'newest' — was `String(b.id).localeCompare(String(a.id))`,
-            // a full-string alphabetical sort that had nothing to do with
-            // recency (e.g. "loro-piana-6054" sorted ahead of
-            // "teal-cotton-corduroy-6107" alphabetically, burying newly
-            // added items under old ones regardless of server order).
+            /* 'newest' — highest catalogue number first. The number trailing
+               the slug is the fabric id in the image path, and higher ids are
+               the newer fabrics, so 6108 leads 6054 within a category.
+               (A full-string alphabetical sort came before this — it put
+               "loro-piana-6054" ahead of "teal-cotton-corduroy-6107" — and
+               a brief spell of keeping server order put the oldest suits
+               first, because the seed inserts them oldest-first.) */
             copy.sort(function(a, b) { return catalogNumber(b.id) - catalogNumber(a.id); });
+            /* Editorial placement on top of the number order: a fabric the
+               founder wants further into the grid than its id would put it.
+               The value is the index it lands on within its category (or the
+               end of the list if the category is shorter). Applied after the
+               sort so the rule above stays the rule; this is the exception. */
+            Object.keys(CATALOG_PLACEMENT).forEach(function (num) {
+                var at = copy.findIndex(function (p) { return catalogNumber(p.id) === Number(num); });
+                if (at === -1) return;
+                var item = copy.splice(at, 1)[0];
+                copy.splice(Math.min(CATALOG_PLACEMENT[num], copy.length), 0, item);
+            });
         }
         return copy;
     }
@@ -12549,6 +12611,15 @@ html, body{
 
 
 <style id="paon-product-grid-blur-fade-like-home-feed-final">
+/* Each card clips to its own column. The photograph settles from a 1.8% zoom
+   and the template leaves the card `overflow: visible !important` (an
+   id + three-class rule further up), so every picture bled ~4px over the
+   neighbouring column and painted its own pale edge there — the light seam
+   between columns. The doubled id outranks that rule; the zoom now settles
+   as a crop inside its own card. Shoe and knit cards were already clipped. */
+#product-grid#product-grid .grid-card{
+    overflow:hidden!important;
+}
 #product-grid .grid-card.paon-product-grid-waiting,
 #product-grid .grid-card.paon-product-grid-waiting.loaded{
     opacity:1!important;
@@ -12577,6 +12648,9 @@ html, body{
 
 #product-grid .grid-card.paon-product-grid-visible .grid-card-inner{
     transition:opacity 1100ms ease,filter 1100ms ease,transform 1100ms cubic-bezier(.22,.61,.36,1)!important;
+    /* Kept through the transition, not just the waiting state, so the layer
+       the blur is being composited on is not dropped the frame it starts. */
+    will-change:opacity,filter,transform!important;
 }
 
 #product-grid .grid-card.paon-product-grid-visible .grid-card-overlay{
@@ -12626,7 +12700,7 @@ body.grid-return-animating #product-grid .grid-card .grid-card-overlay{
         if(observer) observer.observe(card);
     }
 
-    function reveal(card){
+    function reveal(card, batchIndex){
         if(!isProductGridCard(card)) return;
         if(card.dataset.paonProductGridRevealState) return;
 
@@ -12635,33 +12709,52 @@ body.grid-return-animating #product-grid .grid-card .grid-card-overlay{
         var img = card.querySelector('img');
 
         function run(){
-            var delay = parseFloat(img && img.getAttribute('data-reveal-delay') || '0') || 0;
+            /* Two staggers, the larger wins. `data-reveal-delay` is the
+               column cadence (0.2s per column to the right). `batchIndex` is
+               the card's place among everything that came into view in the
+               same observer callback — on a grid whose rows are short enough
+               for two of them to fit the window (shoes), both rows used to
+               land in one burst and the second row appeared with the first
+               instead of after it. Read in DOM order, the burst now runs
+               left to right, top to bottom, 0.2s a card; a row arriving
+               alone on scroll still gets its column cadence. */
+            var columnDelay = parseFloat(img && img.getAttribute('data-reveal-delay') || '0') || 0;
+            var burstDelay = (batchIndex || 0) * 0.2;
+            var delay = Math.max(columnDelay, burstDelay);
 
             function animate(){
                 if(card.dataset.paonProductGridRevealState === 'revealed') return;
                 card.dataset.paonProductGridRevealState = 'revealed';
                 card.classList.add('loaded');
+                /* Make sure the waiting state has actually been computed
+                   before it is swapped for the visible one. A cached image
+                   decodes in a microtask, so for those cards prepare(), the
+                   observer and this flip could all land in one task — the
+                   browser then only ever saw the end state and had nothing
+                   to transition from. That is why trousers and knits
+                   "sometimes" just appeared: whenever their photos were
+                   already in cache. */
+                if(!card.classList.contains('paon-product-grid-waiting')) card.classList.add('paon-product-grid-waiting');
+                void card.offsetWidth;
                 card.classList.remove('paon-product-grid-waiting');
                 card.classList.add('paon-product-grid-visible');
 
-                if(window.gsap){
-                    var inner = card.querySelector('.grid-card-inner');
-                    var overlay = card.querySelector('.grid-card-overlay');
-
-                    if(inner){
-                        gsap.fromTo(inner,
-                            { opacity:0, filter:'blur(14px)', y:22 },
-                            { opacity:1, filter:'blur(0px)', y:0, duration:1.1, ease:'power3.out', overwrite:true, clearProps:'filter,transform,willChange' }
-                        );
-                    }
-
-                    if(overlay){
-                        gsap.fromTo(overlay,
-                            { opacity:0, filter:'blur(10px)', y:12 },
-                            { opacity:1, filter:'blur(0px)', y:0, duration:0.9, delay:0.12, ease:'power3.out', overwrite:true, clearProps:'filter,transform,willChange' }
-                        );
-                    }
-                }
+                /* The unblur itself is the CSS transition declared on
+                   `.paon-product-grid-visible .grid-card-inner` (1100ms) and
+                   `.grid-card-overlay` (900ms, +120ms) in the stylesheet
+                   block just above this script — never write the literal
+                   style tag in a comment here: template-styles/route.ts lifts
+                   every style block out of this file by matching on that tag,
+                   and it read this comment as the start of one, took the JS
+                   after it as CSS, and 500'd the whole storefront stylesheet.
+                   Flipping the classes is all that is needed to start it. There used to be a GSAP fromTo on both elements here as
+                   well, writing inline opacity / filter / transform every
+                   frame. Those inline values never showed — the stylesheet's
+                   `!important` beat them — but the writes still cost a style
+                   recalc per frame per card on the main thread, and with a
+                   row's worth of cards staggering in at once the scroll
+                   stuttered visibly. The CSS transition runs on the
+                   compositor and keeps its frame rate regardless. */
             }
 
             if(delay > 0){
@@ -12706,17 +12799,28 @@ body.grid-return-animating #product-grid .grid-card .grid-card-overlay{
         root = nextRoot;
 
         observer = new IntersectionObserver(function(entries){
+            var arriving = [];
             entries.forEach(function(entry){
                 if(entry.isIntersecting){
-                    reveal(entry.target);
+                    if(!entry.target.dataset.paonProductGridRevealState) arriving.push(entry.target);
                 }else{
                     hide(entry.target);
                 }
             });
+            // DOM order = reading order, so the burst runs row by row.
+            arriving.sort(function(a, b){
+                return (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1;
+            });
+            arriving.forEach(function(card, i){ reveal(card, i); });
         }, {
             root: root,
-            rootMargin: '160px 0px 160px 0px',
-            threshold: 0.08
+            /* No look-ahead: a row reveals when it is actually on screen, not
+               160px before it arrives. On tall suit photographs that margin
+               went unnoticed; on the shorter shoe cards it fired the second
+               row while it was still below the fold, so it had finished
+               appearing by the time anyone scrolled to it. */
+            rootMargin: '0px',
+            threshold: 0.12
         });
 
         return observer;
@@ -12857,6 +12961,12 @@ body.grid-return-animating #product-grid .grid-card .grid-card-overlay{
 })();
 </script>
 <style id="paon-shoes-first-click-direct-final">
+/* Layout only. This block used to pin opacity / transform / filter to their
+   revealed values with !important on the shoe card, its inner, its image and
+   its overlay — the same specificity as the grid reveal's rules and later in
+   the file, so shoes never blurred in: they were simply there. Those pins are
+   gone; the shoe card now reveals through the same waiting → visible pass as
+   every other category. */
 #product-grid .grid-card.shoe-card,
 #product-grid .grid-card.shoe-card.loaded,
 #product-grid .grid-card.shoe-card.paon-product-grid-visible{
@@ -12867,10 +12977,6 @@ body.grid-return-animating #product-grid .grid-card .grid-card-overlay{
     max-height:none!important;
     aspect-ratio:auto!important;
     overflow:hidden!important;
-    opacity:1!important;
-    visibility:visible!important;
-    transform:none!important;
-    filter:none!important;
     line-height:0!important;
 }
 
@@ -12883,9 +12989,6 @@ body.grid-return-animating #product-grid .grid-card .grid-card-overlay{
     max-height:none!important;
     display:block!important;
     overflow:hidden!important;
-    opacity:1!important;
-    transform:none!important;
-    filter:none!important;
     background:transparent!important;
 }
 
@@ -12901,9 +13004,6 @@ body.grid-return-animating #product-grid .grid-card .grid-card-overlay{
     object-fit:contain!important;
     object-position:center top!important;
     display:block!important;
-    opacity:1!important;
-    filter:none!important;
-    transform:none!important;
 }
 
 #product-grid .grid-card.shoe-card:hover img{
@@ -12918,9 +13018,6 @@ body.grid-return-animating #product-grid .grid-card .grid-card-overlay{
     z-index:5!important;
     pointer-events:none!important;
     line-height:1.4!important;
-    opacity:1!important;
-    transform:none!important;
-    filter:none!important;
 }
 
 #product-grid.paon-shoes-rendering,
@@ -12929,13 +13026,6 @@ body.grid-return-animating #product-grid .grid-card .grid-card-overlay{
     animation:none!important;
 }
 
-#product-grid.paon-shoes-rendering .grid-card,
-#product-grid.paon-shoes-rendering .grid-card-inner,
-#product-grid.paon-shoes-rendering .grid-card-overlay,
-#product-grid.paon-shoes-rendering img{
-    opacity:1!important;
-    filter:none!important;
-}
 
 </style>
 
@@ -12995,7 +13085,7 @@ body.grid-return-animating #product-grid .grid-card .grid-card-overlay{
         });
     }
 
-    function shoeCard(p){
+    function shoeCard(p, columnIndex){
         var card = document.createElement("article");
         var title = String(p.name || "Shoes");
         var clean = title.replace(/^Shoes\s*/i, "").trim();
@@ -13006,6 +13096,7 @@ body.grid-return-animating #product-grid .grid-card .grid-card-overlay{
         card.innerHTML =
             '<div class="grid-card-inner"><img src="' + p.img + '" alt="' + title + '" loading="eager" decoding="async" fetchpriority="high"' +
             (p.fallbackImg ? ' data-fallback-src="' + p.fallbackImg + '"' : '') +
+            (columnIndex > 0 ? ' data-reveal-delay="' + (columnIndex * 0.2).toFixed(1) + '"' : '') +
             '></div><div class="grid-card-overlay"><div class="grid-card-name">Shoes</div><div class="grid-card-name">' + clean + '</div><div class="grid-card-price">' + (p.price || "") + '</div></div>';
 
         card.addEventListener("click", function(){
@@ -13013,27 +13104,20 @@ body.grid-return-animating #product-grid .grid-card .grid-card-overlay{
         });
 
         var img = card.querySelector("img");
-        function reveal(){
-            requestAnimationFrame(function(){
-                setTimeout(function(){
-                    card.classList.add("loaded", "paon-product-grid-visible");
-                }, 40);
-            });
-        }
+        /* Only the fallback swap lives here. The card used to add `loaded`
+           and `paon-product-grid-visible` itself the moment its image landed,
+           which skipped the waiting state the grid reveal transitions FROM —
+           so shoes appeared without the blur-in every other category has.
+           The reveal script binds every #product-grid .grid-card and
+           handles it. */
         if(img){
             img.onerror = function(){
                 var fallback = img.getAttribute("data-fallback-src");
                 if(fallback && img.src !== fallback){
                     img.removeAttribute("data-fallback-src");
                     img.src = fallback;
-                    return;
                 }
-                reveal();
             };
-            img.onload = reveal;
-            if(img.complete && img.naturalWidth) reveal();
-        } else {
-            reveal();
         }
 
         return card;
@@ -13051,13 +13135,17 @@ body.grid-return-animating #product-grid .grid-card .grid-card-overlay{
         grid.classList.add("paon-shoes-rendering");
         grid.innerHTML = "";
         var shoeCols = window.paonGridColumnsForCategory ? window.paonGridColumnsForCategory("Shoes") : 2;
-        grid.style.gridTemplateColumns = "repeat(" + shoeCols + ", minmax(0, 1fr))";
+        /* Shoes render through this path, not renderGrid(), so they missed
+           both of the grid's habits: whole-pixel columns (the pale seam) and
+           the 0.2s left-to-right stagger. Same helper, same delay rule. */
+        if(window.paonApplyIntegerColumns) window.paonApplyIntegerColumns(grid, shoeCols);
+        else grid.style.gridTemplateColumns = "repeat(" + shoeCols + ", minmax(0, 1fr))";
         if(window.syncCatalogGridSelector) window.syncCatalogGridSelector();
         grid.style.gap = "0px";
         grid.style.alignItems = "start";
 
-        shoes.forEach(function(p){
-            grid.appendChild(shoeCard(p));
+        shoes.forEach(function(p, i){
+            grid.appendChild(shoeCard(p, shoeCols > 0 ? (i % shoeCols) : 0));
         });
 
         requestAnimationFrame(function(){
@@ -13330,25 +13418,10 @@ requestAnimationFrame(fixFeedImages);
         padding-top: 62px !important;
     }
 
-    #product-grid .grid-card.shoe-card {
-        opacity: 0 !important;
-        visibility: visible !important;
-        transform: translate3d(0, 10px, 0) !important;
-        transition: opacity 1000ms ease, transform 1000ms ease !important;
-    }
-
-    #product-grid .grid-card.shoe-card.loaded,
-    #product-grid .grid-card.shoe-card.paon-product-grid-visible.loaded {
-        opacity: 1 !important;
-        transform: translate3d(0, 0, 0) !important;
-        transition: opacity 1000ms ease, transform 1000ms ease !important;
-    }
-
-    #product-grid .grid-card.shoe-card .grid-card-inner,
-    #product-grid .grid-card.shoe-card .grid-card-overlay,
-    #product-grid .grid-card.shoe-card img {
-        transition: opacity 1000ms ease, transform 1000ms ease !important;
-    }
+    /* The shoe card's own opacity/transform fade lived here. Removed: it
+       ran on the card while the grid reveal runs on the inner, and its
+       `transition` on the inner (opacity/transform only, no filter) replaced
+       the reveal's, so the blur never eased. */
 
     #product-grid.paon-shoes-rendering,
     #product-grid.paon-shoes-rendering * {
@@ -13385,13 +13458,9 @@ requestAnimationFrame(fixFeedImages);
     }
 
     function revealShoeCards(){
-        var active = typeof state !== 'undefined' && state && state.activeCat === 'Shoes';
-        if(!active) return;
-        document.querySelectorAll('#product-grid .grid-card.shoe-card:not(.loaded)').forEach(function(card, i){
-            setTimeout(function(){
-                card.classList.add('loaded','paon-product-grid-visible');
-            }, 80 + (i * 120));
-        });
+        /* Retired. A third reveal path for shoes (a timer adding the visible
+           class straight after mount) raced the grid reveal and won, so the
+           blur-in never showed. The grid reveal is the only one now. */
     }
 
     var observer = new MutationObserver(function(){
@@ -16149,11 +16218,23 @@ html:not(.paon-mobile) #paon-desktop-also-like-grid {
 html:not(.paon-mobile) #paon-desktop-also-like-grid::-webkit-scrollbar {
     display: none !important;
 }
+/* The carousel runs under the right-hand panel by --detail-seam-overlap
+   (48px): that is where the right arrow was, invisible behind the panel.
+   The container now stops at the panel's edge, so both arrows sit on the
+   visible carousel, and two whole cards fill the width — no third card cut
+   off by the panel. */
+html:not(.paon-mobile) #paon-desktop-also-like {
+    padding-right: var(--detail-seam-overlap, 0px) !important;
+}
+html:not(.paon-mobile) .paon-also-like-viewport {
+    position: relative !important;
+    overflow: hidden !important;
+}
 html:not(.paon-mobile) #paon-desktop-also-like-grid .grid-card {
-    flex: 0 0 40% !important;
-    width: 40% !important;
-    min-width: 40% !important;
-    max-width: 40% !important;
+    flex: 0 0 50% !important;
+    width: 50% !important;
+    min-width: 50% !important;
+    max-width: 50% !important;
     scroll-snap-align: start !important;
     overflow: hidden !important;
 }
@@ -16198,16 +16279,18 @@ html:not(.paon-mobile) #paon-desktop-also-like-grid .grid-card:hover img {
     position: absolute !important;
     top: 0 !important;
     bottom: 0 !important;
-    width: 50px !important;
+    width: 56px !important;
     z-index: 10 !important;
     border: 0 !important;
     cursor: pointer !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    background: rgba(0,0,0,.03) !important;
-    backdrop-filter: blur(24px) saturate(1.4) !important;
-    -webkit-backdrop-filter: blur(24px) saturate(1.4) !important;
+    /* The house glass: the same 5% black over a 30px blur as the header
+       and TableService, not a saturated tint of its own. */
+    background: rgba(0,0,0,.05) !important;
+    backdrop-filter: blur(30px) !important;
+    -webkit-backdrop-filter: blur(30px) !important;
     opacity: 0 !important;
     pointer-events: none !important;
     transition: opacity 280ms ease, transform 280ms ease !important;
@@ -16215,7 +16298,7 @@ html:not(.paon-mobile) #paon-desktop-also-like-grid .grid-card:hover img {
 .paon-carousel-btn svg {
     width: 16px !important;
     height: 16px !important;
-    stroke: #999 !important;
+    stroke: #3a3a3a !important;
     stroke-width: 2 !important;
     fill: none !important;
 }
@@ -16229,7 +16312,7 @@ html:not(.paon-mobile) #paon-desktop-also-like-grid .grid-card:hover img {
     border-radius: 0 !important;
     transform: translateX(100%) !important;
 }
-#paon-desktop-also-like:hover .paon-carousel-btn {
+.paon-also-like-viewport:hover .paon-carousel-btn {
     opacity: 1 !important;
     pointer-events: auto !important;
     transform: translateX(0) !important;
@@ -16568,6 +16651,19 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
         var grid = document.getElementById('paon-desktop-also-like-grid');
         if (!grid) return;
 
+        /* The arrows used to hang on the container, whose box also holds the
+           "You may also like" heading, so they ran 58px taller than the
+           cards they scroll. They now sit on a viewport wrapped around the
+           grid alone: exactly the cards' height, and clipped, so the
+           slide-in from outside stays hidden until it arrives. */
+        var viewport = container.querySelector('.paon-also-like-viewport');
+        if (!viewport) {
+            viewport = document.createElement('div');
+            viewport.className = 'paon-also-like-viewport';
+            grid.parentNode.insertBefore(viewport, grid);
+            viewport.appendChild(grid);
+        }
+
         var leftBtn = document.createElement('button');
         leftBtn.className = 'paon-carousel-btn paon-carousel-btn-left';
         leftBtn.type = 'button';
@@ -16588,8 +16684,8 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
             grid.scrollBy({ left: cardW * 2, behavior: 'smooth' });
         });
 
-        container.appendChild(leftBtn);
-        container.appendChild(rightBtn);
+        viewport.appendChild(leftBtn);
+        viewport.appendChild(rightBtn);
     }
 
     /* ---- Appointment: rebuild with 30 days, time-awareness, new fields, stores ---- */
@@ -17500,6 +17596,112 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
     /* Ink colour follows the underlying luminance behind the panel: the feed
        is sampled through a handful of points; light imagery gets dark ink,
        while nearly-all-dark backing gets white ink. */
+    /* Real luminance of the imagery, not an assumption about it.
+       ------------------------------------------------------------------
+       `feedIsLightAt` used to answer "an IMG is a light surface" outright,
+       which is true of a suit on a bone backdrop and flatly wrong of a navy
+       trouser shot — the pill went on printing dark ink over a near-black
+       photograph. These two read the actual pixel under the sample point.
+
+       Each image is decoded once into a 48px-wide canvas and kept, so a pass
+       over ten sample points costs ten array reads. The probe is a separate
+       `crossOrigin = 'anonymous'` load: the visible <img> has no crossOrigin
+       attribute, so drawing IT would taint the canvas and throw on read. If a
+       host ever refuses CORS the entry is stored unreadable and the old
+       assume-light behaviour stands in for that image. */
+    var gcwLumCache = Object.create(null);
+    var gcwLumPending = 0;
+    /* Probe loads land in bursts while the grid scrolls new imagery under the
+       pill; each used to call updateGcwInk() directly, and each of those is
+       ten elementsFromPoint() hit-tests plus a forced layout. One frame's
+       worth is enough — the sample reads the same pixels either way. */
+    var gcwInkFrame = 0;
+    function gcwScheduleInk() {
+        if (gcwInkFrame) return;
+        gcwInkFrame = requestAnimationFrame(function () {
+            gcwInkFrame = 0;
+            updateGcwInk();
+        });
+    }
+
+    function gcwLumSource(img) {
+        var src = img.currentSrc || img.src;
+        if (!src) return null;
+        var entry = gcwLumCache[src];
+        if (entry) return entry.ready ? entry : null;
+        gcwLumCache[src] = { ready: false };
+        gcwLumPending++;
+        var probe = new Image();
+        probe.crossOrigin = 'anonymous';
+        probe.onload = function () {
+            var w = 48, h = Math.max(1, Math.round(48 * (probe.naturalHeight || 1) / (probe.naturalWidth || 1)));
+            try {
+                var c = document.createElement('canvas');
+                c.width = w; c.height = h;
+                var ctx = c.getContext('2d');
+                ctx.drawImage(probe, 0, 0, w, h);
+                gcwLumCache[src] = { ready: true, data: ctx.getImageData(0, 0, w, h).data, w: w, h: h };
+            } catch (e) {
+                gcwLumCache[src] = { ready: true, data: null, w: 0, h: 0 };
+            }
+            gcwLumPending--;
+            // Re-decide now that this image can be read. Guarded by the cache
+            // entry above, so this cannot loop.
+            if (gcwLumPending === 0) gcwScheduleInk();
+        };
+        probe.onerror = function () {
+            gcwLumCache[src] = { ready: true, data: null, w: 0, h: 0 };
+            gcwLumPending--;
+            if (gcwLumPending === 0) gcwScheduleInk();
+        };
+        probe.src = src;
+        return null;
+    }
+
+    /* Luminance of the pixel under a screen point. Screen coordinates do not
+       map straight onto the bitmap: the product grid lays its photography out
+       `object-fit: contain`, which letterboxes the short axis, while the feed
+       cards use `cover`, which crops the long one. Both are undone here from
+       the element's computed value rather than assumed — reading the wrong one
+       samples the wrong part of the photograph, which is its own way of
+       getting the ink backwards. A point that lands in a `contain` letterbox
+       is not on the photograph at all, and says so with null, leaving the card
+       surface behind it to answer. Null too while the image is still being
+       decoded. */
+    function gcwImageLumAt(img, x, y) {
+        var entry = gcwLumSource(img);
+        if (!entry || !entry.data) return null;
+        var r = img.getBoundingClientRect();
+        if (r.width < 1 || r.height < 1) return null;
+        var natural = (img.naturalWidth || 1) / (img.naturalHeight || 1);
+        var box = r.width / r.height;
+        var u = (x - r.left) / r.width;
+        var v = (y - r.top) / r.height;
+        var fit = getComputedStyle(img).objectFit;
+        if (fit === 'cover') {
+            if (natural > box) {
+                var shownW = box / natural;
+                u = (1 - shownW) / 2 + u * shownW;
+            } else {
+                var shownH = natural / box;
+                v = (1 - shownH) / 2 + v * shownH;
+            }
+        } else if (fit === 'contain' || fit === 'scale-down') {
+            if (natural > box) {
+                var fracH = box / natural;
+                v = (v - (1 - fracH) / 2) / fracH;
+            } else {
+                var fracW = natural / box;
+                u = (u - (1 - fracW) / 2) / fracW;
+            }
+            if (u < 0 || u > 1 || v < 0 || v > 1) return null;
+        }
+        var px = Math.min(entry.w - 1, Math.max(0, Math.round(u * entry.w)));
+        var py = Math.min(entry.h - 1, Math.max(0, Math.round(v * entry.h)));
+        var i = (py * entry.w + px) * 4;
+        return 0.299 * entry.data[i] + 0.587 * entry.data[i + 1] + 0.114 * entry.data[i + 2];
+    }
+
     /* Is the storefront under this screen point a light surface (a product
        photo / card) or the dark feed backing? */
     function feedIsLightAt(x, y) {
@@ -17512,7 +17714,12 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
             // A product photo or any card / image frame is a light surface —
             // the feed's `background:#1a1a1a` on those elements is a load
             // placeholder, not what the visitor sees, so it must not count.
-            if (el.tagName === 'IMG') return true;
+            if (el.tagName === 'IMG') {
+                var lum = gcwImageLumAt(el, x, y);
+                // Still decoding, or unreadable: fall back to the old
+                // assume-light answer rather than flashing the wrong ink.
+                return lum === null ? true : lum > 128;
+            }
             if (el.closest('.home-feed-card, .grid-card, .home-feed-image-frame, .home-masonry-column, #home-masonry-grid, #product-grid')) return true;
             var cs = getComputedStyle(el);
             if (cs.backgroundImage && cs.backgroundImage !== 'none') return true;
@@ -17543,9 +17750,19 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
     }
 
     function updateGcwInk() {
-        /* Auto black/white ink only applies over the inverted home glass.
-           Elsewhere the panel is a plain dark frost — ink is just white. */
-        if (!document.body.classList.contains('home-view-active')) {
+        /* The pill and the panel are now the same 5%-black / 30px glass in the
+           home feed AND the product grid, so the luminance sample has to run in
+           both. This used to be gated to `home-view-active`, from when the grid
+           carried a plain dark frost instead — over pale product photography
+           that gate pinned the label to white. Only the product detail view
+           still keeps a dark surface of its own.
+
+           The view classes live on `.paon-template-root` under the React host
+           and on <body> in the standalone template, so read whichever element
+           is actually carrying them. */
+        var viewEl = document.querySelector('.paon-template-root') || document.body;
+        if (viewEl.classList.contains('product-detail-open') ||
+            document.body.classList.contains('product-detail-open')) {
             launcher.style.setProperty('--gcw-ink', '#ffffff');
             var clr = chatWidget.querySelector('.gcw-paperclip');
             if (clr) clr.style.setProperty('filter', 'invert(1)', 'important');
@@ -19494,9 +19711,21 @@ body.filter-active #filter-panel {
     function defaultColumns(category) {
         return String(category || '') === 'Pants' ? 3 : 2;
     }
+    /* Suits and Jackets are the same shared catalogue photography, cut the
+       same way, so a column count chosen on one is the column count for both.
+       The choice is stored under one key for the pair; every other category
+       keeps its own. */
+    var SHARED_GRID_GROUPS = [['Suits', 'Jackets']];
+    function gridKeyFor(category) {
+        var name = String(category || '');
+        for (var i = 0; i < SHARED_GRID_GROUPS.length; i++) {
+            if (SHARED_GRID_GROUPS[i].indexOf(name) !== -1) return SHARED_GRID_GROUPS[i].join('+');
+        }
+        return name;
+    }
     window.paonGridColumnsForCategory = function (category) {
         var current = typeof state !== 'undefined' && state.catalogGridColumns;
-        var value = current && current[String(category || '')];
+        var value = current && current[gridKeyFor(category)];
         return value === 2 || value === 3 || value === 4 ? value : defaultColumns(category);
     };
     window.syncCatalogGridSelector = function () {
@@ -19510,7 +19739,7 @@ body.filter-active #filter-panel {
         if (event) event.stopPropagation();
         if (typeof state === 'undefined' || [2, 3, 4].indexOf(columns) === -1) return;
         state.catalogGridColumns = state.catalogGridColumns || {};
-        state.catalogGridColumns[String(state.activeCat || '')] = columns;
+        state.catalogGridColumns[gridKeyFor(state.activeCat)] = columns;
         var homeGrid = document.getElementById('home-masonry-grid');
         if (homeGrid && document.body.classList.contains('home-view-active')) {
             homeGrid.style.setProperty(

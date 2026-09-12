@@ -1,34 +1,26 @@
 import {
   AppointmentRepository,
   type CustomerRepository,
-  ProductVariantRepository,
   RetailerRepository,
 } from "@paon/database";
-import { asId } from "@paon/domain";
-import { formatMoney } from "@paon/utils";
 import { Suspense } from "react";
 
-import { ensureTodaysMorningRoutineSelection } from "../morning-routine/generation";
 import { LocalWidgets } from "../morning-routine/local-widgets";
-import { RoutineSections } from "../morning-routine/routine-sections";
 import { buildVariantIdByProductSlug } from "../wishlist/favorites-map";
 import {
   MergeFavorites,
   type FavoritesHouse,
 } from "../wishlist/merge-favorites";
 
-import {
-  MorningRoutineDashboardHero,
-  type HeroPiece,
-} from "./morning-routine-hero";
+import { ClockCard } from "./clock-card";
+import { OutfitBreakdown } from "./outfit-breakdown";
+import { AirCard, SunCard, WindCard } from "./sky-cards";
+import { HighlightCard, WelcomeCard } from "./welcome-card";
+import { WorldClock } from "./world-clock";
 
 import { getCustomersForUser } from "@/lib/customer-context";
 import { getSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
-
-function todayUtcDate(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 async function DashboardFavorites({
   relationships,
@@ -70,127 +62,6 @@ async function DashboardFavorites({
   return <MergeFavorites houses={favorites} />;
 }
 
-async function DashboardDailyLook({
-  primary,
-  firstName,
-  supabase,
-}: {
-  primary: {
-    customer: Awaited<
-      ReturnType<InstanceType<typeof CustomerRepository>["findByUserId"]>
-    >[number];
-    retailer: Awaited<
-      ReturnType<InstanceType<typeof RetailerRepository>["findById"]>
-    >;
-    nextAppointment:
-      | Awaited<
-          ReturnType<
-            InstanceType<typeof AppointmentRepository>["findByCustomer"]
-          >
-        >[number]
-      | undefined;
-  };
-  firstName: string;
-  supabase: Awaited<ReturnType<typeof getSupabaseServerClient>>;
-}) {
-  let dailyLook: {
-    featured: HeroPiece;
-    selectionId: string;
-    weatherSummary?: string;
-  } | null = null;
-
-  if (primary?.retailer) {
-    const view = await ensureTodaysMorningRoutineSelection({
-      supabase,
-      retailerId: asId<"RetailerId">(primary.customer.retailerId),
-      customerId: asId<"CustomerId">(primary.customer.id),
-      forDate: todayUtcDate(),
-    });
-    const recommendation = view?.recommendations[0];
-    if (view && recommendation) {
-      const owned = Boolean(recommendation.wardrobeItemId);
-      const variant =
-        !owned && recommendation.productVariantId
-          ? await new ProductVariantRepository(supabase).findById(
-              asId<"ProductVariantId">(recommendation.productVariantId),
-            )
-          : null;
-      const buyAction = recommendation.actions.find(
-        (action) => action.kind === "buy",
-      );
-      const saveAction = recommendation.actions.find(
-        (action) => action.kind === "save",
-      );
-      dailyLook = {
-        selectionId: view.selection.id,
-        ...(view.selection.provenance.weatherSummary
-          ? { weatherSummary: view.selection.provenance.weatherSummary }
-          : {}),
-        featured: {
-          id: recommendation.id,
-          displayName: recommendation.displayName,
-          owned,
-          ...(recommendation.primaryImageUrl
-            ? { imageUrl: recommendation.primaryImageUrl }
-            : {}),
-          ...(variant
-            ? { priceLabel: formatMoney(variant.price, "en-US") }
-            : {}),
-          ...(buyAction?.available && buyAction.href
-            ? { buyHref: buyAction.href }
-            : {}),
-          ...(recommendation.productVariantId
-            ? { productVariantId: String(recommendation.productVariantId) }
-            : {}),
-          ...(saveAction?.available && saveAction.productVariantId
-            ? { saveVariantId: saveAction.productVariantId }
-            : {}),
-        },
-      };
-    }
-  }
-
-  return (
-    <>
-      <LocalWidgets
-        variant="dashboard"
-        {...(dailyLook
-          ? {
-              recommendation: {
-                name: dailyLook.featured.displayName,
-                ...(dailyLook.featured.imageUrl
-                  ? { imageUrl: dailyLook.featured.imageUrl }
-                  : {}),
-              },
-            }
-          : {})}
-      />
-      {primary?.retailer && dailyLook ? (
-        <MorningRoutineDashboardHero
-          retailerId={primary.customer.retailerId}
-          retailerSlug={primary.retailer.slug}
-          customerFirstName={firstName}
-          selectionId={dailyLook.selectionId}
-          oneTapEligible={primary.customer.shippingAddresses.length > 0}
-          featured={dailyLook.featured}
-          {...(primary.nextAppointment
-            ? {
-                nextAppointmentHref: `/appointments/${primary.nextAppointment.id}`,
-              }
-            : {})}
-        />
-      ) : (
-        <section className="bg-[#ece9e1] px-7 py-16 sm:px-12">
-          <p className="customer-kicker text-[#6a6d65]">Outfit of the day</p>
-          <h1 className="mt-4 max-w-2xl text-4xl leading-tight sm:text-6xl">
-            Your next considered look will appear here.
-          </h1>
-        </section>
-      )}
-    </>
-  );
-}
-
 export default async function DashboardPage() {
   const session = await getSession();
   if (!session || session.accountType !== "customer") return null;
@@ -226,36 +97,38 @@ export default async function DashboardPage() {
     primary?.customer.fullName.trim().split(/\s+/)[0] ?? "there";
 
   return (
-    <div className="-mx-4 flex flex-col gap-0 sm:-mx-7 lg:-mx-10 xl:-mx-14">
+    <div className="paon-overview">
       <Suspense fallback={null}>
         <DashboardFavorites relationships={relationships} supabase={supabase} />
       </Suspense>
-      <Suspense
-        fallback={
-          <section className="bg-[#ece9e1] px-7 py-16 sm:px-12">
-            <p className="customer-kicker text-[#6a6d65]">Outfit of the day</p>
-            <h1 className="mt-4 max-w-2xl text-4xl leading-tight sm:text-6xl">
-              Your next considered look will appear here.
-            </h1>
-          </section>
-        }
-      >
-        {primary && (
-          <DashboardDailyLook
-            primary={primary}
-            firstName={firstName}
-            supabase={supabase}
+      <div className="paon-overview-shell">
+        <div className="paon-overview-stats">
+          {/* Three tiles: the day (time, date), the sky (weather, sun, air,
+              wind), the commute. */}
+          <ClockCard />
+          <LocalWidgets
+            variant="dashboard"
+            skyExtras={
+              <>
+                <SunCard />
+                <AirCard />
+                <WindCard />
+              </>
+            }
           />
-        )}
-      </Suspense>
-      {/* The full morning routine — occasions, the daily edit, delivery
-          preferences, complete-the-look — the same sections /morning-routine
-          renders. Overview previously stopped after the daily look hero, so
-          everything below it was reachable only from that other tab. */}
-      <div className="mx-4 flex flex-col gap-4 py-8 sm:mx-7 lg:mx-10 xl:mx-14">
-        <Suspense fallback={null}>
-          <RoutineSections />
-        </Suspense>
+        </div>
+        <div className="paon-overview-hero">
+          <HighlightCard />
+          <div className="paon-overview-hero-side">
+            <WelcomeCard firstName={firstName} />
+            <OutfitBreakdown />
+          </div>
+        </div>
+        {/* Below the hero, not inside its right-hand column: that column is
+            pinned to the OOTD image's height so the outfit card can finish on
+            the same line, and the world clock inside it squeezed the outfit
+            to nothing. */}
+        <WorldClock />
       </div>
     </div>
   );

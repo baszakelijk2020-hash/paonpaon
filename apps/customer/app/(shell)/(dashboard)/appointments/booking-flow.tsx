@@ -29,14 +29,56 @@ const DATE_FORMATTER = new Intl.DateTimeFormat("en-GB", {
   month: "short",
 });
 
-function nextDates(count: number): Date[] {
-  const dates: Date[] = [];
-  const start = new Date();
-  start.setHours(0, 0, 0, 0);
-  for (let i = 1; i <= count; i += 1) {
-    dates.push(new Date(start.getTime() + i * 24 * 60 * 60 * 1000));
+/*
+ * When the retailer has not set up branches yet, the calendar still opens:
+ * the appointment is booked against the retailer with the house's standard
+ * hours (Mon–Sat, 09:00–18:00) and no branch — `bookAppointment` treats
+ * branchId as optional. The flow used to stop at "No branches configured
+ * yet." with nowhere to go.
+ */
+const ATELIER_FALLBACK: BookableBranch = {
+  id: "",
+  name: "Atelier",
+  openingHours: [
+    { day: "monday", closed: false, opens: "09:00", closes: "18:00" },
+    { day: "tuesday", closed: false, opens: "09:00", closes: "18:00" },
+    { day: "wednesday", closed: false, opens: "09:00", closes: "18:00" },
+    { day: "thursday", closed: false, opens: "09:00", closes: "18:00" },
+    { day: "friday", closed: false, opens: "09:00", closes: "18:00" },
+    { day: "saturday", closed: false, opens: "09:00", closes: "18:00" },
+    { day: "sunday", closed: true },
+  ],
+};
+
+const MONTH_FORMATTER = new Intl.DateTimeFormat("en-GB", {
+  month: "long",
+  year: "numeric",
+});
+const WEEKDAY_HEADS = ["M", "T", "W", "T", "F", "S", "S"] as const;
+
+/** First of the month, local time. */
+function startOfMonth(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+
+/**
+ * The cells of a month view, Monday-first, padded with nulls so the first
+ * of the month lands on its weekday.
+ */
+function monthCells(month: Date): (Date | null)[] {
+  const first = startOfMonth(month);
+  const lead = (first.getDay() + 6) % 7; // Monday = 0
+  const daysInMonth = new Date(
+    month.getFullYear(),
+    month.getMonth() + 1,
+    0,
+  ).getDate();
+  const cells: (Date | null)[] = Array.from({ length: lead }, () => null);
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    cells.push(new Date(month.getFullYear(), month.getMonth(), day));
   }
-  return dates;
+  while (cells.length % 7 !== 0) cells.push(null);
+  return cells;
 }
 
 function timesForDay(branch: BookableBranch, date: Date): readonly string[] {
@@ -88,6 +130,7 @@ export function BookingFlow({
   purpose,
   wardrobeItemId,
   roadmapGapId,
+  initialMonth,
   onCloseAction,
 }: {
   retailerId: string;
@@ -100,24 +143,49 @@ export function BookingFlow({
    * touches the persisted appointment's notes. */
   wardrobeItemId?: string;
   roadmapGapId?: string;
+  /**
+   * The month the calendar opens on. A seasonal appointment card names its
+   * month ("November 2027"), so the calendar starts there rather than on
+   * today and three clicks of "next" away.
+   */
+  initialMonth?: Date;
   onCloseAction: () => void;
 }) {
-  const [step, setStep] = useState<Step>(initialReason ? "location" : "reason");
+  // With one branch — or none, in which case the atelier fallback stands in
+  // — there is nothing to choose, so the location step is skipped.
+  const branchOptions = branches.length === 0 ? [ATELIER_FALLBACK] : branches;
+  const singleBranch = branchOptions.length === 1;
+  const [step, setStep] = useState<Step>(
+    initialReason ? (singleBranch ? "date" : "location") : "reason",
+  );
   const [reason, setReason] = useState<AppointmentReason | null>(
     initialReason ?? null,
   );
   const [branchId, setBranchId] = useState<string | null>(
-    branches.length === 1 ? branches[0]!.id : null,
+    singleBranch ? branchOptions[0]!.id : null,
   );
   const [date, setDate] = useState<Date | null>(null);
   const [time, setTime] = useState<string | null>(null);
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
+  const [month, setMonth] = useState<Date>(() =>
+    startOfMonth(
+      initialMonth && initialMonth.getTime() > today.getTime()
+        ? initialMonth
+        : today,
+    ),
+  );
   const [state, formAction, isPending] = useActionState(
     bookAppointment,
     initialState,
   );
 
-  const branch = branches.find((b) => b.id === branchId) ?? null;
-  const dates = useMemo(() => nextDates(21), []);
+  const branch = branchOptions.find((b) => b.id === branchId) ?? null;
+  const cells = useMemo(() => monthCells(month), [month]);
+  const canGoBack = month.getTime() > startOfMonth(today).getTime();
   const availableTimes = date && branch ? timesForDay(branch, date) : [];
   const reasonLabel = APPOINTMENT_REASONS.find(
     (r) => r.value === reason,
@@ -135,7 +203,7 @@ export function BookingFlow({
 
   if (state.success) {
     return (
-      <div className="flex flex-col gap-3 rounded-[15px] bg-[var(--color-stone-900)] p-6 text-white">
+      <div className="pe-booking-wizard flex flex-col gap-3 rounded-[28px] bg-[#202527] p-8 text-white">
         <p className="font-display text-xl">Appointment requested</p>
         <p className="text-sm text-[var(--color-stone-300)]">
           Your advisor will confirm the exact time.
@@ -148,7 +216,7 @@ export function BookingFlow({
   }
 
   return (
-    <div className="flex flex-col gap-4 rounded-[15px] bg-[var(--color-stone-900)] p-6 text-white">
+    <div className="pe-booking-wizard flex flex-col gap-5 rounded-[28px] bg-[#202527] p-8 text-white">
       <div className="flex items-center justify-between">
         <div>
           <p className="font-display text-xl">Book an appointment</p>
@@ -175,7 +243,7 @@ export function BookingFlow({
               type="button"
               onClick={() => {
                 setReason(option.value);
-                setStep("location");
+                setStep(singleBranch ? "date" : "location");
               }}
               className="rounded-[10px] bg-white/[0.06] px-4 py-3 text-left text-sm"
             >
@@ -217,29 +285,71 @@ export function BookingFlow({
       ) : null}
 
       {step === "date" && branch ? (
-        <div className="flex flex-col gap-2">
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-            {dates.map((candidate) => {
+        <div className="pe-cal">
+          <div className="pe-cal-head">
+            <button
+              type="button"
+              className="pe-cal-nav"
+              aria-label="Previous month"
+              disabled={!canGoBack}
+              onClick={() =>
+                setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))
+              }
+            >
+              ‹
+            </button>
+            <span className="pe-cal-month" aria-live="polite">
+              {MONTH_FORMATTER.format(month)}
+            </span>
+            <button
+              type="button"
+              className="pe-cal-nav"
+              aria-label="Next month"
+              onClick={() =>
+                setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))
+              }
+            >
+              ›
+            </button>
+          </div>
+          <div className="pe-cal-grid" role="grid">
+            {WEEKDAY_HEADS.map((head, index) => (
+              <span key={index} className="pe-cal-weekday" aria-hidden="true">
+                {head}
+              </span>
+            ))}
+            {cells.map((candidate, index) => {
+              if (!candidate) return <span key={`pad-${index}`} />;
+              const past = candidate.getTime() <= today.getTime();
               const hasHours = timesForDay(branch, candidate).length > 0;
+              const selected =
+                date !== null && date.getTime() === candidate.getTime();
               return (
                 <button
                   key={candidate.toISOString()}
                   type="button"
-                  disabled={!hasHours}
+                  role="gridcell"
+                  aria-selected={selected}
+                  aria-label={DATE_FORMATTER.format(candidate)}
+                  disabled={past || !hasHours}
                   onClick={() => {
                     setDate(candidate);
                     setStep("time");
                   }}
-                  className="rounded-[10px] bg-white/[0.06] px-2 py-2 text-xs disabled:opacity-30"
+                  className={[
+                    "pe-cal-day",
+                    selected ? "is-selected" : "",
+                    candidate.getTime() === today.getTime() ? "is-today" : "",
+                  ].join(" ")}
                 >
-                  {DATE_FORMATTER.format(candidate)}
+                  {candidate.getDate()}
                 </button>
               );
             })}
           </div>
           <button
             type="button"
-            onClick={() => setStep("location")}
+            onClick={() => setStep(singleBranch ? "reason" : "location")}
             className="self-start text-xs text-[var(--color-stone-400)] underline"
           >
             Back
@@ -284,7 +394,9 @@ export function BookingFlow({
         <form action={formAction} className="flex flex-col gap-3">
           <input type="hidden" name="retailerId" value={retailerId} />
           <input type="hidden" name="reason" value={reason ?? ""} />
-          <input type="hidden" name="branchId" value={branch.id} />
+          {branch.id ? (
+            <input type="hidden" name="branchId" value={branch.id} />
+          ) : null}
           <input type="hidden" name="startsAt" value={startsAtIso} />
           {wardrobeItemId ? (
             <input type="hidden" name="wardrobeItemId" value={wardrobeItemId} />

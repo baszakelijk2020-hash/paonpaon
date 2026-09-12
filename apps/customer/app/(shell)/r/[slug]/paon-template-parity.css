@@ -205,12 +205,548 @@
   border: 0 !important;
 }
 
-/* The storefront begins exactly at the sidebar edge on the home feed. */
+/* The home feed keeps the same 28px side gutters as the customer
+   environment's workspace (.pe-workspace), so the two read as one page. */
 .paon-template-root #view-home {
-  padding-left: 7px !important;
-  padding-right: 7px !important;
+  padding-left: 28px !important;
+  padding-right: 28px !important;
 }
 
 .paon-template-root.home-view-active {
   background: #161616;
+}
+
+/* ── Frosted chrome ───────────────────────────────────────────────────────
+   The header bar and TableService are one surface: a flat 5% black over a
+   30px blur of whatever is behind them, and nothing else — no inversion, no
+   contrast or brightness curve of the template's own.
+
+   Scoped to every grid view rather than just the home feed, so the home grid
+   and the collection categories carry the identical surface; the product
+   detail view keeps its own treatment. Loads last, so it wins over the
+   template's !important rules at the same specificity. */
+.paon-template-root:not(.product-detail-open) #header,
+.paon-template-root:not(.product-detail-open) #gilda-chat-widget-toggle,
+.paon-template-root:not(.product-detail-open) #gilda-chat-widget,
+.paon-template-root:not(.product-detail-open) .paon-bottom-service-btn {
+  background: rgba(0, 0, 0, 0.05) !important;
+  backdrop-filter: blur(30px) !important;
+  -webkit-backdrop-filter: blur(30px) !important;
+}
+
+/* The header carries a second full-bleed layer of its own — `#header::before`,
+   the filter drawer's shade — holding another `rgba(0, 0, 0, .03)` gradient on
+   top of its own `blur(24px) saturate(1.4)`. Left alone it stacked onto the
+   rule above, so the bar read as 8% black through two blurs rather than the 5%
+   through one that it is meant to be. The element stays (the drawer still
+   grows it); it simply stops painting. */
+.paon-template-root:not(.product-detail-open) #header::before {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+/* …but the same element is also the filter drawer's shade. While the drawer is
+   open the template tweens `--paon-filter-header-shade` from .03 to .5 and
+   paints it here, so the bar darkens as it grows. Blanking the background
+   unconditionally (as this rule first did) won by specificity over the
+   template's shade rule and silently killed that darkening. Only the resting
+   state is blanked; the drawer keeps its shade. */
+.paon-template-root:not(.product-detail-open):not(.filter-active)
+  #header::before {
+  background: transparent !important;
+}
+
+/* The header's marks sit on clear glass, over a feed that is pale in one
+   card and near-black in the next, so each one reads what is behind *it* and
+   switches: 75% white on a dark backdrop, 75% black on a light one. The
+   search control on the left and the three icons on the right sit over
+   different cards and flag themselves independently.
+
+   `paon-header-contrast.tsx` does the measuring; this is only the two states.
+
+   The filter goes on the icon box rather than the glyph: the template tints
+   its raster marks with a filter of its own, and a filter on the parent
+   applies to that result.
+
+   They live in `#paon-icons-bar`, not in `#header` — the bar only looks like
+   part of it. */
+.paon-template-root.home-view-active
+  :is(
+    #paon-icons-bar .header-icon,
+    #header .header-icon,
+    .paon-search-toggle,
+    .filters-btn,
+    #paon-search-field
+  ) {
+  /* brightness(0) flattens to black; invert() lifts it from there. */
+  filter: brightness(0) invert(0.75) !important;
+  mix-blend-mode: normal !important;
+}
+.paon-template-root.home-view-active
+  :is(
+    #paon-icons-bar .header-icon,
+    #header .header-icon,
+    .paon-search-toggle,
+    .filters-btn,
+    #paon-search-field
+  )[data-paon-on-light] {
+  filter: brightness(0) invert(0.25) !important;
+}
+
+/* ── TableService: one pane of glass ───────────────────────────────────────
+   The panel itself is the blur. Everything inside it — the field wrapper, the
+   history, the input — carried its own tint or its own backdrop-filter, so a
+   second frosted pill appeared behind the placeholder and the panel read as
+   two overlapping sheets. They are all cleared here; only the attach panel
+   keeps a surface of its own, because its dark type needs one.
+
+   Type and marks match the header icons at 75% white. Flat, not blended:
+   inside an element that already has a backdrop-filter, a blend would mix
+   with the panel's own backdrop rather than the page. */
+#gilda-chat-widget *,
+#gilda-chat-widget *::before,
+#gilda-chat-widget *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+#gilda-chat-widget .gcw-chat-wrapper,
+#gilda-chat-widget .gcw-chat-history,
+#gilda-chat-widget .gcw-input-container,
+#gilda-chat-widget .gcw-field-wrapper,
+#gilda-chat-widget .gcw-field {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+#gilda-chat-widget .gcw-field-wrapper::before,
+#gilda-chat-widget .gcw-field-wrapper::after,
+#gilda-chat-widget .gcw-input-container::before,
+#gilda-chat-widget .gcw-input-container::after {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+#gilda-chat-widget .gcw-field,
+#gilda-chat-widget .gcw-chat-history,
+#gilda-chat-widget .gcw-close,
+#gilda-chat-widget [class*="close"] {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+/* The placeholder takes whatever ink updateGcwInk() resolved for the field
+   instead of a fixed white. The composer used to sit on a dark frost; it now
+   sits on the same 5%-black glass as the header, over pale product photography
+   as often as not. `currentColor` is the input's own colour, which the ink
+   script already resolves to #3a3a3a or #ffffff. */
+#gilda-chat-widget .gcw-field::placeholder {
+  color: currentColor !important;
+  opacity: 0.45 !important;
+}
+#gilda-chat-widget .gcw-paperclip,
+#gilda-chat-widget .gcw-paperclip :is(img, svg),
+#gilda-chat-widget .gcw-close :is(img, svg) {
+  filter: brightness(0) invert(0.75) !important;
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+/* A 14% white chip was invisible on the light glass — it only ever read as a
+   button back when the composer sat on a dark frost. Same weight, black. */
+#gilda-chat-widget .gcw-send-button {
+  background: rgba(0, 0, 0, 0.08) !important;
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+
+/* The template styles these same marks with `!important` rules of its own,
+   and specificity decided them, not order — the id is repeated here so the
+   75% white wins. */
+#gilda-chat-widget#gilda-chat-widget .gcw-field,
+#gilda-chat-widget#gilda-chat-widget .gcw-chat-history,
+#gilda-chat-widget#gilda-chat-widget .gcw-close,
+#gilda-chat-widget#gilda-chat-widget [class*="close"] {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+#gilda-chat-widget#gilda-chat-widget .gcw-field::placeholder {
+  color: currentColor !important;
+  opacity: 0.45 !important;
+}
+#gilda-chat-widget#gilda-chat-widget .gcw-paperclip,
+#gilda-chat-widget#gilda-chat-widget .gcw-paperclip :is(img, svg),
+#gilda-chat-widget#gilda-chat-widget .gcw-close :is(img, svg) {
+  filter: brightness(0) invert(0.75) !important;
+  opacity: 1 !important;
+}
+#gilda-chat-widget#gilda-chat-widget .gcw-send-button {
+  background: rgba(0, 0, 0, 0.08) !important;
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+
+/*
+ * Nothing may paint a pill behind "Ask TableService…". The composer is a bare
+ * line of text on the widget's own glass, so the field itself never carries a
+ * surface. Two rules keep trying to give it one:
+ *   - table-service-widget.tsx's `.gcw-field` block, whose selector is the
+ *     same `#gilda-chat-widget .gcw-field` as the live template widget, so its
+ *     styles land on the template composer whenever that component mounts
+ *     anywhere in the tree (it shipped `background-color: silver` inside a 7px
+ *     bordered box, which read as a grey pill hugging the placeholder);
+ *   - paon-template.html's `.gcw-field:focus { background: rgba(244,241,236,.05) }`,
+ *     which flashes the same box the moment the field takes focus.
+ * Pinned for every state here rather than only fixed at those two sources,
+ * because either one reappearing would put the pill straight back.
+ */
+#gilda-chat-widget#gilda-chat-widget .gcw-field,
+#gilda-chat-widget#gilda-chat-widget .gcw-field:hover,
+#gilda-chat-widget#gilda-chat-widget .gcw-field:focus,
+#gilda-chat-widget#gilda-chat-widget .gcw-field:focus-visible,
+#gilda-chat-widget#gilda-chat-widget .gcw-field:active {
+  background: transparent !important;
+  background-color: transparent !important;
+  /* Sides and bottom only. The hairline ABOVE the field is the composer's one
+     piece of structure and is restored just below — the template draws it in
+     `rgba(244, 241, 236, .14)`, a near-white that disappeared the moment the
+     surface under it turned light. */
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  border-left: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* The hairline, on its own and by id. The template's stylesheet is served from
+   /r/[slug]/template-styles and is the LAST sheet in the document, so at equal
+   specificity its `!important` beats this file's — the comment further up
+   about loading last only holds where these selectors also out-specify it.
+   Four ids clears it outright. */
+#gilda-chat-widget#gilda-chat-widget #gcw-input#gcw-input {
+  border-top: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+/* THE pill behind "Ask TableService…".
+   ------------------------------------------------------------------------
+   It is the collapsed launcher button. Opening the panel never hid it: it
+   stays `display: flex; opacity: 1`, shrinks to its label's width (121px) and
+   sits at exactly the composer row's top edge, 58px in — which is where the
+   placeholder starts, the field's own padding being 52px. There it stamps its
+   own 28px-radius, 5%-black, `blur(30px)` surface over the row, so the text
+   sat on a second piece of glass. Nothing in the panel was drawing it, which
+   is why every computed style inside the composer read transparent.
+
+   The open panel has its own CLOSE control, so the button only needs to stop
+   painting. Its box is deliberately left in place — the open and close
+   animations measure the pill to fly the panel out of it and back into it, so
+   hiding it outright would break both. Fading is also why the transition is
+   declared here rather than toggled: it plays in both directions on its own. */
+#gilda-chat-widget-toggle#gilda-chat-widget-toggle {
+  transition:
+    opacity 260ms ease,
+    background 200ms ease !important;
+}
+#gilda-chat-widget-launcher.open
+  #gilda-chat-widget-toggle#gilda-chat-widget-toggle {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* ── Book Your Fitting, in the wardrobe's language ────────────────────────
+   The sheet was the template's cream mobile form dropped into the desktop
+   detail page: pale ground, 8px grey labels, white 76px day chips at 50%
+   opacity, hairline-only inputs. Beside the dark product panel it read as a
+   different product. It now uses the wardrobe overview's system — the same
+   dark tile gradient, hairline, radii, type sizes and bone-white pill — so
+   the two halves of the page are one thing. Quadruple-id selectors because
+   the template pins nearly every one of these with `!important` and is the
+   last sheet in the document. */
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment {
+  background: linear-gradient(180deg, #1a1a1a 0%, #4d4d4d 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  color: #f4f2ec !important;
+  padding: 32px calc(28px + var(--detail-seam-overlap, 0px)) 40px 28px !important;
+}
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  .paon-appt-heading {
+  font-family: inherit !important;
+  font-size: 22px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.02em !important;
+  color: #f4f2ec !important;
+  margin-bottom: 4px !important;
+}
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  .paon-appt-sub {
+  font-family: inherit !important;
+  font-size: 13px !important;
+  color: rgba(244, 242, 236, 0.6) !important;
+  margin-bottom: 24px !important;
+}
+
+/* Steps: one hairline between them, in the wardrobe's white. */
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  .paon-appt-step {
+  border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  .paon-appt-step-head {
+  padding: 18px 0 !important;
+}
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  .paon-appt-step-label {
+  flex-basis: 96px !important;
+  font-family: inherit !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.02em !important;
+  text-transform: none !important;
+  color: rgba(244, 242, 236, 0.6) !important;
+}
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  .paon-appt-step-value {
+  font-size: 15px !important;
+  color: #f4f2ec !important;
+}
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  .paon-appt-step-action {
+  font-family: inherit !important;
+  font-size: 12px !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: rgba(244, 242, 236, 0.6) !important;
+}
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  .paon-appt-step.answered
+  .paon-appt-step-head:hover
+  .paon-appt-step-action {
+  color: #f4f2ec !important;
+}
+
+/* Atelier options: the outfit rows — a card each, lit by weight not outline. */
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  .paon-appt-step-body
+  .paon-store-btn {
+  align-items: center !important;
+  min-height: 64px !important;
+  padding: 14px 18px !important;
+  margin: 0 0 8px !important;
+  border: 0 !important;
+  border-radius: 18px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  opacity: 0.55 !important;
+  transition:
+    opacity 220ms ease,
+    background-color 220ms ease !important;
+}
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  .paon-appt-step-body
+  .paon-store-btn:hover {
+  opacity: 0.8 !important;
+  border-color: transparent !important;
+}
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  .paon-appt-step-body
+  .paon-store-btn.selected {
+  opacity: 1 !important;
+  border-color: transparent !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  .paon-store-city {
+  font-size: 15px !important;
+  color: #f4f2ec !important;
+}
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  .paon-store-addr {
+  font-size: 13px !important;
+  color: rgba(244, 242, 236, 0.6) !important;
+}
+
+/* Day and time tiles: the stat tiles' gradient, sized for a hand.
+   The two strips scroll, so they run edge to edge — out through the sheet's
+   left padding and, on the right, all the way to the product panel — and
+   carry that padding inside instead. A strip that stopped at the text column
+   cut a tile in half 28px short of the panel and read as a stray margin. */
+.paon-template-root #paon-mobile-appointment#paon-mobile-appointment .calendar,
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  .paon-appt-times {
+  gap: 10px !important;
+  margin: 0 calc(-28px - var(--detail-seam-overlap, 0px)) 0 -28px !important;
+  padding: 0 calc(28px + var(--detail-seam-overlap, 0px)) 8px 28px !important;
+  width: calc(100% + 56px + var(--detail-seam-overlap, 0px)) !important;
+  scroll-padding-left: 28px !important;
+}
+.paon-template-root #paon-mobile-appointment#paon-mobile-appointment .day {
+  width: 92px !important;
+  min-width: 92px !important;
+  height: 104px !important;
+  border-radius: 20px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 0 !important;
+  color: #f4f2ec !important;
+  font-family: inherit !important;
+  opacity: 0.55 !important;
+  gap: 8px !important;
+  transition:
+    opacity 220ms ease,
+    background-color 220ms ease !important;
+}
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  .day:hover {
+  opacity: 0.8 !important;
+}
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  .day.selected {
+  opacity: 1 !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  .day
+  .weekday {
+  font-family: inherit !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.02em !important;
+  text-transform: none !important;
+  color: rgba(244, 242, 236, 0.6) !important;
+}
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  .day
+  .date {
+  font-size: 34px !important;
+  font-weight: 500 !important;
+  font-variant-numeric: tabular-nums !important;
+  letter-spacing: -0.05em !important;
+  color: #f4f2ec !important;
+}
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  .paon-appt-times
+  .paon-time-slot {
+  min-width: 124px !important;
+  height: 64px !important;
+  border-radius: 18px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 0 !important;
+  color: #f4f2ec !important;
+  font-family: inherit !important;
+  font-size: 18px !important;
+  font-weight: 500 !important;
+  font-variant-numeric: tabular-nums !important;
+  opacity: 0.55 !important;
+  transition:
+    opacity 220ms ease,
+    background-color 220ms ease !important;
+}
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  .paon-appt-times
+  .paon-time-slot:hover {
+  opacity: 0.8 !important;
+}
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  .paon-appt-times
+  .paon-time-slot.selected {
+  opacity: 1 !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  .paon-appt-times
+  .paon-time-slot.disabled {
+  opacity: 0.2 !important;
+}
+
+/* Details: fields as cards, not hairlines — the same card as everything else. */
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  #paon-appt-form
+  input,
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  #paon-appt-form
+  textarea,
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  #paon-appt-form
+  select {
+  min-height: 56px !important;
+  padding: 14px 18px !important;
+  margin: 0 0 8px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 0 !important;
+  border-radius: 18px !important;
+  color: #f4f2ec !important;
+  font-family: inherit !important;
+  font-size: 15px !important;
+  box-shadow: none !important;
+}
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  #paon-appt-form
+  input::placeholder,
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  #paon-appt-form
+  textarea::placeholder {
+  color: rgba(244, 242, 236, 0.45) !important;
+}
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  #paon-appt-form
+  input:focus,
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  #paon-appt-form
+  textarea:focus,
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  #paon-appt-form
+  select:focus {
+  outline: none !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: transparent !important;
+}
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  .paon-appt-confirm {
+  min-height: 52px !important;
+  margin-top: 16px !important;
+  padding: 0 24px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: #f4f2ec !important;
+  color: #14120f !important;
+  font-family: inherit !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  cursor: pointer !important;
+  transition: background-color 220ms ease !important;
+}
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  .paon-appt-confirm:hover {
+  background: #ffffff !important;
+}
+.paon-template-root
+  #paon-mobile-appointment#paon-mobile-appointment
+  #paon-appt-message {
+  color: rgba(244, 242, 236, 0.6) !important;
+  font-size: 13px !important;
 }

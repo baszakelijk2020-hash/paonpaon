@@ -50,7 +50,7 @@ test("cart and auth survive a storefront -> dashboard -> storefront round trip",
   // Sign in as the demo customer (magic link, same pattern as the perf spec).
   const { data: link, error } = await admin.auth.admin.generateLink({
     type: "magiclink",
-    email: "contact+isabelle@nebelspiegel.com",
+    email: "contact+bas@nebelspiegel.com",
   });
   if (error || !link.properties) {
     throw error ?? new Error("magic link missing");

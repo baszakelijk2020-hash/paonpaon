@@ -12,6 +12,7 @@ import {
   type PaidCareServiceKind,
 } from "@paon/domain";
 import { formatDate } from "@paon/utils";
+import Image from "next/image";
 import Link from "next/link";
 import { z } from "zod";
 
@@ -100,30 +101,43 @@ async function resolveBookingPrefill(
   return null;
 }
 
+/*
+ * The four appointments to plan a year around, in the order the founder set
+ * them. Each card is a setting from the house's own photography with the
+ * words and the button laid over a progressive blur of it.
+ */
 const INSPIRATION_APPOINTMENTS = [
   {
     id: "fall-winter-2026",
     dateLabel: "September 2026",
+    month: "2026-09",
     title: "Fall/Winter Wardrobe Appointment",
-    treatment: "linear-gradient(135deg, #56665a 0%, #222b24 100%)",
-  },
-  {
-    id: "spring-summer-2027",
-    dateLabel: "February 2027",
-    title: "Spring/Summer 2027 Wardrobe Appointment",
-    treatment: "linear-gradient(135deg, #7c8772 0%, #3f493b 100%)",
-  },
-  {
-    id: "summer-holiday-2027",
-    dateLabel: "April 2027",
-    title: "Summer Holiday 2027 Wardrobe Appointment",
-    treatment: "linear-gradient(135deg, #8e7762 0%, #40342c 100%)",
+    copy: "Plan the wardrobe before the weather does — cloth, coats and the pieces the season will ask of you.",
+    image: "https://www.nebelspiegel.com/images/chatpic04.png",
   },
   {
     id: "holiday-season-2027",
     dateLabel: "November 2027",
-    title: "Holiday Season Look Appointment",
-    treatment: "linear-gradient(135deg, #5f4d49 0%, #302624 100%)",
+    month: "2027-11",
+    title: "Holiday Season Appointment",
+    copy: "Never be caught out by a black-tie invitation. Evening, festive, and the dinners in between.",
+    image: "https://www.nebelspiegel.com/images/chatpic02.png",
+  },
+  {
+    id: "spring-summer-2027",
+    dateLabel: "February 2027",
+    month: "2027-02",
+    title: "Spring/Summer 2027 Appointment",
+    copy: "Lighter cloth, sharper lines. Set the season's wardrobe before the first warm week arrives.",
+    image: "https://www.nebelspiegel.com/images/chats222.png",
+  },
+  {
+    id: "summer-holiday-2027",
+    dateLabel: "April 2027",
+    month: "2027-04",
+    title: "Summer Holiday Appointment",
+    copy: "Summer is no excuse to look like a sack. Linen, holiday tailoring, and what actually goes in the case.",
+    image: "https://www.nebelspiegel.com/images/chatpic03.png",
   },
 ] as const;
 
@@ -229,15 +243,19 @@ export default async function AppointmentsPage({
     `${formatTime(startsAt)}–${formatTime(endsAt)}`;
 
   return (
-    <div className="customer-page flex flex-col gap-8">
-      <div className="customer-page-header flex flex-wrap items-end justify-between gap-4">
+    <div className="customer-page flex flex-col gap-6 bg-black pb-12 text-white">
+      <header className="pe-page-head items-end gap-6 pb-3">
         <div>
-          <p className="customer-kicker text-sm font-medium uppercase tracking-[0.16em]">
-            Your visits
+          <p className="customer-kicker mb-2 text-white/55">
+            Visits, fittings and garment care
           </p>
-          <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
-            My Appointments
+          <h1 className="font-display text-5xl font-semibold leading-none tracking-[-0.055em] text-white sm:text-6xl">
+            Appointments
           </h1>
+          <p className="mt-4 max-w-xl text-base leading-7 text-white/60">
+            Plan your next visit, book paid care, and keep every past fitting
+            close.
+          </p>
         </div>
         <div className="flex flex-wrap gap-3">
           {primaryCustomer ? (
@@ -261,44 +279,56 @@ export default async function AppointmentsPage({
           ) : null}
           <RelatedLinks links={[{ href: "/concierge", label: "Concierge" }]} />
         </div>
-      </div>
+      </header>
 
       {primaryCustomer ? (
         <section>
-          <h2 className="font-display mb-3 text-xl text-[var(--color-stone-900)]">
-            Suggestions to book
-          </h2>
+          <h2 className="customer-kicker mb-4 text-white/55">Plan ahead</h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {INSPIRATION_APPOINTMENTS.map((card) => (
-              <BookAppointmentLauncher
-                key={card.id}
-                retailerId={primaryCustomer.retailerId}
-                branches={bookableBranches}
-                initialReason="in_the_mood_for_something_fresh"
-                purpose={card.title}
-                className="group flex min-h-32 w-full flex-col justify-end gap-3 rounded-[15px] p-5 text-left text-white shadow-[inset_0_-80px_80px_rgba(0,0,0,0.16)] transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white motion-safe:duration-200 sm:hover:-translate-y-0.5"
-                style={{ background: card.treatment }}
-              >
-                <div>
-                  <p className="text-xs uppercase tracking-[0.1em] text-[var(--color-stone-400)]">
-                    {card.dateLabel}
-                  </p>
-                  <p className="font-display mt-1 text-base">{card.title}</p>
-                  <p className="mt-3 text-xs font-medium uppercase tracking-[0.12em] text-white/80">
-                    Start booking
-                  </p>
-                </div>
-              </BookAppointmentLauncher>
+              <div key={card.id} data-pe-card>
+                <BookAppointmentLauncher
+                  retailerId={primaryCustomer.retailerId}
+                  branches={bookableBranches}
+                  initialReason="in_the_mood_for_something_fresh"
+                  purpose={card.title}
+                  initialMonth={card.month}
+                  className="pe-plan-card group"
+                >
+                  {/* The setting is the whole card; the lower half blurs
+                      progressively so the words sit on it without a box. */}
+                  <Image
+                    src={card.image}
+                    alt=""
+                    aria-hidden="true"
+                    fill
+                    unoptimized
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    className="pe-plan-card-image"
+                  />
+                  <span className="pe-plan-card-veil" aria-hidden="true" />
+                  <span className="pe-plan-card-blur" aria-hidden="true" />
+                  <span className="pe-plan-card-body">
+                    <span className="pe-plan-card-date">{card.dateLabel}</span>
+                    <span className="pe-plan-card-title">{card.title}</span>
+                    <span className="pe-plan-card-copy">{card.copy}</span>
+                    <span className="pe-plan-card-cta">
+                      Book this appointment
+                    </span>
+                  </span>
+                </BookAppointmentLauncher>
+              </div>
             ))}
           </div>
         </section>
       ) : null}
 
       {primaryCustomer ? (
-        <section>
-          <h2 className="font-display mb-3 text-xl text-[var(--color-stone-900)]">
-            Paid-care services
-          </h2>
+        <section
+          className="pe-card rounded-[32px] bg-[#191b1d] p-6 text-white sm:p-8"
+          data-pe-card
+        >
+          <p className="customer-kicker mb-3">Paid-care services</p>
           <PaidCareLauncher
             retailerId={primaryCustomer.retailerId}
             operationsByService={operationsByService}
@@ -308,27 +338,25 @@ export default async function AppointmentsPage({
 
       {upcoming ? (
         <section
-          className="relative overflow-hidden rounded-[var(--customer-radius)] p-6 text-white"
-          style={{
-            background: "linear-gradient(135deg, #2c3428 0%, #14170f 100%)",
-          }}
+          className="pe-card pe-card-blue relative overflow-hidden rounded-[32px] bg-[#aed6e7] p-7 text-[#181818] sm:p-9"
+          data-pe-card
         >
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-medium uppercase tracking-[0.14em] text-white/60">
+              <p className="customer-kicker text-[#181818]/60">
                 Next appointment
               </p>
-              <h2 className="font-display mt-2 text-2xl text-white">
+              <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em] text-[#181818]">
                 {APPOINTMENT_TYPE_LABELS[upcoming.type]}
               </h2>
-              <p className="mt-1 text-white/80">
+              <p className="mt-2 text-[#181818]/70">
                 {retailerById.get(upcoming.id)?.displayName ??
                   "Unknown retailer"}
               </p>
             </div>
             <AppointmentStatusBadge status={upcoming.status} />
           </div>
-          <p className="mt-5 text-sm text-white/80">
+          <p className="mt-8 text-base text-[#181818]/70">
             {formatDate(upcoming.startsAt, "en-US")} ·{" "}
             {formatRange(upcoming.startsAt, upcoming.endsAt)}
           </p>
@@ -339,25 +367,33 @@ export default async function AppointmentsPage({
             View appointment
           </Link>
         </section>
-      ) : !primaryCustomer ? (
-        <div className="customer-panel px-6 py-16 text-center">
-          <p className="text-[var(--color-stone-600)]">
-            No retailer connection yet.
+      ) : primaryCustomer ? (
+        <section className="pe-card" data-pe-card>
+          <p className="customer-kicker">Next appointment</p>
+          <h2 className="mt-2">Your calendar is open.</h2>
+          <p className="mt-1 max-w-xl">
+            Book a fitting, styling appointment, or seasonal wardrobe review —
+            the button above, or pick a season from the plan.
           </p>
+        </section>
+      ) : (
+        <div
+          className="pe-card rounded-[32px] bg-[#191b1d] px-6 py-16 text-center"
+          data-pe-card
+        >
+          <p className="text-white/60">No retailer connection yet.</p>
         </div>
-      ) : null}
+      )}
 
       {history.length > 0 ? (
-        <details className="overflow-hidden rounded-[var(--customer-radius)] border border-[var(--customer-border)]">
-          <summary
-            className="font-display cursor-pointer list-none px-6 py-4 text-xl text-white"
-            style={{
-              background: "linear-gradient(135deg, #56665a 0%, #222b24 100%)",
-            }}
-          >
+        <details
+          className="pe-card overflow-hidden rounded-[32px] bg-[#191b1d] text-white"
+          data-pe-card
+        >
+          <summary className="cursor-pointer list-none px-7 py-6 text-2xl font-semibold tracking-[-0.025em] text-white">
             Appointment history ({history.length})
           </summary>
-          <div className="divide-y divide-[var(--color-stone-100)] bg-[var(--customer-paper)]">
+          <div className="divide-y divide-white/10 bg-[#191b1d]">
             {history.map((appointment) => (
               <Link
                 key={appointment.id}
@@ -365,10 +401,10 @@ export default async function AppointmentsPage({
                 className="customer-list-row flex flex-wrap items-center justify-between gap-3 px-6 py-4"
               >
                 <div className="min-w-0">
-                  <p className="font-medium text-[var(--color-stone-900)]">
+                  <p className="font-medium text-white">
                     {APPOINTMENT_TYPE_LABELS[appointment.type]}
                   </p>
-                  <p className="text-sm text-[var(--color-stone-500)]">
+                  <p className="text-sm text-white/55">
                     {retailerById.get(appointment.id)?.displayName ??
                       "Unknown retailer"}{" "}
                     · {formatDate(appointment.startsAt, "en-US")} ·{" "}

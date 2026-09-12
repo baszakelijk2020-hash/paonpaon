@@ -22,7 +22,7 @@ export function DemoLoginForm({
           name="email"
           type="email"
           autoComplete="email"
-          placeholder="contact+isabelle@nebelspiegel.com"
+          placeholder="contact+bas@nebelspiegel.com"
           defaultValue={email ?? ""}
           required
         />

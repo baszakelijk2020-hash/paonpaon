@@ -38,8 +38,11 @@ export function SuggestedLookTile({
   const [state, formAction, isPending] = useActionState(boundGenerate, initial);
 
   return (
-    <li className="group min-w-0 snap-start overflow-hidden bg-white">
-      <div className="relative aspect-[4/3] w-full bg-[var(--color-stone-100)]">
+    <li
+      className="group min-w-0 snap-start overflow-hidden rounded-[32px] bg-[#191b1d] text-white"
+      data-pe-card
+    >
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-b-[24px] bg-[#25282a]">
         {suggestion.primaryImageUrl ? (
           <Image
             src={suggestion.primaryImageUrl}
@@ -50,7 +53,7 @@ export function SuggestedLookTile({
           />
         ) : (
           <div
-            className="flex h-full w-full items-center justify-center text-xs text-[var(--color-stone-400)]"
+            className="flex h-full w-full items-center justify-center text-xs text-white/45"
             aria-hidden
           >
             No image
@@ -58,13 +61,13 @@ export function SuggestedLookTile({
         )}
       </div>
       <div className="min-h-42 flex flex-col px-4 py-4">
-        <p className="text-[10px] uppercase tracking-[0.14em] text-[var(--color-stone-400)]">
+        <p className="text-sm text-white/50">
           {suggestion.categoryCode.replaceAll("_", " ")}
         </p>
-        <p className="mt-1 line-clamp-2 text-sm font-medium leading-5 text-[var(--color-stone-900)]">
+        <p className="mt-1 line-clamp-2 text-base font-semibold leading-5 text-white">
           {suggestion.displayName}
         </p>
-        <p className="mt-1 line-clamp-2 text-xs leading-5 text-[var(--color-stone-500)]">
+        <p className="mt-2 line-clamp-2 text-sm leading-5 text-white/60">
           {suggestion.explanation}
         </p>
         <form action={formAction} className="mt-auto pt-4">
@@ -84,6 +87,7 @@ export function SuggestedLookTile({
             size="sm"
             variant="outline"
             disabled={isPending}
+            className="min-h-[52px] w-full rounded-full border-0 bg-[#aed6e7] text-[#181818] hover:bg-[#c6e5f1]"
           >
             {isPending ? "Generating…" : "See it on me"}
           </Button>
@@ -97,10 +101,7 @@ export function SuggestedLookTile({
           </p>
         ) : null}
         {!isPending && !state.error && state !== initial ? (
-          <p
-            role="status"
-            className="mt-1 text-xs text-[var(--color-stone-500)]"
-          >
+          <p role="status" className="mt-2 text-xs text-white/55">
             Generating your look — check your wardrobe shortly.
           </p>
         ) : null}

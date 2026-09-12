@@ -1,36 +1,70 @@
 "use client";
 
+import gsap from "gsap";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { type PointerEvent, type ReactNode, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import {
+  type ReactNode,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 
 export interface AccountTab {
   href: string;
   label: string;
 }
-
-function markOptimisticTab(
-  event: PointerEvent<HTMLAnchorElement>,
-  href: string,
-): void {
-  const nav = event.currentTarget.closest("nav");
-  if (!nav) return;
-  for (const link of nav.querySelectorAll<HTMLElement>(
-    "[data-customer-top-menu]",
-  )) {
-    link.dataset["optimisticActive"] = String(
-      link.dataset["customerTabHref"] === href,
-    );
-  }
+const ICONS: Record<string, ReactNode> = {
+  "/dashboard": (
+    <>
+      <rect x="3" y="3" width="7" height="7" rx="2" />
+      <rect x="14" y="3" width="7" height="7" rx="2" />
+      <rect x="3" y="14" width="7" height="7" rx="2" />
+      <rect x="14" y="14" width="7" height="7" rx="2" />
+    </>
+  ),
+  "/wardrobe": (
+    <>
+      <path d="M9 6a3 3 0 1 1 5 2c-1 1-2 1-2 3l9 6a1.5 1.5 0 0 1-1 3H4a1.5 1.5 0 0 1-1-3l9-6" />
+    </>
+  ),
+  "/appointments": (
+    <>
+      <rect x="3" y="5" width="18" height="16" rx="4" />
+      <path d="M7 3v4m10-4v4M3 11h18m-13 5h3" />
+    </>
+  ),
+  "/orders": (
+    <>
+      <path d="m3 7 9-4 9 4v10l-9 4-9-4V7Zm0 0 9 4 9-4M12 11v10M7 5l10 4" />
+    </>
+  ),
+  "/digital-fitting-room": (
+    <>
+      <rect x="6" y="2" width="12" height="18" rx="6" />
+      <path d="M9 23h6m-3-3v3m-3-15 5-3m-5 7 6-4" />
+    </>
+  ),
+  "/loyalty": (
+    <>
+      <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9L12 3Z" />
+    </>
+  ),
+  "/account": (
+    <>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21v-2a8 8 0 0 1 16 0v2" />
+    </>
+  ),
+};
+function currentPath(fallback: string) {
+  if (typeof window === "undefined") return fallback;
+  return window.location.pathname === "/hub"
+    ? `/${new URLSearchParams(window.location.search).get("tab") ?? "dashboard"}`
+    : window.location.pathname;
 }
 
-/** The entire account nav lives here now (sticky, full-width, top) instead
- * of a second sidebar — the left sidebar is reserved for shop categories
- * (see shop-category-sidebar.tsx) so the customer only ever learns one
- * sidebar. Deliberately flat: no subtabs, max 7 entries. `trailing` holds
- * profile utilities rather than another primary destination. It remains a constant
- * 60px, matching the storefront logo header exactly; changing a sticky
- * navigation height during scroll makes the shell feel unstable. */
 export function AccountTopTabs({
   tabs,
   trailing,
@@ -39,124 +73,101 @@ export function AccountTopTabs({
   trailing?: ReactNode;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const [optimisticHref, setOptimisticHref] = useState<string | null>(null);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activePath, setActivePath] = useState(
+    pathname === "/hub" ? "/dashboard" : pathname,
+  );
+  const rail = useRef<HTMLDivElement>(null);
+  const indicator = useRef<HTMLSpanElement>(null);
+  const initialized = useRef(false);
   useEffect(() => {
-    setOptimisticHref(null);
-    for (const link of document.querySelectorAll<HTMLElement>(
-      "[data-customer-top-menu]",
-    )) {
-      delete link.dataset["optimisticActive"];
-    }
+    const sync = () => setActivePath(currentPath(pathname));
+    sync();
+    window.addEventListener("paon:customer-tab", sync);
+    window.addEventListener("popstate", sync);
+    return () => {
+      window.removeEventListener("paon:customer-tab", sync);
+      window.removeEventListener("popstate", sync);
+    };
   }, [pathname]);
-  useEffect(() => {
-    for (const tab of tabs) router.prefetch(tab.href);
-  }, [router, tabs]);
-  const mobilePrimaryTabs = tabs.slice(0, 3);
-  const mobileOverflowTabs = [
-    ...tabs.slice(3),
-    ...(tabs.some((tab) => tab.href === "/account")
-      ? []
-      : [{ href: "/account", label: "My Profile" }]),
-  ];
-
+  useLayoutEffect(() => {
+    const update = () => {
+      const active = rail.current?.querySelector<HTMLElement>(
+        '[aria-current="page"]',
+      );
+      if (!active || !indicator.current || !rail.current) return;
+      const reduced = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+      gsap.to(indicator.current, {
+        x: active.offsetLeft,
+        width: active.offsetWidth,
+        opacity: 1,
+        duration: initialized.current && !reduced ? 0.48 : 0,
+        ease: "power4.out",
+        overwrite: true,
+      });
+      const viewport = rail.current.parentElement;
+      if (viewport) {
+        const left =
+          active.offsetLeft - (viewport.clientWidth - active.offsetWidth) / 2;
+        gsap.to(viewport, {
+          scrollLeft: Math.max(0, left),
+          duration: reduced ? 0 : 0.4,
+          ease: "power3.out",
+          overwrite: true,
+        });
+      }
+      initialized.current = true;
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    if (rail.current) observer.observe(rail.current);
+    const pill = indicator.current;
+    return () => {
+      observer.disconnect();
+      if (pill) gsap.killTweensOf(pill);
+    };
+  }, [activePath]);
   return (
-    <nav
-      aria-label="Account"
-      className="sticky top-0 z-40 flex h-[60px] w-full items-stretch border-b border-[var(--customer-border)] bg-[rgba(244,242,237,0.92)] backdrop-blur-md"
-    >
-      {tabs.map((tab, index) => {
-        const activePath = optimisticHref ?? pathname;
-        const active =
-          activePath === tab.href || activePath.startsWith(`${tab.href}/`);
-        return (
-          <Link
-            key={tab.href}
-            href={tab.href}
-            prefetch
-            data-customer-top-menu
-            data-customer-tab-href={tab.href}
-            onPointerDown={(event) => {
-              markOptimisticTab(event, tab.href);
-              setOptimisticHref(tab.href);
-            }}
-            onClick={() => setOptimisticHref(tab.href)}
-            aria-current={active ? "page" : undefined}
-            className={`${index < mobilePrimaryTabs.length ? "flex" : "hidden sm:flex"} flex-1 items-center justify-center border-r border-black/10 px-2 text-center text-[12px] font-medium tracking-[0.01em] data-[optimistic-active=false]:!bg-transparent data-[optimistic-active=true]:!bg-[var(--customer-moss)] data-[optimistic-active=false]:!text-[var(--color-stone-600)] data-[optimistic-active=true]:!text-[var(--customer-ink)] sm:px-3 sm:text-[13px] ${
-              active
-                ? "bg-[var(--customer-moss)] text-[var(--customer-ink)]"
-                : "text-[var(--color-stone-600)] hover:bg-white/60 hover:text-[var(--customer-ink)]"
-            }`}
-          >
-            {tab.label}
-          </Link>
-        );
-      })}
-      {mobileOverflowTabs.length > 0 ? (
-        <div className="relative flex flex-1 sm:hidden">
-          <button
-            type="button"
-            aria-expanded={isMobileMenuOpen}
-            aria-controls="customer-mobile-navigation"
-            onClick={() => setIsMobileMenuOpen((isOpen) => !isOpen)}
-            className={`flex w-full items-center justify-center border-r border-black/10 px-2 text-center text-[12px] font-medium tracking-[0.01em] transition-colors duration-200 ${
-              mobileOverflowTabs.some(
-                (tab) =>
-                  (optimisticHref ?? pathname) === tab.href ||
-                  (optimisticHref ?? pathname).startsWith(`${tab.href}/`),
-              )
-                ? "bg-[var(--customer-moss)] text-[var(--customer-ink)]"
-                : "text-[var(--color-stone-600)] hover:bg-white/60 hover:text-[var(--customer-ink)]"
-            }`}
-          >
-            More
-          </button>
-          {isMobileMenuOpen ? (
-            <div
-              id="customer-mobile-navigation"
-              className="absolute right-2 top-[calc(100%+8px)] z-50 w-[min(19rem,calc(100vw-1rem))] overflow-hidden rounded-[15px] bg-[var(--customer-ink)] p-1.5 shadow-[0_18px_45px_rgba(21,31,25,0.24)]"
-            >
-              {mobileOverflowTabs.map((tab) => {
-                const activePath = optimisticHref ?? pathname;
-                const active =
-                  activePath === tab.href ||
-                  activePath.startsWith(`${tab.href}/`);
-                return (
-                  <Link
-                    key={tab.href}
-                    href={tab.href}
-                    prefetch
-                    data-customer-top-menu
-                    data-customer-tab-href={tab.href}
-                    aria-current={active ? "page" : undefined}
-                    onPointerDown={(event) => {
-                      markOptimisticTab(event, tab.href);
-                      setOptimisticHref(tab.href);
-                    }}
-                    onClick={() => {
-                      setOptimisticHref(tab.href);
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className={`flex min-h-12 items-center rounded-[11px] px-4 text-[14px] font-medium ${
-                      active
-                        ? "bg-[var(--customer-moss)] text-[var(--customer-ink)]"
-                        : "text-[var(--color-paper)] hover:bg-white/10"
-                    }`}
-                  >
-                    {tab.label}
-                  </Link>
-                );
-              })}
-            </div>
-          ) : null}
+    <header className="pe-navigation">
+      <nav aria-label="Account" className="pe-navigation-scroll">
+        <div ref={rail} className="pe-navigation-rail">
+          <span
+            ref={indicator}
+            className="pe-navigation-indicator"
+            aria-hidden="true"
+          />
+          {tabs.map((tab) => {
+            const active =
+              activePath === tab.href || activePath.startsWith(`${tab.href}/`);
+            return (
+              <Link
+                key={tab.href}
+                href={tab.href}
+                prefetch={false}
+                data-customer-top-menu
+                data-customer-tab-href={tab.href}
+                aria-current={active ? "page" : undefined}
+                className="pe-navigation-link"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.65"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  {ICONS[tab.href]}
+                </svg>
+                <span>{tab.label}</span>
+              </Link>
+            );
+          })}
         </div>
-      ) : null}
-      {trailing ? (
-        <div className="hidden min-w-[110px] shrink-0 items-stretch sm:flex">
-          {trailing}
-        </div>
-      ) : null}
-    </nav>
+      </nav>
+      {trailing && <div className="pe-navigation-utility">{trailing}</div>}
+    </header>
   );
 }

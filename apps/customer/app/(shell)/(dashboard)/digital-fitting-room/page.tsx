@@ -20,6 +20,8 @@ import type { Outfit, WardrobeVisualizationJob } from "@paon/domain";
 import Image from "next/image";
 import Link from "next/link";
 
+import "./fitting-environment.css";
+
 import type { ComposableItem } from "./fitting-room-studio";
 import { FittingRoomStudio } from "./fitting-room-studio";
 import { StylePortraitPanel } from "./style-portrait-panel";
@@ -196,17 +198,15 @@ export default async function DigitalFittingRoomPage({
 
   if (step !== "avatar") {
     return (
-      <div className="-mx-4 min-h-full bg-[radial-gradient(circle_at_78%_22%,rgba(136,150,111,.18),transparent_30%),linear-gradient(115deg,#263027_0%,#11150f_58%,#161510_100%)] px-4 py-8 text-white sm:-mx-7 sm:px-7 lg:-mx-10 lg:px-10 xl:-mx-14 xl:px-14">
-        <section className="bg-[#151a12]/92 mx-auto mt-4 max-w-4xl overflow-hidden rounded-[28px] shadow-[0_32px_100px_rgba(0,0,0,.34)]">
-          <div
-            className={invitationImage ? "grid lg:grid-cols-[1.1fr_.9fr]" : ""}
-          >
-            <div className="p-8 sm:p-12 lg:p-14">
+      <div className="pe-fitting pe-fitting-entry min-h-full py-4">
+        <section className="pe-fitting-invitation mx-auto mt-4 max-w-5xl overflow-hidden rounded-[32px] shadow-[0_32px_100px_rgba(0,0,0,.34)]">
+          <div className="grid lg:grid-cols-[1.1fr_.9fr]">
+            <div className="pe-fitting-invitation-copy p-8 sm:p-12 lg:p-14">
               <p className="customer-kicker text-[#cfd8c6]">
                 Digital Fitting Room
               </p>
               <h1 className="font-display mt-5 max-w-xl text-4xl leading-[.92] text-white sm:text-6xl">
-                See a look take shape before you ask for it.
+                A new way to see yourself.
               </h1>
               <p className="mt-6 max-w-md text-base leading-7 text-white/70">
                 Build a private digital portrait, bring in pieces you own or are
@@ -233,14 +233,14 @@ export default async function DigitalFittingRoomPage({
               <div className="mt-11 space-y-4">
                 <Link
                   href="/digital-fitting-room?step=avatar"
-                  className="inline-block rounded-[15px] bg-[#e4eadf] px-6 py-4 text-sm font-medium text-[#182018] shadow-[0_10px_24px_rgba(0,0,0,.2)] transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                  className="pe-fitting-cta inline-block rounded-[15px] px-6 py-4 text-sm font-medium shadow-[0_10px_24px_rgba(0,0,0,.2)] transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                 >
-                  Start creating →
+                  Start creating
                 </Link>
                 {hasSavedOutfits ? (
                   <Link
                     href="/digital-fitting-room?step=avatar"
-                    className="block w-fit text-sm text-[#dce3d6] underline decoration-white/35 underline-offset-4 transition hover:text-white"
+                    className="pe-fitting-secondary block w-fit text-sm underline decoration-white/35 underline-offset-4 transition hover:text-white"
                   >
                     View saved drafts &amp; results
                   </Link>
@@ -252,7 +252,7 @@ export default async function DigitalFittingRoomPage({
               </div>
             </div>
             {invitationImage ? (
-              <div className="relative min-h-[360px] overflow-hidden bg-[#22291d] lg:min-h-full">
+              <div className="pe-fitting-invitation-image relative min-h-[360px] overflow-hidden lg:min-h-full">
                 <Image
                   src={invitationImage}
                   alt=""
@@ -262,7 +262,23 @@ export default async function DigitalFittingRoomPage({
                   unoptimized
                 />
               </div>
-            ) : null}
+            ) : (
+              <div className="pe-fitting-mirror" aria-hidden="true">
+                <div className="pe-fitting-mirror-frame">
+                  <svg viewBox="0 0 200 300" fill="none">
+                    <circle cx="100" cy="64" r="27" />
+                    <path d="M53 135c4-25 21-37 47-37s43 12 47 37l12 77H41l12-77Z" />
+                    <path d="m82 212-5 65m41-65 5 65M73 101l27 34 27-34m-27 34v77" />
+                  </svg>
+                  <span>Your portrait starts here</span>
+                </div>
+                <p>
+                  From your photos.
+                  <br />
+                  Styled with your pieces.
+                </p>
+              </div>
+            )}
           </div>
         </section>
       </div>
@@ -270,9 +286,9 @@ export default async function DigitalFittingRoomPage({
   }
 
   return (
-    <div className="-mx-4 min-h-full bg-[linear-gradient(115deg,#283129_0%,#11150f_58%,#161510_100%)] px-4 py-8 text-white sm:-mx-7 sm:px-7 lg:-mx-10 lg:px-10 xl:-mx-14 xl:px-14">
+    <div className="pe-fitting pe-fitting-studio min-h-full py-4">
       <div className="mx-auto flex max-w-6xl flex-col gap-8">
-        <header className="max-w-2xl">
+        <header className="pe-fitting-studio-header max-w-2xl">
           <p className="customer-kicker text-[#c5d0c0]">Digital Fitting Room</p>
           <h1 className="font-display mt-3 text-4xl leading-[.96] text-white sm:text-6xl">
             {groups.some((group) => group.canGenerate)
@@ -288,7 +304,7 @@ export default async function DigitalFittingRoomPage({
 
         {groups.length === 0 ? (
           <div
-            className="rounded-[22px] bg-white/[0.08] px-6 py-16 text-center shadow-[0_20px_60px_rgba(0,0,0,.18)]"
+            className="pe-fitting-empty rounded-[22px] px-6 py-16 text-center shadow-[0_20px_60px_rgba(0,0,0,.18)]"
             role="status"
           >
             <p className="text-white/70">No retailer connections yet.</p>
@@ -319,7 +335,7 @@ export default async function DigitalFittingRoomPage({
                     {...(preloadKey ? { preloadKey } : {})}
                   />
                 ) : (
-                  <div className="max-w-3xl rounded-[22px] bg-[linear-gradient(135deg,rgba(220,227,214,.16),rgba(255,255,255,.055))] p-1 shadow-[0_24px_80px_rgba(0,0,0,.24)]">
+                  <div className="pe-fitting-portrait-shell max-w-3xl rounded-[22px] p-1 shadow-[0_24px_80px_rgba(0,0,0,.24)]">
                     <StylePortraitPanel
                       retailerId={customer.retailerId}
                       retailerName={retailer?.displayName ?? "Retailer"}

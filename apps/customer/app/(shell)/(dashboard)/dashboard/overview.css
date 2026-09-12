@@ -1,0 +1,1730 @@
+.paon-overview {
+  --overview-black: #161616;
+  --overview-graphite: #191b1d;
+  --overview-blue: #aed6e7;
+  --overview-mint: #b8e6be;
+  --overview-lavender: #c7c1ef;
+  --overview-coral: #f0b6a4;
+  min-height: 100%;
+  background: var(--overview-black);
+  color: #f7f7f4;
+  padding: clamp(0.75rem, 1.8vw, 1.75rem);
+}
+
+.paon-overview-shell {
+  display: grid;
+  gap: 18px;
+  margin: 0 auto;
+  max-width: 112rem;
+}
+
+.paon-overview-clock-card,
+.paon-overview-card,
+.paon-overview-look {
+  border-radius: 2rem;
+  overflow: hidden;
+}
+
+.paon-overview-clock-card {
+  display: grid;
+  min-height: clamp(30rem, 54vw, 44rem);
+  grid-template-columns: minmax(0, 1fr) minmax(15rem, 0.52fr);
+  align-items: stretch;
+  gap: clamp(1.5rem, 4vw, 5rem);
+  padding: clamp(1.6rem, 4vw, 4.5rem);
+  background: var(--overview-blue);
+  color: #0d1b21;
+}
+
+.paon-overview-clock-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.paon-overview-context,
+.paon-overview-card-title,
+.paon-overview-look-label {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.paon-overview-clock-card h1 {
+  max-width: 15ch;
+  margin: clamp(2.5rem, 8vw, 7rem) 0 1rem;
+  font-family: inherit;
+  font-size: clamp(2.4rem, 5vw, 5.25rem);
+  font-weight: 400;
+  letter-spacing: -0.065em;
+  line-height: 0.98;
+}
+
+.paon-overview-date {
+  margin: 0;
+  font-size: clamp(1rem, 1.3vw, 1.25rem);
+}
+
+.paon-overview-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin: 1.5rem 0 2rem;
+}
+
+.paon-overview-quick-card {
+  display: flex;
+  min-height: 5rem;
+  min-width: min(15rem, 100%);
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid rgba(13, 27, 33, 0.28);
+  border-radius: 1.25rem;
+  padding: 0.9rem 1rem;
+  color: inherit;
+  font-size: 1rem;
+  text-decoration: none;
+}
+
+.paon-overview-quick-card strong {
+  font-weight: 650;
+}
+.paon-overview-quick-card:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+.paon-overview-digital-time {
+  display: flex;
+  align-items: baseline;
+  gap: 0.12em;
+  margin: auto 0 0;
+  font-size: clamp(5.25rem, 13vw, 14rem);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.095em;
+  line-height: 0.72;
+  white-space: nowrap;
+}
+
+.paon-overview-seconds {
+  font-size: 0.24em;
+  letter-spacing: -0.04em;
+}
+
+.paon-overview-analog {
+  position: relative;
+  align-self: center;
+  width: min(100%, 28rem);
+  aspect-ratio: 1;
+  border: 2px solid rgba(13, 27, 33, 0.35);
+  border-radius: 50%;
+}
+
+.paon-overview-hour-mark {
+  position: absolute;
+  top: 4%;
+  bottom: 4%;
+  left: calc(50% - 1px);
+  width: 2px;
+  border-top: 12px solid #0d1b21;
+  transform-origin: 50% 50%;
+}
+
+.paon-overview-hand {
+  position: absolute;
+  bottom: 50%;
+  left: 50%;
+  width: 3px;
+  border-radius: 999px;
+  background: #0d1b21;
+  transform-origin: 50% 100%;
+}
+
+.paon-overview-hour-hand {
+  height: 24%;
+}
+.paon-overview-minute-hand {
+  height: 36%;
+}
+.paon-overview-second-hand {
+  width: 1px;
+  height: 40%;
+  background: #ed5f42;
+}
+
+.paon-overview-clock-pin {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 50%;
+  background: #0d1b21;
+  transform: translate(-50%, -50%);
+}
+
+.paon-overview-widget-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.76fr) minmax(0, 1.24fr);
+  gap: clamp(0.75rem, 1.4vw, 1.25rem);
+}
+
+.paon-overview-card {
+  min-height: 20rem;
+  padding: clamp(1.4rem, 2.5vw, 2.5rem);
+  color: #111513;
+}
+
+.paon-overview-weather {
+  background: var(--overview-mint);
+}
+.paon-overview-commute {
+  background: var(--overview-coral);
+}
+
+.paon-overview-weather-value {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: clamp(4rem, 8vw, 8rem);
+}
+
+.paon-overview-temperature {
+  margin: 0;
+  font-size: clamp(5rem, 9vw, 9rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.09em;
+  line-height: 0.72;
+}
+
+.paon-overview-weather-symbol {
+  font-size: clamp(3rem, 6vw, 6rem);
+  line-height: 0.8;
+}
+.paon-overview-card-copy {
+  margin: 1.5rem 0 0;
+  max-width: 34rem;
+  font-size: 1rem;
+  line-height: 1.45;
+}
+.paon-overview-muted {
+  color: rgba(17, 21, 19, 0.58);
+}
+
+.paon-overview-action {
+  min-height: 3.25rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 0.75rem 1.15rem;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+.paon-overview-action:focus-visible,
+.paon-overview-input:focus-visible,
+.paon-overview .customer-button:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+.paon-overview-form {
+  margin-top: clamp(4rem, 8vw, 7rem);
+}
+.paon-overview-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.paon-overview-input {
+  min-width: 0;
+  min-height: 3.25rem;
+  flex: 1;
+  border: 0;
+  border-bottom: 2px solid rgba(26, 16, 13, 0.55);
+  background: transparent;
+  padding: 0.6rem 0;
+  color: #1a100d;
+  font-size: 1rem;
+  outline: none;
+}
+.paon-overview-action {
+  flex: none;
+  background: #1a100d;
+  color: #fff6f1;
+}
+.paon-overview-commute-value {
+  margin: 2.5rem 0 0;
+  font-size: clamp(3.75rem, 7vw, 7rem);
+  letter-spacing: -0.07em;
+  line-height: 0.8;
+}
+
+.paon-overview-look {
+  display: grid;
+  min-height: 34rem;
+  grid-template-columns: minmax(20rem, 0.72fr) minmax(0, 1.28fr);
+  background: var(--overview-graphite);
+  color: #f6f6f2;
+}
+.paon-overview-look-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(1.6rem, 3vw, 3.25rem);
+}
+.paon-overview-look h2 {
+  margin: 3rem 0 1.25rem;
+  font-size: clamp(2.5rem, 4.5vw, 5rem);
+  line-height: 0.98;
+}
+.paon-overview-look-name {
+  margin: 0;
+  max-width: 32rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.7);
+}
+.paon-overview-look-meta {
+  margin: 0.5rem 0 0;
+  color: rgba(255, 255, 255, 0.48);
+}
+.paon-overview-look-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2.5rem;
+}
+.paon-overview .customer-button {
+  min-height: 3.25rem;
+  border-color: #f6f6f2;
+  border-radius: 999px;
+  background: #f6f6f2;
+  color: #191b1d;
+  padding-inline: 1.35rem;
+  font-size: 1rem;
+  font-family: inherit;
+}
+.paon-overview .customer-button-light {
+  background: transparent;
+  color: #f6f6f2;
+}
+.paon-overview-look-image {
+  position: relative;
+  min-height: 30rem;
+  background: var(--overview-coral);
+}
+.paon-overview-look-image img {
+  object-fit: contain;
+  padding: clamp(1rem, 3vw, 3rem);
+}
+.paon-overview-look-placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #24130e;
+  font-size: 1rem;
+}
+
+.paon-overview-empty-look {
+  display: flex;
+  min-height: 8.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  border-radius: 2rem;
+  background: var(--overview-graphite);
+  padding: 1.5rem clamp(1.5rem, 3vw, 3rem);
+}
+.paon-overview-empty-look p {
+  margin: 0;
+  max-width: 42rem;
+  font-size: 1rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.7);
+}
+.paon-overview-empty-look a {
+  display: inline-flex;
+  min-height: 3.25rem;
+  flex: none;
+  align-items: center;
+  border: 1px solid #f6f6f2;
+  border-radius: 999px;
+  padding: 0.75rem 1.25rem;
+  color: #f6f6f2;
+  font-size: 1rem;
+  text-decoration: none;
+}
+
+.paon-overview-routine {
+  padding: clamp(0.25rem, 1vw, 1rem) 0 2rem;
+  color: #171916;
+}
+
+@media (max-width: 900px) {
+  .paon-overview-clock-card {
+    min-height: auto;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .paon-overview-analog {
+    width: min(60vw, 18rem);
+    justify-self: end;
+  }
+  .paon-overview-widget-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .paon-overview-look {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .paon-overview {
+    padding: 0.55rem;
+  }
+  .paon-overview-clock-card,
+  .paon-overview-card,
+  .paon-overview-look {
+    border-radius: 1.5rem;
+  }
+  .paon-overview-clock-card {
+    padding: 1.35rem;
+  }
+  .paon-overview-clock-card h1 {
+    margin-top: 4rem;
+  }
+  .paon-overview-digital-time {
+    margin-top: 4rem;
+    font-size: clamp(4.3rem, 22vw, 7rem);
+  }
+  .paon-overview-analog {
+    width: min(72vw, 15rem);
+  }
+  .paon-overview-card {
+    min-height: 17rem;
+  }
+  .paon-overview-input-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .paon-overview-look-image {
+    min-height: 24rem;
+  }
+  .paon-overview-empty-look {
+    align-items: flex-start;
+    flex-direction: column;
+    border-radius: 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paon-overview *,
+  .paon-overview *::before,
+  .paon-overview *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* One compact instrument board,
+with the day visible above the fold. */
+.paon-overview {
+  padding: 0;
+}
+.paon-overview-shell {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 18px;
+}
+.paon-overview-clock-card {
+  grid-column: span 8;
+  order: 0;
+  min-height: 405px;
+  padding: 32px;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  gap: 18px;
+  position: relative;
+}
+.paon-env .paon-overview-clock-card h1 {
+  font-size: clamp(34px, 3.7vw, 60px);
+  margin: 24px 0 14px;
+  max-width: 16ch;
+  font-weight: 500;
+}
+.paon-overview-context {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 500;
+  font-size: 14px;
+}
+.paon-overview-presence {
+  width: 8px;
+  height: 8px;
+  background: #2b6553;
+  box-shadow: 0 0 0 4px #377b4b14;
+  border-radius: 50%;
+}
+.paon-overview-digital-time {
+  font-size: clamp(68px, 7.7vw, 124px);
+  line-height: 1;
+  margin-top: auto;
+  letter-spacing: -0.085em;
+}
+.paon-overview-quick-actions {
+  margin: 20px 0 16px;
+}
+.paon-overview-quick-card {
+  min-height: 58px;
+  min-width: 0;
+  padding: 9px 14px;
+  gap: 3px;
+  font-size: 13px;
+  border: 0;
+  background: #ffffff35;
+  border-radius: 18px;
+  box-shadow: inset 0 1px 1px #fff6;
+}
+.paon-overview-quick-card strong {
+  font-size: 14px;
+}
+.paon-overview-analog {
+  width: 180px;
+  background: #d8edf426;
+  border: 8px solid #8db7ca;
+  box-shadow:
+    0 3px 0 #d9f2f375,
+    inset 0 2px 8px #15394d1c;
+}
+.paon-overview-hour-mark {
+  border-top-width: 7px;
+}
+.paon-overview-widget-grid {
+  display: contents;
+}
+.paon-overview-card {
+  grid-column: span 4;
+  padding: 26px;
+  min-height: 285px;
+  min-width: 0;
+}
+.paon-overview-card-copy {
+  margin-top: 16px;
+  font-size: 14px;
+}
+.paon-overview-weather {
+  order: 2;
+  display: flex;
+  flex-direction: column;
+}
+.paon-overview-weather-value {
+  margin-top: auto;
+  padding-top: 36px;
+}
+.paon-overview-temperature {
+  font-size: 88px;
+}
+.paon-overview-weather-symbol {
+  font-size: 60px;
+}
+.paon-overview-weather-idle {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding-top: 24px;
+}
+.paon-overview-weather-idle svg {
+  width: 64px;
+  height: 64px;
+  flex: none;
+}
+.paon-overview-weather-idle p {
+  font-size: 22px;
+  line-height: 1.25;
+  letter-spacing: -0.04em;
+}
+.paon-overview-weather .paon-overview-action {
+  margin-top: 20px;
+  align-self: flex-start;
+  background: #214432;
+  border: 0;
+}
+.paon-overview-muted {
+  color: #32463bc9;
+}
+.paon-overview-commute {
+  order: 4;
+  display: flex;
+  flex-direction: column;
+}
+.paon-overview-form {
+  margin-top: auto;
+  padding-top: 30px;
+}
+.paon-overview-input-row {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.paon-overview-input {
+  flex-basis: 150px;
+}
+.paon-overview-action {
+  min-height: 48px;
+  font-size: 14px;
+  padding: 10px 18px;
+}
+.paon-overview-commute-value {
+  font-size: 54px;
+  margin-top: 22px;
+}
+.paon-overview-look,
+.paon-overview-empty-look {
+  grid-column: 1/-1;
+  order: 5;
+}
+.paon-overview-look {
+  min-height: 400px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.paon-overview-look h2 {
+  font-size: 42px;
+  margin: 24px 0 18px;
+}
+.paon-overview-look-image {
+  min-height: 400px;
+}
+.paon-overview-routine {
+  grid-column: 1/-1;
+  order: 6;
+  color: inherit;
+}
+@media (max-width: 1180px) and (min-width: 901px) {
+  .paon-overview-clock-card {
+    grid-column: span 7;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 26px;
+  }
+  .paon-overview-analog {
+    position: absolute;
+    right: 26px;
+    bottom: 28px;
+    width: 110px;
+    border-width: 5px;
+  }
+  .paon-overview-clock-card h1 {
+    max-width: 14ch;
+  }
+}
+@media (max-width: 900px) {
+  .paon-overview-shell {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .paon-overview-clock-card {
+    grid-column: 1/-1;
+    grid-template-columns: minmax(0, 1fr) 150px;
+    min-height: 370px;
+  }
+  .paon-overview-analog {
+    width: 150px;
+  }
+  .paon-overview-card {
+    grid-column: span 1;
+    min-height: 310px;
+    padding: 22px;
+  }
+  .paon-overview-digital-time {
+    font-size: 100px;
+  }
+  .paon-overview-look {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 560px) {
+  .paon-overview-shell {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+  .paon-overview-clock-card {
+    padding: 24px;
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 385px;
+  }
+  .paon-env .paon-overview-clock-card h1 {
+    font-size: 40px;
+    margin: 28px 0 12px;
+    max-width: 12ch;
+  }
+  .paon-overview-digital-time {
+    font-size: 78px;
+    margin-top: 16px;
+  }
+  .paon-overview-analog {
+    position: absolute;
+    right: 22px;
+    bottom: 26px;
+    width: 88px;
+    border-width: 4px;
+  }
+  .paon-overview-digital-time {
+    font-size: 64px;
+  }
+  .paon-overview-quick-actions {
+    margin: 20px 0 10px;
+    max-width: 100%;
+  }
+  .paon-overview-card {
+    min-height: 265px;
+    grid-column: 1/-1;
+    padding: 24px;
+  }
+  .paon-overview-input-row {
+    flex-direction: row;
+  }
+  .paon-overview-look h2 {
+    font-size: 34px;
+  }
+  .paon-overview-look-image {
+    min-height: 340px;
+  }
+}
+
+.paon-overview-shell > *,
+.paon-overview-clock-copy {
+  min-width: 0;
+}
+.paon-overview-commute {
+  --we-ink-faint: #75594f;
+}
+
+/* ── World clock ───────────────────────────────────────────────────────────
+   The card *is* the live city feed: rounded corners, video edge to edge, with
+   a floating panel carrying that city's temperature and local time. The city
+   picker sits above the card. */
+.paon-world-module {
+  --world-pad: 0px;
+  grid-column: 1 / -1;
+  /* First thing on the page, above the greeting. */
+  order: -1;
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+/* ── City picker ─────────────────────────────────────────────────────────── */
+.paon-world-strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 0 4px 2px;
+  scrollbar-width: none;
+}
+.paon-world-strip::-webkit-scrollbar {
+  display: none;
+}
+.paon-world-chip {
+  display: grid;
+  min-width: 96px;
+  flex: 1 1 0;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-family: inherit;
+  text-align: center;
+}
+.paon-world-chip-thumb {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 70 / 50;
+  overflow: hidden;
+  border-radius: 2rem;
+  background: #0b0c0e;
+}
+/* A 16:9 stream cropped to fill the 70:50 chip — sized so the video fills the
+   iframe exactly, which is what keeps YouTube from letterboxing it itself. */
+.paon-world-chip-frame {
+  position: absolute;
+  object-fit: cover;
+  top: 50%;
+  left: 50%;
+  width: 127.5%;
+  height: 100%;
+  border: 0;
+  opacity: 0.7;
+  pointer-events: none;
+  transform-origin: center center;
+}
+.paon-world-chip[aria-selected="true"] .paon-world-chip-frame {
+  opacity: 1;
+}
+.paon-world-chip-code {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: rgba(247, 247, 244, 0.5);
+}
+.paon-world-chip-time {
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  color: #f7f7f4;
+}
+.paon-world-chip:focus,
+.paon-world-chip:focus-visible {
+  outline: none;
+}
+
+/* ── The feed card ───────────────────────────────────────────────────────── */
+.paon-world-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 2rem;
+  background: #07080a;
+  isolation: isolate;
+}
+.paon-world-stage img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: cover;
+}
+/* Centred so the per-city crop transform scales about the middle of frame.
+   Every city stays mounted; only the active one is painted, so switching is a
+   cut rather than a reload. `visibility` rather than `display:none` — a hidden
+   display tears down the player's layout and costs a re-handshake on return. */
+.paon-world-stage iframe,
+.paon-world-stage video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  pointer-events: none;
+  transform-origin: center center;
+}
+.paon-world-frame {
+  object-fit: cover;
+  z-index: 0;
+  visibility: hidden;
+  opacity: 0;
+}
+.paon-world-frame.is-active {
+  z-index: 1;
+  visibility: visible;
+  opacity: 1;
+}
+
+.paon-world-placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  margin: 0;
+  place-items: center;
+  background: linear-gradient(150deg, #2b2740, #101019);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+  letter-spacing: 0.22em;
+}
+.paon-world-stage .paon-world-placeholder {
+  font-size: 20px;
+}
+
+/* ── Floating reading ────────────────────────────────────────────────────── */
+.paon-world-badge {
+  position: absolute;
+  z-index: 2;
+  top: 20px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  border-radius: 20px;
+  background: rgba(10, 10, 12, 0.82);
+  padding: 13px 22px;
+  color: #fff;
+  transform: translateX(-50%);
+  backdrop-filter: blur(14px);
+}
+.paon-world-badge-temp {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  font-size: 30px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+.paon-world-badge-symbol {
+  font-size: 0.7em;
+}
+.paon-world-badge-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 13px;
+  line-height: 1.2;
+}
+.paon-world-badge-meta strong {
+  font-weight: 500;
+}
+.paon-world-badge-meta span {
+  color: rgba(255, 255, 255, 0.6);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* The feed takes the whole row, so the commute estimate becomes a wide band. */
+.paon-overview-commute {
+  grid-column: 1 / -1;
+  min-height: 210px;
+}
+.paon-overview-commute .paon-overview-form {
+  padding-top: 18px;
+}
+.paon-overview-commute .paon-overview-input {
+  flex-basis: 260px;
+}
+
+@media (max-width: 1180px) and (min-width: 901px) {
+  .paon-overview-clock-card {
+    grid-column: span 8;
+  }
+}
+
+@media (max-width: 560px) {
+  .paon-world-stage {
+    border-radius: 1.5rem;
+  }
+  /* Five cities across a phone, as in the original 390px widget. */
+  .paon-world-strip {
+    gap: 8px;
+  }
+  .paon-world-chip {
+    min-width: 0;
+  }
+  .paon-world-chip-thumb {
+    border-radius: 1rem;
+  }
+  .paon-world-chip-code {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+  }
+  .paon-world-chip-time {
+    font-size: 14px;
+  }
+  .paon-world-badge {
+    top: 12px;
+    gap: 12px;
+    padding: 10px 16px;
+  }
+  .paon-world-badge-temp {
+    font-size: 22px;
+  }
+  .paon-world-badge-meta {
+    font-size: 11px;
+  }
+  .paon-overview-commute .paon-overview-input {
+    flex-basis: 100%;
+  }
+}
+
+@media (max-width: 900px) and (min-width: 561px) {
+  .paon-world-chip-thumb {
+    border-radius: 1.5rem;
+  }
+}
+
+/* ── Second row: outfit | (message over world clock) ─────────────────────
+   Two halves of the screen. The day's highlight fills the left column in
+   full; the greeting sits above the world clock on the right. */
+.paon-overview-hero {
+  grid-column: 1 / -1;
+  order: -1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  min-width: 0;
+}
+.paon-overview-hero-side {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+  /* The column is exactly as tall as the OOTD image beside it, so the
+     outfit card can grow to finish on the same line. Only the greeting and
+     the outfit live here — page.tsx keeps the world clock out of this column
+     for that reason. */
+  height: calc(100vh - 146px);
+  min-height: 480px;
+}
+.paon-overview-hero .paon-world-module {
+  grid-column: auto;
+  order: 0;
+}
+/* Directly in the shell now: the row after the hero, full width. The
+   `order: -1` above is from when it led the page. */
+.paon-overview-shell > .paon-world-module {
+  order: 0;
+}
+
+/* Left half: the greeting in its own card, the day's highlight in its own
+   card beneath it — the whole outfit, head to shoes, never cropped. */
+.paon-welcome-message {
+  border-radius: 2rem;
+  background: linear-gradient(180deg, #fbf7f0 0%, #f4ebde 100%);
+  color: #2a241c;
+}
+.paon-welcome-copy {
+  margin: 0;
+  padding: 28px 30px 26px;
+  font-family: OptimaKlein, "Optima", "Palatino Linotype", serif;
+  font-size: clamp(20px, 1.75vw, 28px);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.32;
+  text-wrap: pretty;
+}
+
+/* Each word of the greeting rides up out of its own mask — welcome-card.tsx
+   drives the tween. The mask is grown by a descender's worth and pulled back
+   by the same amount, so `overflow: hidden` clips the word's entry from below
+   without ever cutting the tail off a g or a y. */
+.paon-welcome-word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding-bottom: 0.18em;
+  margin-bottom: -0.18em;
+}
+.paon-welcome-word > * {
+  display: inline-block;
+  will-change: transform;
+}
+/* The words are hidden by the markup the server sends, not by the tween: the
+   greeting paints once before React hydrates, and a `from` state applied after
+   that showed the finished sentence for a beat and then animated it. The class
+   comes off in the same frame GSAP writes its own inline opacity, so there is
+   no gap between the two. The failsafe hands the sentence back if the script
+   never runs at all — GSAP clears the class long before it could fire. */
+.paon-welcome-copy.is-pending .paon-welcome-word > * {
+  opacity: 0;
+  animation: paon-welcome-failsafe 0s linear 3s forwards;
+}
+@keyframes paon-welcome-failsafe {
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .paon-welcome-word > * {
+    transform: none !important;
+    opacity: 1 !important;
+    will-change: auto;
+  }
+}
+/* The outfit card IS the image: as tall as the window, exactly as wide as
+   the photograph at that height — no bars either side. The right column
+   takes whatever width is left. */
+.paon-welcome-look {
+  /*
+   * Finishes level with the bottom edge of the sidebar's Visit in-store
+   * button, so both columns of the page end on the same line.
+   *
+   * Above it: the stat row now starts at 18 (the 28px workspace pad pulled up
+   * 10 by .paon-overview-stats) and is 90 tall, then an 18px grid gap — 126.
+   * Below it: that button sits 20px off the viewport bottom. 126 + 20 = 146.
+   */
+  height: calc(100vh - 146px);
+  min-height: 480px;
+  min-width: 0;
+  aspect-ratio: 1800 / 3463;
+  overflow: hidden;
+  border-radius: 2rem;
+  background: #ebe6dd;
+}
+.paon-welcome-look img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 900px) {
+  .paon-overview-hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+}
+@media (max-width: 560px) {
+  .paon-welcome-message,
+  .paon-welcome-look {
+    border-radius: 1.5rem;
+  }
+  .paon-welcome-copy {
+    padding: 22px 22px 20px;
+    font-size: 19px;
+  }
+}
+
+/* ── The outfit, piece by piece ──────────────────────────────────────────── */
+.paon-outfit {
+  border-radius: 2rem;
+  background: #f5f3ee;
+  color: #1c1a16;
+  padding: 22px 24px;
+  /* Fills whatever the greeting leaves of the column; the list takes the
+     slack and the total + actions stay pinned to the foot. */
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.paon-outfit-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  justify-content: space-evenly;
+}
+.paon-outfit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.paon-outfit-piece {
+  /* A <button>: reset its UA box, then lay it out as the row it was. */
+  appearance: none;
+  width: 100%;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  display: grid;
+  /* Thumb, copy, price. The price used to be a button of its own; the row
+     is the button now and the price is its label. */
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  /* Rows in one card, not a card each: no border, no fill of their own.
+     Four boxed rows inside a boxed card inside a boxed column was nothing
+     but edges. A selected row lights up; the rest sit back. */
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  padding: 12px 12px 12px 10px;
+  position: relative;
+  cursor: pointer;
+  opacity: 0.5;
+  transition:
+    opacity 220ms ease,
+    background-color 220ms ease;
+}
+.paon-outfit-piece.is-selected {
+  opacity: 1;
+  background: rgba(28, 26, 22, 0.06);
+}
+/* Hover previews the lit state at half strength: the same fill the selected
+   row carries, at 50% of its alpha, faded in over the row's transition. */
+.paon-outfit-piece:hover {
+  opacity: 0.8;
+  background: rgba(28, 26, 22, 0.03);
+}
+.paon-outfit-piece.is-selected:hover {
+  opacity: 1;
+  background: rgba(28, 26, 22, 0.06);
+}
+.paon-outfit-thumb {
+  position: relative;
+  display: block;
+  width: 56px;
+  height: 56px;
+  overflow: hidden;
+  border-radius: 12px;
+}
+.paon-outfit-thumb img {
+  object-fit: cover;
+  object-position: 50% 18%;
+}
+.paon-outfit-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+.paon-outfit-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+.paon-outfit-material {
+  font-size: 12px;
+  color: rgba(28, 26, 22, 0.62);
+}
+.paon-outfit-tags {
+  margin-top: 4px;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(28, 26, 22, 0.5);
+}
+.paon-outfit-toggle {
+  min-height: 36px;
+  /* Wide enough that € 149 and € 2.349 make the same shape down the column,
+     and the figures sit flush to the pill's right edge so the units line up
+     down the list like a ledger. */
+  min-width: 92px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  text-align: right;
+  border: 1px solid #1c1a16;
+  border-radius: 999px;
+  background: #1c1a16;
+  padding: 6px 14px;
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  cursor: pointer;
+}
+/* The pill reads the row's state: out of the outfit it is an outline with
+   no fill; in the outfit it fills and glows. */
+.paon-outfit-piece[aria-pressed="false"] .paon-outfit-toggle {
+  background: transparent;
+  color: #1c1a16;
+  box-shadow: none;
+}
+.paon-outfit-piece[aria-pressed="true"] .paon-outfit-toggle {
+  background: #1c1a16;
+  color: #fff;
+  box-shadow:
+    0 0 0 1px rgba(28, 26, 22, 0.35),
+    0 0 14px rgba(28, 26, 22, 0.45);
+}
+.paon-outfit-piece:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.6);
+  outline-offset: 2px;
+}
+.paon-outfit-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(28, 26, 22, 0.12);
+  font-size: 13px;
+  color: rgba(28, 26, 22, 0.62);
+}
+.paon-outfit-total strong {
+  font-size: 22px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: #1c1a16;
+}
+
+@media (max-width: 560px) {
+  .paon-outfit {
+    border-radius: 1.5rem;
+    padding: 18px;
+  }
+  .paon-outfit-piece {
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+  }
+}
+
+/* ── Top row: three stat tiles ────────────────────────────────────────────
+   One reading per tile, value first, label and detail beside it. */
+.paon-overview-stats {
+  grid-column: 1 / -1;
+  order: -2;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  min-width: 0;
+}
+.paon-stat {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  min-height: 76px;
+  border-radius: 2rem;
+  padding: 14px 22px;
+  color: #11191d;
+}
+.paon-stat-clock {
+  background: var(--overview-blue);
+}
+.paon-stat-weather {
+  background: var(--overview-mint);
+}
+.paon-stat-commute {
+  background: var(--overview-coral);
+}
+.paon-stat-value {
+  display: flex;
+  flex: none;
+  align-items: baseline;
+  gap: 0.15em;
+  margin: 0;
+  font-size: 34px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.06em;
+  line-height: 1;
+  white-space: nowrap;
+}
+.paon-stat-value small {
+  font-size: 0.4em;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.paon-stat-value-idle {
+  opacity: 0.45;
+}
+.paon-stat-symbol {
+  font-size: 0.62em;
+  letter-spacing: 0;
+}
+.paon-stat-meta {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+.paon-stat-label {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.paon-stat-detail {
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1.3;
+  color: rgba(17, 25, 29, 0.62);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.paon-stat-action {
+  align-self: flex-start;
+  margin-top: 3px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.paon-stat-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+.paon-stat-input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  border-bottom: 1.5px solid rgba(17, 25, 29, 0.4);
+  background: transparent;
+  padding: 3px 0;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+}
+.paon-stat-form .paon-stat-action {
+  align-self: center;
+  margin-top: 0;
+  flex: none;
+}
+
+@media (max-width: 900px) {
+  .paon-overview-stats {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+}
+@media (max-width: 560px) {
+  .paon-stat {
+    border-radius: 1.5rem;
+    padding: 12px 18px;
+  }
+  .paon-stat-value {
+    font-size: 30px;
+  }
+}
+
+/* Three tiles, one row: the day (time · date · sun), the sky (weather · air ·
+   wind), the commute. The first two carry extra readings and get the width
+   for them; the commute keeps one number. */
+.paon-overview-stats {
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 2.3fr) minmax(0, 0.8fr);
+  /* The one gap the whole environment uses between cards, both axes. */
+  gap: 18px;
+  /*
+   * Pulled 10px above the workspace's 28px top gutter, and grown by the same
+   * 10px below, so the tiles sit higher without shifting a pixel of what is
+   * under them and their bottom edge stays where it has to be.
+   */
+  margin-top: -10px;
+}
+.paon-stat {
+  gap: 8px;
+  /*
+   * The row must finish level with the bottom of the BUTTON inside the
+   * sidebar's Store / Wardrobe toggle, not the bottom of the black track
+   * around it. The toggle sits flush under the 60px logo, its track carries
+   * 3px of padding, and the buttons are 45px tall, so the button edge lands at
+   * 60 + 3 + 45 = 108 while the track runs on to 111. Raised to y=18 by the
+   * negative margin above, that is 108 - 18 = 90.
+   */
+  min-height: 90px;
+  /* The card stays 90px; the type inside fills it. 10px of padding top and
+     bottom left the value swimming in a 70px well, so the vertical padding
+     comes down and the value goes up to meet it. */
+  padding: 6px 14px;
+  border-radius: 20px;
+}
+.paon-stat-value {
+  font-size: 34px;
+  letter-spacing: -0.05em;
+}
+.paon-stat-icon {
+  width: 24px;
+  height: 24px;
+}
+.paon-stat-label {
+  font-size: 12px;
+}
+.paon-stat-detail {
+  font-size: 11px;
+  line-height: 1.25;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+/* An extra reading riding inside a wider tile — the sun in the clock tile,
+   air and wind in the weather tile. Same icon, value and meta as a tile of
+   its own, laid out inline, and ruled off from what is to its left. */
+.paon-stat-extra {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin-left: 6px;
+  padding-left: 14px;
+  border-left: 1px solid rgba(255, 255, 255, 0.14);
+}
+.paon-stat-extra-value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.15em;
+  flex: none;
+  font-size: 34px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  white-space: nowrap;
+}
+.paon-stat-extra-value small {
+  font-size: 0.4em;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.paon-stat-extra-meta {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+.paon-stat-extra.paon-stat-value-idle {
+  opacity: 0.45;
+}
+.paon-stat-sun {
+  background: #f6e3b8;
+}
+.paon-stat-air {
+  background: #dde9f3;
+}
+.paon-stat-wind {
+  background: #e6ede4;
+}
+
+@media (max-width: 1250px) {
+  .paon-stat {
+    gap: 6px;
+    padding: 8px 10px;
+  }
+  .paon-stat-value {
+    font-size: 19px;
+  }
+  .paon-stat-icon {
+    width: 16px;
+    height: 16px;
+  }
+  .paon-stat-label {
+    font-size: 11px;
+  }
+  .paon-stat-detail {
+    font-size: 10px;
+  }
+}
+@media (max-width: 900px) {
+  .paon-overview-stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .paon-overview-hero-side {
+    height: auto;
+    min-height: 0;
+  }
+}
+@media (max-width: 560px) {
+  .paon-overview-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Icons in the tiles: line marks in currentColor, never the emoji set. */
+.paon-stat-icon {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  align-self: center;
+  stroke-width: 1.6;
+}
+.paon-stat-label-icon,
+.paon-stat-detail-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.paon-stat-label-icon svg,
+.paon-stat-detail-icon svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+.paon-welcome-weather-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.12em;
+  stroke-width: 1.6;
+}
+
+/* Outfit actions: basket first, then the ways to carry on. */
+.paon-outfit-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+/* The product panel's checkout row, verbatim: a round heart, then two pills
+   sharing the width — the frosted "Continue In-Store" and the white "Add to
+   Bag". */
+.paon-outfit-heart {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #f4f2ec;
+  transition: background-color 220ms ease;
+}
+.paon-outfit-heart:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+.paon-outfit-heart svg {
+  width: 20px;
+  height: 20px;
+}
+.paon-outfit-actions .paon-outfit-action {
+  flex: 1 1 0;
+  min-height: 56px;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #f4f2ec;
+  font-size: 15px;
+  font-weight: 500;
+}
+.paon-outfit-actions .paon-outfit-action:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+.paon-outfit-actions .paon-outfit-action-primary {
+  background: #f4f2ec;
+  color: #14120f;
+}
+.paon-outfit-actions .paon-outfit-action-primary:hover {
+  background: #ffffff;
+}
+.paon-outfit-action {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  border: 1px solid rgba(28, 26, 22, 0.22);
+  border-radius: 999px;
+  padding: 0 16px;
+  color: #1c1a16;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+.paon-outfit-action:hover {
+  background: rgba(28, 26, 22, 0.06);
+}
+.paon-outfit-action-primary {
+  border-color: #1c1a16;
+  background: #1c1a16;
+  color: #fff;
+}
+.paon-outfit-action-primary:hover {
+  background: #2c2924;
+}
+.paon-outfit-action-primary[aria-disabled="true"] {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* ── Grey, not colour ──────────────────────────────────────────────────────
+   Every card on the overview is the same material as the sidebar: a vertical
+   gradient from 90% black to 70% black, light type, hairline edges. */
+.paon-stat,
+.paon-welcome-message,
+.paon-outfit,
+.paon-welcome-look {
+  background: linear-gradient(180deg, #1a1a1a 0%, #4d4d4d 100%);
+  color: #f4f2ec;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.paon-stat-clock,
+.paon-stat-weather,
+.paon-stat-commute,
+.paon-stat-sun,
+.paon-stat-air,
+.paon-stat-wind {
+  background: linear-gradient(180deg, #1a1a1a 0%, #4d4d4d 100%);
+  color: #f4f2ec;
+}
+.paon-stat-detail,
+.paon-stat-value-idle {
+  color: rgba(244, 242, 236, 0.62);
+  opacity: 1;
+}
+.paon-stat-action {
+  color: #f4f2ec;
+}
+.paon-stat-input {
+  border-bottom-color: rgba(244, 242, 236, 0.4);
+  color: #f4f2ec;
+}
+.paon-stat-input::placeholder {
+  color: rgba(244, 242, 236, 0.45);
+}
+
+.paon-welcome-copy {
+  color: #f4f2ec;
+}
+
+.paon-outfit .paon-overview-card-title {
+  color: #f4f2ec;
+}
+.paon-outfit-piece {
+  border: 0;
+  background: transparent;
+  color: #f4f2ec;
+}
+.paon-outfit-piece.is-selected {
+  /* Lit by a whiter fill, never a border. */
+  background: rgba(255, 255, 255, 0.08);
+}
+.paon-outfit-piece:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+.paon-outfit-piece.is-selected:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.paon-outfit-material,
+.paon-outfit-tags,
+.paon-outfit-total {
+  color: rgba(244, 242, 236, 0.6);
+}
+.paon-outfit-total {
+  border-top-color: rgba(255, 255, 255, 0.12);
+}
+.paon-outfit-total strong {
+  color: #f4f2ec;
+}
+.paon-outfit-toggle {
+  border-color: #f4f2ec;
+  background: #f4f2ec;
+  color: #14120f;
+}
+.paon-outfit-piece[aria-pressed="false"] .paon-outfit-toggle {
+  background: transparent;
+  border-color: rgba(244, 242, 236, 0.45);
+  color: #f4f2ec;
+  box-shadow: none;
+}
+.paon-outfit-piece[aria-pressed="true"] .paon-outfit-toggle {
+  background: #f4f2ec;
+  border-color: #f4f2ec;
+  color: #14120f;
+  /* The glow: a soft halo of the pill's own bone white. */
+  box-shadow:
+    0 0 0 1px rgba(244, 242, 236, 0.35),
+    0 0 18px rgba(244, 242, 236, 0.45);
+}
+.paon-outfit-toggle {
+  transition:
+    background-color 220ms ease,
+    color 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease;
+}
+.paon-outfit-action {
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #f4f2ec;
+}
+.paon-outfit-action:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.paon-outfit-action-primary {
+  border-color: #f4f2ec;
+  background: #f4f2ec;
+  color: #14120f;
+}
+.paon-outfit-action-primary:hover {
+  background: #fff;
+}

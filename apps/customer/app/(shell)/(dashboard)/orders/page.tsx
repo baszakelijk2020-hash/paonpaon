@@ -79,12 +79,12 @@ function orderActions(view: OrderView) {
 
 function OrderActionRow({ view }: { view: OrderView }) {
   return (
-    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--color-stone-500)]">
+    <div className="flex flex-wrap gap-2 text-sm">
       {orderActions(view).map((action) => (
         <Link
           key={action.label}
           href={action.href}
-          className="underline underline-offset-2 hover:text-[var(--color-stone-900)]"
+          className="inline-flex min-h-[44px] items-center rounded-full bg-white/[0.08] px-4 text-white/75 transition-colors hover:bg-white/[0.14] hover:text-white"
         >
           {action.label}
         </Link>
@@ -96,25 +96,28 @@ function OrderActionRow({ view }: { view: OrderView }) {
 function OrderCard({ view }: { view: OrderView }) {
   const { order } = view;
   return (
-    <article className="flex flex-col gap-3 px-5 py-6 sm:px-7">
+    <article
+      className="pe-card flex flex-col gap-6 rounded-[32px] bg-[#191b1d] p-6 text-white sm:p-8"
+      data-pe-card
+    >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0 space-y-1">
           <Link
             href={`/orders/${order.id}`}
-            className="font-display text-xl text-[var(--color-stone-900)] hover:underline"
+            className="font-display text-2xl font-semibold tracking-[-0.025em] text-white hover:underline"
           >
             {order.orderNumber}
           </Link>
-          <p className="text-sm text-[var(--color-stone-500)]">
+          <p className="mt-2 text-sm text-white/55">
             {view.retailerName} · {formatDate(order.createdAt, "en-US")} ·{" "}
             {view.lineCount} item{view.lineCount === 1 ? "" : "s"}
           </p>
         </div>
         <div className="text-right">
-          <p className="font-medium text-[var(--color-stone-900)]">
+          <p className="text-lg font-semibold text-white">
             {formatMoney(order.total, "en-US")}
           </p>
-          <p className="mt-1 text-xs text-[var(--color-stone-500)]">
+          <p className="mt-2 inline-flex rounded-full bg-[#b8e6be] px-3 py-1.5 text-xs font-semibold text-[#181818]">
             {ORDER_STATUS_LABELS[order.status]}
           </p>
         </div>
@@ -137,16 +140,21 @@ function SupportingModules({ shopHref }: { shopHref: string }) {
     <section aria-labelledby="orders-support-heading">
       <p
         id="orders-support-heading"
-        className="customer-kicker mb-3 text-[var(--color-stone-500)]"
+        className="customer-kicker mb-4 text-white/55"
       >
         Keep going
       </p>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {modules.map((module) => (
+        {modules.map((module, index) => (
           <Link
             key={module.label}
             href={module.href}
-            className="rounded-[var(--customer-radius)] bg-gradient-to-br from-[rgba(203,211,197,0.45)] to-[rgba(203,211,197,0.18)] px-5 py-4 text-sm text-[var(--color-stone-700)] shadow-sm transition-colors hover:text-[var(--color-stone-900)]"
+            data-pe-card
+            className={`flex min-h-28 items-end rounded-[32px] p-5 text-base font-semibold text-[#181818] transition-transform hover:-translate-y-0.5 ${
+              ["bg-[#aed6e7]", "bg-[#b8e6be]", "bg-[#c7c1ef]", "bg-[#f0b6a4]"][
+                index % 4
+              ]
+            }`}
           >
             {module.label}
           </Link>
@@ -177,15 +185,13 @@ function CompleteTheLookModule({
     <section
       id="complete-the-look"
       aria-labelledby="orders-ctl-heading"
-      className="scroll-mt-24"
+      className="pe-card scroll-mt-24 rounded-[32px] bg-[#191b1d] p-6 text-white sm:p-8"
+      data-pe-card
     >
-      <p
-        id="orders-ctl-heading"
-        className="customer-kicker mb-3 text-[var(--color-stone-500)]"
-      >
+      <p id="orders-ctl-heading" className="customer-kicker mb-4 text-white/55">
         Complete the Look
       </p>
-      <div className="border-y border-[var(--customer-border)] py-6">
+      <div>
         <Link
           href={source.href}
           className="relative mx-auto flex h-[70px] w-[70px] items-center justify-center overflow-hidden rounded-[22px] bg-[var(--color-stone-900)]"
@@ -219,7 +225,7 @@ function CompleteTheLookModule({
             </span>
           )}
         </Link>
-        <p className="mt-2 text-center text-xs text-[var(--color-stone-500)]">
+        <p className="mt-3 text-center text-sm text-white/55">
           Pairs for {source.name}
         </p>
         {suggestions.length > 0 ? (
@@ -255,7 +261,7 @@ function CompleteTheLookModule({
                       </span>
                     )}
                   </span>
-                  <span className="line-clamp-2 text-xs text-[var(--color-stone-700)]">
+                  <span className="line-clamp-2 text-xs text-white/70">
                     {suggestion.displayName}
                   </span>
                 </Link>
@@ -263,7 +269,7 @@ function CompleteTheLookModule({
             ))}
           </ul>
         ) : (
-          <p className="mt-4 text-center text-xs text-[var(--color-stone-500)]">
+          <p className="mt-4 text-center text-xs text-white/55">
             No catalogue pairings available from this retailer yet.
           </p>
         )}
@@ -387,65 +393,69 @@ export default async function OrdersPage() {
   }
 
   return (
-    <div className="customer-page flex flex-col gap-8">
-      <header className="customer-page-header space-y-2">
-        <p className="customer-kicker text-xs font-medium uppercase tracking-[0.18em]">
-          Purchases
-        </p>
-        <h1 className="font-display text-4xl text-[var(--color-stone-900)]">
-          Orders
-        </h1>
-        <p className="max-w-xl text-sm leading-6 text-[var(--color-stone-600)]">
-          Pending orders first, then your full purchase history — every order
-          you have placed, with the actions to carry each one forward.
-        </p>
+    <div className="customer-page flex flex-col gap-6 bg-black pb-12 text-white">
+      <header className="pe-page-head items-end gap-6 pb-3">
+        <div>
+          <p className="customer-kicker mb-2 text-white/55">
+            Purchases and progress
+          </p>
+          <h1 className="font-display text-5xl font-semibold leading-none tracking-[-0.055em] text-white sm:text-6xl">
+            Orders
+          </h1>
+          <p className="mt-4 max-w-xl text-base leading-7 text-white/60">
+            Follow what is being made, then revisit every piece and its
+            services.
+          </p>
+        </div>
+        <RelatedLinks
+          links={[
+            { href: "/preferred-tailoring", label: "Preferred Tailoring" },
+            { href: "/services", label: "Services" },
+          ]}
+        />
       </header>
-      <RelatedLinks
-        links={[
-          { href: "/preferred-tailoring", label: "Preferred Tailoring" },
-          { href: "/services", label: "Services" },
-        ]}
-      />
 
-      <section aria-labelledby="orders-pending-heading">
-        <p
-          id="orders-pending-heading"
-          className="customer-kicker mb-3 text-[var(--color-stone-500)]"
-        >
-          Pending orders
-        </p>
-        {pending.length > 0 ? (
-          <div className="divide-y divide-[var(--color-stone-100)] border-y border-[var(--customer-border)]">
-            {pending.map((view) => (
-              <OrderCard key={view.order.id} view={view} />
-            ))}
-          </div>
-        ) : (
-          <div className="border-y border-[var(--customer-border)] px-5 py-8 text-sm text-[var(--color-stone-500)]">
-            Nothing in progress right now.
-          </div>
-        )}
-      </section>
+      {/* Two sections only when there is something in them. With no orders
+          at all, "Pending: nothing" above "History: nothing" was two empty
+          tiles saying the same thing; one card says it once. */}
+      {views.length === 0 ? (
+        <section className="pe-card" data-pe-card>
+          <p className="customer-kicker">Orders</p>
+          <h2 className="mt-2">Your first piece starts here.</h2>
+          <p className="mt-1 max-w-md">
+            Purchases and their progress will appear here.
+          </p>
+          <Link href={shopHref} className="customer-button mt-5 inline-flex">
+            Explore the collection
+          </Link>
+        </section>
+      ) : (
+        <>
+          {pending.length > 0 ? (
+            <section aria-labelledby="orders-pending-heading">
+              <p id="orders-pending-heading" className="customer-kicker mb-3">
+                In progress
+              </p>
+              <div className="grid gap-4 lg:grid-cols-2">
+                {pending.map((view) => (
+                  <OrderCard key={view.order.id} view={view} />
+                ))}
+              </div>
+            </section>
+          ) : null}
 
-      <section aria-labelledby="orders-history-heading">
-        <p
-          id="orders-history-heading"
-          className="customer-kicker mb-3 text-[var(--color-stone-500)]"
-        >
-          Order history
-        </p>
-        {views.length > 0 ? (
-          <div className="divide-y divide-[var(--color-stone-100)] border-y border-[var(--customer-border)]">
-            {views.map((view) => (
-              <OrderCard key={`history-${view.order.id}`} view={view} />
-            ))}
-          </div>
-        ) : (
-          <div className="customer-panel px-6 py-16 text-center">
-            <p className="text-[var(--color-stone-600)]">No orders yet.</p>
-          </div>
-        )}
-      </section>
+          <section aria-labelledby="orders-history-heading">
+            <p id="orders-history-heading" className="customer-kicker mb-3">
+              Order history
+            </p>
+            <div className="grid gap-4 lg:grid-cols-2">
+              {views.map((view) => (
+                <OrderCard key={`history-${view.order.id}`} view={view} />
+              ))}
+            </div>
+          </section>
+        </>
+      )}
 
       {completeTheLook ? (
         <CompleteTheLookModule
@@ -455,24 +465,29 @@ export default async function OrdersPage() {
       ) : null}
 
       {mostRecent?.retailerSlug ? (
-        <SeasonalStaffFavourites
-          retailerId={mostRecent.order.retailerId}
-          retailerSlug={mostRecent.retailerSlug}
-          excludeProductIds={
-            new Set(
-              completeTheLook
-                ? [
-                    ...(mostRecent.firstProduct
-                      ? [mostRecent.firstProduct.id]
-                      : []),
-                    ...completeTheLook.suggestions.map(
-                      (suggestion) => suggestion.productId,
-                    ),
-                  ]
-                : [],
-            )
-          }
-        />
+        <div
+          className="pe-card rounded-[32px] bg-[#191b1d] p-6 text-white sm:p-8"
+          data-pe-card
+        >
+          <SeasonalStaffFavourites
+            retailerId={mostRecent.order.retailerId}
+            retailerSlug={mostRecent.retailerSlug}
+            excludeProductIds={
+              new Set(
+                completeTheLook
+                  ? [
+                      ...(mostRecent.firstProduct
+                        ? [mostRecent.firstProduct.id]
+                        : []),
+                      ...completeTheLook.suggestions.map(
+                        (suggestion) => suggestion.productId,
+                      ),
+                    ]
+                  : [],
+              )
+            }
+          />
+        </div>
       ) : null}
 
       {views.length > 0 ? <SupportingModules shopHref={shopHref} /> : null}

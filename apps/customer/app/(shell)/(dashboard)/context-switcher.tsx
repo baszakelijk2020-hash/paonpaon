@@ -1,6 +1,5 @@
 "use client";
 
-import { gsap } from "gsap";
 import { usePathname } from "next/navigation";
 import { useLayoutEffect, useRef } from "react";
 
@@ -85,12 +84,19 @@ function WardrobeIcon() {
  * is one shared component now, so a fixed "My PAON is active" told storefront
  * visitors they were somewhere they weren't.
  *
- * The lit state is a single pill element that GSAP slides between the two
- * halves, rather than a background on whichever half is active — a background
- * can only cut, and the founder's template animates everything else on the
- * page with GSAP, so this matches it. Its first paint is positioned without
- * animation (useLayoutEffect, before the browser paints) so the pill does not
- * fly in from the corner on load.
+ * The lit state is a single pill element that slides between the two halves,
+ * rather than a background on whichever half is active — a background can only
+ * cut. Its first paint is positioned without animation (useLayoutEffect,
+ * before the browser paints) so the pill does not fly in from the corner on
+ * load.
+ *
+ * The slide is a bare CSS transform transition and deliberately NOT a GSAP
+ * tween. Clicking a half starts a client navigation that swaps the whole
+ * environment and re-renders the sidebar's row list, and that work blocks the
+ * main thread for ~250ms — long enough to swallow most of a 320ms tween, which
+ * is what the stutter on the left column was. A transform-only transition is
+ * handed to the compositor, so the pill keeps moving at full frame rate while
+ * the main thread is busy. Never move this back onto a JS ticker.
  */
 export function ContextSwitcher({ storeHref }: ContextSwitcherProps) {
   const pathname = usePathname();
@@ -106,20 +112,26 @@ export function ContextSwitcher({ storeHref }: ContextSwitcherProps) {
     const transform = inStore
       ? "translate3d(0%, 0, 0)"
       : "translate3d(100%, 0, 0)";
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
     if (!positioned.current) {
       positioned.current = true;
-      gsap.set(pill, { transform, opacity: 1, visibility: "visible" });
-      return;
+      pill.style.transition = "none";
+      pill.style.transform = transform;
+      pill.style.opacity = "1";
+      pill.style.visibility = "visible";
+      /* Flush that first, untransitioned position before arming the
+         transition. Without the reflow the browser coalesces both writes into
+         one style recalc and the pill slides in from 0% on load. */
+      void pill.offsetWidth;
     }
-    gsap.to(pill, {
-      transform,
-      opacity: 1,
-      duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-        ? 0
-        : 0.32,
-      ease: "power3.out",
-      force3D: true,
-    });
+
+    pill.style.transition = reduced
+      ? "none"
+      : "transform 320ms cubic-bezier(0.22, 0.61, 0.36, 1)";
+    pill.style.transform = transform;
   }, [inStore]);
 
   return (
@@ -127,8 +139,14 @@ export function ContextSwitcher({ storeHref }: ContextSwitcherProps) {
       id="paon-context-switcher"
       className="paon-context-switcher flex shrink-0 items-center justify-center"
       style={{
-        marginTop: "20px",
-        padding: "14px 25px",
+        /*
+         * Flush with the header: the sidebar logo above ends at exactly
+         * --header-h (60px), which is where the top menu's blurred bar ends,
+         * so the toggle's own top edge must start there — no margin and no
+         * top padding, or the pill floats 16px below the bar.
+         */
+        marginTop: "0px",
+        padding: "0 25px 8px",
         background: "transparent",
       }}
     >
@@ -144,6 +162,9 @@ export function ContextSwitcher({ storeHref }: ContextSwitcherProps) {
           border: "none",
           borderRadius: "999px",
           background: "rgba(0,0,0,0.35)",
+          // The stat tiles' one-pixel lighter rim along the top edge, so the
+          // track sits in the same material as the cards beside it.
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
         }}
       >
         <span
@@ -169,7 +190,7 @@ export function ContextSwitcher({ storeHref }: ContextSwitcherProps) {
         <button
           type="button"
           onClick={showStoreEnvironment}
-          className="pcs-store"
+          className="pcs-store paon-side-hover"
           aria-current={inStore ? "page" : undefined}
           style={{
             ...SEGMENT,
@@ -183,7 +204,7 @@ export function ContextSwitcher({ storeHref }: ContextSwitcherProps) {
         <button
           type="button"
           onClick={showCustomerEnvironment}
-          className="pcs-mypaon"
+          className="pcs-mypaon paon-side-hover"
           aria-current={inStore ? undefined : "page"}
           style={{
             ...SEGMENT,

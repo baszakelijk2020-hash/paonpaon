@@ -244,8 +244,12 @@ body {
    * size is re-rastered on every resize frame, which is the same artifact from
    * the other direction. EnvironmentTransition turns it on for the length of a
    * switch and off again; the translate below keeps the layer real in between.
+   *
+   * No `contain` at all. Layout containment on a fixed, inset-sized layer let
+   * Chrome skip re-laying it out when the window was resized: the layer kept
+   * its old width and the storefront showed through the newly exposed strip
+   * on the right.
    */
-  contain: layout style;
   backface-visibility: hidden;
   transform: translate3d(0, 0, 0);
   background: var(--customer-page-bg, #f4f2ec);

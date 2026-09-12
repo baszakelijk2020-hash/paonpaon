@@ -19,7 +19,6 @@ export interface HeroPiece {
 export interface MorningRoutineDashboardHeroProps {
   retailerId: string;
   retailerSlug: string;
-  customerFirstName: string;
   selectionId: string;
   nextAppointmentHref?: string;
   oneTapEligible: boolean;
@@ -56,34 +55,26 @@ function PurchaseAction({
 export function MorningRoutineDashboardHero({
   retailerId,
   retailerSlug,
-  customerFirstName,
   selectionId,
   nextAppointmentHref,
   oneTapEligible,
   featured,
 }: MorningRoutineDashboardHeroProps) {
   return (
-    <section
-      aria-label="Outfit of the day"
-      className="grid min-h-[520px] overflow-hidden bg-[#eeeae2] lg:grid-cols-[minmax(22rem,0.78fr)_minmax(0,1.22fr)]"
-    >
-      <div className="flex flex-col justify-between px-7 py-10 sm:px-12 sm:py-14 lg:px-14 lg:py-16">
+    <section aria-label="Outfit of the day" className="paon-overview-look">
+      <div className="paon-overview-look-copy">
         <div>
-          <p className="customer-kicker text-[#676d64]">Outfit of the day</p>
-          <h1 className="mt-5 max-w-lg text-4xl leading-[1.06] text-[#20241f] sm:text-6xl">
-            Consider this today, {customerFirstName}.
-          </h1>
-          <p className="mt-7 max-w-md text-base leading-7 text-[#5f655d]">
-            {featured.displayName}
-          </p>
-          <p className="mt-2 text-sm text-[#767c73]">
+          <p className="paon-overview-look-label">Outfit of the day</p>
+          <h2>Consider this today.</h2>
+          <p className="paon-overview-look-name">{featured.displayName}</p>
+          <p className="paon-overview-look-meta">
             {featured.owned
               ? "Already in your wardrobe"
               : (featured.priceLabel ?? "Selected for you")}
           </p>
         </div>
 
-        <div className="mt-10 flex flex-wrap gap-3">
+        <div className="paon-overview-look-actions">
           {featured.saveVariantId ? (
             <form action={saveMorningRoutinePick}>
               <input type="hidden" name="selectionId" value={selectionId} />
@@ -129,7 +120,7 @@ export function MorningRoutineDashboardHero({
         </div>
       </div>
 
-      <div className="relative min-h-[420px] bg-[#d9d8d0] lg:min-h-0">
+      <div className="paon-overview-look-image">
         {featured.imageUrl ? (
           <Image
             src={featured.imageUrl}
@@ -137,15 +128,13 @@ export function MorningRoutineDashboardHero({
             fill
             priority
             unoptimized
-            className="object-contain p-6 sm:p-10"
+            className="object-contain"
           />
         ) : (
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_58%_35%,rgba(160,177,157,0.62),transparent_28%),linear-gradient(135deg,#ece8df,#c8d0c4)]" />
+          <div className="paon-overview-look-placeholder">
+            Image unavailable
+          </div>
         )}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/30 to-transparent" />
-        <p className="font-display absolute bottom-7 left-7 right-7 text-xl leading-tight text-white sm:bottom-10 sm:left-10 sm:text-2xl">
-          {featured.displayName}
-        </p>
       </div>
     </section>
   );

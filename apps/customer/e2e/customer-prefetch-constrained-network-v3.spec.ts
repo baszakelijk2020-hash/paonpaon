@@ -20,7 +20,7 @@ import { expect, test, type Page } from "@playwright/test";
  * Test-only proof lane — no application code is changed.
  */
 
-const CUSTOMER_EMAIL = "contact+isabelle@nebelspiegel.com";
+const CUSTOMER_EMAIL = "contact+bas@nebelspiegel.com";
 const EVIDENCE_DIR = resolve(
   process.cwd(),
   "../../docs/evidence/runs/20.24-customer-prefetch-guard-v3",

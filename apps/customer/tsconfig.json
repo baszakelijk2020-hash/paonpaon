@@ -9,9 +9,10 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    ".next-e2e-3102/types/**/*.ts",
     ".next/types/**/*.ts",
     "next-env.d.ts",
-    ".next-e2e-3102/types/**/*.ts"
+    ".next-e2e-redesign/types/**/*.ts"
   ],
   "exclude": ["node_modules", ".next-e2e-*"]
 }

@@ -103,22 +103,33 @@ export async function middleware(request: NextRequest) {
   /*
    * The eight account tabs are served by /hub, which renders them all together
    * so switching between them is a class toggle rather than eight separate
-   * server renders. Landing on one of their own routes redirects into the hub
-   * with that tab selected.
+   * server renders.
+   *
+   * This is a REWRITE, not a redirect. A redirect made every deep link and
+   * every cold open cost two round trips — the 307 to /hub?tab=x, then the
+   * render — before anything could paint. A rewrite serves the hub's output
+   * at the tab's own URL in a single request, and has the second benefit of
+   * leaving `usePathname()` reporting the real path, so the nav's current-tab
+   * state is right without reading the query string.
+   *
+   * It is deliberately NOT returned here: the rewrite is held and applied at
+   * the end, after the session checks below have run. Returning early skipped
+   * both the auth gate and the Supabase cookie refresh for these eight paths.
    *
    * /hub itself is not in this list, so there is no loop — and the hub imports
    * these pages as components rather than navigating to them, so middleware
    * never sees those and they keep working as the panels.
    */
   const hubTab = ACCOUNT_TAB_PATHS[request.nextUrl.pathname];
+  const hubUrl = request.nextUrl.clone();
   if (hubTab) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/hub";
-    url.searchParams.set("tab", hubTab);
-    return NextResponse.redirect(url);
+    hubUrl.pathname = "/hub";
+    hubUrl.searchParams.set("tab", hubTab);
   }
 
-  let response = NextResponse.next({ request });
+  let response = hubTab
+    ? NextResponse.rewrite(hubUrl, { request })
+    : NextResponse.next({ request });
 
   const supabase = createSupabaseServerClient(
     env.supabaseUrl,

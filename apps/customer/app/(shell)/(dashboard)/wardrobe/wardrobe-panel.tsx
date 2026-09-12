@@ -13,6 +13,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useActionState, useState } from "react";
 
+import { StaggerReveal } from "../stagger-reveal";
+
 import {
   requestWardrobeItemReorderViaAdvisor,
   requestWardrobeItemService,
@@ -60,8 +62,6 @@ export const WARDROBE_RAILS = [
   readonly categories: readonly GarmentCategoryCode[];
 }[];
 
-const EMPTY_SLOT_COUNT = 10;
-
 export interface OwnedCardModel {
   readonly item: WardrobeItem;
   readonly history: readonly WardrobeOwnershipEvent[];
@@ -104,7 +104,7 @@ type DeckScreen =
   | { kind: "sent"; conversationId?: string };
 
 const CARD_CLASS =
-  "relative h-80 w-56 shrink-0 snap-start overflow-hidden rounded-[15px] bg-[var(--color-stone-900)]";
+  "relative h-96 w-72 shrink-0 snap-start overflow-hidden rounded-[32px] bg-[#191b1d]";
 
 function CardImageLayers({
   imageUrl,
@@ -613,7 +613,7 @@ function OwnedCard({
 }) {
   const item = card.item;
   return (
-    <article className={CARD_CLASS}>
+    <article className={CARD_CLASS} data-pe-card>
       <CardImageLayers
         imageUrl={item.identifyingPhotoUrl}
         alt={item.displayName}
@@ -663,12 +663,12 @@ function AdvisorSelectionCard({
   if (removeState.success) return null;
 
   return (
-    <article className={CARD_CLASS}>
+    <article className={CARD_CLASS} data-pe-card>
       <CardImageLayers
         imageUrl={suggestedProduct?.primaryImageUrl}
         alt={gap.title}
       />
-      <span className="absolute right-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-[var(--color-stone-800)]">
+      <span className="absolute right-4 top-4 rounded-full bg-[#c7c1ef] px-3 py-2 text-xs font-semibold text-[#181818]">
         Advisor selection
       </span>
       <ProgressiveBottomPanel>
@@ -834,18 +834,6 @@ function AdvisorSelectionCard({
   );
 }
 
-function EmptySlot() {
-  return (
-    <div
-      className="flex h-80 w-56 shrink-0 snap-start flex-col items-center justify-center gap-2 rounded-[15px] bg-[radial-gradient(circle_at_50%_38%,rgba(166,181,157,0.12),transparent_32%),linear-gradient(145deg,rgba(255,255,255,0.065),rgba(255,255,255,0.015))]"
-      aria-hidden="true"
-      data-empty-slot
-    >
-      <span className="text-2xl text-[var(--color-stone-500)]">+</span>
-    </div>
-  );
-}
-
 function WardrobeRail({
   retailerId,
   label,
@@ -866,15 +854,43 @@ function WardrobeRail({
   >;
 }) {
   const headerId = `wardrobe-rail-${retailerId}-${label}`;
+  if (ownedCards.length === 0 && gaps.length === 0) {
+    /*
+     * An empty category is one row, not a tile. Eight near-identical tiles
+     * each holding a hanger, "No pieces yet" and the same link was a wall of
+     * boxes saying nothing; as rows in one card the wardrobe reads as a list
+     * of what is still to come, and the advisor link is on each line.
+     */
+    return (
+      <Link
+        href="/concierge"
+        className="pe-wardrobe-empty-row"
+        aria-labelledby={headerId}
+        data-wardrobe-rail={label}
+      >
+        <span id={headerId} className="pe-wardrobe-empty-row-label">
+          {label}
+        </span>
+        <span className="pe-wardrobe-empty-row-meta">
+          No pieces yet · Plan with your advisor{" "}
+          <span aria-hidden="true">↗</span>
+        </span>
+      </Link>
+    );
+  }
 
   return (
     <section
       aria-labelledby={headerId}
       data-wardrobe-rail={label}
-      className="border-t border-white/10 py-6 first:border-t-0"
+      className="pe-card pe-wardrobe-populated rounded-[32px] bg-[#191b1d] py-7"
+      data-pe-card
     >
-      <div className="flex items-baseline justify-between gap-3 px-5 sm:px-10 lg:px-14">
-        <h3 id={headerId} className="font-display text-xl text-white">
+      <div className="flex items-baseline justify-between gap-3 px-6 sm:px-8">
+        <h3
+          id={headerId}
+          className="font-display text-2xl font-semibold tracking-[-0.025em] text-white"
+        >
           {label}
         </h3>
         <span className="text-xs text-[var(--color-stone-400)]">
@@ -882,7 +898,7 @@ function WardrobeRail({
         </span>
       </div>
       <div
-        className="mt-4 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-5 pb-2 sm:px-10 lg:px-14"
+        className="mt-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2 sm:px-8"
         style={{ scrollbarWidth: "thin" }}
       >
         {ownedCards.map((card) => (
@@ -901,9 +917,6 @@ function WardrobeRail({
             }
           />
         ))}
-        {Array.from({ length: EMPTY_SLOT_COUNT }, (_, index) => (
-          <EmptySlot key={index} />
-        ))}
       </div>
     </section>
   );
@@ -919,8 +932,11 @@ function PendingRoadmapBanner({ roadmap }: { roadmap: PendingRoadmapSummary }) {
   if (state.success) return null;
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 border-y border-white/10 bg-white/[0.035] px-5 py-4">
-      <p className="text-sm text-white">
+    <div
+      className="pe-card pe-card-lavender flex flex-wrap items-center justify-between gap-4 rounded-[32px] bg-[#c7c1ef] p-6 text-[#181818]"
+      data-pe-card
+    >
+      <p className="text-base font-medium">
         Your advisor shared a plan awaiting your review: {roadmap.title}
       </p>
       <div className="flex gap-2">
@@ -979,12 +995,15 @@ export function WardrobeRailsPanel({
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col gap-6">
       {pendingApprovalRoadmap ? (
         <PendingRoadmapBanner roadmap={pendingApprovalRoadmap} />
       ) : null}
 
-      <div className="flex flex-col">
+      <StaggerReveal
+        className="pe-wardrobe-rails"
+        itemSelector="[data-wardrobe-rail]"
+      >
         {WARDROBE_RAILS.map((rail) => (
           <WardrobeRail
             key={rail.id}
@@ -1006,7 +1025,7 @@ export function WardrobeRailsPanel({
             alternativesByCategory={alternativesByCategory}
           />
         ))}
-      </div>
+      </StaggerReveal>
     </div>
   );
 }

@@ -26,18 +26,14 @@ import { HubTabs, type HubTab } from "./hub-tabs";
  */
 
 const TAB_META = [
-  { id: "dashboard", label: "Overview", href: "/dashboard" },
-  { id: "wardrobe", label: "Wardrobe", href: "/wardrobe" },
-  { id: "appointments", label: "My Appointments", href: "/appointments" },
-  { id: "orders", label: "Orders", href: "/orders" },
-  {
-    id: "digital-fitting-room",
-    label: "Digital Fitting Room",
-    href: "/digital-fitting-room",
-  },
-  { id: "loyalty", label: "Rewards & Referrals", href: "/loyalty" },
-  { id: "account", label: "My Profile", href: "/account" },
-  { id: "private-offers", label: "Private Offers", href: "/private-offers" },
+  { id: "dashboard", href: "/dashboard" },
+  { id: "wardrobe", href: "/wardrobe" },
+  { id: "appointments", href: "/appointments" },
+  { id: "orders", href: "/orders" },
+  { id: "digital-fitting-room", href: "/digital-fitting-room" },
+  { id: "loyalty", href: "/loyalty" },
+  { id: "account", href: "/account" },
+  { id: "private-offers", href: "/private-offers" },
 ] as const;
 
 function PanelFallback() {
@@ -89,18 +85,11 @@ export default async function HubPage({
 
   const tabs: HubTab[] = TAB_META.map((meta) => ({
     id: meta.id,
-    label: meta.label,
     href: meta.href,
     panel: <Suspense fallback={<PanelFallback />}>{panels[meta.id]}</Suspense>,
   }));
 
-  return (
-    <>
-      {/* The (dashboard) layout renders its own AccountTopTabs, which navigate.
-          On this route HubTabs replaces them, so the navigating set is hidden
-          rather than removed - the eight standalone routes still use it. */}
-      <style>{`[data-customer-top-menu] { display: none !important; }`}</style>
-      <HubTabs tabs={tabs} initialTabId={initialTabId} />
-    </>
-  );
+  // The layout's own AccountTopTabs stays visible and unchanged; HubTabs just
+  // intercepts its links so they switch a panel instead of navigating.
+  return <HubTabs tabs={tabs} initialTabId={initialTabId} />;
 }

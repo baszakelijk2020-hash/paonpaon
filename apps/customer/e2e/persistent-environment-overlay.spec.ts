@@ -1,7 +1,7 @@
 import { createSupabaseAdminClient } from "@paon/database";
 import { expect, test, type Page } from "@playwright/test";
 
-const CUSTOMER_EMAIL = "contact+isabelle@nebelspiegel.com";
+const CUSTOMER_EMAIL = "contact+bas@nebelspiegel.com";
 
 async function signIn(page: Page): Promise<void> {
   const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];

@@ -6,6 +6,7 @@ import {
 import { SignOutButton } from "../components/sign-out-button";
 import { RelatedLinks } from "../related-links";
 
+import { CommuteSettings } from "./commute-settings";
 import { PreferencesForm } from "./preferences-form";
 
 import { getCustomersForUser } from "@/lib/customer-context";
@@ -36,17 +37,18 @@ export default async function AccountPage() {
   );
 
   return (
-    <div className="customer-page flex flex-col gap-8">
-      <header className="customer-page-header flex-col">
-        <p className="customer-kicker text-[var(--color-stone-500)]">
-          My profile
-        </p>
+    <div className="customer-page flex flex-col gap-6 bg-black pb-12 text-white">
+      <header className="pe-page-head items-end gap-6 pb-3">
         <div className="max-w-2xl">
-          <h1 className="font-display text-4xl leading-[1.05] tracking-[-0.03em] text-[var(--color-stone-900)] sm:text-5xl">
-            Your preferences, kept close.
+          <p className="customer-kicker mb-2 text-white/55">
+            Profile and preferences
+          </p>
+          <h1 className="font-display text-5xl font-semibold leading-none tracking-[-0.055em] text-white sm:text-6xl">
+            Profile
           </h1>
-          <p className="mt-4 max-w-xl text-base leading-7 text-[var(--color-stone-500)]">
-            Language, currency and contact preferences for your account.
+          <p className="mt-4 max-w-xl text-base leading-7 text-white/60">
+            Choose how your retailer contacts you and personalises your
+            experience.
           </p>
         </div>
         <RelatedLinks
@@ -55,53 +57,68 @@ export default async function AccountPage() {
       </header>
 
       {groups.length === 0 ? (
-        <div className="customer-panel flex min-h-40 items-center px-6 py-10">
+        <div
+          className="pe-card flex min-h-40 items-center rounded-[32px] bg-[#191b1d] px-7 py-10"
+          data-pe-card
+        >
           <div>
-            <p className="customer-kicker text-[var(--color-stone-500)]">
-              Your profile
-            </p>
-            <p className="mt-2 text-base text-[var(--color-stone-600)]">
+            <p className="customer-kicker text-white/55">Your profile</p>
+            <p className="mt-2 text-base text-white/65">
               No profile details yet.
             </p>
           </div>
         </div>
       ) : (
         groups.map(({ customer, retailer, preferences }) => (
-          <section key={customer.id} className="flex flex-col gap-5">
-            <div className="flex items-end justify-between gap-4 border-b border-[var(--customer-border)] pb-3">
+          <section
+            key={customer.id}
+            className="grid items-start gap-4 lg:grid-cols-[minmax(220px,0.36fr)_minmax(0,1fr)]"
+          >
+            <div
+              className="pe-card pe-card-mint flex min-h-52 flex-col justify-between rounded-[32px] bg-[#b8e6be] p-7 text-[#181818]"
+              data-pe-card
+            >
               <div>
-                <p className="customer-kicker text-[var(--color-stone-500)]">
+                <p className="customer-kicker text-[#181818]/60">
                   Your retailer
                 </p>
-                <h2 className="mt-1 text-2xl tracking-[-0.02em] text-[var(--color-stone-900)]">
+                <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em] text-[#181818]">
                   {retailer?.displayName ?? "Retailer"}
                 </h2>
               </div>
-              <span className="hidden rounded-[var(--customer-radius)] bg-[var(--customer-moss)] px-3 py-2 text-xs text-[var(--color-stone-700)] sm:inline-flex">
+              <span className="inline-flex min-h-[44px] w-fit items-center rounded-full bg-[#181818] px-4 text-sm font-semibold text-white">
                 Private client
               </span>
             </div>
-            <PreferencesForm
-              retailerId={customer.retailerId}
-              retailerName={retailer?.displayName ?? "Retailer"}
-              preferences={preferences}
-            />
+            <div
+              className="pe-card pe-card-lavender rounded-[32px] bg-[#c7c1ef] p-2 text-[#181818] [&>div]:rounded-[26px] [&>div]:border-0 [&>div]:bg-transparent [&>div]:shadow-none [&_fieldset]:rounded-[22px] [&_fieldset]:bg-black/[0.05] [&_fieldset]:p-5"
+              data-pe-card
+            >
+              <PreferencesForm
+                retailerId={customer.retailerId}
+                retailerName={retailer?.displayName ?? "Retailer"}
+                preferences={preferences}
+              />
+            </div>
           </section>
         ))
       )}
 
-      <section className="customer-panel flex items-center justify-between gap-4 px-6 py-5 sm:hidden">
+      <CommuteSettings />
+
+      <section
+        className="pe-card flex items-center justify-between gap-4 rounded-[32px] bg-[#191b1d] px-6 py-5"
+        data-pe-card
+      >
         <div>
-          <p className="customer-kicker text-[var(--color-stone-500)]">
-            Session
-          </p>
-          <p className="mt-1 text-base text-[var(--color-stone-600)]">
+          <p className="customer-kicker text-white/55">Session</p>
+          <p className="mt-1 text-base text-white/65">
             Sign out of your PAON account everywhere.
           </p>
         </div>
         <SignOutButton
-          className="inline-flex shrink-0 rounded-[15px] bg-[var(--customer-moss)] px-4 py-2"
-          testId="customer-signout-mobile"
+          className="inline-flex min-h-[52px] shrink-0 items-center rounded-full bg-[#f0b6a4] px-5 text-[#181818]"
+          testId="customer-signout"
         />
       </section>
     </div>

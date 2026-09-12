@@ -1,26 +1,13 @@
 import { Suspense } from "react";
 
-import { AccountTopTabs, type AccountTab } from "./account-top-tabs";
-import { SignOutButton } from "./components/sign-out-button";
+import "./customer-environment.css";
+
 import { CustomerNavigationLifecycle } from "./customer-navigation-lifecycle";
+import { EnvironmentMotion } from "./environment-motion";
 import { GuestDashboardPreview } from "./guest-dashboard-preview";
 import { GuestPortalPreview } from "./guest-portal-preview";
 
 import { getSession } from "@/lib/session";
-
-/** Flat, 7-tab account nav — every prior sub-page still exists at its own
- * URL; pages that used to be separate sidebar entries are now linked from
- * their tab's landing page ("Related" row) instead of consuming a tab
- * slot. Nothing was removed, only regrouped. */
-const ACCOUNT_TABS: AccountTab[] = [
-  { href: "/dashboard", label: "Overview" },
-  { href: "/wardrobe", label: "Wardrobe" },
-  { href: "/appointments", label: "My Appointments" },
-  { href: "/orders", label: "Orders" },
-  { href: "/digital-fitting-room", label: "Digital Fitting Room" },
-  { href: "/loyalty", label: "Rewards & Referrals" },
-  { href: "/account", label: "My Profile" },
-];
 
 export default async function DashboardLayout({
   children,
@@ -45,21 +32,11 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div data-customer-shell className="customer-page min-h-screen">
-      <div className="min-w-0">
+    <div data-customer-shell className="paon-env customer-page min-h-screen">
+      <div className="relative z-10 min-w-0">
         <CustomerNavigationLifecycle />
-        <AccountTopTabs
-          tabs={ACCOUNT_TABS}
-          trailing={
-            <SignOutButton
-              className="flex h-full w-full items-stretch"
-              testId="customer-signout-desktop"
-            />
-          }
-        />
-        <main className="mx-auto w-full max-w-[92rem] px-4 py-6 sm:px-7 sm:py-8 lg:px-10 xl:px-14">
-          {children}
-        </main>
+        <EnvironmentMotion />
+        <main className="pe-workspace">{children}</main>
       </div>
     </div>
   );

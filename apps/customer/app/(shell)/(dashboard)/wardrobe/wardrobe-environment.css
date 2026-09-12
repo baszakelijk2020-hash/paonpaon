@@ -1,0 +1,326 @@
+/* ── The wardrobe as a room ────────────────────────────────────────────────
+   The whole tab is a dim-lit wardrobe photograph; everything the customer
+   can act on floats in front of it as frosted glass, the way visionOS lays
+   windows over a space. The photo is layered over a dark gradient, so the
+   room still reads if the image is unavailable. */
+
+.paon-wardrobe-scene {
+  position: relative;
+  /* Bleed to the workspace edges (.pe-workspace pads 28 / 28 / 70). */
+  margin: -28px -28px -70px;
+  min-height: calc(100vh - 0px);
+  padding: 40px clamp(20px, 3vw, 48px) 72px;
+  color: #f4f2ec;
+  isolation: isolate;
+  overflow: hidden;
+}
+.paon-wardrobe-scene::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: #161616;
+}
+/* The warm radial "lamp" that used to sit top-left is gone: it was there for
+   the glass to refract, and the glass is gone too. It left this tab a
+   fraction warmer than the five beside it — the same #161616 everywhere now. */
+
+.paon-wardrobe-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Frosted glass, visionOS-style. */
+.paon-glass {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.09);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 30px 80px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(26px) saturate(150%);
+  -webkit-backdrop-filter: blur(26px) saturate(150%);
+  color: #f4f2ec;
+}
+.paon-glass-pad {
+  padding: 28px 30px;
+}
+a.paon-glass {
+  text-decoration: none;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+a.paon-glass:hover {
+  background: rgba(255, 255, 255, 0.14);
+  transform: translateY(-2px);
+}
+
+.paon-wardrobe-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.paon-wardrobe-head h1 {
+  margin: 8px 0 0;
+  font-size: clamp(40px, 5vw, 64px);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+}
+.paon-wardrobe-head p {
+  margin: 12px 0 0;
+  max-width: 34rem;
+  font-size: 15px;
+  line-height: 1.5;
+  color: rgba(244, 242, 236, 0.7);
+}
+.paon-wardrobe-kicker {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(244, 242, 236, 0.6);
+}
+
+/* Pills inside the glass: solid white on hover, glass at rest. */
+.paon-wardrobe-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.paon-glass-pill {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0 20px;
+  color: #f4f2ec;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+.paon-glass-pill:hover,
+.paon-glass-pill-solid {
+  background: #f4f2ec;
+  color: #14120f;
+}
+
+/* The row of feature windows: fitting room, quiz, capsule. */
+.paon-wardrobe-windows {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+.paon-wardrobe-window {
+  display: flex;
+  min-height: 190px;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 18px;
+}
+.paon-wardrobe-window h2 {
+  margin: 6px 0 0;
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+.paon-wardrobe-window p {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: rgba(244, 242, 236, 0.68);
+}
+.paon-wardrobe-window-icon {
+  width: 28px;
+  height: 28px;
+  stroke-width: 1.5;
+  color: rgba(244, 242, 236, 0.85);
+}
+
+/* The rails panel keeps its own dark cards; on glass they sit a shade
+   lighter so they float rather than punch holes. */
+.paon-wardrobe-rails .pe-card,
+.paon-wardrobe-rails .customer-panel,
+.paon-wardrobe-rails .customer-panel-dark {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 1100px) {
+  .paon-wardrobe-windows {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 700px) {
+  .paon-wardrobe-scene {
+    margin: -18px -14px -40px;
+    padding: 24px 14px 48px;
+  }
+  .paon-glass {
+    border-radius: 22px;
+  }
+  .paon-glass-pad {
+    padding: 20px;
+  }
+}
+
+/* Tiles about to be revealed paint hidden on their first frame. */
+.pe-wardrobe-rails.is-pending > [data-wardrobe-rail] {
+  visibility: hidden;
+}
+
+/* ── Overview language ───────────────────────────────────────────────────
+   The wardrobe tab was frosted glass — 30px radius, a 26px backdrop blur,
+   a display-size title — while the overview beside it is flat dark tiles. It
+   takes the overview's tile, radius, pill and type here; the layout stays. */
+.paon-wardrobe-scene .paon-glass {
+  background: linear-gradient(180deg, #1a1a1a 0%, #4d4d4d 100%) !important;
+  border: 0 !important;
+  border-radius: 20px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.paon-wardrobe-scene .paon-glass-pad {
+  padding: 22px 24px !important;
+}
+.paon-wardrobe-scene .paon-wardrobe-head h1 {
+  font-size: 28px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.1 !important;
+  color: #f4f2ec !important;
+}
+.paon-wardrobe-scene .paon-wardrobe-head p,
+.paon-wardrobe-scene .paon-wardrobe-window p {
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+  color: rgba(244, 242, 236, 0.6) !important;
+}
+.paon-wardrobe-scene .paon-wardrobe-kicker {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.02em !important;
+  text-transform: none !important;
+  color: rgba(244, 242, 236, 0.6) !important;
+}
+.paon-wardrobe-scene .paon-wardrobe-window h2,
+.paon-wardrobe-scene .paon-wardrobe-window h3 {
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.02em !important;
+  color: #f4f2ec !important;
+}
+.paon-wardrobe-scene .paon-glass-pill {
+  min-height: 44px !important;
+  padding: 0 18px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: #f4f2ec !important;
+  color: #14120f !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.paon-wardrobe-scene .paon-glass-pill:hover {
+  background: #ffffff !important;
+}
+.paon-wardrobe-scene .paon-wardrobe-stack,
+.paon-wardrobe-scene .paon-wardrobe-windows {
+  gap: 18px !important;
+}
+/* The rails panel's cards follow the same tile. */
+.paon-wardrobe-scene .paon-wardrobe-rails .pe-card,
+.paon-wardrobe-scene .paon-wardrobe-rails [data-pe-card] {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 0 !important;
+  border-radius: 18px !important;
+}
+/* Icons in the tiles take the muted ink, not a tint of their own; and a rail
+   card is as tall as what it holds. */
+.paon-wardrobe-scene
+  :is(
+    .paon-wardrobe-window-icon,
+    .paon-wardrobe-rails svg,
+    .paon-wardrobe-window svg
+  ) {
+  color: rgba(244, 242, 236, 0.6) !important;
+  stroke: currentColor;
+}
+.paon-wardrobe-scene .paon-wardrobe-rails [class*="min-h-"] {
+  min-height: 0 !important;
+}
+
+/* Empty categories as rows inside the rails card: the rails container is a
+   4-column grid for populated rails; an empty row spans the full width so
+   the list stacks, and stays a row whatever the column count. */
+.paon-wardrobe-scene .pe-wardrobe-rails {
+  gap: 2px 16px !important;
+}
+.paon-wardrobe-scene .pe-wardrobe-rails > .pe-wardrobe-empty-row {
+  grid-column: 1 / -1;
+}
+.paon-wardrobe-scene .pe-wardrobe-rails > .pe-wardrobe-populated {
+  margin-top: 14px;
+}
+.pe-wardrobe-empty-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 52px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  color: #f4f2ec;
+  text-decoration: none;
+  opacity: 0.6;
+  transition:
+    opacity 220ms ease,
+    background-color 220ms ease;
+}
+.pe-wardrobe-empty-row:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.05);
+}
+.pe-wardrobe-empty-row-label {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.pe-wardrobe-empty-row-meta {
+  font-size: 13px;
+  color: rgba(244, 242, 236, 0.6);
+  white-space: nowrap;
+}
+
+/* The same left and right edge as every other tab: the scene used to inset
+   its stack a further 20px, so its cards started and ended 20px inside the
+   overview's. */
+.paon-wardrobe-scene {
+  /* The scene bleeds to the workspace edge with a -28px margin and then
+     pads back in by a fluid 20–48px; the workspace's own 28 is the gutter
+     every other tab has, so pad back exactly that. Top pad matches the
+     overview's stat row start, bottom the workspace's. */
+  padding: 28px 28px 70px !important;
+}
+.paon-wardrobe-scene .paon-wardrobe-stack {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  max-width: none !important;
+}

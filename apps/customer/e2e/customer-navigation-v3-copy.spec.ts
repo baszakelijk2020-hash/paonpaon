@@ -15,7 +15,7 @@ const CUSTOMER_ROUTES = [
 const DESKTOP_VIEWPORT = { width: 1280, height: 800 };
 const MOBILE_VIEWPORT = { width: 390, height: 844 };
 
-async function authenticateAsIsabelle(page: Page) {
+async function authenticateAsBas(page: Page) {
   const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
   const anonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"];
   const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
@@ -29,7 +29,7 @@ async function authenticateAsIsabelle(page: Page) {
   const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
   const { data, error } = await admin.auth.admin.generateLink({
     type: "magiclink",
-    email: "contact+isabelle@nebelspiegel.com",
+    email: "contact+bas@nebelspiegel.com",
   });
   if (error || !data.properties) {
     throw error ?? new Error("Customer magic link is missing");
@@ -48,7 +48,7 @@ test.describe("Customer navigation and forbidden-copy consistency (20.15)", () =
     test("shows exactly 7 navigation tabs in correct order with correct hrefs", async ({
       page,
     }) => {
-      await authenticateAsIsabelle(page);
+      await authenticateAsBas(page);
 
       for (const [href, label] of CUSTOMER_ROUTES) {
         const link = page.locator(`[data-customer-top-menu][href="${href}"]`);
@@ -60,7 +60,7 @@ test.describe("Customer navigation and forbidden-copy consistency (20.15)", () =
     test("navigation is client-side (no full page reload)", async ({
       page,
     }) => {
-      await authenticateAsIsabelle(page);
+      await authenticateAsBas(page);
 
       // Store reference to the persistent shell element
       await page.evaluate(() => {
@@ -106,7 +106,7 @@ test.describe("Customer navigation and forbidden-copy consistency (20.15)", () =
     });
 
     test("no forbidden 'house' wording in navigation", async ({ page }) => {
-      await authenticateAsIsabelle(page);
+      await authenticateAsBas(page);
 
       // Get all text content from the navigation bar
       const navText = await page.locator("nav").first().textContent();
@@ -116,7 +116,7 @@ test.describe("Customer navigation and forbidden-copy consistency (20.15)", () =
     test("console-clean warm navigation across all destinations", async ({
       page,
     }) => {
-      await authenticateAsIsabelle(page);
+      await authenticateAsBas(page);
 
       const consoleErrors: string[] = [];
       page.on("console", (message) => {
@@ -141,7 +141,7 @@ test.describe("Customer navigation and forbidden-copy consistency (20.15)", () =
     test("first 3 destinations inline, remaining in overflow menu, all reachable", async ({
       page,
     }) => {
-      await authenticateAsIsabelle(page);
+      await authenticateAsBas(page);
 
       const mobilePrimaryTabs = CUSTOMER_ROUTES.slice(0, 3);
       const mobileOverflowTabs = CUSTOMER_ROUTES.slice(3);
@@ -179,7 +179,7 @@ test.describe("Customer navigation and forbidden-copy consistency (20.15)", () =
     });
 
     test("mobile navigation is client-side", async ({ page }) => {
-      await authenticateAsIsabelle(page);
+      await authenticateAsBas(page);
 
       // Store reference to the persistent shell element
       await page.evaluate(() => {
@@ -246,7 +246,7 @@ test.describe("Customer navigation and forbidden-copy consistency (20.15)", () =
     test("no forbidden 'house' wording in mobile navigation", async ({
       page,
     }) => {
-      await authenticateAsIsabelle(page);
+      await authenticateAsBas(page);
 
       // Check main nav bar
       const navText = await page.locator("nav").first().textContent();
@@ -264,7 +264,7 @@ test.describe("Customer navigation and forbidden-copy consistency (20.15)", () =
     test("console-clean warm navigation across all destinations (mobile)", async ({
       page,
     }) => {
-      await authenticateAsIsabelle(page);
+      await authenticateAsBas(page);
 
       const consoleErrors: string[] = [];
       page.on("console", (message) => {

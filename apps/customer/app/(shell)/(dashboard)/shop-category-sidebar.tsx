@@ -1,15 +1,20 @@
 /* eslint-disable @next/next/no-img-element -- remote artwork tinted with
    filter(); next/image adds nothing for these and cannot optimise them. */
 import { cookies } from "next/headers";
-import Link from "next/link";
 
 import { ContextSwitcher } from "./context-switcher";
 import { GuestSignInButton } from "./guest-sign-in-button";
+import { SidebarAccountNav, type AccountNavItem } from "./sidebar-account-nav";
+import { SidebarEnvironmentNav } from "./sidebar-environment-nav";
+import { SidebarLink } from "./sidebar-link";
+import { CategoryList, SidebarReveal } from "./sidebar-reveal";
 import { StoreVisitCard } from "./store-visit-card";
 import { StorefrontCategoryControl } from "./storefront-category-control";
 
 import { CANONICAL_CATEGORIES } from "@/app/(shell)/r/[slug]/canonical-category";
 import { getSession } from "@/lib/session";
+
+import "./sidebar.css";
 
 /**
  * Pixel match of the storefront's own left sidebar, not an approximation —
@@ -48,6 +53,20 @@ const SIDEBAR_CATEGORY_LABELS: Partial<
  */
 const SIDEBAR_CATEGORIES = CANONICAL_CATEGORIES;
 
+/**
+ * The customer environment's seven destinations — what used to be the bar
+ * across the top of every account page. Every prior sub-page still exists at
+ * its own URL and is linked from its section's landing page.
+ */
+const ACCOUNT_NAV: AccountNavItem[] = [
+  { href: "/dashboard", label: "Overview" },
+  { href: "/wardrobe", label: "Wardrobe" },
+  { href: "/appointments", label: "Appointments" },
+  { href: "/orders", label: "Orders" },
+  { href: "/loyalty", label: "Rewards" },
+  { href: "/account", label: "Profile" },
+];
+
 /** Same open-redirect guard as `store-return-capture.tsx`'s client-side
  * validation — the cookie is trusted only if it still matches on read. */
 const VALID_STORE_RETURN = /^\/r\/[A-Za-z0-9_-]+(?:[/?].*)?$/;
@@ -80,7 +99,7 @@ export async function ShopCategorySidebar() {
   const navIcon = (
     d: string,
     viewBox = "0 0 24 24",
-    size = 19,
+    _size = 19,
     inset = 0,
     rotate = 0,
   ) =>
@@ -93,29 +112,14 @@ export async function ShopCategorySidebar() {
         alt=""
         aria-hidden="true"
         style={{
-          width: `${size}px`,
-          height: `${size}px`,
-          display: "block",
-          flexShrink: 0,
           objectFit: "contain",
           boxSizing: "border-box",
           padding: `${inset}px`,
           transform: rotate ? `rotate(${rotate}deg)` : undefined,
-          filter: "brightness(.71)",
         }}
       />
     ) : (
-      <svg
-        aria-hidden="true"
-        viewBox={viewBox}
-        style={{
-          width: `${size}px`,
-          height: `${size}px`,
-          display: "block",
-          flexShrink: 0,
-          fill: "currentColor",
-        }}
-      >
+      <svg aria-hidden="true" viewBox={viewBox}>
         <path d={d} fillRule="evenodd" clipRule="evenodd" />
       </svg>
     );
@@ -131,22 +135,20 @@ export async function ShopCategorySidebar() {
 
   return (
     <aside
-      className="sticky top-0 hidden h-screen min-h-screen grid-rows-[60px_auto_minmax(0,1fr)_210px] self-start overflow-hidden lg:grid"
+      className="paon-side sticky top-0 hidden h-screen min-h-screen flex-col self-start overflow-hidden lg:flex"
       style={{
         width: "250px",
-        // Whole gradient lifted 10%, both stops: #333333 (51) x 1.1 -> #383838 (56),
-        // #1d1d1d (29) x 1.1 -> #202020 (32). Same multiplicative step the footer
-        // surface below already uses in the other direction.
-        background: "linear-gradient(to right, #383838, #202020)",
+        // Top to bottom, 90% black (#1a1a1a) to 70% black (#4d4d4d).
+        background: "linear-gradient(to bottom, #1a1a1a, #4d4d4d)",
       }}
     >
       <StorefrontCategoryControl
         baseHref="/r/atelier-demo"
         category={null}
-        className="flex shrink-0 items-center justify-center overflow-hidden"
+        className="paon-side-hover flex shrink-0 items-center justify-center overflow-hidden"
         style={{
           height: "60px",
-          background: "rgba(0, 0, 0, 0.1)",
+          background: "transparent",
           borderRadius: 0,
         }}
       >
@@ -162,97 +164,62 @@ export async function ShopCategorySidebar() {
       </StorefrontCategoryControl>
       <ContextSwitcher storeHref={storeHref} />
       <div
-        className="flex flex-1 flex-col overflow-y-auto"
+        className="flex min-h-0 flex-1 flex-col overflow-y-auto [scrollbar-width:none]"
         style={{
-          padding: "40px 25px 28px",
+          padding: "26px 25px 16px",
           background: "transparent",
         }}
       >
-        <StorefrontCategoryControl
-          baseHref="/r/atelier-demo"
-          category={null}
-          className="flex cursor-pointer items-center gap-[6px] text-left uppercase transition-colors hover:text-white"
-          style={{
-            fontFamily: "GTBold3, Arial, sans-serif",
-            fontSize: "7px",
-            lineHeight: 1,
-            letterSpacing: 0,
-            color: "#b5b5b2",
-            margin: "0 0 20px 0",
-          }}
-        >
-          {/* Tighter viewBox, not a bigger box: the house fills more of the shared 19px
-              square, so it reads ~3px larger while its centre stays on the column. */}
-          {navIcon(ICON_HOME, "2 2 20 20")}
-          Home
-        </StorefrontCategoryControl>
-        <p
-          className="flex items-center gap-[6px] uppercase"
-          style={{
-            fontFamily: "GTBold3, Arial, sans-serif",
-            fontSize: "7px",
-            lineHeight: "7px",
-            letterSpacing: 0,
-            color: "#b5b5b2",
-            margin: "0 0 10px 0",
-          }}
-        >
-          {navIcon(ICON_COLLECTION)}
-          Collection
-        </p>
-        {/* The rule is a sibling of the rows, absolutely positioned, so it spans exactly
-            from the first category to the last without needing a hardcoded height. */}
-        <div className="relative flex flex-col">
-          <span
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              // Centred under the Collection icon. That icon's 19px box starts at the
-              // same content edge as this wrapper, so its centre is 9.5px in; minus half
-              // the 3px rule gives 8px.
-              left: "8px",
-              top: 0,
-              bottom: 0,
-              width: "3px",
-              background: "rgba(255,255,255,.10)",
-            }}
-          />
-          {categories.map((category) => (
-            <StorefrontCategoryControl
-              key={category}
-              baseHref="/r/atelier-demo"
-              category={category}
-              className="group flex items-center opacity-[.76] transition-transform duration-200 hover:translate-x-[3px] hover:opacity-100 data-[active=true]:opacity-100"
-              // 19px icon + 6px gap puts the rows above at 25px; the extra 1px is a
-              // deliberate optical nudge so the serif category labels sit right.
-              style={{ height: "28px", minHeight: "28px", paddingLeft: "26px" }}
-            >
-              <span
-                className="whitespace-nowrap text-[#a6a6a6] group-hover:text-[#d9d9d9]"
-                style={{
-                  fontFamily: "OptimaKlein, serif",
-                  fontSize: "13px",
-                  lineHeight: 1,
-                }}
+        <SidebarEnvironmentNav
+          account={
+            <SidebarReveal key="customer" environment="customer">
+              <SidebarAccountNav items={ACCOUNT_NAV} />
+            </SidebarReveal>
+          }
+          store={
+            <SidebarReveal key="store" environment="store">
+              <StorefrontCategoryControl
+                baseHref="/r/atelier-demo"
+                category={null}
+                className="paon-side-row"
               >
-                {SIDEBAR_CATEGORY_LABELS[category] ?? category}
-              </span>
-            </StorefrontCategoryControl>
-          ))}
-        </div>
+                {/* Tighter viewBox, not a bigger box: the house fills more of the shared 19px
+              square, so it reads ~3px larger while its centre stays on the column. */}
+                {navIcon(ICON_HOME, "2 2 20 20")}
+                Home
+              </StorefrontCategoryControl>
+              {/* Collection opens the first category, so the header is a
+                  control like the rows beneath it. */}
+              <StorefrontCategoryControl
+                baseHref="/r/atelier-demo"
+                category={categories[0] ?? null}
+                className="paon-side-row paon-side-collection"
+              >
+                {navIcon(ICON_COLLECTION)}
+                Collection
+              </StorefrontCategoryControl>
+              {/* The rule is a sibling of the rows, absolutely positioned, so it spans exactly
+            from the first category to the last without needing a hardcoded height. */}
+              <CategoryList>
+                {categories.map((category) => (
+                  <StorefrontCategoryControl
+                    key={category}
+                    baseHref="/r/atelier-demo"
+                    category={category}
+                    className="paon-side-category"
+                  >
+                    {SIDEBAR_CATEGORY_LABELS[category] ?? category}
+                  </StorefrontCategoryControl>
+                ))}
+              </CategoryList>
+            </SidebarReveal>
+          }
+        />
       </div>
-      <div className="relative flex shrink-0 flex-col">
+      <div className="flex shrink-0 flex-col">
         <nav
-          // relative z-10 is load-bearing: the footer surface below is
-          // `absolute inset-x-0 bottom-0 h-[305px]`, so it is a positioned element that
-          // comes later in the DOM. Against a static nav it wins the paint order and
-          // covered these links completely (nav sits at y 560-665, the panel starts at
-          // y 565). Making the nav positioned lifts it back above that surface.
-          // Height grew with the 15px row spacing below: four rows of a 12px icon plus
-          // 15px margin no longer fit the old 105px and would have clipped Contact.
-          className="relative z-10 flex h-[150px] flex-col px-[25px] pt-[20px]"
+          className="paon-side-footer flex flex-col px-[25px] pb-[48px] pt-[14px]"
           aria-label="Storefront information"
-          style={{ transform: "translateY(-100px)" }}
         >
           {[
             {
@@ -295,78 +262,51 @@ export async function ShopCategorySidebar() {
               rotate: 0,
             },
           ].map((link) => (
-            <Link
+            <SidebarLink
               key={link.href}
               href={link.href}
-              className="flex items-center gap-[6px] uppercase no-underline"
-              style={{
-                fontFamily: "GTBold3, Arial, sans-serif",
-                fontSize: "7px",
-                lineHeight: 1.4,
-                letterSpacing: 0,
-                color: "#b5b5b2",
-                marginBottom: "15px",
-              }}
+              className="paon-side-row"
             >
               {navIcon(link.icon, link.viewBox, 19, link.inset, link.rotate)}
               {link.label}
-            </Link>
+            </SidebarLink>
           ))}
         </nav>
-        {/* No background here any more. This used to paint its own surface (a gradient
-            10% darker than the sidebar), which read as a dark block over the lower left
-            of the sidebar. It is now just a positioning container for the cards. */}
-        <div className="absolute inset-x-0 bottom-0 h-[305px]">
-          {isSignedIn ? (
-            <div className="absolute" style={{ bottom: "20px", left: "20px" }}>
-              <StoreVisitCard storeHref={storeHref} />
-            </div>
-          ) : (
-            <>
-              <div
-                className="absolute"
-                style={{ bottom: "78px", left: "20px" }}
-              >
-                <StoreVisitCard storeHref={storeHref} />
-              </div>
-              <GuestSignInButton
-                className="paon-sidebar-signin absolute flex items-center justify-between no-underline transition-colors duration-[400ms] ease-out hover:bg-white/[0.1]"
+        <div className="flex flex-col gap-[10px] px-[20px] pb-[20px]">
+          <StoreVisitCard storeHref={storeHref} />
+          {isSignedIn ? null : (
+            <GuestSignInButton
+              className="paon-side-hover paon-sidebar-signin flex items-center justify-between no-underline transition-colors duration-[400ms] ease-out hover:bg-white/[0.1]"
+              style={{
+                // Same footprint as the TableService pill: 48px tall, full pill.
+                height: "48px",
+                borderRadius: "999px",
+                background:
+                  "linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.055))",
+                color: "#e4e4e1",
+                fontSize: "14px",
+                letterSpacing: "-0.01em",
+                padding: "0 20px",
+              }}
+            >
+              Sign in
+              <svg
+                aria-hidden="true"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="currentColor"
                 style={{
-                  // Same footprint and vertical position as the TableService pill:
-                  // 48px tall, full pill, 20px off the bottom.
-                  bottom: "20px",
-                  left: "20px",
-                  right: "20px",
-                  height: "48px",
-                  borderRadius: "999px",
-                  background:
-                    "linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.055))",
-                  color: "#e4e4e1",
-                  fontFamily: "OptimaKlein, serif",
-                  fontSize: "14px",
-                  letterSpacing: "0.01em",
-                  padding: "0 20px",
+                  flexShrink: 0,
+                  opacity: 0.85,
+                  position: "relative",
+                  left: "3.6px",
                 }}
               >
-                Sign in
-                <svg
-                  aria-hidden="true"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  style={{
-                    flexShrink: 0,
-                    opacity: 0.85,
-                    position: "relative",
-                    left: "3.6px",
-                  }}
-                >
-                  <circle cx="12" cy="8" r="4" />
-                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-                </svg>
-              </GuestSignInButton>
-            </>
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+              </svg>
+            </GuestSignInButton>
           )}
         </div>
       </div>

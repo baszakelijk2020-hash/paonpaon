@@ -17,7 +17,7 @@ import { TEST_RETAILER_SLUG } from "./fixtures";
  * Test-only proof lane — no application code is changed.
  */
 
-const CUSTOMER_EMAIL = "contact+isabelle@nebelspiegel.com";
+const CUSTOMER_EMAIL = "contact+bas@nebelspiegel.com";
 
 const EVIDENCE_DIR = resolve(
   process.cwd(),

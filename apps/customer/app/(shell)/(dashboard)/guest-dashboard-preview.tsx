@@ -26,7 +26,16 @@ export async function GuestDashboardPreview() {
         inert
         className="pointer-events-none absolute inset-0 z-0 select-none overflow-hidden"
       >
-        <div className="flex min-h-full w-full flex-col [filter:blur(20px)]">
+        {/* Fixed 1600px wide, not the viewport: a blurred layer this size is
+            re-rasterised on every frame its layout changes, and tying it to
+            the window made every resize a full-page blur pass — the renderer
+            fell behind and Chrome painted grey where the page should be.
+            Laid out once, it only gets clipped by the wrapper as the window
+            moves. */}
+        <div
+          className="flex min-h-full flex-col [filter:blur(20px)]"
+          style={{ width: "1600px", willChange: "transform" }}
+        >
           <header className="flex h-[62px] items-center justify-between border-b border-black/10 px-10 text-[#30312f]">
             <span className="text-[11px] uppercase tracking-[0.18em] [font-family:GTBold3,Arial,sans-serif]">
               {storefront.retailerNameRaw}

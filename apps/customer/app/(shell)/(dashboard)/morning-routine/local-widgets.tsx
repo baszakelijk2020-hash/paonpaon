@@ -1,18 +1,25 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
+
+import {
+  CarIcon,
+  SunIcon,
+  WeatherIcon,
+  WorkIcon,
+} from "../dashboard/stat-icons";
 
 const CITY_STREAMS_ENABLED = true;
 
-const WORLD_CLOCKS: { city: string; timeZone: string }[] = [
+const WORLD_CLOCKS = [
   { city: "New York", timeZone: "America/New_York" },
   { city: "London", timeZone: "Europe/London" },
   { city: "Dubai", timeZone: "Asia/Dubai" },
   { city: "Hong Kong", timeZone: "Asia/Hong_Kong" },
   { city: "Tokyo", timeZone: "Asia/Tokyo" },
   { city: "Sydney", timeZone: "Australia/Sydney" },
-];
+] as const;
 
 const CITY_CAMERAS = [
   {
@@ -70,19 +77,60 @@ const WEATHER_CODE_LABELS: Record<number, string> = {
   95: "Thunderstorm",
 };
 
-function weatherSymbol(code: number | undefined): string {
-  if (code === 95) return "⛈";
-  if (code !== undefined && [51, 61, 63, 65, 80].includes(code)) return "☔";
-  if (code !== undefined && [1, 2, 3, 45, 48].includes(code)) return "☁";
-  return "☀";
-}
-
 interface Coords {
   lat: number;
   lon: number;
 }
 
-const WORK_ADDRESS_STORAGE_KEY = "paon-work-address";
+export const WORK_ADDRESS_STORAGE_KEY = "paon-work-address";
+
+/**
+ * The customer's home base. The overview reads as Breda: weather, clock and
+ * commute all start here rather than from a browser location prompt, and the
+ * work address is preset so the commute shows a reading on first visit.
+ */
+export const HOME_LOCATION = {
+  label: "Breda",
+  coords: { lat: 51.5719, lon: 4.7683 },
+  timeZone: "Europe/Amsterdam",
+} as const;
+export const DEFAULT_WORK_ADDRESS =
+  "Molengracht 21, 4818 CK Breda, Netherlands";
+
+/**
+ * Real driving time over the road network, routed by OSRM (keyless, the
+ * public demo router). Falls back to a straight-line estimate only if the
+ * router is unreachable.
+ */
+async function driveTime(
+  from: Coords,
+  to: Coords,
+): Promise<{ km: number; minutes: number; routed: boolean }> {
+  try {
+    const res = await fetch(
+      `https://router.project-osrm.org/route/v1/driving/${from.lon},${from.lat};${to.lon},${to.lat}?overview=false`,
+    );
+    const data = (await res.json()) as {
+      routes?: { duration: number; distance: number }[];
+    };
+    const route = data.routes?.[0];
+    if (route) {
+      return {
+        km: Math.round(route.distance / 100) / 10,
+        minutes: Math.max(1, Math.round(route.duration / 60)),
+        routed: true,
+      };
+    }
+  } catch {
+    // Router unreachable — estimate below.
+  }
+  const km = haversineKm(from, to);
+  return {
+    km: Math.round(km * 10) / 10,
+    minutes: Math.max(4, Math.round((km / 28) * 60)),
+    routed: false,
+  };
+}
 
 function haversineKm(a: Coords, b: Coords): number {
   const R = 6371;
@@ -97,88 +145,87 @@ function haversineKm(a: Coords, b: Coords): number {
 }
 
 /**
- * Weather via Open-Meteo, geocoding via OSM Nominatim — both free and
- * keyless, so this works today. There is no free, reliable live-traffic
- * API; the "drive time" here is a straight-line-distance estimate at an
- * assumed average city speed, clearly labeled as such, not real traffic —
- * swap in a routing API (Google/Mapbox) here once a key is available.
+ * Weather via Open-Meteo, geocoding via OSM Nominatim, driving time via
+ * OSRM — all free and keyless. The drive time is a real road-network route;
+ * it does not include live congestion, which no keyless service provides.
  */
 export function LocalWidgets({
   variant = "routine",
-  recommendation,
+  skyExtras,
 }: {
   variant?: "dashboard" | "routine";
   /** The real daily MorningRoutine selection, shown only as an image in
    * the rightmost strip cell — no text, no greeting (contract §4). */
   recommendation?: { name: string; imageUrl?: string };
+  /**
+   * Further sky readings (air quality, wind) rendered inside the dashboard
+   * weather tile, beside the temperature. Passed in rather than imported:
+   * sky-cards.tsx already imports HOME_LOCATION from this file, and pulling
+   * its cards back in here would close an import cycle.
+   */
+  skyExtras?: ReactNode;
 }) {
-  const [coords, setCoords] = useState<Coords | null>(null);
-  const [locationLabel, setLocationLabel] = useState("Your location");
+  const [coords, setCoords] = useState<Coords | null>(HOME_LOCATION.coords);
+  const [locationLabel, setLocationLabel] = useState<string>(
+    HOME_LOCATION.label,
+  );
   const [weather, setWeather] = useState<{
     tempC: number;
     label: string;
     code: number;
   } | null>(null);
-  // Distinguish "still resolving" from "cannot show weather" so the strip
-  // renders a readable state rather than a bare em dash (contract §3/§4).
+  // The forecast remains opt-in until the browser has granted location access.
   const [locationDenied, setLocationDenied] = useState(false);
+  const [locationRequested, setLocationRequested] = useState(false);
   const [weatherError, setWeatherError] = useState(false);
   const [workAddress, setWorkAddress] = useState("");
   const [workInput, setWorkInput] = useState("");
   const [commute, setCommute] = useState<{
     km: number;
     minutes: number;
+    routed: boolean;
   } | null>(null);
   const [now, setNow] = useState<Date | null>(null);
-  const [streamReady, setStreamReady] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false);
+  const [activeCameras, setActiveCameras] = useState<ReadonlySet<string>>(
+    new Set(),
+  );
   const [loadedCameras, setLoadedCameras] = useState<ReadonlySet<string>>(
     new Set(),
   );
 
   useEffect(() => {
     setNow(new Date());
-    const tick = setInterval(() => setNow(new Date()), 60_000);
+    const tick = setInterval(() => setNow(new Date()), 1_000);
     return () => clearInterval(tick);
   }, []);
 
   useEffect(() => {
-    const media = window.matchMedia("(min-width: 1024px)");
-    const update = () => setIsDesktop(media.matches);
-    update();
-    media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
-  }, []);
-
-  useEffect(() => {
     try {
-      const stored = localStorage.getItem(WORK_ADDRESS_STORAGE_KEY);
-      if (stored) {
-        setWorkAddress(stored);
-        setWorkInput(stored);
-      }
+      const stored =
+        localStorage.getItem(WORK_ADDRESS_STORAGE_KEY) ?? DEFAULT_WORK_ADDRESS;
+      setWorkAddress(stored);
+      setWorkInput(stored);
     } catch {
-      // localStorage unavailable — work-address memory is per-viewer only.
+      setWorkAddress(DEFAULT_WORK_ADDRESS);
+      setWorkInput(DEFAULT_WORK_ADDRESS);
     }
   }, []);
 
-  useEffect(() => {
+  const requestLocation = useCallback(() => {
+    setLocationRequested(true);
+    setLocationDenied(false);
+    setWeatherError(false);
     if (!navigator.geolocation) {
       setLocationDenied(true);
       return;
     }
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      (position) =>
         setCoords({
           lat: position.coords.latitude,
           lon: position.coords.longitude,
-        });
-      },
-      () => {
-        // Denied or unavailable — the strip shows a readable "weather
-        // unavailable" state instead of a bare em dash.
-        setLocationDenied(true);
-      },
+        }),
+      () => setLocationDenied(true),
       { maximumAge: 10 * 60_000, timeout: 8_000 },
     );
   }, []);
@@ -228,27 +275,6 @@ export function LocalWidgets({
     };
   }, [coords]);
 
-  useEffect(() => {
-    if (!CITY_STREAMS_ENABLED) return;
-    const node = Array.from(
-      document.querySelectorAll<HTMLElement>("[data-morning-stream-slot]"),
-    ).find(
-      (candidate) => window.getComputedStyle(candidate).display !== "none",
-    );
-    if (!node || !("IntersectionObserver" in window)) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) {
-          setStreamReady(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin: "700px 0px" },
-    );
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
-
   async function geocodeWorkAddress(address: string) {
     try {
       const res = await fetch(
@@ -259,10 +285,7 @@ export function LocalWidgets({
       const hit = data?.[0];
       if (!hit || !coords) return;
       const workCoords = { lat: Number(hit.lat), lon: Number(hit.lon) };
-      const km = haversineKm(coords, workCoords);
-      // ~28 km/h average city driving speed, straight-line distance.
-      const minutes = Math.max(4, Math.round((km / 28) * 60));
-      setCommute({ km: Math.round(km * 10) / 10, minutes });
+      setCommute(await driveTime(coords, workCoords));
     } catch {
       setCommute(null);
     }
@@ -280,159 +303,87 @@ export function LocalWidgets({
 
   useEffect(() => {
     if (workAddress && coords) void geocodeWorkAddress(workAddress);
-    // Only re-run when coords first resolve for an already-saved address.
+    // Home is fixed, so this fires once the stored (or preset) address lands.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [coords]);
+  }, [coords, workAddress]);
 
   if (variant === "dashboard") {
     return (
-      <section className="overflow-hidden border-b border-black/10 bg-[linear-gradient(100deg,#dce3d6_0%,#c5d0c0_58%,#aebdab_100%)] text-[var(--customer-ink)] lg:h-[100px]">
-        <div className="grid h-full grid-cols-2 divide-x divide-black/10 lg:grid-cols-[1.15fr_0.55fr_1.35fr_1.45fr_1.2fr]">
-          <div className="flex min-h-24 min-w-0 items-center gap-4 px-5 lg:min-h-0">
-            <div className="min-w-0">
-              <p className="customer-kicker text-[#596157]">Local context</p>
-              <p className="mt-2 text-sm text-[#2f352e]">
-                {now?.toLocaleDateString(undefined, {
-                  weekday: "long",
-                  day: "numeric",
-                  month: "long",
-                }) ?? "Today"}
+      <section className="paon-overview-widget-grid" aria-label="Local context">
+        <article className="paon-stat paon-stat-weather">
+          {weather ? (
+            <>
+              <p className="paon-stat-value">
+                <WeatherIcon code={weather.code} className="paon-stat-icon" />
+                {Math.round(weather.tempC)}°
               </p>
-              <p className="mt-1 max-w-36 truncate text-xs text-[#596157]">
-                {locationLabel}
+              <div className="paon-stat-meta">
+                <span className="paon-stat-label">{locationLabel}</span>
+                <span className="paon-stat-detail">
+                  {weather.label} ·{" "}
+                  {[51, 61, 63, 65, 80, 95].includes(weather.code)
+                    ? "rain likely"
+                    : "no rain"}
+                </span>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="paon-stat-value paon-stat-value-idle">
+                <SunIcon className="paon-stat-icon" />
               </p>
-            </div>
-            <div className="ml-auto min-w-0 max-w-[7.5rem] text-right lg:max-w-[9.5rem]">
-              {weather ? (
-                <>
-                  <p className="font-display flex items-center justify-end gap-2 text-3xl leading-none">
-                    <span className="font-sans text-2xl" aria-hidden="true">
-                      {weatherSymbol(weather.code)}
-                    </span>
-                    {`${Math.round(weather.tempC)}°`}
-                  </p>
-                  <p className="mt-1 truncate text-xs text-[#596157]">
-                    {`${weather.label} · ${[51, 61, 63, 65, 80, 95].includes(weather.code) ? "Rain likely" : "Dry"}`}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="font-display text-sm leading-tight text-[#2f352e]">
-                    {locationDenied || weatherError
-                      ? "Weather unavailable"
-                      : "Checking weather…"}
-                  </p>
-                  {locationDenied || weatherError ? (
-                    <p className="mt-1 truncate text-xs text-[#596157]">
-                      {locationDenied
-                        ? "Allow location for local weather"
-                        : "No live weather right now"}
-                    </p>
-                  ) : null}
-                </>
-              )}
-            </div>
-          </div>
-
-          <div className="flex min-h-24 flex-col justify-center px-5 lg:min-h-0">
-            <p className="customer-kicker text-[#596157]">Here & now</p>
-            <p className="font-display mt-2 text-2xl tabular-nums leading-none">
-              {now?.toLocaleTimeString(undefined, {
-                hour: "2-digit",
-                minute: "2-digit",
-              }) ?? "—"}
-            </p>
-          </div>
-
-          <div className="col-span-2 flex min-h-24 items-center px-5 lg:col-span-1 lg:min-h-0">
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                saveWorkAddress(workInput.trim());
-              }}
-              className="w-full"
-            >
-              <p className="customer-kicker text-[#596157]">Leave well</p>
-              <div className="mt-2 flex items-center gap-2 border-b border-black/25 pb-1">
-                <input
-                  aria-label="Work address"
-                  value={workInput}
-                  onChange={(event) => setWorkInput(event.target.value)}
-                  placeholder="Work address"
-                  className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[#596157]"
-                />
+              <div className="paon-stat-meta">
+                <span className="paon-stat-label">Local weather</span>
+                <span className="paon-stat-detail">
+                  {locationDenied
+                    ? "Location is blocked in your browser."
+                    : weatherError
+                      ? "Weather is unavailable right now."
+                      : locationRequested
+                        ? "Finding your forecast…"
+                        : "Before you step outside."}
+                </span>
                 <button
-                  type="submit"
-                  className="customer-kicker text-[#31372f]"
+                  type="button"
+                  className="paon-stat-action"
+                  onClick={requestLocation}
                 >
-                  Save
+                  {locationDenied || weatherError
+                    ? "Try again"
+                    : "Use my location"}
                 </button>
               </div>
-              <p className="mt-1 truncate text-[10px] text-[#596157]">
-                {commute
-                  ? `About ${commute.minutes} min · ${commute.km} km`
-                  : workAddress
-                    ? `Finding ${workAddress}…`
-                    : "Personal estimate · no live traffic"}
-              </p>
-            </form>
-          </div>
+            </>
+          )}
+          {skyExtras}
+        </article>
 
-          <div className="col-span-2 flex min-h-24 items-center gap-4 border-t border-black/10 px-5 lg:col-span-1 lg:min-h-0 lg:border-t-0">
-            <p className="customer-kicker shrink-0 text-[#596157]">Elsewhere</p>
-            <div className="grid flex-1 grid-cols-3 gap-x-3 gap-y-1">
-              {WORLD_CLOCKS.map((clock) => (
-                <p
-                  key={clock.city}
-                  className="min-w-0 text-[10px] text-[#596157]"
-                >
-                  <span className="block truncate">{clock.city}</span>
-                  <span className="block font-medium tabular-nums text-[#222720]">
-                    {now?.toLocaleTimeString(undefined, {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      timeZone: clock.timeZone,
-                    }) ?? "—"}
-                  </span>
-                </p>
-              ))}
-            </div>
+        <article className="paon-stat paon-stat-commute">
+          {commute ? (
+            <p className="paon-stat-value">
+              <CarIcon className="paon-stat-icon" />
+              {commute.minutes}
+              <small>min</small>
+            </p>
+          ) : (
+            <p className="paon-stat-value paon-stat-value-idle">
+              <CarIcon className="paon-stat-icon" />—<small>min</small>
+            </p>
+          )}
+          <div className="paon-stat-meta">
+            <span className="paon-stat-label paon-stat-label-icon">
+              <WorkIcon />
+              Commute
+            </span>
+            <span className="paon-stat-detail">
+              {commute
+                ? commute.routed
+                  ? `${commute.km} km by road`
+                  : `${commute.km} km straight-line`
+                : "Routing…"}
+            </span>
           </div>
-
-          {/* The observer above looks for a visible [data-morning-stream-slot]
-              to decide when to start the city cameras. Only the routine
-              variant carried the attribute, so on the dashboard it found
-              nothing, `streamReady` stayed false forever and these iframes
-              could never mount — the branch below was unreachable. */}
-          <div
-            data-morning-stream-slot
-            className={`relative col-span-2 overflow-hidden border-t border-black/10 bg-white/15 lg:col-span-1 lg:flex lg:h-auto lg:border-t-0 ${
-              recommendation?.imageUrl ? "flex h-44" : "hidden lg:flex"
-            }`}
-          >
-            {CITY_STREAMS_ENABLED && streamReady && isDesktop ? (
-              <div className="absolute inset-0 grid grid-cols-3 gap-px bg-[#c5d0c0]">
-                {CITY_CAMERAS.slice(0, 3).map((camera) => (
-                  <iframe
-                    key={camera.code}
-                    title={`${camera.city} live camera`}
-                    src={camera.src}
-                    className="h-full w-full border-0 object-cover opacity-80"
-                    allow="autoplay; fullscreen"
-                  />
-                ))}
-              </div>
-            ) : recommendation?.imageUrl ? (
-              <Image
-                src={recommendation.imageUrl}
-                alt=""
-                fill
-                unoptimized
-                className="object-contain object-center lg:object-right"
-              />
-            ) : null}
-          </div>
-        </div>
+        </article>
       </section>
     );
   }
@@ -528,7 +479,7 @@ export function LocalWidgets({
                   <p className="mt-4 text-xs leading-5 text-white/45">
                     {workAddress
                       ? `Locating ${workAddress}…`
-                      : "Estimated distance · no live traffic"}
+                      : "Drive time by road"}
                   </p>
                 )}
               </div>
@@ -559,7 +510,7 @@ export function LocalWidgets({
             data-morning-stream-slot
             className="relative border-t border-white/10 bg-black lg:hidden"
           >
-            {CITY_STREAMS_ENABLED && streamReady && !isDesktop ? (
+            {CITY_STREAMS_ENABLED && activeCameras.has("AMS") ? (
               <iframe
                 title="Live city stream"
                 src="https://stream.nebelspiegel.com"
@@ -573,10 +524,18 @@ export function LocalWidgets({
                     City signal
                   </p>
                   <p className="mt-2 text-sm text-white/55">
-                    Live streams are temporarily paused.
+                    Start the live Amsterdam view when you are ready.
                   </p>
                 </div>
-                <span className="text-xs text-white/35">Stream · paused</span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setActiveCameras((current) => new Set([...current, "AMS"]))
+                  }
+                  className="min-h-[52px] rounded-full border border-white/40 px-4 text-xs text-white"
+                >
+                  Open live view
+                </button>
               </div>
             )}
           </div>
@@ -585,7 +544,7 @@ export function LocalWidgets({
           data-morning-stream-slot
           className="relative hidden min-h-[22rem] border-t border-white/10 bg-black lg:block lg:min-h-0 lg:border-l lg:border-t-0"
         >
-          {CITY_STREAMS_ENABLED && streamReady && isDesktop ? (
+          {CITY_STREAMS_ENABLED && activeCameras.has("AMS") ? (
             <iframe
               title="Live city stream desktop"
               src="https://stream.nebelspiegel.com"
@@ -598,11 +557,17 @@ export function LocalWidgets({
                 <p className="font-accent text-[10px] uppercase tracking-[0.2em] text-[#c9b890]">
                   City signal
                 </p>
-                <span className="text-xs text-white/35">Stream · paused</span>
+                <span className="text-xs text-white/35">Ready on request</span>
               </div>
-              <p className="font-display max-w-xs text-3xl leading-tight text-white">
-                A city window, held beside your day.
-              </p>
+              <button
+                type="button"
+                onClick={() =>
+                  setActiveCameras((current) => new Set([...current, "AMS"]))
+                }
+                className="min-h-[52px] w-fit rounded-full border border-white/40 px-5 text-sm text-white"
+              >
+                Open Amsterdam live view
+              </button>
             </div>
           )}
           {CITY_STREAMS_ENABLED ? (
@@ -638,7 +603,7 @@ export function LocalWidgets({
                   unoptimized
                   className="object-cover opacity-65"
                 />
-                {CITY_STREAMS_ENABLED && streamReady ? (
+                {CITY_STREAMS_ENABLED && activeCameras.has(camera.code) ? (
                   <iframe
                     title={`${camera.city} live camera`}
                     src={camera.src}
@@ -652,7 +617,19 @@ export function LocalWidgets({
                     allow="autoplay; fullscreen"
                   />
                 ) : (
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
+                  <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/70 to-transparent p-3">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setActiveCameras(
+                          (current) => new Set([...current, camera.code]),
+                        )
+                      }
+                      className="min-h-[52px] rounded-full border border-white/55 bg-black/35 px-4 text-xs text-white backdrop-blur-sm"
+                    >
+                      Open live view
+                    </button>
+                  </div>
                 )}
               </div>
               <div className="flex items-center justify-between px-4 py-3">

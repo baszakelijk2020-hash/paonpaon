@@ -54,18 +54,17 @@ export default async function LoyaltyPage() {
     }),
   );
   return (
-    <div className="customer-page flex flex-col gap-6">
-      <header className="customer-page-header flex-col items-start gap-2">
-        <p className="customer-kicker text-[var(--color-stone-500)]">
-          Membership
-        </p>
-        <h1 className="font-display text-4xl text-[var(--customer-ink)]">
-          Rewards &amp; Referrals
-        </h1>
-        <p className="max-w-2xl text-base text-[var(--color-stone-600)]">
-          Your membership tier and points, considered milestones, redeemable
-          rewards, and referrals across your retailers.
-        </p>
+    <div className="customer-page flex flex-col gap-6 bg-black pb-12 text-white">
+      <header className="pe-page-head items-end gap-6 pb-3">
+        <div>
+          <p className="customer-kicker mb-2 text-white/55">Your membership</p>
+          <h1 className="font-display text-5xl font-semibold leading-none tracking-[-0.055em] text-white sm:text-6xl">
+            Rewards &amp; Referrals
+          </h1>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-white/60">
+            See your points, choose a reward, and share a retailer you love.
+          </p>
+        </div>
         <RelatedLinks
           links={[{ href: "/private-offers", label: "Private Offers" }]}
         />
@@ -77,46 +76,76 @@ export default async function LoyaltyPage() {
         ) => (
           <section
             key={customer.id}
-            className="paon-reveal flex flex-col gap-5 rounded-[var(--customer-radius)] border border-[var(--customer-border)] bg-gradient-to-br from-[var(--customer-paper)] to-[#e4e1d3] p-5 shadow-sm"
+            className="paon-reveal flex flex-col gap-5"
             style={{ animationDelay: `${index * 120}ms` }}
           >
-            <div className="flex flex-wrap items-start justify-between gap-3">
+            {/* One card for the membership: who it is with, where it stands,
+                and — until joined — the one thing to do about it. The join
+                button used to sit alone in a second tile beneath a card that
+                said "Not joined"; it belongs here. */}
+            <div
+              className="pe-card flex flex-wrap items-start justify-between gap-6"
+              data-pe-card
+            >
               <div className="min-w-0">
-                <p className="font-accent text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
+                <p className="customer-kicker">
                   {retailer?.displayName ?? "Retailer"}
                 </p>
+                <h2 className="mt-2">
+                  {account ? "A little more, for you." : "Make it rewarding."}
+                </h2>
+                <p className="mt-1 max-w-md">
+                  {account
+                    ? "Your points and privileges, all in one place."
+                    : "Join your retailer's programme to see your points and available rewards."}
+                </p>
                 {account ? (
-                  <Badge tone={TIER_TONE[account.tier]} className="mt-1">
+                  <Badge tone={TIER_TONE[account.tier]} className="mt-3">
                     {LOYALTY_TIER_LABELS[account.tier]}
                   </Badge>
                 ) : (
-                  <p className="mt-1 text-sm text-[var(--color-stone-500)]">
-                    Not joined
-                  </p>
+                  <form action={joinLoyalty} className="mt-4">
+                    <input
+                      type="hidden"
+                      name="retailerId"
+                      value={customer.retailerId}
+                    />
+                    <Button type="submit" className="customer-button">
+                      Join loyalty programme
+                    </Button>
+                  </form>
                 )}
               </div>
-              <p className="font-display shrink-0 text-4xl text-[var(--color-stone-900)]">
+              <p className="shrink-0 text-6xl font-semibold leading-none tracking-[-0.06em] sm:text-7xl">
                 {account?.pointsBalance ?? 0}
-                <span className="ml-1 font-sans text-sm font-normal text-[var(--color-stone-500)]">
+                <span className="ml-2 font-sans text-base font-normal tracking-normal">
                   points
                 </span>
               </p>
             </div>
             {account ? (
               <>
-                <section aria-labelledby={`badges-${customer.id}`}>
+                <section
+                  aria-labelledby={`badges-${customer.id}`}
+                  className="pe-card rounded-[32px] bg-[#191b1d] p-6 text-white sm:p-8"
+                  data-pe-card
+                >
                   <h2
                     id={`badges-${customer.id}`}
-                    className="mb-2 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]"
+                    className="customer-kicker mb-4 text-white/55"
                   >
                     Badges
                   </h2>
                   <BadgesShelf milestones={milestones} />
                 </section>
-                <section aria-labelledby={`milestones-${customer.id}`}>
+                <section
+                  aria-labelledby={`milestones-${customer.id}`}
+                  className="pe-card pe-card-mint rounded-[32px] bg-[#b8e6be] p-6 text-[#181818] sm:p-8"
+                  data-pe-card
+                >
                   <h2
                     id={`milestones-${customer.id}`}
-                    className="mb-2 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]"
+                    className="customer-kicker mb-4 text-[#181818]/60"
                   >
                     Tailoring milestones
                   </h2>
@@ -132,14 +161,10 @@ export default async function LoyaltyPage() {
                         return (
                           <li
                             key={award.id}
-                            className={`rounded-[var(--customer-radius)] p-4 ${
-                              presentation.tone === "reversed"
-                                ? "bg-[rgba(203,211,197,0.35)]"
-                                : "bg-gradient-to-br from-[#7c8772]/20 to-[#3f493b]/10"
-                            }`}
+                            className="rounded-[22px] bg-[#181818]/[0.07] p-4"
                           >
                             <div className="flex flex-wrap items-center justify-between gap-2">
-                              <p className="font-medium text-[var(--color-stone-900)]">
+                              <p className="font-medium text-[#181818]">
                                 {presentation.headline}
                               </p>
                               <Badge
@@ -154,7 +179,7 @@ export default async function LoyaltyPage() {
                                   : "Corrected"}
                               </Badge>
                             </div>
-                            <p className="mt-1 text-sm text-[var(--color-stone-600)]">
+                            <p className="mt-1 text-sm text-[#181818]/65">
                               {presentation.detail}
                             </p>
                           </li>
@@ -162,15 +187,18 @@ export default async function LoyaltyPage() {
                       })}
                     </ul>
                   ) : (
-                    <p className="text-sm text-[var(--color-stone-500)]">
+                    <p className="text-sm text-[#181818]/60">
                       Milestones appear as meaningful stages — first commission,
                       return orders, new categories, and considered cloth —
                       without streaks or chance.
                     </p>
                   )}
                 </section>
-                <div>
-                  <p className="mb-2 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
+                <div
+                  className="pe-card pe-card-lavender rounded-[32px] bg-[#c7c1ef] p-6 text-[#181818] sm:p-8"
+                  data-pe-card
+                >
+                  <p className="customer-kicker mb-4 text-[#181818]/60">
                     Available rewards
                   </p>
                   <div className="grid gap-2">
@@ -180,14 +208,14 @@ export default async function LoyaltyPage() {
                         <form
                           key={reward.id}
                           action={redeemReward}
-                          className="customer-list-row flex-wrap px-4 py-3 transition-colors hover:bg-white/70"
+                          className="flex min-h-[64px] flex-wrap items-center justify-between gap-3 rounded-[22px] bg-[#181818]/[0.07] px-4 py-3 transition-colors hover:bg-[#181818]/[0.11]"
                         >
                           <input
                             type="hidden"
                             name="rewardId"
                             value={reward.id}
                           />
-                          <span className="min-w-0 text-sm text-[var(--color-stone-800)]">
+                          <span className="min-w-0 text-sm text-[#181818]">
                             {reward.name} · {reward.pointsCost} points
                           </span>
                           <Button
@@ -202,14 +230,17 @@ export default async function LoyaltyPage() {
                         </form>
                       ))}
                     {rewards.filter((reward) => reward.active).length === 0 ? (
-                      <p className="text-sm text-[var(--color-stone-500)]">
+                      <p className="text-sm text-[#181818]/60">
                         No rewards available yet.
                       </p>
                     ) : null}
                   </div>
                 </div>
-                <div className="border-t border-[var(--customer-border)] pt-5">
-                  <p className="mb-3 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
+                <div
+                  className="pe-card pe-card-coral rounded-[32px] bg-[#f0b6a4] p-6 text-[#181818] sm:p-8"
+                  data-pe-card
+                >
+                  <p className="customer-kicker mb-4 text-[#181818]/60">
                     Introduce a friend
                   </p>
                   <form
@@ -234,8 +265,11 @@ export default async function LoyaltyPage() {
                   </form>
                 </div>
                 {referrals.length ? (
-                  <div>
-                    <p className="mb-2 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
+                  <div
+                    className="pe-card rounded-[32px] bg-[#191b1d] p-6 text-white sm:p-8"
+                    data-pe-card
+                  >
+                    <p className="customer-kicker mb-4 text-white/55">
                       {referrals.length} introduction
                       {referrals.length === 1 ? "" : "s"} sent
                     </p>
@@ -245,7 +279,7 @@ export default async function LoyaltyPage() {
                           key={referral.id}
                           className="flex items-center justify-between text-sm"
                         >
-                          <span className="text-[var(--color-stone-700)]">
+                          <span className="text-white/75">
                             {referral.referredEmail}
                           </span>
                           <Badge tone={REFERRAL_TONE[referral.status]}>
@@ -257,22 +291,16 @@ export default async function LoyaltyPage() {
                   </div>
                 ) : null}
               </>
-            ) : (
-              <form action={joinLoyalty}>
-                <input
-                  type="hidden"
-                  name="retailerId"
-                  value={customer.retailerId}
-                />
-                <Button type="submit">Join loyalty programme</Button>
-              </form>
-            )}
+            ) : null}
           </section>
         ),
       )}
       {relationships.length === 0 ? (
-        <section className="customer-panel paon-reveal p-6">
-          <p className="text-sm text-[var(--color-stone-500)]">
+        <section
+          className="pe-card paon-reveal rounded-[32px] bg-[#191b1d] p-8"
+          data-pe-card
+        >
+          <p className="text-sm text-white/60">
             Shop or book with a retailer to begin a relationship.
           </p>
         </section>

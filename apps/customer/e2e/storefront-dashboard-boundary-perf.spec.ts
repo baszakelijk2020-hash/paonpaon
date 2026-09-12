@@ -29,7 +29,7 @@ test("storefront -> dashboard boundary hop stays within budget", async ({
   const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
   const { data: link, error } = await admin.auth.admin.generateLink({
     type: "magiclink",
-    email: "contact+isabelle@nebelspiegel.com",
+    email: "contact+bas@nebelspiegel.com",
   });
   if (error || !link.properties) throw error ?? new Error("magic link missing");
   await page.goto(

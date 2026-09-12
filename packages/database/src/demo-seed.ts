@@ -123,7 +123,7 @@ interface RetailerSpec {
 /**
  * Lived-in client-book stories for Maison Dubois. Catalog photography is
  * already strong; a prospect walkthrough fails when every client has the
- * same single order and only Isabelle has notes/appointments.
+ * same single order and only Bas has notes/appointments.
  */
 type ClientHistoryStory = {
   productSlugs: string[];
@@ -142,7 +142,7 @@ type ClientHistoryStory = {
 };
 
 const MAISON_CLIENT_HISTORIES: Record<string, ClientHistoryStory> = {
-  "contact+isabelle@nebelspiegel.com": {
+  "contact+bas@nebelspiegel.com": {
     productSlugs: [
       "midnight-blue-s130-natural-bi-stretch-wool-solaro-herringbone-6088",
       "traveller-midnight-navy-high-twist-wool-plain-weave-6085",
@@ -214,7 +214,7 @@ const MAISON_CLIENT_HISTORIES: Record<string, ClientHistoryStory> = {
     productSlugs: ["beige-stretch-wool-blend-lightweight-twill-6065"],
     notes: [
       {
-        body: "First commission after a referral from Isabelle. Soft beige twill for a May wedding in Bordeaux.",
+        body: "First commission after a referral from Bas. Soft beige twill for a May wedding in Bordeaux.",
         pinned: true,
       },
     ],
@@ -969,8 +969,8 @@ const RETAILERS: RetailerSpec[] = [
     ],
     customers: [
       {
-        name: "Isabelle Laurent",
-        email: "contact+isabelle@nebelspiegel.com",
+        name: "Bas Prens",
+        email: "contact+bas@nebelspiegel.com",
         portal: true,
         lifecycle: "vip",
       },
@@ -1165,8 +1165,8 @@ export const DEMO_CANONICAL_PERSONAS: readonly DemoPersonaLogin[] = [
     app: "customer",
     role: "customer",
     retailer: "Nebel & Spiegel",
-    persona: "Customer — Isabelle Laurent",
-    email: "contact+isabelle@nebelspiegel.com",
+    persona: "Customer — Bas Prens",
+    email: "contact+bas@nebelspiegel.com",
   },
   {
     id: "retailer-owner",
@@ -1866,7 +1866,7 @@ async function seedRetailerSpecs(params: {
     // Prospect demos reuse Maison client stories under slug-scoped emails.
     const histories = clientHistoriesForSlug(spec.slug);
 
-    // Durable clienteling context across the book — not Isabelle-only.
+    // Durable clienteling context across the book — not Bas-only.
     const clientelingRepo = new ClientelingRepository(admin);
     const salesStaffId = staffIds["sales_associate"]!;
     for (let i = 0; i < spec.customers.length; i++) {

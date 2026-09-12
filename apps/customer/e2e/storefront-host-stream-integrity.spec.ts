@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-const CUSTOMER_EMAIL = "contact+isabelle@nebelspiegel.com";
+const CUSTOMER_EMAIL = "contact+bas@nebelspiegel.com";
 
 function demoLoginUrl(redirectTo: string): string {
   return `/login?demo=1&email=${encodeURIComponent(CUSTOMER_EMAIL)}&redirectTo=${encodeURIComponent(redirectTo)}`;

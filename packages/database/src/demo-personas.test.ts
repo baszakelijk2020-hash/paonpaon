@@ -43,7 +43,7 @@ describe("canonical demo personas", () => {
       app: "customer",
       role: "customer",
       retailer: "Nebel & Spiegel",
-      email: "contact+isabelle@nebelspiegel.com",
+      email: "contact+bas@nebelspiegel.com",
     });
 
     for (const id of [
@@ -65,13 +65,11 @@ describe("canonical demo personas", () => {
   });
 
   it("keeps admin demo toggles scoped to canonical identities", () => {
-    expect(isCanonicalDemoEmail("contact+isabelle@nebelspiegel.com")).toBe(
-      true,
-    );
+    expect(isCanonicalDemoEmail("contact+bas@nebelspiegel.com")).toBe(true);
     expect(isCanonicalDemoEmail("contact+unrelated@nebelspiegel.com")).toBe(
       false,
     );
-    expect(isCanonicalDemoEmail("contact+isabelle@example.com")).toBe(false);
+    expect(isCanonicalDemoEmail("contact+bas@example.com")).toBe(false);
     expect(isCanonicalDemoEmail(undefined)).toBe(false);
   });
 });

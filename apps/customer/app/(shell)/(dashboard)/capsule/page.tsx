@@ -5,7 +5,6 @@ import {
   ProductVariantRepository,
   RetailerRepository,
 } from "@paon/database";
-import { Card } from "@paon/ui/components/Card";
 import { formatMoney } from "@paon/utils";
 import Image from "next/image";
 import Link from "next/link";
@@ -65,80 +64,76 @@ export default async function CapsulePage() {
   );
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
-          This week&rsquo;s capsule
-        </h1>
-        <p className="text-sm text-[var(--color-stone-500)]">
-          A small, considered set — refreshed weekly by your advisor.
-        </p>
-      </div>
+    <div className="customer-page flex flex-col gap-6 pb-12 text-white">
+      <header className="pe-page-head items-end gap-6 pb-3">
+        <div>
+          <p className="customer-kicker mb-2">
+            Refreshed weekly by your advisor
+          </p>
+          <h1 className="font-display text-5xl font-semibold leading-none tracking-[-0.055em] text-white">
+            This week&rsquo;s capsule
+          </h1>
+          <p className="mt-4 max-w-xl text-base leading-7 text-white/60">
+            A small, considered set — the pieces that work together this week,
+            chosen for you.
+          </p>
+        </div>
+      </header>
 
       {groups.length === 0 ? (
-        <Card>
-          <p className="text-sm text-[var(--color-stone-500)]">
-            No house connections yet.
-          </p>
-        </Card>
+        <section className="pe-card" data-pe-card>
+          <p className="customer-kicker">Capsule</p>
+          <p className="mt-1">No house connections yet.</p>
+        </section>
       ) : (
         groups.map(({ customer, retailer, drop, pieces }) => (
-          <Card key={customer.id} className="flex flex-col gap-4">
-            <div>
-              <p className="font-accent text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
-                {retailer?.displayName ?? "Retailer"}
-              </p>
-              {drop ? (
-                <>
-                  <h2 className="font-display text-xl text-[var(--color-stone-900)]">
-                    {drop.title}
-                  </h2>
-                  {drop.theme ? (
-                    <p className="text-sm text-[var(--color-stone-500)]">
-                      {drop.theme}
-                    </p>
-                  ) : null}
-                </>
-              ) : (
-                <p className="mt-1 text-sm text-[var(--color-stone-500)]">
-                  No capsule published this week yet.
-                </p>
-              )}
-            </div>
+          /*
+           * One card per house. The house is the kicker, the drop's title is
+           * the card's heading, its theme the line under it — no second
+           * "This week's edit" title repeating the page's own.
+           */
+          <section key={customer.id} className="pe-card" data-pe-card>
+            <p className="customer-kicker">
+              {retailer?.displayName ?? "Retailer"}
+            </p>
+            {drop ? (
+              <>
+                <h2 className="mt-2">{drop.title}</h2>
+                {drop.theme ? <p className="mt-1">{drop.theme}</p> : null}
+              </>
+            ) : (
+              <p className="mt-1">No capsule published this week yet.</p>
+            )}
             {pieces.length > 0 ? (
-              <div className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2">
+              <div className="pe-capsule-pieces">
                 {pieces.map((piece) => (
                   <Link
                     key={piece.slug}
                     href={`/r/${retailer?.slug}/products/${piece.slug}`}
-                    className="flex w-48 shrink-0 snap-start flex-col gap-2 overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-stone-200)]"
+                    className="pe-capsule-piece"
                   >
-                    <div className="relative aspect-[3/4] bg-[var(--color-stone-100)]">
+                    <span className="pe-capsule-piece-photo">
                       {piece.imageUrl ? (
                         <Image
                           src={piece.imageUrl}
                           alt={piece.name}
                           fill
                           unoptimized
-                          className="object-cover"
+                          sizes="220px"
                         />
                       ) : null}
-                    </div>
-                    <div className="px-2 pb-2">
-                      <p className="text-sm font-medium text-[var(--color-stone-900)]">
-                        {piece.name}
-                      </p>
-                      {piece.priceLabel ? (
-                        <p className="text-xs text-[var(--color-stone-500)]">
-                          {piece.priceLabel}
-                        </p>
-                      ) : null}
-                    </div>
+                    </span>
+                    <span className="pe-capsule-piece-name">{piece.name}</span>
+                    {piece.priceLabel ? (
+                      <span className="pe-capsule-piece-price">
+                        {piece.priceLabel}
+                      </span>
+                    ) : null}
                   </Link>
                 ))}
               </div>
             ) : null}
-          </Card>
+          </section>
         ))
       )}
     </div>

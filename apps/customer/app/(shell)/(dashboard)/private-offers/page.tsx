@@ -126,26 +126,35 @@ export default async function PrivateOffersPage() {
   );
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
-          Private offers
-        </h1>
-        <p className="text-sm text-[var(--color-stone-500)]">
-          Members-only releases and seven-day wardrobe challenges from your
-          houses. Audience rules are consent-aware and explained — marketing
-          consent is never reused for personalization.
-        </p>
-      </div>
+    <div className="customer-page flex flex-col gap-6 bg-black pb-12 text-white">
+      <header className="pe-page-head items-end gap-6 pb-3">
+        <div>
+          <p className="customer-kicker mb-2 text-white/55">
+            Invitations from your houses
+          </p>
+          <h1 className="font-display text-5xl font-semibold leading-none tracking-[-0.055em] text-white sm:text-6xl">
+            Private offers
+          </h1>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-white/60">
+            Members-only releases and seven-day wardrobe challenges, shown only
+            when your consent allows them.
+          </p>
+        </div>
+        <Link
+          href="/account"
+          className="inline-flex min-h-[52px] items-center rounded-full bg-[#191b1d] px-6 text-sm font-semibold text-white"
+        >
+          Manage consent
+        </Link>
+      </header>
 
       {groups.length === 0 ? (
         <div
-          className="rounded-[var(--radius-md)] border border-dashed border-[var(--color-stone-300)] px-6 py-16 text-center"
+          className="pe-card rounded-[32px] bg-[#191b1d] px-6 py-16 text-center"
           role="status"
+          data-pe-card
         >
-          <p className="text-[var(--color-stone-600)]">
-            No house connections yet.
-          </p>
+          <p className="text-white/60">No house connections yet.</p>
         </div>
       ) : (
         groups.map(
@@ -158,38 +167,40 @@ export default async function PrivateOffersPage() {
             products,
             audits,
           }) => (
-            <section
-              key={customer.id}
-              className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-5 py-5"
-            >
-              <h2 className="font-display text-2xl text-[var(--color-stone-900)]">
-                {retailer?.displayName ?? "Your retailer"}
-              </h2>
-              <p className="mt-1 text-sm text-[var(--color-stone-500)]">
-                Personalization: {consent.personalization.status}
-                {consent.personalization.status !== "granted" ? (
-                  <>
-                    {" "}
-                    —{" "}
-                    <Link
-                      href="/account"
-                      className="underline underline-offset-2"
-                    >
-                      manage consent
-                    </Link>
-                  </>
-                ) : null}
-              </p>
+            <section key={customer.id} className="flex flex-col gap-4">
+              <div
+                className="pe-card pe-card-mint rounded-[32px] bg-[#b8e6be] p-7 text-[#181818]"
+                data-pe-card
+              >
+                <h2 className="text-3xl font-semibold tracking-[-0.035em] text-[#181818]">
+                  {retailer?.displayName ?? "Your retailer"}
+                </h2>
+                <p className="mt-2 text-sm text-[#181818]/60">
+                  Personalization: {consent.personalization.status}
+                  {consent.personalization.status !== "granted" ? (
+                    <>
+                      {" "}
+                      —{" "}
+                      <Link
+                        href="/account"
+                        className="underline underline-offset-2"
+                      >
+                        manage consent
+                      </Link>
+                    </>
+                  ) : null}
+                </p>
+              </div>
 
-              <div className="mt-6">
-                <h3 className="font-display text-lg text-[var(--color-stone-900)]">
+              <div
+                className="pe-card pe-card-blue rounded-[32px] bg-[#aed6e7] p-7 text-[#181818]"
+                data-pe-card
+              >
+                <h3 className="text-2xl font-semibold tracking-[-0.025em] text-[#181818]">
                   Private offers
                 </h3>
                 {offers.filter((offer) => offer.visible).length === 0 ? (
-                  <p
-                    role="status"
-                    className="mt-2 text-sm text-[var(--color-stone-500)]"
-                  >
+                  <p role="status" className="mt-3 text-sm text-[#181818]/60">
                     No private offers available for your consented profile right
                     now.
                   </p>
@@ -200,15 +211,15 @@ export default async function PrivateOffersPage() {
                       .map(({ campaign, explanations }) => (
                         <li
                           key={campaign.id}
-                          className="border-t border-[var(--color-stone-100)] pt-4 first:border-t-0 first:pt-0"
+                          className="rounded-[22px] bg-[#181818]/[0.07] p-5"
                         >
-                          <p className="text-base text-[var(--color-stone-900)]">
+                          <p className="text-lg font-semibold text-[#181818]">
                             {campaign.title}
                           </p>
-                          <p className="mt-1 text-sm text-[var(--color-stone-600)]">
+                          <p className="mt-2 text-sm text-[#181818]/70">
                             {campaign.summary}
                           </p>
-                          <p className="mt-2 text-xs text-[var(--color-stone-500)]">
+                          <p className="mt-3 text-xs text-[#181818]/55">
                             Why you see this:{" "}
                             {explanations[0] ?? campaign.explanation}
                           </p>
@@ -218,15 +229,15 @@ export default async function PrivateOffersPage() {
                 )}
               </div>
 
-              <div className="mt-8">
-                <h3 className="font-display text-lg text-[var(--color-stone-900)]">
+              <div
+                className="pe-card pe-card-lavender rounded-[32px] bg-[#c7c1ef] p-7 text-[#181818]"
+                data-pe-card
+              >
+                <h3 className="text-2xl font-semibold tracking-[-0.025em] text-[#181818]">
                   Seven-day wardrobe
                 </h3>
                 {challenges.length === 0 ? (
-                  <p
-                    role="status"
-                    className="mt-2 text-sm text-[var(--color-stone-500)]"
-                  >
+                  <p role="status" className="mt-3 text-sm text-[#181818]/60">
                     No active wardrobe challenges.
                   </p>
                 ) : (
@@ -235,16 +246,16 @@ export default async function PrivateOffersPage() {
                     return (
                       <div
                         key={campaign.id}
-                        className="mt-4 border-t border-[var(--color-stone-100)] pt-4"
+                        className="mt-4 rounded-[24px] bg-[#181818]/[0.07] p-5"
                       >
-                        <p className="text-base text-[var(--color-stone-900)]">
+                        <p className="text-lg font-semibold text-[#181818]">
                           {campaign.title}
                         </p>
-                        <p className="mt-1 text-sm text-[var(--color-stone-600)]">
+                        <p className="mt-2 text-sm text-[#181818]/70">
                           {campaign.summary}
                         </p>
                         {campaign.rewardKind ? (
-                          <p className="mt-2 text-xs text-[var(--color-stone-500)]">
+                          <p className="mt-3 text-xs text-[#181818]/55">
                             Completion reward:{" "}
                             {campaign.rewardLabel ?? campaign.rewardKind}
                           </p>
@@ -276,7 +287,7 @@ export default async function PrivateOffersPage() {
                           </form>
                         ) : (
                           <div className="mt-4 flex flex-col gap-4">
-                            <p className="text-sm text-[var(--color-stone-500)]">
+                            <p className="text-sm text-[#181818]/60">
                               Progress: {completeness.completeDayCount} / 7
                               complete looks
                               {enrollment.status === "completed"
@@ -286,7 +297,7 @@ export default async function PrivateOffersPage() {
                             {grant ? (
                               <p
                                 role="status"
-                                className="text-sm text-[var(--color-stone-800)]"
+                                className="rounded-[18px] bg-[#b8e6be] p-4 text-sm text-[#181818]"
                               >
                                 Reward granted: {grant.label}
                                 {grant.expiresAt
@@ -304,10 +315,10 @@ export default async function PrivateOffersPage() {
                                   return (
                                     <details
                                       key={dayIndex}
-                                      className="rounded border border-[var(--color-stone-200)] px-4 py-3"
+                                      className="rounded-[20px] bg-white/55 px-4 py-3"
                                       open={dayIndex === 1}
                                     >
-                                      <summary className="cursor-pointer text-sm text-[var(--color-stone-900)]">
+                                      <summary className="cursor-pointer text-sm font-semibold text-[#181818]">
                                         {label}
                                         {look &&
                                         isLookComplete({ slots: look.slots })
@@ -412,11 +423,14 @@ export default async function PrivateOffersPage() {
               </div>
 
               {audits.length > 0 ? (
-                <div className="mt-8 border-t border-[var(--color-stone-100)] pt-4">
-                  <h3 className="text-sm font-medium text-[var(--color-stone-900)]">
+                <div
+                  className="pe-card rounded-[32px] bg-[#191b1d] p-7 text-white"
+                  data-pe-card
+                >
+                  <h3 className="text-lg font-semibold text-white">
                     Recent delivery audit
                   </h3>
-                  <ul className="mt-2 space-y-1 text-xs text-[var(--color-stone-500)]">
+                  <ul className="mt-3 space-y-1 text-xs text-white/55">
                     {audits.map((audit) => (
                       <li key={audit.id}>
                         {audit.forDate}: {audit.outcome}

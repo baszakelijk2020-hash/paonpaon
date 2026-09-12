@@ -7,7 +7,7 @@ const VIEWS = {
   advisor: {
     label: "Sales advisor",
     eyebrow: "Relationship workspace",
-    title: "Isabelle Laurent",
+    title: "Bas Prens",
     note: "Prefers quiet appointments. Preparing for a September wedding in Florence.",
     metrics: [
       ["Next moment", "Fitting · 14:30"],

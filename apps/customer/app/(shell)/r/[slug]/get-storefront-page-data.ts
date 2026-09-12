@@ -377,6 +377,43 @@ export async function getStorefrontPageData(
     })),
   );
 
+  /*
+   * Suits and jackets are named for their cloth, and the cloth is named for
+   * its mill: the seed writes "Ivory-taupe Wool Glencheck" with "… from Loro
+   * Piana." in the description. The card leads with the mill and follows with
+   * the cloth, every word capitalised — including after a hyphen, so
+   * "Ivory-taupe" reads "Ivory-Taupe". Other categories keep their names as
+   * written. The mill comes from the catalogue metadata when it has been
+   * tagged, otherwise from the description's "from …" clause.
+   */
+  const titleCase = (value: string) =>
+    value.replace(
+      /(^|[\s\-/(])([a-zà-ÿ])/g,
+      (_, lead: string, ch: string) => lead + ch.toUpperCase(),
+    );
+  const gridCardTitleFor = (
+    category: string,
+    name: string,
+    description: string | null | undefined,
+    taggedMill: string | null,
+  ): { brand: string | null; title: string | null } => {
+    if (category !== "Suits" && category !== "Jackets") {
+      return { brand: null, title: null };
+    }
+    const fromClause = /\bfrom\s+([^.]+?)\.(?:\s|$)/i.exec(description ?? "");
+    const mill = (taggedMill ?? fromClause?.[1] ?? "").trim();
+    let cloth = name.trim();
+    if (mill && cloth.toLowerCase().startsWith(mill.toLowerCase())) {
+      cloth = cloth.slice(mill.length).trim();
+    }
+    // A product named only for its mill ("Loro Piana") has no cloth to show.
+    if (!cloth || cloth.toLowerCase() === mill.toLowerCase()) cloth = "";
+    return {
+      brand: mill ? titleCase(mill) : null,
+      title: cloth ? titleCase(cloth) : null,
+    };
+  };
+
   const catalogueByProduct = await loadStorefrontCatalogueByProduct(
     supabase,
     retailer.id,
@@ -392,6 +429,17 @@ export async function getStorefrontPageData(
       .map((id) => collectionNameById.get(id))
       .find((name): name is string => Boolean(name));
     const catalogue = catalogueByProduct[product.slug];
+    const category = canonicalCategoryFor(
+      product.name,
+      collectionName,
+      product.primaryImageUrl ?? "",
+    );
+    const cardTitle = gridCardTitleFor(
+      category,
+      product.name,
+      product.description,
+      catalogue?.mill ?? null,
+    );
     return {
       id: product.slug,
       img: product.primaryImageUrl ?? "",
@@ -411,11 +459,12 @@ export async function getStorefrontPageData(
         catalogue?.season,
         deriveSeason(product.name, undefined),
       ),
-      category: canonicalCategoryFor(
-        product.name,
-        collectionName,
-        product.primaryImageUrl ?? "",
-      ),
+      category,
+      // What the grid card prints under a suit or jacket: the mill in bold,
+      // then the cloth. The template's splitGridTitle() reads these two
+      // before falling back to `name`.
+      gridBrand: cardTitle.brand,
+      gridTitle: cardTitle.title,
       brand: retailer.displayName,
       description: product.description,
       material: product.isMadeToOrder ? "Made to order" : "In atelier",
@@ -643,55 +692,58 @@ export async function getStorefrontPageData(
     dfrModule.className = 'paon-dfr-module';
     dfrModule.innerHTML = \`
       <style>
+        /* The same card language as the wardrobe overview: a dark tile with
+           the tile gradient, a soft hairline, and one bone-white pill in the
+           dashboard's type — sentence case, 13px, no letter-spacing. */
         .paon-dfr-module {
           box-sizing: border-box;
           width: calc(100% - 40px);
-          height: 100px;
           margin: 24px 20px;
-          padding: 16px;
+          padding: 14px;
           display: flex;
           align-items: center;
           gap: 14px;
           overflow: hidden;
           border: 0;
-          border-radius: 24px;
-          background: linear-gradient(118deg, #545a5d 0%, #31383b 52%, #202627 100%);
+          border-radius: 20px;
+          background: linear-gradient(180deg, #1a1a1a 0%, #4d4d4d 100%);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
         }
         .paon-dfr-module-photo {
-          width: 68px;
-          height: 68px;
-          flex: 0 0 68px;
+          width: 64px;
+          height: 64px;
+          flex: 0 0 64px;
           overflow: hidden;
-          border-radius: 17px;
+          border-radius: 14px;
           object-fit: cover;
           object-position: center 18%;
         }
         .paon-dfr-module-cta {
           display: flex;
           min-width: 0;
-          height: 42px;
+          height: 44px;
           flex: 1;
           align-items: center;
           justify-content: center;
-          padding: 0 14px;
-          background: rgba(255, 255, 255, 0.94);
-          color: #252a2b;
+          padding: 0 18px;
+          background: #f4f2ec;
+          color: #14120f;
           text-decoration: none;
-          border-radius: 21px;
-          font-size: 10px;
-          font-weight: 600;
-          letter-spacing: 0.08em;
+          border-radius: 999px;
+          font-family: inherit;
+          font-size: 13px;
+          font-weight: 500;
+          letter-spacing: 0;
           white-space: nowrap;
           cursor: pointer;
-          transition: background-color 400ms ease, color 400ms ease;
+          transition: background-color 220ms ease;
         }
         .paon-dfr-module-cta:hover {
           background: #ffffff;
-          color: #111516;
         }
       </style>
       <img class="paon-dfr-module-photo" src="https://www.nebelspiegel.com/images/virtualfittingroom.png" alt="" />
-      <a href="#" class="paon-dfr-module-cta" id="paon-dfr-cta">ADD TO VIRTUAL FITTING ROOM</a>
+      <a href="#" class="paon-dfr-module-cta" id="paon-dfr-cta">Add to virtual fitting room</a>
     \`;
 
     infoCardsFlow.parentNode.insertBefore(dfrModule, infoCardsFlow.nextSibling);

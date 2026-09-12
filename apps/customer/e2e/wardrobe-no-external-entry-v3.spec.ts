@@ -24,7 +24,7 @@ test("the wardrobe page has no external-garment entry form, button, or copy", as
   const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
   const { data, error } = await admin.auth.admin.generateLink({
     type: "magiclink",
-    email: "contact+isabelle@nebelspiegel.com",
+    email: "contact+bas@nebelspiegel.com",
   });
   if (error || !data.properties) {
     throw error ?? new Error("Customer magic link is missing");

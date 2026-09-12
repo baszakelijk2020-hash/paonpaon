@@ -110,12 +110,12 @@ test("a known email presents only password sign-in and retains a safe local URL"
   await seedDemoData({ supabaseUrl, anonKey, serviceRoleKey });
 
   await page.goto("/login?redirectTo=%2Fdashboard");
-  await page.getByLabel("Email").fill("contact+isabelle@nebelspiegel.com");
+  await page.getByLabel("Email").fill("contact+bas@nebelspiegel.com");
   await page.getByRole("button", { name: "Continue" }).click();
   await expect(page.getByRole("status")).toContainText("Enter your password");
   await expect(page.getByLabel("Password")).toBeVisible();
   await expect(page.getByLabel("6-digit confirmation code")).toHaveCount(0);
-  expect(page.url()).not.toContain("contact%2Bisabelle");
+  expect(page.url()).not.toContain("contact%2Bbas");
 });
 
 test("email recognition rejects an external redirect before branching", async ({
@@ -145,7 +145,7 @@ test("a seeded private-client persona has deterministic demo access", async ({
   await seedDemoData({ supabaseUrl, anonKey, serviceRoleKey });
 
   await page.goto("/login?demo=1");
-  await page.getByLabel("Demo email").fill("contact+isabelle@nebelspiegel.com");
+  await page.getByLabel("Demo email").fill("contact+bas@nebelspiegel.com");
   await page.getByLabel("Demo password").fill(DEMO_PASSWORD);
   await page
     .getByRole("button", { name: "Enter the private client demo" })

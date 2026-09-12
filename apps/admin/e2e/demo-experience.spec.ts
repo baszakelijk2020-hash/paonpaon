@@ -32,7 +32,7 @@ test("demo atelier launches every seeded operating perspective", async ({
   await expect(page.getByText(DEMO_PASSWORD)).toBeVisible();
   await expect(page.getByText("Production / operations").first()).toBeVisible();
   await expect(page.getByText("Alteration worker").first()).toBeVisible();
-  await expect(page.getByText("Customer — Isabelle Laurent")).toBeVisible();
+  await expect(page.getByText("Customer — Bas Prens")).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Open environment" }),
   ).toHaveCount(DEMO_CANONICAL_PERSONAS.length);

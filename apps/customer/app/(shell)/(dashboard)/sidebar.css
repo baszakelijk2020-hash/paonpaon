@@ -1,0 +1,304 @@
+/* ── Shared left sidebar ───────────────────────────────────────────────────
+   One type scale for both environments: the body face at a readable size,
+   sentence case, an icon beside every top-level row. The row for wherever
+   the customer is right now lights its icon — white, with a soft glow. */
+
+@font-face {
+  font-family: "Manrope";
+  src: url("/fonts/Manrope-variable.ttf") format("truetype");
+  font-weight: 200 800;
+  font-display: swap;
+}
+
+.paon-side {
+  font-family: "Manrope", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.paon-side-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 26px;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: #b5b5b2;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  text-align: left;
+  text-transform: none;
+  text-decoration: none;
+  transition: color 0.18s ease;
+}
+.paon-side-row:hover {
+  color: #fff;
+}
+.paon-side-row + .paon-side-row {
+  margin-top: 12px;
+}
+
+/* The icon box is a fixed 19px square so every glyph centres on one column. */
+.paon-side-row > svg,
+.paon-side-row > img {
+  width: 13px;
+  height: 13px;
+  display: block;
+  flex-shrink: 0;
+  transition: filter 0.18s ease;
+}
+.paon-side-row > svg {
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+/* Lit: white label, glowing icon. Set by the control that knows where the
+   customer is — a category control, a page link, or the account nav. */
+.paon-side-row[data-active="true"],
+.paon-side-row[aria-current="page"],
+.paon-side-collection.is-lit {
+  color: #fff;
+}
+.paon-side-row[data-active="true"] > svg,
+.paon-side-row[aria-current="page"] > svg,
+.paon-side-collection.is-lit > svg {
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.9))
+    drop-shadow(0 0 12px rgba(255, 255, 255, 0.55));
+}
+/* Raster marks are tinted rather than filled, so "lit" is brightness up. */
+.paon-side-row > img {
+  filter: brightness(0.71);
+}
+.paon-side-row[data-active="true"] > img,
+.paon-side-row[aria-current="page"] > img {
+  filter: brightness(1) drop-shadow(0 0 4px rgba(255, 255, 255, 0.9))
+    drop-shadow(0 0 12px rgba(255, 255, 255, 0.55));
+}
+
+/* Collection heads the category list; it lights when any category is open. */
+.paon-side-collection {
+  margin-bottom: 8px;
+}
+.paon-side-collection:has(+ .paon-side-categories [data-active="true"]) {
+  color: #fff;
+}
+.paon-side-collection:has(+ .paon-side-categories [data-active="true"]) > svg {
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.9))
+    drop-shadow(0 0 12px rgba(255, 255, 255, 0.55));
+}
+
+.paon-side-categories {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin-top: 2px;
+}
+/* ── The switch reveal ─────────────────────────────────────────────────────
+   A menu waiting to be revealed paints empty on its first frame; once
+   `is-revealing` lands each row fades on its own delay. These are composited
+   animations on purpose — see sidebar-reveal.tsx. */
+.paon-side-reveal.is-pending .paon-side-row,
+.paon-side-reveal.is-pending .paon-side-category,
+.paon-side-reveal.is-pending .paon-side-rule {
+  opacity: 0;
+}
+
+@keyframes paon-side-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@keyframes paon-side-rule-draw {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+/* A single `from` keyframe interpolates to the row's own resting opacity —
+   full for a nav row, 50% for an inactive category — so nothing needs to
+   know what that value is. */
+.paon-side-reveal.is-revealing .paon-side-row,
+.paon-side-reveal.is-revealing .paon-side-category {
+  animation: paon-side-fade-in var(--paon-reveal-duration, 0.34s)
+    cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
+  animation-delay: calc(
+    var(--paon-reveal-index, 0) * var(--paon-reveal-step, 0.06s)
+  );
+}
+.paon-side-reveal.is-revealing .paon-side-rule {
+  animation: paon-side-rule-draw var(--paon-rule-duration, 0.4s) linear
+    backwards;
+  animation-delay: var(--paon-rule-delay, 0s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paon-side-reveal.is-revealing .paon-side-row,
+  .paon-side-reveal.is-revealing .paon-side-category,
+  .paon-side-reveal.is-revealing .paon-side-rule {
+    animation: none;
+  }
+}
+/* The rule sits under the Collection icon's centre: 13px box → 6.5px, minus
+   half a 2px rule. A real element, so it can be drawn in with the rows. */
+.paon-side-rule {
+  position: absolute;
+  left: 5.5px;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  transform-origin: top;
+}
+.paon-side-category {
+  display: flex;
+  align-items: center;
+  min-height: 30px;
+  /* Icon box + gap: the label lines up under "Collection". */
+  padding-left: 21px;
+  color: #fff;
+  opacity: 0.5;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  text-decoration: none;
+  transition: opacity 0.18s ease;
+}
+.paon-side-category:hover {
+  opacity: 0.8;
+}
+.paon-side-category[data-active="true"] {
+  opacity: 1;
+}
+
+/* Secondary links run smaller than the navigation above them. */
+.paon-side-footer {
+  display: flex;
+  flex-direction: column;
+}
+.paon-side-footer .paon-side-row {
+  color: rgba(181, 181, 178, 0.85);
+}
+/* The footer's resting colour above out-specifies the shared
+   `.paon-side-row:hover { color: #fff }`, so these rows never lit. The three
+   raster marks hid it — a white PNG at brightness(1) looks lit whatever the
+   row's colour says — but the Locations pin is an inline SVG on currentColor
+   and stayed grey. Same hover, restated at the footer's own specificity. */
+.paon-side-footer .paon-side-row:hover,
+.paon-side-footer .paon-side-row:focus-visible {
+  color: #fff;
+}
+/* The raster marks carry an inset and a lighter glyph, so they read smaller
+   than the vector Home / Collection marks at the same box; a bigger box
+   evens them out. */
+.paon-side-footer .paon-side-row > svg,
+.paon-side-footer .paon-side-row > img {
+  width: 16px;
+  height: 16px;
+}
+.paon-side-footer .paon-side-row + .paon-side-row {
+  margin-top: 4px;
+}
+
+/* Account nav (wardrobe environment) — the same rows. */
+.paon-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+}
+.paon-sidebar-nav .paon-side-row {
+  cursor: pointer;
+}
+.paon-sidebar-nav .paon-side-row > svg {
+  fill: none;
+  stroke: currentColor;
+}
+@media (prefers-reduced-motion: reduce) {
+  .paon-side-row,
+  .paon-side-row > svg,
+  .paon-side-row > img,
+  .paon-side-category {
+    transition: none;
+  }
+}
+
+/* Every clickable surface in the shared sidebar answers the pointer by lighting
+   up, never by moving. This used to translate the row 3px, but the selector
+   carried a descendant combinator — `:is(…) :is(:hover, …)`, with a space —
+   so what actually moved was the icon and the label *inside* a row box that
+   stayed put, which read as the label indenting itself. The lit answer is the
+   row's own `:hover` colour plus the glow below; active navigation and switch
+   segments are lit already and are excluded so they do not flicker under the
+   pointer. */
+.paon-side :is(.paon-side-hover, .paon-side-row, .paon-side-category) {
+  transition-property: color, opacity, background-color, filter;
+  transition-duration: 220ms;
+  transition-timing-function: ease;
+}
+.paon-side
+  :is(.paon-side-hover, .paon-side-row, .paon-side-category):is(
+    :hover,
+    :focus-visible
+  ):not([aria-current="page"]):not([data-active="true"]):not(.is-lit)
+  > :is(svg, img) {
+  filter: brightness(1) drop-shadow(0 0 4px rgba(255, 255, 255, 0.55));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paon-side :is(.paon-side-hover, .paon-side-row, .paon-side-category) {
+    transition-property: color, opacity, background-color;
+  }
+}
+
+/* Hovering either half of the Store / Wardrobe toggle lights its label to the
+   same colour the lit half already carries, so the pointer previews where it
+   is about to go. `!important` is not decoration here: context-switcher.tsx
+   sets each half's colour inline from the current environment, and an inline
+   declaration outranks any selector. The 220ms colour transition the sidebar
+   already puts on `.paon-side-hover` carries the fade. */
+#paon-context-switcher .pcs-store:hover,
+#paon-context-switcher .pcs-mypaon:hover,
+#paon-context-switcher .pcs-store:focus-visible,
+#paon-context-switcher .pcs-mypaon:focus-visible {
+  color: #e4e4e1 !important;
+}
+
+/* The About Us mark is a hand; on hover it waves. Pivot at the wrist (bottom
+   right of the glyph), two beats out and back, and the row's colour lift
+   still applies underneath. Reduced-motion users get the lift only. */
+@keyframes paon-side-wave {
+  0% {
+    transform: rotate(0deg);
+  }
+  20% {
+    transform: rotate(16deg);
+  }
+  40% {
+    transform: rotate(-9deg);
+  }
+  60% {
+    transform: rotate(12deg);
+  }
+  80% {
+    transform: rotate(-4deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+.paon-side-footer .paon-side-row[href="/founder"] > img {
+  transform-origin: 78% 92%;
+}
+.paon-side-footer .paon-side-row[href="/founder"]:hover > img,
+.paon-side-footer .paon-side-row[href="/founder"]:focus-visible > img {
+  animation: paon-side-wave 900ms ease-in-out 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .paon-side-footer .paon-side-row[href="/founder"]:hover > img {
+    animation: none;
+  }
+}

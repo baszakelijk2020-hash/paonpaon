@@ -1,0 +1,211 @@
+/* The fitting room is a quiet black studio around one lavender invitation. */
+.pe-fitting {
+  --fit-ink: #f4f2ee;
+  --fit-dim: rgba(244, 242, 238, 0.66);
+  --fit-graphite: #191b1d;
+  --fit-line: rgba(255, 255, 255, 0.1);
+  background: #000;
+  color: var(--fit-ink);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+}
+
+.pe-fitting h1,
+.pe-fitting h2,
+.pe-fitting h3,
+.pe-fitting p {
+  font-family: inherit;
+}
+
+.pe-fitting-entry {
+  background: #000;
+}
+
+.pe-fitting-invitation {
+  background: #c7c1ef;
+  color: #191b1d;
+}
+
+.pe-fitting-invitation-copy {
+  background: #c7c1ef;
+}
+
+.pe-fitting-invitation-copy .customer-kicker,
+.pe-fitting-invitation-copy .text-\[\#cfd8c6\],
+.pe-fitting-invitation-copy .text-\[\#c5d0c0\] {
+  color: rgba(25, 27, 29, 0.58);
+}
+
+.pe-fitting-invitation-copy .text-white,
+.pe-fitting-invitation-copy .text-white\/70,
+.pe-fitting-invitation-copy .text-white\/75,
+.pe-fitting-invitation-copy .text-white\/60 {
+  color: rgba(25, 27, 29, 0.72);
+}
+
+.paon-env .pe-fitting-invitation-copy h1 {
+  color: #191b1d;
+  font-size: clamp(3rem, 5vw, 3.5rem);
+  font-weight: 600;
+  letter-spacing: -0.055em;
+  line-height: 0.93;
+}
+
+.pe-fitting-cta {
+  display: inline-flex;
+  min-height: 52px;
+  align-items: center;
+  border-radius: 999px;
+  background: #191b1d;
+  color: #f4f2ee;
+  font-size: 16px;
+}
+
+.pe-fitting-cta:hover {
+  background: #30343a;
+}
+
+.pe-fitting-secondary {
+  color: rgba(25, 27, 29, 0.72);
+}
+
+.pe-fitting-secondary:hover {
+  color: #191b1d;
+}
+
+.pe-fitting-invitation-image {
+  background: #191b1d;
+}
+
+.pe-fitting-studio {
+  background: #000;
+}
+
+.pe-fitting-studio-header h1 {
+  color: var(--fit-ink);
+  font-size: clamp(3rem, 6vw, 3.5rem);
+  font-weight: 600;
+  letter-spacing: -0.055em;
+  line-height: 0.93;
+}
+
+.pe-fitting-studio-header .customer-kicker,
+.pe-fitting-studio-header .text-\[\#c5d0c0\] {
+  color: var(--fit-dim);
+}
+
+.pe-fitting-studio-header .text-white\/65 {
+  color: var(--fit-dim);
+}
+
+.pe-fitting-empty {
+  background: var(--fit-graphite);
+  color: var(--fit-dim);
+}
+
+.pe-fitting-portrait-shell {
+  background: #23272b;
+}
+
+.pe-fitting-portrait-shell > div {
+  border: 0;
+  border-radius: 20px;
+  background: var(--fit-graphite);
+  color: var(--fit-ink);
+}
+
+.pe-fitting-portrait-shell h2,
+.pe-fitting-portrait-shell h3 {
+  color: var(--fit-ink);
+}
+
+.pe-fitting-portrait-shell .text-\[var\(--color-stone-500\)\],
+.pe-fitting-portrait-shell .text-\[var\(--color-stone-600\)\],
+.pe-fitting-portrait-shell .text-\[var\(--color-stone-700\)\] {
+  color: var(--fit-dim);
+}
+
+.pe-fitting-studio [class*="rounded-[15px]"] {
+  border-radius: 28px;
+  background: var(--fit-graphite);
+  color: var(--fit-ink);
+}
+
+.pe-fitting-studio [class*="rounded-[12px]"] {
+  border-radius: 20px;
+  background: #0e1012;
+}
+
+.pe-fitting-studio textarea,
+.pe-fitting-studio input[type="file"] {
+  border: 1px solid var(--fit-line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--fit-ink);
+}
+
+.pe-fitting-studio button {
+  border-radius: 999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pe-fitting * {
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+  }
+}
+.pe-fitting {
+  font-family: inherit;
+}
+.pe-fitting-mirror {
+  background: #202128;
+  min-height: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  padding: 40px;
+  color: #d5d0f3;
+}
+.pe-fitting-mirror-frame {
+  width: min(100%, 240px);
+  height: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 8px solid #45444f;
+  border-radius: 130px 130px 40px 40px;
+  box-shadow:
+    inset 0 0 0 1px #ffffff2e,
+    0 20px 60px #0004;
+  background: linear-gradient(160deg, #53515f, #2a2a32 65%);
+}
+.pe-fitting-mirror-frame svg {
+  height: 230px;
+  stroke: #aaa4c3;
+  stroke-width: 1.5;
+}
+.pe-fitting-mirror-frame span {
+  font-size: 11px;
+  color: #d5d0f3;
+}
+.pe-fitting-mirror > p {
+  font-size: 16px;
+  text-align: center;
+  line-height: 1.5;
+}
+@media (max-width: 700px) {
+  .pe-fitting-mirror {
+    min-height: 370px;
+    padding: 28px;
+  }
+  .pe-fitting-mirror-frame {
+    height: 280px;
+    width: 200px;
+  }
+  .pe-fitting-mirror-frame svg {
+    height: 185px;
+  }
+}

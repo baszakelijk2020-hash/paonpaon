@@ -1,6 +1,5 @@
 import {
   CustomerFactRepository,
-  MorningRoutineDeliveryRepository,
   MorningRoutineRepository,
   RetailerRepository,
 } from "@paon/database";
@@ -8,7 +7,6 @@ import { selectUpcomingOccasions } from "@paon/domain";
 
 import { CompleteTheLookCard } from "./complete-the-look-card";
 import { buildCompleteTheLookSuggestions } from "./complete-the-look-data";
-import { MorningRoutineDeliveryPanel } from "./delivery-panel";
 import { MorningRoutinePanel } from "./routine-panel";
 import { UpcomingOccasionsCard } from "./upcoming-occasions-card";
 
@@ -40,7 +38,6 @@ export async function RoutineSections() {
   const customers = await getCustomersForUser(session.userId);
   const retailerRepo = new RetailerRepository(supabase);
   const routineRepo = new MorningRoutineRepository(supabase);
-  const deliveryRepo = new MorningRoutineDeliveryRepository(supabase);
   const factRepo = new CustomerFactRepository(supabase);
 
   const groups = await Promise.all(
@@ -49,9 +46,6 @@ export async function RoutineSections() {
       const latest = await routineRepo.findLatestForCustomerDay(
         customer.id,
         forDate,
-      );
-      const subscription = await deliveryRepo.findSubscriptionByCustomer(
-        customer.id,
       );
       const facts = await factRepo.listForCustomer(
         customer.retailerId,
@@ -76,7 +70,6 @@ export async function RoutineSections() {
         customer,
         retailer,
         latest,
-        subscription,
         upcomingOccasions,
         completeTheLookSuggestions,
       };
@@ -100,7 +93,6 @@ export async function RoutineSections() {
           customer,
           retailer,
           latest,
-          subscription,
           upcomingOccasions,
           completeTheLookSuggestions,
         }) => (
@@ -138,28 +130,6 @@ export async function RoutineSections() {
                           actions: recommendation.actions,
                         }),
                       ),
-                    }
-                  : null
-              }
-            />
-            <MorningRoutineDeliveryPanel
-              retailerId={customer.retailerId}
-              customerId={customer.id}
-              subscription={
-                subscription
-                  ? {
-                      optedIn: subscription.optedIn,
-                      frequency: subscription.frequency,
-                      timezone: subscription.timezone,
-                      preferredLocalHour: subscription.preferredLocalHour,
-                      channels: subscription.channels,
-                      ...(subscription.quietHours
-                        ? {
-                            quietStartMinute:
-                              subscription.quietHours.startMinute,
-                            quietEndMinute: subscription.quietHours.endMinute,
-                          }
-                        : {}),
                     }
                   : null
               }

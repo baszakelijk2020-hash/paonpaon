@@ -111,7 +111,7 @@ export function PrivateDemo({
 
   const storefrontHref = `/r/${demo.retailerSlug}`;
   const ownerEmail = `contact+${demo.retailerSlug}-owner@nebelspiegel.com`;
-  const customerEmail = `contact+${demo.retailerSlug}-isabelle@nebelspiegel.com`;
+  const customerEmail = `contact+${demo.retailerSlug}-bas@nebelspiegel.com`;
   const portalHref = retailerAppUrl
     ? `${retailerAppUrl.replace(/\/$/, "")}/login?demo=1&email=${encodeURIComponent(ownerEmail)}`
     : undefined;

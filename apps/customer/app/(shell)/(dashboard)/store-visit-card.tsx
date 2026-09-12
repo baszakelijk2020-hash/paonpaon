@@ -16,7 +16,7 @@ export function StoreVisitCard({ storeHref }: StoreVisitCardProps) {
     <Link
       href={bookHref}
       aria-label="Visit in-store"
-      className="flex h-[48px] w-[210px] items-center justify-between rounded-full border border-[rgba(255,255,255,0.15)] px-5 no-underline transition-colors duration-[400ms] ease-out hover:bg-white/[0.06] focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-white"
+      className="paon-side-hover flex h-[48px] w-[210px] items-center justify-between rounded-full border border-[rgba(255,255,255,0.15)] px-5 no-underline transition-colors duration-[400ms] ease-out hover:bg-white/[0.06] focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-white"
       style={{
         color: "#e4e4e1",
         fontFamily: "OptimaKlein, serif",

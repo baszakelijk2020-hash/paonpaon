@@ -7,6 +7,8 @@ import {
 import type { WardrobeOwnershipEvent } from "@paon/domain";
 import Link from "next/link";
 
+import "./wardrobe-environment.css";
+
 import { buildCategorizedCatalogue } from "./complete-the-look-catalogue";
 import { buildItemSpecificCompleteTheLookSuggestionsByCategory } from "./item-specific-complete-the-look-data";
 import {
@@ -207,92 +209,170 @@ export default async function WardrobePage() {
   );
 
   return (
-    <div className="-mx-4 flex min-h-full flex-col bg-[linear-gradient(105deg,#282a28_0%,#191a18_44%,#121310_100%)] text-white sm:-mx-7 lg:-mx-10 xl:-mx-14">
-      <header className="border-b border-white/10 px-6 pb-7 pt-9 sm:px-10 lg:px-14">
-        <h1 className="font-display text-4xl tracking-[-0.03em] text-white sm:text-5xl">
-          Wardrobe
-        </h1>
-        <p className="mt-2 max-w-xl text-sm leading-6 text-white/60">
-          Your garments and advisor selections, organised by category.
-        </p>
-        <nav
-          aria-label="Wardrobe tools"
-          className="mt-5 flex items-center gap-5 text-sm"
-        >
+    <div className="paon-wardrobe-scene">
+      <div className="paon-wardrobe-stack">
+        <header className="paon-glass paon-glass-pad paon-wardrobe-head">
+          <div>
+            <p className="paon-wardrobe-kicker">
+              Pieces you own and pieces to consider
+            </p>
+            <h1>Wardrobe</h1>
+            <p>
+              Every garment, its care and fit actions, the fitting room, and the
+              selections your advisor is building for you.
+            </p>
+          </div>
+          <nav aria-label="Wardrobe tools" className="paon-wardrobe-tools">
+            <Link href="/wishlist" className="paon-glass-pill">
+              Saved pieces
+            </Link>
+            <Link href="/capsule" className="paon-glass-pill">
+              Capsule
+            </Link>
+          </nav>
+        </header>
+
+        <div className="paon-wardrobe-windows">
           <Link
-            href="/wishlist"
-            className="text-white/80 underline-offset-4 hover:text-white hover:underline"
+            href="/digital-fitting-room"
+            className="paon-glass paon-glass-pad paon-wardrobe-window"
+            data-pe-card
           >
-            Saved
+            <div>
+              <svg
+                className="paon-wardrobe-window-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <rect x="6" y="2" width="12" height="18" rx="6" />
+                <path d="M9 23h6m-3-3v3m-3-15 5-3m-5 7 6-4" />
+              </svg>
+              <h2>Digital fitting room</h2>
+              <p>
+                Try pieces on your own portrait and see how a silhouette sits
+                before it is cut.
+              </p>
+            </div>
+            <span className="paon-glass-pill paon-glass-pill-solid">
+              Open the fitting room
+            </span>
+          </Link>
+          <Link
+            href="/style-quiz"
+            className="paon-glass paon-glass-pad paon-wardrobe-window"
+            data-pe-card
+          >
+            <div>
+              <svg
+                className="paon-wardrobe-window-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9L12 3Z" />
+              </svg>
+              <h2>Style quiz</h2>
+              <p>
+                Sixty seconds that make every advisor selection feel more like
+                you.
+              </p>
+            </div>
+            <span className="paon-glass-pill">Take the quiz</span>
           </Link>
           <Link
             href="/capsule"
-            className="text-white/80 underline-offset-4 hover:text-white hover:underline"
+            className="paon-glass paon-glass-pad paon-wardrobe-window"
+            data-pe-card
           >
-            Capsule
+            <div>
+              <svg
+                className="paon-wardrobe-window-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <rect x="3" y="3" width="7" height="7" rx="2" />
+                <rect x="14" y="3" width="7" height="7" rx="2" />
+                <rect x="3" y="14" width="7" height="7" rx="2" />
+                <rect x="14" y="14" width="7" height="7" rx="2" />
+              </svg>
+              <h2>Capsule</h2>
+              <p>
+                The pieces that work together this season, and what would
+                complete them.
+              </p>
+            </div>
+            <span className="paon-glass-pill">Open the capsule</span>
           </Link>
-        </nav>
-      </header>
-
-      <Link
-        href="/style-quiz"
-        className="group flex items-center justify-between gap-6 border-b border-white/10 bg-[linear-gradient(90deg,rgba(175,190,167,0.22),rgba(175,190,167,0.06))] px-6 py-5 sm:px-10 lg:px-14"
-      >
-        <span className="text-sm text-white/85">
-          A 60-second style quiz sharpens every suggestion in your wardrobe.
-        </span>
-        <span className="shrink-0 text-sm font-medium text-white underline-offset-4 group-hover:underline">
-          Take the quiz →
-        </span>
-      </Link>
-
-      {groups.length === 0 ? (
-        <div className="px-6 py-16 text-center text-white/60" role="status">
-          <p>No garments are linked to your account yet.</p>
         </div>
-      ) : (
-        groups.map(
-          ({
-            customer,
-            ownedCards,
-            openGaps,
-            suggestedProductIdByGapId,
-            suggestedProductById,
-            alternativesByCategory,
-            pendingApprovalRoadmap,
-          }) => (
-            <WardrobeRailsPanel
-              key={customer.id}
-              retailerId={customer.retailerId}
-              ownedCards={ownedCards}
-              openGaps={openGaps}
-              suggestedProductIdByGapId={suggestedProductIdByGapId}
-              suggestedProductById={Object.fromEntries(
-                Object.entries(suggestedProductById).map(([id, product]) => [
-                  id,
-                  {
-                    id: product.id,
-                    slug: product.slug,
-                    name: product.name,
-                    ...(product.primaryImageUrl
-                      ? { primaryImageUrl: product.primaryImageUrl }
-                      : {}),
-                  },
-                ]),
-              )}
-              alternativesByCategory={alternativesByCategory}
-              pendingApprovalRoadmap={
-                pendingApprovalRoadmap
-                  ? {
-                      id: pendingApprovalRoadmap.id,
-                      title: pendingApprovalRoadmap.title,
-                    }
-                  : undefined
-              }
-            />
-          ),
-        )
-      )}
+
+        {groups.length === 0 ? (
+          <div
+            className="paon-glass paon-glass-pad text-center text-white/60"
+            role="status"
+          >
+            <p>No garments are linked to your account yet.</p>
+          </div>
+        ) : (
+          groups.map(
+            ({
+              customer,
+              ownedCards,
+              openGaps,
+              suggestedProductIdByGapId,
+              suggestedProductById,
+              alternativesByCategory,
+              pendingApprovalRoadmap,
+            }) => (
+              <div
+                key={customer.id}
+                className="paon-glass paon-glass-pad paon-wardrobe-rails"
+              >
+                <WardrobeRailsPanel
+                  retailerId={customer.retailerId}
+                  ownedCards={ownedCards}
+                  openGaps={openGaps}
+                  suggestedProductIdByGapId={suggestedProductIdByGapId}
+                  suggestedProductById={Object.fromEntries(
+                    Object.entries(suggestedProductById).map(
+                      ([id, product]) => [
+                        id,
+                        {
+                          id: product.id,
+                          slug: product.slug,
+                          name: product.name,
+                          ...(product.primaryImageUrl
+                            ? { primaryImageUrl: product.primaryImageUrl }
+                            : {}),
+                        },
+                      ],
+                    ),
+                  )}
+                  alternativesByCategory={alternativesByCategory}
+                  pendingApprovalRoadmap={
+                    pendingApprovalRoadmap
+                      ? {
+                          id: pendingApprovalRoadmap.id,
+                          title: pendingApprovalRoadmap.title,
+                        }
+                      : undefined
+                  }
+                />
+              </div>
+            ),
+          )
+        )}
+      </div>
     </div>
   );
 }

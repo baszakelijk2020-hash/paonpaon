@@ -93,7 +93,7 @@ begin
       )
     ),
     'appointments', jsonb_build_array(
-      jsonb_build_object('time', '10:00', 'customer', 'Isabelle Moreau', 'purpose', 'Fitting', 'status', 'Confirmed'),
+      jsonb_build_object('time', '10:00', 'customer', 'Bas Prens', 'purpose', 'Fitting', 'status', 'Confirmed'),
       jsonb_build_object('time', '14:30', 'customer', 'James Wilson', 'purpose', 'Consultation', 'status', 'Pending')
     ),
     'alterations', jsonb_build_array(),
