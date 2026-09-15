@@ -1280,16 +1280,44 @@
   flex-direction: column;
   gap: 9px;
 }
+.paon-env.paon-env .appointment-idea-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
 .paon-env.paon-env .appointment-idea-heading {
   color: #f4f2ec;
   font-size: 15px;
   font-weight: 600;
   letter-spacing: -0.02em;
 }
+.paon-env.paon-env .appointment-idea-arrows {
+  display: flex;
+  gap: 6px;
+}
+.paon-env.paon-env .appointment-idea-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f4f2ec;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 220ms ease;
+}
+.paon-env.paon-env .appointment-idea-arrow:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
 .paon-env.paon-env .appointment-idea-carousel {
   display: flex;
   gap: 10px;
   overflow-x: auto;
+  scroll-snap-type: x mandatory;
   flex-wrap: nowrap;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -1303,8 +1331,8 @@
   align-items: flex-end;
   justify-content: center;
   flex: 0 0 auto;
-  width: 140px;
-  height: 110px;
+  width: 280px;
+  height: 220px;
   border-radius: 18px;
   corner-shape: squircle;
   overflow: hidden;
@@ -1315,6 +1343,7 @@
   border: none;
   cursor: pointer;
   transition: opacity 180ms ease;
+  scroll-snap-align: start;
 }
 .paon-env.paon-env .appointment-idea-card:hover {
   opacity: 0.85;
@@ -1345,7 +1374,7 @@
 /* Safari fallback: squircle polygon for idea cards */
 @supports not (corner-shape: squircle) {
   .paon-env.paon-env .appointment-idea-card {
-    --paon-sq-r: 18px;
+    --paon-sq-r: 24px;
   }
   .paon-env.paon-env .appointment-idea-card {
     --paon-sq-clip: polygon(
@@ -1581,7 +1610,197 @@
   color: #14120f;
 }
 
-/* ── Quick book bar: fast appointment booking overlay ─────────────────── */
+/* ── Appointment month carousel: horizontal month planning ─────────────── */
+.paon-env.paon-env .appointment-month-carousel-section {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.paon-env.paon-env .appointment-month-carousel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.paon-env.paon-env .appointment-month-carousel-heading {
+  color: #f4f2ec;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.paon-env.paon-env .appointment-month-carousel-arrows {
+  display: flex;
+  gap: 6px;
+}
+.paon-env.paon-env .appointment-month-carousel-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f4f2ec;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 220ms ease;
+}
+.paon-env.paon-env .appointment-month-carousel-arrow:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+.paon-env.paon-env .appointment-month-carousel {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 4px;
+}
+.paon-env.paon-env .appointment-month-carousel::-webkit-scrollbar {
+  display: none;
+}
+.paon-env.paon-env .appointment-month-carousel-card {
+  flex: 0 0 auto;
+  width: 260px;
+  height: 200px;
+  scroll-snap-align: start;
+}
+.paon-env.paon-env .appointment-month-past {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 15px;
+  background: #4a4a4a;
+  border-radius: 18px;
+  color: rgba(244, 242, 236, 0.55);
+}
+.paon-env.paon-env .appointment-month-launcher {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  width: 100%;
+  height: 100%;
+  padding: 13px 15px 12px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 18px;
+  corner-shape: squircle;
+  background-image: var(--appointment-image);
+  background-position: center 42%;
+  background-size: cover;
+  isolation: isolate;
+  color: #f4f2ec;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 180ms ease;
+}
+.paon-env.paon-env .appointment-month-launcher::before,
+.paon-env.paon-env .appointment-month-launcher::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+}
+.paon-env.paon-env .appointment-month-launcher::before {
+  background: linear-gradient(
+    to bottom,
+    rgba(8, 8, 8, 0.04) 20%,
+    rgba(8, 8, 8, 0.18) 55%,
+    rgba(8, 8, 8, 0.72) 100%
+  );
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  mask-image: linear-gradient(to bottom, transparent 10%, black 78%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 10%, black 78%);
+}
+.paon-env.paon-env .appointment-month-launcher::after {
+  background: linear-gradient(to bottom, transparent 36%, rgba(8, 8, 8, 0.82));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  mask-image: linear-gradient(to bottom, transparent 35%, black 72%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 35%, black 72%);
+}
+.paon-env.paon-env .appointment-month-launcher:hover {
+  background-color: rgba(255, 255, 255, 0.055);
+}
+.paon-env.paon-env .appointment-month-launcher:focus-visible {
+  z-index: 2;
+  outline: 0;
+  box-shadow: inset 0 0 0 999px rgba(244, 242, 236, 0.08);
+}
+
+/* Safari fallback: squircle polygon for month carousel cards */
+@supports not (corner-shape: squircle) {
+  .paon-env.paon-env .appointment-month-launcher {
+    --paon-sq-r: 18px;
+    --paon-sq-clip: polygon(
+      0 var(--paon-sq-r),
+      calc(var(--paon-sq-r) * 0.0062) calc(var(--paon-sq-r) * 0.6045),
+      calc(var(--paon-sq-r) * 0.0248) calc(var(--paon-sq-r) * 0.4441),
+      calc(var(--paon-sq-r) * 0.0561) calc(var(--paon-sq-r) * 0.3262),
+      calc(var(--paon-sq-r) * 0.1005) calc(var(--paon-sq-r) * 0.2333),
+      calc(var(--paon-sq-r) * 0.1591) calc(var(--paon-sq-r) * 0.1591),
+      calc(var(--paon-sq-r) * 0.2333) calc(var(--paon-sq-r) * 0.1005),
+      calc(var(--paon-sq-r) * 0.3262) calc(var(--paon-sq-r) * 0.0561),
+      calc(var(--paon-sq-r) * 0.4441) calc(var(--paon-sq-r) * 0.0248),
+      calc(var(--paon-sq-r) * 0.6045) calc(var(--paon-sq-r) * 0.0062),
+      var(--paon-sq-r) 0,
+      calc(100% - var(--paon-sq-r)) 0,
+      calc(100% - var(--paon-sq-r) * 0.6045) calc(var(--paon-sq-r) * 0.0062),
+      calc(100% - var(--paon-sq-r) * 0.4441) calc(var(--paon-sq-r) * 0.0248),
+      calc(100% - var(--paon-sq-r) * 0.3262) calc(var(--paon-sq-r) * 0.0561),
+      calc(100% - var(--paon-sq-r) * 0.2333) calc(var(--paon-sq-r) * 0.1005),
+      calc(100% - var(--paon-sq-r) * 0.1591) calc(var(--paon-sq-r) * 0.1591),
+      calc(100% - var(--paon-sq-r) * 0.1005) calc(var(--paon-sq-r) * 0.2333),
+      calc(100% - var(--paon-sq-r) * 0.0561) calc(var(--paon-sq-r) * 0.3262),
+      calc(100% - var(--paon-sq-r) * 0.0248) calc(var(--paon-sq-r) * 0.4441),
+      calc(100% - var(--paon-sq-r) * 0.0062) calc(var(--paon-sq-r) * 0.6045),
+      100% var(--paon-sq-r),
+      100% calc(100% - var(--paon-sq-r)),
+      calc(100% - var(--paon-sq-r) * 0.0062)
+        calc(100% - var(--paon-sq-r) * 0.6045),
+      calc(100% - var(--paon-sq-r) * 0.0248)
+        calc(100% - var(--paon-sq-r) * 0.4441),
+      calc(100% - var(--paon-sq-r) * 0.0561)
+        calc(100% - var(--paon-sq-r) * 0.3262),
+      calc(100% - var(--paon-sq-r) * 0.1005)
+        calc(100% - var(--paon-sq-r) * 0.2333),
+      calc(100% - var(--paon-sq-r) * 0.1591)
+        calc(100% - var(--paon-sq-r) * 0.1591),
+      calc(100% - var(--paon-sq-r) * 0.2333)
+        calc(100% - var(--paon-sq-r) * 0.1005),
+      calc(100% - var(--paon-sq-r) * 0.3262)
+        calc(100% - var(--paon-sq-r) * 0.0561),
+      calc(100% - var(--paon-sq-r) * 0.4441)
+        calc(100% - var(--paon-sq-r) * 0.0248),
+      calc(100% - var(--paon-sq-r) * 0.6045)
+        calc(100% - var(--paon-sq-r) * 0.0062),
+      calc(100% - var(--paon-sq-r)) 100%,
+      var(--paon-sq-r) 100%,
+      calc(var(--paon-sq-r) * 0.6045) calc(100% - var(--paon-sq-r) * 0.0062),
+      calc(var(--paon-sq-r) * 0.4441) calc(100% - var(--paon-sq-r) * 0.0248),
+      calc(var(--paon-sq-r) * 0.3262) calc(100% - var(--paon-sq-r) * 0.0561),
+      calc(var(--paon-sq-r) * 0.2333) calc(100% - var(--paon-sq-r) * 0.1005),
+      calc(var(--paon-sq-r) * 0.1591) calc(100% - var(--paon-sq-r) * 0.1591),
+      calc(var(--paon-sq-r) * 0.1005) calc(100% - var(--paon-sq-r) * 0.2333),
+      calc(var(--paon-sq-r) * 0.0561) calc(100% - var(--paon-sq-r) * 0.3262),
+      calc(var(--paon-sq-r) * 0.0248) calc(100% - var(--paon-sq-r) * 0.4441),
+      calc(var(--paon-sq-r) * 0.0062) calc(100% - var(--paon-sq-r) * 0.6045),
+      0 calc(100% - var(--paon-sq-r))
+    );
+    -webkit-clip-path: var(--paon-sq-clip);
+    clip-path: var(--paon-sq-clip);
+  }
+}
+
+/* Quick book bar: fast appointment booking overlay ─────────────────── */
 .paon-env.paon-env .appointment-quick-book-container {
   margin-bottom: 24px;
 }
@@ -1601,8 +1820,8 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  flex: 1;
-  min-width: 120px;
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .paon-env.paon-env .appointment-quick-book-label {
@@ -1614,16 +1833,34 @@
 }
 
 .paon-env.paon-env .appointment-quick-book-input {
-  padding: 8px 10px;
+  height: 44px;
+  padding: 10px 12px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   color: #f4f2ec;
   font-size: 14px;
   font-family: inherit;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
   transition:
     background 180ms ease,
     border-color 180ms ease;
+}
+
+.paon-env.paon-env input[type="date"].appointment-quick-book-input {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.paon-env.paon-env
+  input[type="date"].appointment-quick-book-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  border-radius: 4px;
+  margin-right: 2px;
+  opacity: 0.6;
+  filter: invert(0.8);
 }
 
 .paon-env.paon-env .appointment-quick-book-input:hover:not(:disabled) {
@@ -1644,7 +1881,8 @@
 }
 
 .paon-env.paon-env .appointment-quick-book-button {
-  padding: 8px 20px;
+  height: 44px;
+  padding: 0 20px;
   background: #b8e6be;
   color: #14120f;
   font-size: 14px;
@@ -1654,6 +1892,9 @@
   cursor: pointer;
   transition: background 180ms ease;
   white-space: nowrap;
+  flex: 0 0 auto;
+  min-width: 90px;
+  box-sizing: border-box;
 }
 
 .paon-env.paon-env .appointment-quick-book-button:hover:not(:disabled) {

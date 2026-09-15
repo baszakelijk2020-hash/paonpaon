@@ -59,7 +59,7 @@ const SIDEBAR_CATEGORIES = CANONICAL_CATEGORIES;
  * its own URL and is linked from its section's landing page.
  */
 const ACCOUNT_NAV: AccountNavItem[] = [
-  { href: "/dashboard", label: "Overview" },
+  { href: "/dashboard", label: "Morning Routine" },
   { href: "/wardrobe", label: "Wardrobe" },
   { href: "/appointments", label: "Appointments" },
   { href: "/orders", label: "Orders" },

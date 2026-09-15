@@ -1,6 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
+import { useRef } from "react";
 
 import { BookAppointmentLauncher } from "./book-appointment-launcher";
 import type { BookableBranch } from "./booking-flow";
@@ -45,10 +46,39 @@ export function AppointmentIdeaCarousel({
   retailerId: string;
   branches: readonly BookableBranch[];
 }) {
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: "left" | "right") => {
+    if (!carouselRef.current) return;
+    const scrollAmount = 280 + 10; // card width + gap
+    carouselRef.current.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
+    });
+  };
+
   return (
     <div aria-label="Appointment ideas" className="appointment-idea-section">
-      <h3 className="appointment-idea-heading">Need an idea?</h3>
-      <div className="appointment-idea-carousel">
+      <div className="appointment-idea-header">
+        <h3 className="appointment-idea-heading">Need an idea?</h3>
+        <div className="appointment-idea-arrows">
+          <button
+            onClick={() => scroll("left")}
+            className="appointment-idea-arrow appointment-idea-arrow-left"
+            aria-label="Scroll left"
+          >
+            ←
+          </button>
+          <button
+            onClick={() => scroll("right")}
+            className="appointment-idea-arrow appointment-idea-arrow-right"
+            aria-label="Scroll right"
+          >
+            →
+          </button>
+        </div>
+      </div>
+      <div className="appointment-idea-carousel" ref={carouselRef}>
         {APPOINTMENT_IDEAS.map((idea, index) => (
           <BookAppointmentLauncher
             key={index}
