@@ -1360,14 +1360,14 @@
   position: relative;
   display: flex;
   align-items: flex-end;
-  justify-content: center;
+  justify-content: flex-start;
   flex: 0 0 auto;
   width: 280px;
   height: 220px;
   border-radius: 18px;
   corner-shape: squircle;
   overflow: hidden;
-  padding: 10px;
+  padding: 12px;
   background-image: var(--appointment-idea-image);
   background-size: cover;
   background-position: center;
@@ -1375,21 +1375,37 @@
   cursor: pointer;
   transition: opacity 180ms ease;
   scroll-snap-align: start;
+  isolation: isolate;
 }
 .paon-env.paon-env .appointment-idea-card:hover {
   opacity: 0.85;
 }
-.paon-env.paon-env .appointment-idea-card::before {
+.paon-env.paon-env .appointment-idea-card::before,
+.paon-env.paon-env .appointment-idea-card::after {
   position: absolute;
+  z-index: -1;
   inset: 0;
-  z-index: 1;
   content: "";
+  pointer-events: none;
+}
+.paon-env.paon-env .appointment-idea-card::before {
   background: linear-gradient(
     to bottom,
-    rgba(8, 8, 8, 0) 30%,
-    rgba(8, 8, 8, 0.6)
+    rgba(8, 8, 8, 0.04) 20%,
+    rgba(8, 8, 8, 0.18) 55%,
+    rgba(8, 8, 8, 0.72) 100%
   );
-  pointer-events: none;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  mask-image: linear-gradient(to bottom, transparent 10%, black 78%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 10%, black 78%);
+}
+.paon-env.paon-env .appointment-idea-card::after {
+  background: linear-gradient(to bottom, transparent 36%, rgba(8, 8, 8, 0.82));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  mask-image: linear-gradient(to bottom, transparent 35%, black 72%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 35%, black 72%);
 }
 .paon-env.paon-env .appointment-idea-caption {
   position: relative;
@@ -1398,8 +1414,19 @@
   font-size: 12px;
   font-weight: 500;
   line-height: 1.3;
-  text-align: center;
-  max-width: 100%;
+  text-align: left;
+  max-width: calc(100% - 12px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paon-env.paon-env .appointment-idea-card {
+    transition: none;
+  }
+  .paon-env.paon-env .appointment-idea-card::before,
+  .paon-env.paon-env .appointment-idea-card::after {
+    backdrop-filter: none;
+    filter: none;
+  }
 }
 
 /* Safari fallback: squircle polygon for idea cards */
@@ -1881,14 +1908,16 @@
 }
 
 .paon-env.paon-env .appointment-quick-book-input {
-  height: 48px;
+  /* Match Store/Wardrobe segment pill: content ~45px, fully rounded. */
+  height: 45px;
   width: 100%;
-  padding: 0 14px;
+  padding: 0 16px;
   background: #2a2a2a;
   border: 0;
   border-radius: 999px;
   color: #f4f2ec;
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 45px;
   font-family: inherit;
   box-sizing: border-box;
   -webkit-appearance: none;
@@ -1915,7 +1944,7 @@
 .paon-env.paon-env .appointment-quick-book-input:focus {
   outline: none;
   background: #363636;
-  box-shadow: inset 0 0 0 2px #aed6e7;
+  box-shadow: none;
 }
 
 .paon-env.paon-env .appointment-quick-book-input:disabled {
@@ -1924,14 +1953,15 @@
 }
 
 .paon-env.paon-env .appointment-quick-book-button {
-  height: 48px;
+  height: 45px;
   flex: 0 0 auto;
   min-width: 112px;
   padding: 0 22px;
   background: #b8e6be;
   color: #14120f;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
+  line-height: 45px;
   border: 0;
   border-radius: 999px;
   cursor: pointer;
