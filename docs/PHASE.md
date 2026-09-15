@@ -9085,6 +9085,94 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
   - **Acceptance:** one exact review report; commit only its owned evidence.
   - **Tests:** Git, source, and evidence cross-check only.
 
+- [ ] **20.37 customer-appointments-founder-calendar-revision — sparse quarterly appointment calendar**
+  - **Dependencies:** `20.6`; current local calendar commits `c07d502`,
+    `6c3fdcb`, `a52f402`, and `ab38734` on
+    `platform-integrated-20260903`.
+  - **Current state:** the local `/appointments` route starts with the current
+    quarter, renders four chronological quarter rows in a three-column grid,
+    keeps paid-care actions above the calendar, uses one-month-ahead booking
+    themes, restores progressive image blur, removes Concierge, and has flush
+    square zero-gap cells. Vercel production is intentionally paused. The
+    latest founder content/typography/image revision below is not implemented.
+  - **Owned paths:**
+    `apps/customer/app/(shell)/(dashboard)/appointments/page.tsx` and
+    appointment-scoped rules only in
+    `apps/customer/app/(shell)/(dashboard)/customer-environment.css`.
+  - **Requirement:** keep the current-quarter-first ordering and four quarter
+    rows, but leave some months intentionally empty. Program only: September —
+    `Fall/Winter Wardrobe`; October — `Winter Coat Shopping`; November —
+    `Holiday Season Outfit`; December — `Purchase customised gift vouchers
+    for loved ones or staff`; January — `Retail Therapy Session`; February —
+    `Spring/Summer Tailoring`; March — `Wedding & Event`; May — `Summer
+    Holiday` covering summer knits, linen shirts, and loafers; June — `Private
+    Cloth Preview`, an invitation-only first look at limited cloth and the next
+    autumn book; July — `Private Archive Appointment`, using one-off cloth,
+    house favourites, and a mid-year fit review to create a non-summer reason
+    to visit; August — `Back to the Office Refresh`. April remains empty.
+  - **Visual contract:** replace the temporary Unsplash images with the exact
+    TableService image set already used by Atelier Demo:
+    `chats222.png`, `chatpic02.png`, `chatpic03.png`, and `chatpic04.png` from
+    `https://www.nebelspiegel.com/images/`. Use landscape `object-fit: cover`.
+    Active cards retain a true progressive lower-image blur with white title,
+    description, and action text. The calendar has no outer rounding, outline,
+    border, divider, or column gap. Add exactly `20px` vertical space between
+    quarter rows without introducing horizontal gaps. Past months such as July
+    and August remain visible as solid dark-grey month bodies with no theme or
+    image. Current month emphasis must not use an outline.
+  - **Typography/content:** page chrome is only the heading `Appointments`;
+    remove the kicker `Visits, fittings and garment care` and the descriptive
+    paragraph. Month names use `GTBold3` at the same size and weight as the
+    STORE/WARDROBE switch labels. Appointment descriptions use the sidebar
+    navigation size (`12px`, weight `500`). Dry cleaning, Shoe repair &
+    maintenance, and Alterations render as three visually separate cards, not
+    one segmented container, while preserving their existing connected flows.
+  - **Acceptance:** authenticated local desktop proof at `1512x982` confirms
+    current-quarter-first order, exact sparse content, TableService images,
+    progressive blur, flush columns, `20px` quarter-row gaps, dark-grey past
+    bodies, title-only header, separate care cards, and no console errors.
+    Focused Appointments lint/typecheck pass. Do not deploy or generate release
+    evidence during local iteration.
+  - **Tests:** update the stale rolling-year assertions in
+    `apps/customer/e2e/appointments-audit-v3.spec.ts`; run only the focused
+    Appointments audit after the local visual pass is accepted.
+
+- [ ] **20.38 customer-appointments-guided-booking-and-advisor-platform — authoritative multi-step booking**
+  - **Dependencies:** `20.37`; requires frontier-owned schema, RLS, auth, guest
+    identity, availability, and email-link decisions before implementation.
+  - **Requirement:** replace the current
+    `reason → location → date → time → review` flow with equal-size numbered
+    pages and a compact directly navigable progress rail for month, date, time,
+    advisor, party size, appointment type, personal details, and confirmation.
+    Back navigation preserves every prior selection. Date selection opens real
+    days; time selection uses authoritative conflict-free availability.
+  - **Advisor/party/type:** preselect the customer's assigned personal advisor;
+    also offer advisor cards with photo, name, short description, direct-message
+    action, and `No preference`. Party size defaults to one and uses animated
+    minus/plus controls that add or remove person figures. Every option has an
+    image. Appointment types are `Introduction (60m)` and `Making something
+    new (90m)` and the stored duration must match the choice.
+  - **Identity/confirmation:** prefill logged-in customer name and phone and
+    provide a comment field. Guest confirmation keeps all booking selections
+    in-screen while offering `Returning customer` sign-in, `Create new account`
+    (preselected for a new guest), Apple/Google where genuinely configured, and
+    a low-friction `Continue as guest`. Never fabricate social auth or weaken
+    existing authentication.
+  - **Retailer operations:** retailers can create/manage locations and manage
+    the team members available at each location, including photo upload, name,
+    short description, bookable-advisor state, and branch assignment. Preserve
+    tenant isolation and existing customer `assignedStaffId` semantics.
+  - **Lifecycle:** successful booking sends a confirmation email with secure,
+    effortless change and cancel links. Reschedule/cancel must be authorized,
+    idempotent, auditable, and must not leak customer, advisor, or availability
+    data.
+  - **Acceptance:** authenticated and guest browser proof covers selection,
+    back/rail state preservation, assigned-advisor default, no-preference,
+    party animation, both durations, inline returning/new/guest paths,
+    authoritative persistence, confirmation email, change, cancellation,
+    conflicts, stale links, and cross-tenant denial. Security review is
+    mandatory before integration.
+
 ### Stage 21 — Storefront-to-shell incremental migration
 
 Governed by `docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md` §3.2 / §13 and
