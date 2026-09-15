@@ -18,6 +18,7 @@ import {
   type OwnedCardModel,
 } from "./wardrobe-panel";
 
+import { canonicalCategoryFor } from "@/app/(shell)/r/[slug]/canonical-category";
 import { getCustomersForUser } from "@/lib/customer-context";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -66,22 +67,27 @@ export default async function WardrobePage() {
         ...new Set(active.map((item) => item.categoryCode)),
       ];
 
-      const [completeTheLookByCategory, categorizedCatalogue, roadmaps] =
-        await Promise.all([
-          buildItemSpecificCompleteTheLookSuggestionsByCategory({
-            supabase,
-            retailerId: customer.retailerId,
-            customerId: customer.id,
-            ownedActiveCategories,
-          }),
-          buildCategorizedCatalogue({
-            supabase,
-            retailerId: customer.retailerId,
-          }),
-          roadmapRepo.findByCustomer(customer.id, {
-            customerVisibleOnly: true,
-          }),
-        ]);
+      const [
+        completeTheLookByCategory,
+        categorizedCatalogue,
+        roadmaps,
+        retailerProducts,
+      ] = await Promise.all([
+        buildItemSpecificCompleteTheLookSuggestionsByCategory({
+          supabase,
+          retailerId: customer.retailerId,
+          customerId: customer.id,
+          ownedActiveCategories,
+        }),
+        buildCategorizedCatalogue({
+          supabase,
+          retailerId: customer.retailerId,
+        }),
+        roadmapRepo.findByCustomer(customer.id, {
+          customerVisibleOnly: true,
+        }),
+        productRepo.findByRetailer(customer.retailerId),
+      ]);
 
       const alternativesByCategory: Record<
         string,
@@ -98,11 +104,15 @@ export default async function WardrobePage() {
             : {}),
         });
       }
-      const calendarImageUrls = categorizedCatalogue.flatMap((candidate) => {
-        const imageUrl = candidate.primaryImageUrl;
-        return imageUrl &&
-          /(?:suit|jacket|blazer)/i.test(candidate.categoryCode ?? "")
-          ? [imageUrl]
+      const calendarImageUrls = retailerProducts.flatMap((product) => {
+        if (product.status !== "active" || !product.primaryImageUrl) return [];
+        const category = canonicalCategoryFor(
+          product.name,
+          undefined,
+          product.primaryImageUrl,
+        );
+        return category === "Suits" || category === "Jackets"
+          ? [product.primaryImageUrl]
           : [];
       });
 
