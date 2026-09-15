@@ -11,6 +11,7 @@ import "./wardrobe-environment.css";
 
 import { buildCategorizedCatalogue } from "./complete-the-look-catalogue";
 import { buildItemSpecificCompleteTheLookSuggestionsByCategory } from "./item-specific-complete-the-look-data";
+import { WardrobeFourWeekCalendar } from "./wardrobe-four-week-calendar";
 import {
   WardrobeRailsPanel,
   type AdvisorSelectionAlternative,
@@ -97,6 +98,13 @@ export default async function WardrobePage() {
             : {}),
         });
       }
+      const calendarImageUrls = categorizedCatalogue.flatMap((candidate) => {
+        const imageUrl = candidate.primaryImageUrl;
+        return imageUrl &&
+          /(?:suit|jacket|blazer)/i.test(candidate.categoryCode ?? "")
+          ? [imageUrl]
+          : [];
+      });
 
       const historyEntries = await Promise.all(
         active.map(async (item) => {
@@ -204,13 +212,21 @@ export default async function WardrobePage() {
         suggestedProductById,
         alternativesByCategory,
         pendingApprovalRoadmap,
+        calendarImageUrls,
       };
     }),
   );
+  const calendarImageUrls = [
+    ...new Set(groups.flatMap((group) => group.calendarImageUrls)),
+  ];
 
   return (
     <div className="paon-wardrobe-scene">
       <div className="paon-wardrobe-stack">
+        <WardrobeFourWeekCalendar
+          nowIso={nowIso}
+          imageUrls={calendarImageUrls}
+        />
         <header className="paon-glass paon-glass-pad paon-wardrobe-head">
           <div>
             <p className="paon-wardrobe-kicker">
