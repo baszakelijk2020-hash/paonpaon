@@ -16,8 +16,6 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import { z } from "zod";
 
-import { RelatedLinks } from "../related-links";
-
 import { BookAppointmentLauncher } from "./book-appointment-launcher";
 import type { BookableBranch } from "./booking-flow";
 import { APPOINTMENT_REASONS } from "./booking-reasons";
@@ -103,70 +101,70 @@ async function resolveBookingPrefill(
 
 const MONTHLY_APPOINTMENT_THEMES = [
   {
-    title: "Wardrobe Reset",
-    copy: "Review fit, condition and the pieces that should lead the new year.",
+    title: "Spring/Summer Preview",
+    copy: "Choose lighter cloth before the season turns.",
     accent: "#a79a86",
   },
   {
-    title: "Spring/Summer Preview",
-    copy: "Choose lighter cloth and set the season's wardrobe before warmth arrives.",
+    title: "Transitional Tailoring",
+    copy: "Tune layers and cloth for changeable early spring days.",
     accent: "#aeb7a0",
   },
   {
-    title: "Transitional Tailoring",
-    copy: "Tune layers, weight and colour for changeable early-spring days.",
+    title: "Summer Holiday",
+    copy: "Plan linen, holiday tailoring and travel pieces.",
     accent: "#829192",
   },
   {
-    title: "Summer Holiday",
-    copy: "Plan linen, holiday tailoring and the pieces that earn a place in the case.",
+    title: "Wedding & Occasion",
+    copy: "Prepare formal looks early, from ceremony to evening.",
     accent: "#b7aa84",
   },
   {
-    title: "Wedding & Occasion",
-    copy: "Prepare formal looks early, from ceremony tailoring to evening details.",
+    title: "Linen & Travel",
+    copy: "Build a breathable wardrobe for work and weekends away.",
     accent: "#a79691",
   },
   {
-    title: "Linen & Travel",
-    copy: "Build a breathable, crease-conscious wardrobe for work and weekends away.",
+    title: "Midseason Fit Check",
+    copy: "Reassess fit and refresh hardworking pieces in rotation.",
     accent: "#c0ad87",
   },
   {
-    title: "Midseason Fit Check",
-    copy: "Reassess fit and refresh the hardworking pieces already in rotation.",
+    title: "Autumn Preview",
+    copy: "Reserve new-season cloth and cooler-weather layers.",
     accent: "#8f877b",
   },
   {
-    title: "Autumn Preview",
-    copy: "Reserve new-season cloth and decide which cooler-weather gaps to fill.",
+    title: "Fall/Winter Wardrobe",
+    copy: "Plan cloth, coats and the colder season's essentials.",
     accent: "#8d765e",
   },
   {
-    title: "Fall/Winter Wardrobe",
-    copy: "Plan cloth, coats and the pieces the colder season will ask of you.",
+    title: "Outerwear & Layering",
+    copy: "Balance coats, knitwear and tailoring for the cold.",
     accent: "#726653",
   },
   {
-    title: "Outerwear & Layering",
-    copy: "Balance coats, knitwear and tailoring before temperatures settle.",
+    title: "Cold-Weather Wardrobe",
+    copy: "Build warm layers and finish the season's key pieces.",
     accent: "#66706a",
   },
   {
-    title: "Holiday Season",
-    copy: "Prepare evening, festive and dinner looks before invitations arrive.",
+    title: "Festive & Black Tie",
+    copy: "Finish the year with polished evening dressing.",
     accent: "#76544d",
   },
   {
-    title: "Festive & Black Tie",
-    copy: "Finish the year with black tie, polished accessories and assured fit.",
+    title: "Wardrobe Reset",
+    copy: "Review fit, condition and the pieces for the new year.",
     accent: "#786f82",
   },
 ] as const;
 
-function buildRollingAppointmentYear(from: Date) {
+function buildAppointmentYear(from: Date) {
   return Array.from({ length: 12 }, (_, index) => {
-    const date = new Date(from.getFullYear(), from.getMonth() + index, 1);
+    const date = new Date(from.getFullYear(), index, 1);
     const theme = MONTHLY_APPOINTMENT_THEMES[date.getMonth()]!;
     return {
       ...theme,
@@ -177,6 +175,9 @@ function buildRollingAppointmentYear(from: Date) {
       ),
       monthNumber: String(date.getMonth() + 1).padStart(2, "0"),
       year: date.getFullYear(),
+      imageUrl: [6054, 6059, 6065, 6066][index % 4],
+      isPast: index < from.getMonth(),
+      isCurrent: index === from.getMonth(),
     };
   });
 }
@@ -281,7 +282,7 @@ export default async function AppointmentsPage({
     formatDate(iso, "en-US", { hour: "numeric", minute: "2-digit" });
   const formatRange = (startsAt: string, endsAt: string) =>
     `${formatTime(startsAt)}–${formatTime(endsAt)}`;
-  const appointmentYear = buildRollingAppointmentYear(new Date());
+  const appointmentYear = buildAppointmentYear(new Date());
 
   return (
     <div className="customer-page flex flex-col gap-6 bg-black pb-12 text-white">
@@ -318,7 +319,6 @@ export default async function AppointmentsPage({
                 : {})}
             />
           ) : null}
-          <RelatedLinks links={[{ href: "/concierge", label: "Concierge" }]} />
         </div>
       </header>
 
@@ -350,33 +350,41 @@ export default async function AppointmentsPage({
                 className="appointment-month-cell"
                 data-appointment-month={month.month}
               >
-                <BookAppointmentLauncher
-                  retailerId={primaryCustomer.retailerId}
-                  branches={bookableBranches}
-                  initialReason="in_the_mood_for_something_fresh"
-                  purpose={`${month.title} Appointment`}
-                  initialMonth={month.month}
-                  className="appointment-month-launcher"
-                  style={
-                    { "--appointment-accent": month.accent } as CSSProperties
-                  }
-                >
-                  <span className="appointment-month-topline">
+                {month.isPast ? (
+                  <div className="appointment-month-past">
                     <span className="appointment-month-name">
                       {month.monthName}
                     </span>
-                    <span
-                      className="appointment-month-number"
-                      aria-hidden="true"
-                    >
-                      {month.monthNumber}
+                    <span className="appointment-month-year">{month.year}</span>
+                  </div>
+                ) : (
+                  <BookAppointmentLauncher
+                    retailerId={primaryCustomer.retailerId}
+                    branches={bookableBranches}
+                    initialReason="in_the_mood_for_something_fresh"
+                    purpose={`${month.title} Appointment`}
+                    initialMonth={month.month}
+                    className={`appointment-month-launcher${month.isCurrent ? "is-current" : ""}`}
+                    style={
+                      {
+                        "--appointment-accent": month.accent,
+                        "--appointment-image": `url(https://www.nebelspiegel.com/images/smaller/${month.imageUrl}.webp)`,
+                      } as CSSProperties
+                    }
+                  >
+                    <span className="appointment-month-topline">
+                      <span className="appointment-month-name">
+                        {month.monthName}
+                      </span>
                     </span>
-                  </span>
-                  <span className="appointment-month-year">{month.year}</span>
-                  <span className="appointment-month-title">{month.title}</span>
-                  <span className="appointment-month-copy">{month.copy}</span>
-                  <span className="appointment-month-cta">Book visit →</span>
-                </BookAppointmentLauncher>
+                    <span className="appointment-month-year">{month.year}</span>
+                    <span className="appointment-month-title">
+                      {month.title}
+                    </span>
+                    <span className="appointment-month-copy">{month.copy}</span>
+                    <span className="appointment-month-cta">Book visit →</span>
+                  </BookAppointmentLauncher>
+                )}
               </div>
             ))}
           </div>

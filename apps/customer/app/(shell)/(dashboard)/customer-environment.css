@@ -1036,7 +1036,8 @@
 }
 .paon-env.paon-env .appointment-year-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
   gap: 1px;
   overflow: hidden;
   border: 1px solid rgba(244, 242, 236, 0.18);
@@ -1045,24 +1046,62 @@
 }
 .paon-env.paon-env .appointment-month-cell {
   min-width: 0;
+  min-height: 154px;
   background: #171717;
+}
+.paon-env.paon-env .appointment-month-past {
+  display: flex;
+  height: 100%;
+  min-height: 154px;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 15px;
+  color: rgba(244, 242, 236, 0.34);
 }
 .paon-env.paon-env .appointment-month-launcher {
   position: relative;
   display: grid;
-  grid-template-rows: auto auto auto 1fr auto;
+  grid-template-rows: auto auto 1fr auto;
   width: 100%;
   height: 150px;
   padding: 13px 15px 12px;
   overflow: hidden;
   border: 0;
-  background:
+  min-height: 154px;
+  background-image:
     linear-gradient(90deg, var(--appointment-accent) 0 3px, transparent 3px),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.035), transparent 58%);
+    var(--appointment-image);
+  background-position:
+    0 0,
+    center;
+  background-size:
+    100% 100%,
+    cover;
+  isolation: isolate;
   color: #f4f2ec;
   text-align: left;
   cursor: pointer;
   transition: background-color 180ms ease;
+}
+.paon-env.paon-env .appointment-month-launcher::before,
+.paon-env.paon-env .appointment-month-launcher::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+}
+.paon-env.paon-env .appointment-month-launcher::before {
+  background: rgba(8, 8, 8, 0.56);
+  backdrop-filter: blur(1px);
+}
+.paon-env.paon-env .appointment-month-launcher::after {
+  background: linear-gradient(135deg, rgba(8, 8, 8, 0.15), rgba(8, 8, 8, 0.72));
+  filter: blur(7px);
+  transform: scale(1.08);
+}
+.paon-env.paon-env .appointment-month-launcher.is-current {
+  box-shadow: inset 0 0 0 2px rgba(244, 242, 236, 0.72);
 }
 .paon-env.paon-env .appointment-month-launcher:hover {
   background-color: rgba(255, 255, 255, 0.055);
@@ -1083,14 +1122,6 @@
   font-weight: 500;
   letter-spacing: -0.045em;
   line-height: 1;
-}
-.paon-env.paon-env .appointment-month-number {
-  color: color-mix(in srgb, var(--appointment-accent) 78%, #f4f2ec);
-  font-size: 30px;
-  font-variant-numeric: tabular-nums;
-  font-weight: 300;
-  letter-spacing: -0.06em;
-  line-height: 0.8;
 }
 .paon-env.paon-env .appointment-month-year {
   margin-top: 2px;
@@ -1125,6 +1156,11 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+@media (min-width: 901px) {
+  .paon-env.paon-env .appointment-year-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
 @media (max-width: 520px) {
   .paon-env.paon-env .appointment-care-actions > .grid {
     grid-template-columns: 1fr;
@@ -1141,6 +1177,11 @@
 @media (prefers-reduced-motion: reduce) {
   .paon-env.paon-env .appointment-month-launcher {
     transition: none;
+  }
+  .paon-env.paon-env .appointment-month-launcher::before,
+  .paon-env.paon-env .appointment-month-launcher::after {
+    backdrop-filter: none;
+    filter: none;
   }
 }
 
