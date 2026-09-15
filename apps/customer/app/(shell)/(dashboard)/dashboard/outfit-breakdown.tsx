@@ -257,9 +257,12 @@ function ArrivalAndFitting() {
 
   const settledAt = REEL_RUN_UP + 1;
 
+  const lastEnvironmentSettledRef = useRef<number>(0);
+
   const runReel = useCallback(() => {
     if (frame.current !== null) cancelAnimationFrame(frame.current);
     setLanded(false);
+    lastEnvironmentSettledRef.current = performance.now();
     const startedAt = performance.now();
     const travel = settledAt - 1;
     const step = (stamp: number) => {
@@ -292,7 +295,6 @@ function ArrivalAndFitting() {
   }, [runReel, today]);
 
   /* Every return to the wardrobe replays it. */
-  const lastEnvironmentSettledRef = useRef<number>(0);
   useEffect(() => {
     const isCustomer = (event: Event) =>
       (event as CustomEvent<string>).detail === "customer";
@@ -318,7 +320,7 @@ function ArrivalAndFitting() {
   }, [runReel]);
 
   /* Replay reel animation when returning to /dashboard via tab switch or route change.
-     Coalesce with environment-settled to avoid double-firing within 400ms. */
+     Coalesce with environment-settled to avoid double-firing within 2000ms. */
   useEffect(() => {
     const onRouteVisible = (event: Event) => {
       const customEvent = event as CustomEvent<{ pathname: string }>;
@@ -328,7 +330,7 @@ function ArrivalAndFitting() {
       const now = performance.now();
       const timeSinceSettled = now - lastEnvironmentSettledRef.current;
       /* Skip if environment-settled fired very recently (coalesce window). */
-      if (timeSinceSettled < 400) return;
+      if (timeSinceSettled < 2000) return;
 
       if (frame.current !== null) cancelAnimationFrame(frame.current);
       setPosition(1);

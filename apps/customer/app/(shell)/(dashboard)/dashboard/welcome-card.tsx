@@ -115,12 +115,15 @@ export function WelcomeCard({ firstName }: { firstName: string }) {
     );
   }, []);
 
+  const lastEnvironmentSettledRef = useRef<number>(0);
+
   /*
    * Before paint, so the finished sentence is never shown for a frame first,
    * and again whenever the sentence changes shape — the weather arrives after
    * mount and rewrites the middle of it.
    */
   useLayoutEffect(() => {
+    lastEnvironmentSettledRef.current = performance.now();
     play();
   }, [play, firstName, weather, evening]);
 
@@ -145,7 +148,6 @@ export function WelcomeCard({ firstName }: { firstName: string }) {
    * sentence was already on screen, so it flashed whole, snapped back to empty
    * and only then wrote itself. `settled` just starts the tween.
    */
-  const lastEnvironmentSettledRef = useRef<number>(0);
   useEffect(() => {
     const arm = (event: Event) => {
       if ((event as CustomEvent<string>).detail !== "customer") return;
@@ -172,7 +174,7 @@ export function WelcomeCard({ firstName }: { firstName: string }) {
   }, [play]);
 
   /* Replay animations when returning to /dashboard via tab switch or route change.
-     Coalesce with environment-settled to avoid double-firing within 400ms. */
+     Coalesce with environment-settled to avoid double-firing within 2000ms. */
   useEffect(() => {
     const onRouteVisible = (event: Event) => {
       const customEvent = event as CustomEvent<{ pathname: string }>;
@@ -182,7 +184,7 @@ export function WelcomeCard({ firstName }: { firstName: string }) {
       const now = performance.now();
       const timeSinceSettled = now - lastEnvironmentSettledRef.current;
       /* Skip if environment-settled fired very recently (coalesce window). */
-      if (timeSinceSettled < 400) return;
+      if (timeSinceSettled < 2000) return;
 
       const node = copyRef.current;
       if (!node) return;
