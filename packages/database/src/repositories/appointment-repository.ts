@@ -14,7 +14,10 @@ import type { Database } from "../generated/database.types";
 
 type AppointmentRow = Database["public"]["Tables"]["appointments"]["Row"];
 
-function toDomain(row: AppointmentRow): Appointment {
+// Extend row type to include party_size (added in migration 20260915120000, ahead of generated types)
+type AppointmentRowWithPartySize = AppointmentRow & { party_size?: number };
+
+function toDomain(row: AppointmentRowWithPartySize): Appointment {
   return {
     id: asId<"AppointmentId">(row.id),
     retailerId: asId<"RetailerId">(row.retailer_id),
@@ -29,7 +32,7 @@ function toDomain(row: AppointmentRow): Appointment {
     endsAt: row.ends_at,
     ...(row.location_id ? { locationId: row.location_id } : {}),
     ...(row.notes ? { notes: row.notes } : {}),
-    partySize: (row as any).party_size ?? 1,
+    partySize: row.party_size ?? 1,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,
@@ -74,7 +77,7 @@ export class AppointmentRepository {
       throw error;
     }
 
-    return data ? toDomain(data) : null;
+    return data ? toDomain(data as AppointmentRowWithPartySize) : null;
   }
 
   async findByRetailer(retailerId: RetailerId): Promise<Appointment[]> {
@@ -89,7 +92,7 @@ export class AppointmentRepository {
       throw error;
     }
 
-    return data.map(toDomain);
+    return data.map((row) => toDomain(row as AppointmentRowWithPartySize));
   }
 
   async findByCustomer(customerId: CustomerId): Promise<Appointment[]> {
@@ -104,7 +107,7 @@ export class AppointmentRepository {
       throw error;
     }
 
-    return data.map(toDomain);
+    return data.map((row) => toDomain(row as AppointmentRowWithPartySize));
   }
 
   async create(params: CreateAppointmentParams): Promise<Appointment> {
@@ -127,7 +130,7 @@ export class AppointmentRepository {
       throw error;
     }
 
-    return toDomain(data);
+    return toDomain(data as AppointmentRowWithPartySize);
   }
 
   async update(
@@ -151,7 +154,7 @@ export class AppointmentRepository {
       throw error;
     }
 
-    return toDomain(data);
+    return toDomain(data as AppointmentRowWithPartySize);
   }
 
   /** Calls `request_appointment` — see docs/DECISIONS.md ADR-015. Returns the new appointment's id. */

@@ -35,46 +35,21 @@ create index appointment_action_tokens_expires_at_idx on public.appointment_acti
 alter table public.appointment_action_tokens enable row level security;
 
 -- Tenant-scoped RLS: customer can only see tokens tied to their own appointments
-create policy "customers can read their appointment action tokens"
-  on public.appointment_action_tokens for select
-  using (
-    exists (
-      select 1 from public.appointments a
-      join public.customers c on c.id = a.customer_id
-      where a.id = appointment_action_tokens.appointment_id
-        and c.user_id = auth.uid()
-    )
-  );
+-- Tokens are bearer credentials; deny by default for all authenticated users.
+-- Redeem via future SECURITY DEFINER RPC (appointment_redeem_action_token).
+-- Platform staff can INSERT/SELECT for administrative operations only.
+create policy "platform staff insert appointment action tokens"
+  on public.appointment_action_tokens for insert
+  with check (public.is_platform_staff());
 
--- Platform staff can read and redeem (update used_at) any tokens
-create policy "platform staff can read all appointment action tokens"
+create policy "platform staff read appointment action tokens"
   on public.appointment_action_tokens for select
   using (public.is_platform_staff());
 
-create policy "platform staff can manage all appointment action tokens"
-  on public.appointment_action_tokens for all
+create policy "platform staff update appointment action tokens"
+  on public.appointment_action_tokens for update
   using (public.is_platform_staff())
   with check (public.is_platform_staff());
-
--- Retailer staff can read tokens for their retailer
-create policy "retailer staff can read their retailer's appointment action tokens"
-  on public.appointment_action_tokens for select
-  using (
-    retailer_id = public.current_retailer_id()
-    and public.current_retailer_role() in ('sales_associate', 'manager', 'admin', 'owner')
-  );
-
--- Retailer staff can update (redeem) tokens for their retailer
-create policy "retailer staff can redeem their retailer's appointment action tokens"
-  on public.appointment_action_tokens for update
-  using (
-    retailer_id = public.current_retailer_id()
-    and public.current_retailer_role() in ('sales_associate', 'manager', 'admin', 'owner')
-  )
-  with check (
-    retailer_id = public.current_retailer_id()
-    and public.current_retailer_role() in ('sales_associate', 'manager', 'admin', 'owner')
-  );
 
 -- Staff overlap constraint: prevent overlapping appointments for same staff member
 -- Pattern: follows 20260811220000 with btree_gist

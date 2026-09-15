@@ -15,6 +15,13 @@ import type { Database } from "../generated/database.types";
 type RetailerStaffRow =
   Database["public"]["Tables"]["retailer_staff_members"]["Row"];
 
+// Extend row type to include photo_url, bio, bookable (added in migration 20260915120000, ahead of generated types)
+type RetailerStaffRowWithBookableFields = RetailerStaffRow & {
+  photo_url?: string | null;
+  bio?: string | null;
+  bookable?: boolean;
+};
+
 const UNIQUE_VIOLATION = "23505";
 
 export class StaffEmailAlreadyInvitedError extends Error {
@@ -28,7 +35,7 @@ function isUniqueViolation(error: PostgrestError): boolean {
   return error.code === UNIQUE_VIOLATION;
 }
 
-function toDomain(row: RetailerStaffRow): RetailerStaffMember {
+function toDomain(row: RetailerStaffRowWithBookableFields): RetailerStaffMember {
   return {
     id: asId<"StaffId">(row.id),
     ...(row.user_id ? { userId: asId<"UserId">(row.user_id) } : {}),
@@ -41,9 +48,9 @@ function toDomain(row: RetailerStaffRow): RetailerStaffMember {
       : {}),
     invitedAt: row.invited_at,
     ...(row.accepted_at ? { acceptedAt: row.accepted_at } : {}),
-    ...((row as any).photo_url ? { photoUrl: (row as any).photo_url } : {}),
-    ...((row as any).bio ? { bio: (row as any).bio } : {}),
-    bookable: (row as any).bookable ?? true,
+    ...(row.photo_url ? { photoUrl: row.photo_url } : {}),
+    ...(row.bio ? { bio: row.bio } : {}),
+    bookable: row.bookable ?? true,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,
@@ -82,7 +89,7 @@ export class RetailerStaffRepository {
       throw error;
     }
 
-    return data.map(toDomain);
+    return data.map((row) => toDomain(row as RetailerStaffRowWithBookableFields));
   }
 
   async findByUserId(userId: UserId): Promise<RetailerStaffMember | null> {
@@ -97,7 +104,7 @@ export class RetailerStaffRepository {
       throw error;
     }
 
-    return data ? toDomain(data) : null;
+    return data ? toDomain(data as RetailerStaffRowWithBookableFields) : null;
   }
 
   async create(
@@ -123,7 +130,7 @@ export class RetailerStaffRepository {
       throw error;
     }
 
-    return toDomain(data);
+    return toDomain(data as RetailerStaffRowWithBookableFields);
   }
 
   /**
