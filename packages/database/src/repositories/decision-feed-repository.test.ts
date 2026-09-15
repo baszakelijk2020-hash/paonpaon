@@ -49,6 +49,7 @@ describe("DecisionFeedRepository", () => {
       status: "confirmed",
       startsAt: new Date(TEST_NOW.getTime() + 30 * 60 * 1000).toISOString(),
       endsAt: new Date(TEST_NOW.getTime() + 90 * 60 * 1000).toISOString(),
+      partySize: 1,
       createdAt: "2026-08-13T00:00:00Z",
       updatedAt: "2026-08-13T00:00:00Z",
     };

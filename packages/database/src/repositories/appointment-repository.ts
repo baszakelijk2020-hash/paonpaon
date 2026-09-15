@@ -29,6 +29,7 @@ function toDomain(row: AppointmentRow): Appointment {
     endsAt: row.ends_at,
     ...(row.location_id ? { locationId: row.location_id } : {}),
     ...(row.notes ? { notes: row.notes } : {}),
+    partySize: (row as any).party_size ?? 1,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,

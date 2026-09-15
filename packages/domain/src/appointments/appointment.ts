@@ -35,6 +35,7 @@ export interface Appointment extends Timestamps {
   readonly endsAt: string;
   readonly locationId?: string;
   readonly notes?: string;
+  readonly partySize: number;
 }
 
 /**

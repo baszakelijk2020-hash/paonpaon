@@ -50,4 +50,7 @@ export interface RetailerStaffMember extends Timestamps {
   readonly workshopId?: WorkshopId;
   readonly invitedAt: string;
   readonly acceptedAt?: string;
+  readonly photoUrl?: string;
+  readonly bio?: string;
+  readonly bookable: boolean;
 }
