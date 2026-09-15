@@ -101,39 +101,44 @@ async function resolveBookingPrefill(
 
 const MONTHLY_APPOINTMENT_THEMES = [
   {
-    title: "Spring/Summer Preview",
-    copy: "Choose lighter cloth before the season turns.",
+    title: "Retail Therapy Session",
+    copy: "Refresh your wardrobe for the new year.",
+    accent: "#8f877b",
+  },
+  {
+    title: "Spring/Summer Tailoring",
+    copy: "Prepare lighter pieces for the season.",
     accent: "#a79a86",
   },
   {
-    title: "Transitional Tailoring",
-    copy: "Tune layers and cloth for changeable early spring days.",
-    accent: "#aeb7a0",
-  },
-  {
-    title: "Summer Holiday",
-    copy: "Plan linen, holiday tailoring and travel pieces.",
-    accent: "#829192",
-  },
-  {
-    title: "Wedding & Occasion",
-    copy: "Prepare formal looks early, from ceremony to evening.",
+    title: "Wedding & Event",
+    copy: "Plan formal looks for special occasions.",
     accent: "#b7aa84",
   },
   {
-    title: "Linen & Travel",
-    copy: "Build a breathable wardrobe for work and weekends away.",
+    title: "",
+    copy: "",
+    accent: "#ffffff00",
+  },
+  {
+    title: "Summer Holiday",
+    copy: "Summer knits, linen shirts, loafers.",
+    accent: "#829192",
+  },
+  {
+    title: "Private Cloth Preview",
+    copy: "Invitation-only first look at limited cloth and next autumn book.",
+    accent: "#aeb7a0",
+  },
+  {
+    title: "Private Archive Appointment",
+    copy: "One-off cloth, house favourites, mid-year fit review.",
     accent: "#a79691",
   },
   {
-    title: "Midseason Fit Check",
-    copy: "Reassess fit and refresh hardworking pieces in rotation.",
+    title: "Back to the Office Refresh",
+    copy: "Update your work wardrobe for the season.",
     accent: "#c0ad87",
-  },
-  {
-    title: "Autumn Preview",
-    copy: "Reserve new-season cloth and cooler-weather layers.",
-    accent: "#8f877b",
   },
   {
     title: "Fall/Winter Wardrobe",
@@ -141,34 +146,27 @@ const MONTHLY_APPOINTMENT_THEMES = [
     accent: "#8d765e",
   },
   {
-    title: "Outerwear & Layering",
-    copy: "Balance coats, knitwear and tailoring for the cold.",
+    title: "Winter Coat Shopping",
+    copy: "Choose outerwear for comfort and style.",
     accent: "#726653",
   },
   {
-    title: "Cold-Weather Wardrobe",
-    copy: "Build warm layers and finish the season's key pieces.",
-    accent: "#66706a",
-  },
-  {
-    title: "Festive & Black Tie",
-    copy: "Finish the year with polished evening dressing.",
+    title: "Holiday Season Outfit",
+    copy: "Prepare polished looks for festive celebrations.",
     accent: "#76544d",
   },
   {
-    title: "Wardrobe Reset",
-    copy: "Review fit, condition and the pieces for the new year.",
+    title: "Purchase customised gift vouchers for loved ones or staff",
+    copy: "Share the gift of choice with your network.",
     accent: "#786f82",
   },
 ] as const;
 
 const APPOINTMENT_LANDSCAPE_IMAGES = [
-  "https://images.unsplash.com/photo-1617127365659-c47fa864d8bc?auto=format&fit=crop&w=1400&q=82",
-  "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=1400&q=82",
-  "https://images.unsplash.com/photo-1555069519-127aadedf1ee?auto=format&fit=crop&w=1400&q=82",
-  "https://images.unsplash.com/photo-1516762689617-e1cffcef479d?auto=format&fit=crop&w=1400&q=82",
-  "https://images.unsplash.com/photo-1610652492500-ded49ceeb378?auto=format&fit=crop&w=1400&q=82",
-  "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1400&q=82",
+  "https://www.nebelspiegel.com/images/chats222.png",
+  "https://www.nebelspiegel.com/images/chatpic02.png",
+  "https://www.nebelspiegel.com/images/chatpic03.png",
+  "https://www.nebelspiegel.com/images/chatpic04.png",
 ] as const;
 
 function buildAppointmentYear(from: Date) {
@@ -304,16 +302,9 @@ export default async function AppointmentsPage({
     <div className="customer-page flex flex-col gap-6 bg-black pb-12 text-white">
       <header className="pe-page-head items-end gap-6 pb-3">
         <div>
-          <p className="customer-kicker mb-2 text-white/55">
-            Visits, fittings and garment care
-          </p>
           <h1 className="font-display text-5xl font-semibold leading-none tracking-[-0.055em] text-white sm:text-6xl">
             Appointments
           </h1>
-          <p className="mt-4 max-w-xl text-base leading-7 text-white/60">
-            Plan your next visit, book paid care, and keep every past fitting
-            close.
-          </p>
         </div>
         <div className="flex flex-wrap gap-3">
           {primaryCustomer ? (
@@ -373,6 +364,8 @@ export default async function AppointmentsPage({
                     </span>
                     <span className="appointment-month-year">{month.year}</span>
                   </div>
+                ) : month.title === "" ? (
+                  <div className="appointment-month-empty" />
                 ) : (
                   <BookAppointmentLauncher
                     retailerId={primaryCustomer.retailerId}

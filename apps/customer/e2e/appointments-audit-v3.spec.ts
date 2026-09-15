@@ -65,7 +65,7 @@ test.describe("Appointments rolling-year audit", () => {
   test.describe("desktop (1512x982)", () => {
     test.use({ viewport: { width: 1512, height: 982 } });
 
-    test("shows 12 chronological months in a four-column above-fold planning board", async ({
+    test("shows 12 chronological months in a three-column grid layout with sparse monthly themes", async ({
       page,
     }, testInfo) => {
       const evidenceDir = resolve(testInfo.config.rootDir, EVIDENCE_SUBPATH);
@@ -108,7 +108,7 @@ test.describe("Appointments rolling-year audit", () => {
           (element) =>
             getComputedStyle(element).gridTemplateColumns.split(" ").length,
         );
-      expect(calendarColumns).toBe(4);
+      expect(calendarColumns).toBe(3);
       const lastCellBottom = await monthCells
         .last()
         .evaluate((element) => element.getBoundingClientRect().bottom);
