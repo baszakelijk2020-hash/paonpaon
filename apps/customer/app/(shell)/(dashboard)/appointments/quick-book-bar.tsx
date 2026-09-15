@@ -128,6 +128,29 @@ export function QuickBookBar({ retailerId, branches }: QuickBookBarProps) {
             </select>
           </div>
 
+          {branches.length > 0 && (
+            <div className="appointment-quick-book-field">
+              <label
+                htmlFor="qb-location"
+                className="appointment-quick-book-label"
+              >
+                Location
+              </label>
+              <select
+                id="qb-location"
+                value={selectedBranch}
+                onChange={(e) => setSelectedBranch(e.target.value)}
+                className="appointment-quick-book-input"
+              >
+                {branches.map((branch) => (
+                  <option key={branch.id} value={branch.id}>
+                    {branch.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <button
             onClick={handleBook}
             disabled={!date || !time || !selectedBranch || isPending}
@@ -157,31 +180,11 @@ export function QuickBookBar({ retailerId, branches }: QuickBookBarProps) {
                 day: "numeric",
               })}{" "}
               at {time} · Party of {partySize}
+              {branches.length > 0 && selectedBranch
+                ? ` · ${branches.find((b) => b.id === selectedBranch)?.name || ""}`
+                : ""}
             </p>
           </div>
-
-          {branches.length > 1 && (
-            <div className="appointment-quick-book-confirm-field">
-              <label
-                htmlFor="qb-confirm-branch"
-                className="appointment-quick-book-label"
-              >
-                Location
-              </label>
-              <select
-                id="qb-confirm-branch"
-                value={selectedBranch}
-                onChange={(e) => setSelectedBranch(e.target.value)}
-                className="appointment-quick-book-input"
-              >
-                {branches.map((branch) => (
-                  <option key={branch.id} value={branch.id}>
-                    {branch.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
 
           <div className="appointment-quick-book-confirm-field">
             <label

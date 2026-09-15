@@ -1302,6 +1302,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  padding: 0 12px;
 }
 .paon-env.paon-env .appointment-idea-heading {
   color: #f4f2ec;
@@ -1338,6 +1339,11 @@
   flex-wrap: nowrap;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  margin-left: -12px;
+  margin-right: -12px;
+  padding-left: 12px;
+  padding-right: 12px;
+  touch-action: pan-x;
 }
 .paon-env.paon-env .appointment-idea-carousel::-webkit-scrollbar {
   display: none;
@@ -1638,6 +1644,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  padding: 0 12px;
 }
 .paon-env.paon-env .appointment-month-carousel-heading {
   color: #f4f2ec;
@@ -1675,7 +1682,12 @@
   flex-wrap: nowrap;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  margin-left: -12px;
+  margin-right: -12px;
+  padding-left: 12px;
+  padding-right: 12px;
   padding-bottom: 4px;
+  touch-action: pan-x;
 }
 .paon-env.paon-env .appointment-month-carousel::-webkit-scrollbar {
   display: none;
