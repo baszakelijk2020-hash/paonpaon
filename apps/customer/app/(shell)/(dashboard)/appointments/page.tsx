@@ -162,9 +162,20 @@ const MONTHLY_APPOINTMENT_THEMES = [
   },
 ] as const;
 
+const APPOINTMENT_LANDSCAPE_IMAGES = [
+  "https://images.unsplash.com/photo-1617127365659-c47fa864d8bc?auto=format&fit=crop&w=1400&q=82",
+  "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=1400&q=82",
+  "https://images.unsplash.com/photo-1555069519-127aadedf1ee?auto=format&fit=crop&w=1400&q=82",
+  "https://images.unsplash.com/photo-1516762689617-e1cffcef479d?auto=format&fit=crop&w=1400&q=82",
+  "https://images.unsplash.com/photo-1610652492500-ded49ceeb378?auto=format&fit=crop&w=1400&q=82",
+  "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1400&q=82",
+] as const;
+
 function buildAppointmentYear(from: Date) {
+  const currentMonth = from.getMonth();
+  const cycleStartMonth = Math.floor(currentMonth / 3) * 3;
   return Array.from({ length: 12 }, (_, index) => {
-    const date = new Date(from.getFullYear(), index, 1);
+    const date = new Date(from.getFullYear(), cycleStartMonth + index, 1);
     const theme = MONTHLY_APPOINTMENT_THEMES[date.getMonth()]!;
     return {
       ...theme,
@@ -175,9 +186,12 @@ function buildAppointmentYear(from: Date) {
       ),
       monthNumber: String(date.getMonth() + 1).padStart(2, "0"),
       year: date.getFullYear(),
-      imageUrl: [6054, 6059, 6065, 6066][index % 4],
-      isPast: index < from.getMonth(),
-      isCurrent: index === from.getMonth(),
+      imageUrl:
+        APPOINTMENT_LANDSCAPE_IMAGES[index % APPOINTMENT_LANDSCAPE_IMAGES.length],
+      isPast: date < new Date(from.getFullYear(), currentMonth, 1),
+      isCurrent:
+        date.getFullYear() === from.getFullYear() &&
+        date.getMonth() === currentMonth,
     };
   });
 }
@@ -368,7 +382,7 @@ export default async function AppointmentsPage({
                     style={
                       {
                         "--appointment-accent": month.accent,
-                        "--appointment-image": `url(https://www.nebelspiegel.com/images/smaller/${month.imageUrl}.webp)`,
+                        "--appointment-image": `url(${month.imageUrl})`,
                       } as CSSProperties
                     }
                   >
@@ -376,6 +390,11 @@ export default async function AppointmentsPage({
                       <span className="appointment-month-name">
                         {month.monthName}
                       </span>
+                      {month.isCurrent ? (
+                        <span className="appointment-month-current-marker">
+                          Current month
+                        </span>
+                      ) : null}
                     </span>
                     <span className="appointment-month-year">{month.year}</span>
                     <span className="appointment-month-title">
