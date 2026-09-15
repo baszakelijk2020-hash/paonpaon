@@ -115,15 +115,12 @@ export function WelcomeCard({ firstName }: { firstName: string }) {
     );
   }, []);
 
-  const lastEnvironmentSettledRef = useRef<number>(0);
-
   /*
    * Before paint, so the finished sentence is never shown for a frame first,
    * and again whenever the sentence changes shape — the weather arrives after
    * mount and rewrites the middle of it.
    */
   useLayoutEffect(() => {
-    lastEnvironmentSettledRef.current = performance.now();
     play();
   }, [play, firstName, weather, evening]);
 
@@ -161,7 +158,6 @@ export function WelcomeCard({ firstName }: { firstName: string }) {
     };
     const onSettled = (event: Event) => {
       if ((event as CustomEvent<string>).detail === "customer") {
-        lastEnvironmentSettledRef.current = performance.now();
         play();
       }
     };
@@ -170,35 +166,6 @@ export function WelcomeCard({ firstName }: { firstName: string }) {
     return () => {
       window.removeEventListener("paon:environment-entering", arm);
       window.removeEventListener("paon:environment-settled", onSettled);
-    };
-  }, [play]);
-
-  /* Replay animations when returning to /dashboard via tab switch or route change.
-     Coalesce with environment-settled to avoid double-firing within 2000ms. */
-  useEffect(() => {
-    const onRouteVisible = (event: Event) => {
-      const customEvent = event as CustomEvent<{ pathname: string }>;
-      const pathname = customEvent.detail?.pathname;
-      if (!pathname || pathname !== "/dashboard") return;
-
-      const now = performance.now();
-      const timeSinceSettled = now - lastEnvironmentSettledRef.current;
-      /* Skip if environment-settled fired very recently (coalesce window). */
-      if (timeSinceSettled < 2000) return;
-
-      const node = copyRef.current;
-      if (!node) return;
-      const words = node.querySelectorAll<HTMLElement>(
-        ".paon-welcome-word > *",
-      );
-      if (words.length === 0) return;
-      gsap.set(words, { yPercent: 115, opacity: 0 });
-      lastEnvironmentSettledRef.current = now;
-      play();
-    };
-    window.addEventListener("paon:customer-route-visible", onRouteVisible);
-    return () => {
-      window.removeEventListener("paon:customer-route-visible", onRouteVisible);
     };
   }, [play]);
 

@@ -257,12 +257,9 @@ function ArrivalAndFitting() {
 
   const settledAt = REEL_RUN_UP + 1;
 
-  const lastEnvironmentSettledRef = useRef<number>(0);
-
   const runReel = useCallback(() => {
     if (frame.current !== null) cancelAnimationFrame(frame.current);
     setLanded(false);
-    lastEnvironmentSettledRef.current = performance.now();
     const startedAt = performance.now();
     const travel = settledAt - 1;
     const step = (stamp: number) => {
@@ -307,7 +304,6 @@ function ArrivalAndFitting() {
     };
     const play = (event: Event) => {
       if (isCustomer(event)) {
-        lastEnvironmentSettledRef.current = performance.now();
         runReel();
       }
     };
@@ -316,31 +312,6 @@ function ArrivalAndFitting() {
     return () => {
       window.removeEventListener("paon:environment-entering", arm);
       window.removeEventListener("paon:environment-settled", play);
-    };
-  }, [runReel]);
-
-  /* Replay reel animation when returning to /dashboard via tab switch or route change.
-     Coalesce with environment-settled to avoid double-firing within 2000ms. */
-  useEffect(() => {
-    const onRouteVisible = (event: Event) => {
-      const customEvent = event as CustomEvent<{ pathname: string }>;
-      const pathname = customEvent.detail?.pathname;
-      if (!pathname || pathname !== "/dashboard") return;
-
-      const now = performance.now();
-      const timeSinceSettled = now - lastEnvironmentSettledRef.current;
-      /* Skip if environment-settled fired very recently (coalesce window). */
-      if (timeSinceSettled < 2000) return;
-
-      if (frame.current !== null) cancelAnimationFrame(frame.current);
-      setPosition(1);
-      setLanded(false);
-      lastEnvironmentSettledRef.current = now;
-      runReel();
-    };
-    window.addEventListener("paon:customer-route-visible", onRouteVisible);
-    return () => {
-      window.removeEventListener("paon:customer-route-visible", onRouteVisible);
     };
   }, [runReel]);
 

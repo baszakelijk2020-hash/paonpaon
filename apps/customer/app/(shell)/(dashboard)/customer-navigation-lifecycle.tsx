@@ -1,7 +1,18 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
+
+export type CustomerRouteEntry = Readonly<{
+  pathname: string;
+  token: number;
+}>;
+
+let currentRouteEntry: CustomerRouteEntry = { pathname: "", token: 0 };
+
+export function getCustomerRouteEntry(): CustomerRouteEntry {
+  return currentRouteEntry;
+}
 
 /**
  * Lives in the persistent customer layout. The mounted top-menu Links own full
@@ -12,17 +23,16 @@ import { useEffect } from "react";
 export function CustomerNavigationLifecycle() {
   const pathname = usePathname();
 
-  useEffect(() => {
-    const animationFrameId = window.requestAnimationFrame(() => {
-      window.dispatchEvent(
-        new CustomEvent("paon:customer-route-visible", {
-          detail: { pathname },
-        }),
-      );
-    });
-    return () => {
-      window.cancelAnimationFrame(animationFrameId);
+  useLayoutEffect(() => {
+    currentRouteEntry = {
+      pathname,
+      token: currentRouteEntry.token + 1,
     };
+    window.dispatchEvent(
+      new CustomEvent<CustomerRouteEntry>("paon:customer-route-visible", {
+        detail: currentRouteEntry,
+      }),
+    );
   }, [pathname]);
 
   return (

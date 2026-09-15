@@ -16,6 +16,7 @@ import { AnalogueClock } from "./analogue-clock";
 import { ClockCard } from "./clock-card";
 import { FitCopy } from "./fit-copy";
 import { HIGHLIGHT } from "./highlight";
+import { MorningRoutineVisualRoot } from "./morning-routine-visual-root";
 import { OutfitBreakdown } from "./outfit-breakdown";
 import { PearlLight } from "./pearl-light";
 import { AirCard, SunCard, WindCard } from "./sky-cards";
@@ -210,7 +211,9 @@ export default async function DashboardPage() {
         <DashboardFavorites relationships={relationships} supabase={supabase} />
       </Suspense>
       {OVERVIEW_LAYOUT === "morning" ? (
-        <OverviewMorning firstName={firstName} />
+        <MorningRoutineVisualRoot>
+          <OverviewMorning firstName={firstName} />
+        </MorningRoutineVisualRoot>
       ) : (
         <OverviewOriginal firstName={firstName} />
       )}
