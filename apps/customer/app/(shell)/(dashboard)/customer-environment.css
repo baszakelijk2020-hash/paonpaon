@@ -982,16 +982,17 @@
 /* ── Appointments: compact rolling atelier year ───────────────────────── */
 .paon-env.paon-env .appointment-care-actions > .grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1px !important;
-  overflow: hidden;
-  border: 1px solid rgba(244, 242, 236, 0.16);
-  border-radius: 14px;
-  background: rgba(244, 242, 236, 0.16);
+  gap: 10px;
+  overflow: visible;
+  border: none;
+  border-radius: 0;
+  background: none;
 }
 .paon-env.paon-env .appointment-care-actions .pe-care-service {
-  min-height: 50px;
-  border-radius: 0;
-  background: #1a1a1a;
+  min-height: 72px;
+  border-radius: 18px;
+  corner-shape: squircle;
+  background: rgba(255, 255, 255, 0.05);
 }
 .paon-env.paon-env .appointment-care-actions .pe-care-service-label {
   font-size: 0;
@@ -1015,7 +1016,73 @@
   .appointment-care-actions
   .pe-care-service:nth-child(3)
   .pe-care-service-label::after {
-  content: "Alterations";
+  content: "Alterations/repairs";
+}
+
+/* Safari fallback: squircle polygon for care cards */
+@supports not (corner-shape: squircle) {
+  .paon-env.paon-env .appointment-care-actions .pe-care-service {
+    --paon-sq-r: 18px;
+  }
+  .paon-env.paon-env .appointment-care-actions .pe-care-service {
+    --paon-sq-clip: polygon(
+      0 var(--paon-sq-r),
+      calc(var(--paon-sq-r) * 0.0062) calc(var(--paon-sq-r) * 0.6045),
+      calc(var(--paon-sq-r) * 0.0248) calc(var(--paon-sq-r) * 0.4441),
+      calc(var(--paon-sq-r) * 0.0561) calc(var(--paon-sq-r) * 0.3262),
+      calc(var(--paon-sq-r) * 0.1005) calc(var(--paon-sq-r) * 0.2333),
+      calc(var(--paon-sq-r) * 0.1591) calc(var(--paon-sq-r) * 0.1591),
+      calc(var(--paon-sq-r) * 0.2333) calc(var(--paon-sq-r) * 0.1005),
+      calc(var(--paon-sq-r) * 0.3262) calc(var(--paon-sq-r) * 0.0561),
+      calc(var(--paon-sq-r) * 0.4441) calc(var(--paon-sq-r) * 0.0248),
+      calc(var(--paon-sq-r) * 0.6045) calc(var(--paon-sq-r) * 0.0062),
+      var(--paon-sq-r) 0,
+      calc(100% - var(--paon-sq-r)) 0,
+      calc(100% - var(--paon-sq-r) * 0.6045) calc(var(--paon-sq-r) * 0.0062),
+      calc(100% - var(--paon-sq-r) * 0.4441) calc(var(--paon-sq-r) * 0.0248),
+      calc(100% - var(--paon-sq-r) * 0.3262) calc(var(--paon-sq-r) * 0.0561),
+      calc(100% - var(--paon-sq-r) * 0.2333) calc(var(--paon-sq-r) * 0.1005),
+      calc(100% - var(--paon-sq-r) * 0.1591) calc(var(--paon-sq-r) * 0.1591),
+      calc(100% - var(--paon-sq-r) * 0.1005) calc(var(--paon-sq-r) * 0.2333),
+      calc(100% - var(--paon-sq-r) * 0.0561) calc(var(--paon-sq-r) * 0.3262),
+      calc(100% - var(--paon-sq-r) * 0.0248) calc(var(--paon-sq-r) * 0.4441),
+      calc(100% - var(--paon-sq-r) * 0.0062) calc(var(--paon-sq-r) * 0.6045),
+      100% var(--paon-sq-r),
+      100% calc(100% - var(--paon-sq-r)),
+      calc(100% - var(--paon-sq-r) * 0.0062)
+        calc(100% - var(--paon-sq-r) * 0.6045),
+      calc(100% - var(--paon-sq-r) * 0.0248)
+        calc(100% - var(--paon-sq-r) * 0.4441),
+      calc(100% - var(--paon-sq-r) * 0.0561)
+        calc(100% - var(--paon-sq-r) * 0.3262),
+      calc(100% - var(--paon-sq-r) * 0.1005)
+        calc(100% - var(--paon-sq-r) * 0.2333),
+      calc(100% - var(--paon-sq-r) * 0.1591)
+        calc(100% - var(--paon-sq-r) * 0.1591),
+      calc(100% - var(--paon-sq-r) * 0.2333)
+        calc(100% - var(--paon-sq-r) * 0.1005),
+      calc(100% - var(--paon-sq-r) * 0.3262)
+        calc(100% - var(--paon-sq-r) * 0.0561),
+      calc(100% - var(--paon-sq-r) * 0.4441)
+        calc(100% - var(--paon-sq-r) * 0.0248),
+      calc(100% - var(--paon-sq-r) * 0.6045)
+        calc(100% - var(--paon-sq-r) * 0.0062),
+      calc(100% - var(--paon-sq-r)) 100%,
+      var(--paon-sq-r) 100%,
+      calc(var(--paon-sq-r) * 0.6045) calc(100% - var(--paon-sq-r) * 0.0062),
+      calc(var(--paon-sq-r) * 0.4441) calc(100% - var(--paon-sq-r) * 0.0248),
+      calc(var(--paon-sq-r) * 0.3262) calc(100% - var(--paon-sq-r) * 0.0561),
+      calc(var(--paon-sq-r) * 0.2333) calc(100% - var(--paon-sq-r) * 0.1005),
+      calc(var(--paon-sq-r) * 0.1591) calc(100% - var(--paon-sq-r) * 0.1591),
+      calc(var(--paon-sq-r) * 0.1005) calc(100% - var(--paon-sq-r) * 0.2333),
+      calc(var(--paon-sq-r) * 0.0561) calc(100% - var(--paon-sq-r) * 0.3262),
+      calc(var(--paon-sq-r) * 0.0248) calc(100% - var(--paon-sq-r) * 0.4441),
+      calc(var(--paon-sq-r) * 0.0062) calc(100% - var(--paon-sq-r) * 0.6045),
+      0 calc(100% - var(--paon-sq-r))
+    );
+    -webkit-clip-path: var(--paon-sq-clip);
+    clip-path: var(--paon-sq-clip);
+  }
 }
 .paon-env.paon-env .appointment-year-heading {
   display: flex;
@@ -1203,6 +1270,140 @@
   .paon-env.paon-env .appointment-month-launcher::after {
     backdrop-filter: none;
     filter: none;
+  }
+}
+
+/* ── Appointment idea carousel: tableservice-style starter cards ────────── */
+.paon-env.paon-env .appointment-idea-section {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.paon-env.paon-env .appointment-idea-heading {
+  color: #f4f2ec;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.paon-env.paon-env .appointment-idea-carousel {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.paon-env.paon-env .appointment-idea-carousel::-webkit-scrollbar {
+  display: none;
+}
+.paon-env.paon-env .appointment-idea-card {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 140px;
+  height: 110px;
+  border-radius: 18px;
+  corner-shape: squircle;
+  overflow: hidden;
+  padding: 10px;
+  background-image: var(--appointment-idea-image);
+  background-size: cover;
+  background-position: center;
+  border: none;
+  cursor: pointer;
+  transition: opacity 180ms ease;
+}
+.paon-env.paon-env .appointment-idea-card:hover {
+  opacity: 0.85;
+}
+.paon-env.paon-env .appointment-idea-card::before {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  content: "";
+  background: linear-gradient(
+    to bottom,
+    rgba(8, 8, 8, 0) 30%,
+    rgba(8, 8, 8, 0.6)
+  );
+  pointer-events: none;
+}
+.paon-env.paon-env .appointment-idea-caption {
+  position: relative;
+  z-index: 2;
+  color: #f4f2ec;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+  text-align: center;
+  max-width: 100%;
+}
+
+/* Safari fallback: squircle polygon for idea cards */
+@supports not (corner-shape: squircle) {
+  .paon-env.paon-env .appointment-idea-card {
+    --paon-sq-r: 18px;
+  }
+  .paon-env.paon-env .appointment-idea-card {
+    --paon-sq-clip: polygon(
+      0 var(--paon-sq-r),
+      calc(var(--paon-sq-r) * 0.0062) calc(var(--paon-sq-r) * 0.6045),
+      calc(var(--paon-sq-r) * 0.0248) calc(var(--paon-sq-r) * 0.4441),
+      calc(var(--paon-sq-r) * 0.0561) calc(var(--paon-sq-r) * 0.3262),
+      calc(var(--paon-sq-r) * 0.1005) calc(var(--paon-sq-r) * 0.2333),
+      calc(var(--paon-sq-r) * 0.1591) calc(var(--paon-sq-r) * 0.1591),
+      calc(var(--paon-sq-r) * 0.2333) calc(var(--paon-sq-r) * 0.1005),
+      calc(var(--paon-sq-r) * 0.3262) calc(var(--paon-sq-r) * 0.0561),
+      calc(var(--paon-sq-r) * 0.4441) calc(var(--paon-sq-r) * 0.0248),
+      calc(var(--paon-sq-r) * 0.6045) calc(var(--paon-sq-r) * 0.0062),
+      var(--paon-sq-r) 0,
+      calc(100% - var(--paon-sq-r)) 0,
+      calc(100% - var(--paon-sq-r) * 0.6045) calc(var(--paon-sq-r) * 0.0062),
+      calc(100% - var(--paon-sq-r) * 0.4441) calc(var(--paon-sq-r) * 0.0248),
+      calc(100% - var(--paon-sq-r) * 0.3262) calc(var(--paon-sq-r) * 0.0561),
+      calc(100% - var(--paon-sq-r) * 0.2333) calc(var(--paon-sq-r) * 0.1005),
+      calc(100% - var(--paon-sq-r) * 0.1591) calc(var(--paon-sq-r) * 0.1591),
+      calc(100% - var(--paon-sq-r) * 0.1005) calc(var(--paon-sq-r) * 0.2333),
+      calc(100% - var(--paon-sq-r) * 0.0561) calc(var(--paon-sq-r) * 0.3262),
+      calc(100% - var(--paon-sq-r) * 0.0248) calc(var(--paon-sq-r) * 0.4441),
+      calc(100% - var(--paon-sq-r) * 0.0062) calc(var(--paon-sq-r) * 0.6045),
+      100% var(--paon-sq-r),
+      100% calc(100% - var(--paon-sq-r)),
+      calc(100% - var(--paon-sq-r) * 0.0062)
+        calc(100% - var(--paon-sq-r) * 0.6045),
+      calc(100% - var(--paon-sq-r) * 0.0248)
+        calc(100% - var(--paon-sq-r) * 0.4441),
+      calc(100% - var(--paon-sq-r) * 0.0561)
+        calc(100% - var(--paon-sq-r) * 0.3262),
+      calc(100% - var(--paon-sq-r) * 0.1005)
+        calc(100% - var(--paon-sq-r) * 0.2333),
+      calc(100% - var(--paon-sq-r) * 0.1591)
+        calc(100% - var(--paon-sq-r) * 0.1591),
+      calc(100% - var(--paon-sq-r) * 0.2333)
+        calc(100% - var(--paon-sq-r) * 0.1005),
+      calc(100% - var(--paon-sq-r) * 0.3262)
+        calc(100% - var(--paon-sq-r) * 0.0561),
+      calc(100% - var(--paon-sq-r) * 0.4441)
+        calc(100% - var(--paon-sq-r) * 0.0248),
+      calc(100% - var(--paon-sq-r) * 0.6045)
+        calc(100% - var(--paon-sq-r) * 0.0062),
+      calc(100% - var(--paon-sq-r)) 100%,
+      var(--paon-sq-r) 100%,
+      calc(var(--paon-sq-r) * 0.6045) calc(100% - var(--paon-sq-r) * 0.0062),
+      calc(var(--paon-sq-r) * 0.4441) calc(100% - var(--paon-sq-r) * 0.0248),
+      calc(var(--paon-sq-r) * 0.3262) calc(100% - var(--paon-sq-r) * 0.0561),
+      calc(var(--paon-sq-r) * 0.2333) calc(100% - var(--paon-sq-r) * 0.1005),
+      calc(var(--paon-sq-r) * 0.1591) calc(100% - var(--paon-sq-r) * 0.1591),
+      calc(var(--paon-sq-r) * 0.1005) calc(100% - var(--paon-sq-r) * 0.2333),
+      calc(var(--paon-sq-r) * 0.0561) calc(100% - var(--paon-sq-r) * 0.3262),
+      calc(var(--paon-sq-r) * 0.0248) calc(100% - var(--paon-sq-r) * 0.4441),
+      calc(var(--paon-sq-r) * 0.0062) calc(100% - var(--paon-sq-r) * 0.6045),
+      0 calc(100% - var(--paon-sq-r))
+    );
+    -webkit-clip-path: var(--paon-sq-clip);
+    clip-path: var(--paon-sq-clip);
   }
 }
 

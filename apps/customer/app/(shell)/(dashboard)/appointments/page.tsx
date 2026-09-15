@@ -16,6 +16,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import { z } from "zod";
 
+import { AppointmentIdeaCarousel } from "./appointment-idea-carousel";
 import { BookAppointmentLauncher } from "./book-appointment-launcher";
 import type { BookableBranch } from "./booking-flow";
 import { APPOINTMENT_REASONS } from "./booking-reasons";
@@ -337,6 +338,18 @@ export default async function AppointmentsPage({
           <PaidCareLauncher
             retailerId={primaryCustomer.retailerId}
             operationsByService={operationsByService}
+          />
+        </section>
+      ) : null}
+
+      {primaryCustomer ? (
+        <section
+          className="appointment-idea-carousel-section"
+          aria-label="Appointment ideas"
+        >
+          <AppointmentIdeaCarousel
+            retailerId={primaryCustomer.retailerId}
+            branches={bookableBranches}
           />
         </section>
       ) : null}
