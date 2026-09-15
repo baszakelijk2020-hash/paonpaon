@@ -187,7 +187,9 @@ function buildAppointmentYear(from: Date) {
       monthNumber: String(date.getMonth() + 1).padStart(2, "0"),
       year: date.getFullYear(),
       imageUrl:
-        APPOINTMENT_LANDSCAPE_IMAGES[index % APPOINTMENT_LANDSCAPE_IMAGES.length],
+        APPOINTMENT_LANDSCAPE_IMAGES[
+          index % APPOINTMENT_LANDSCAPE_IMAGES.length
+        ],
       isPast: date < new Date(from.getFullYear(), currentMonth, 1),
       isCurrent:
         date.getFullYear() === from.getFullYear() &&
@@ -381,7 +383,6 @@ export default async function AppointmentsPage({
                     className={`appointment-month-launcher${month.isCurrent ? "is-current" : ""}`}
                     style={
                       {
-                        "--appointment-accent": month.accent,
                         "--appointment-image": `url(${month.imageUrl})`,
                       } as CSSProperties
                     }
