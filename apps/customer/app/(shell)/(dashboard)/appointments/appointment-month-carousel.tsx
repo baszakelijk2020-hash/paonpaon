@@ -17,7 +17,7 @@ export interface MonthData {
   readonly imageUrl: string;
   readonly isPast: boolean;
   readonly isCurrent: boolean;
-  readonly accent: string;
+  readonly accent?: string;
 }
 
 export function AppointmentMonthCarousel({

@@ -826,11 +826,28 @@
   color: rgba(244, 242, 236, 0.6);
 }
 
+/* Appointment fit layout: viewport-locked above-the-fold layout */
+.paon-env.paon-env .appointment-fit {
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  padding-bottom: 0;
+  box-sizing: border-box;
+}
+
 /* Page rhythm: the overview's 18px between blocks — and the same 18px
    between cards that share a row, wherever a grid of them appears. */
 .paon-env.paon-env .customer-page {
   gap: 18px !important;
   padding-bottom: 28px !important;
+}
+
+.appointment-fit.customer-page {
+  gap: 10px !important;
+  padding-bottom: 0 !important;
 }
 .paon-env.paon-env .customer-page > section > .grid,
 .paon-env.paon-env .customer-page > .grid,
