@@ -42,9 +42,9 @@ export function AppointmentMonthCarousel({
     });
   };
 
-  // Filter to only render non-empty months
+  // Filter to only render current and future months with non-empty titles
   const visibleMonths = months.filter(
-    (month) => month.isPast || month.isCurrent || month.title !== "",
+    (month) => !month.isPast && (month.isCurrent || month.title !== ""),
   );
 
   return (
@@ -77,38 +77,29 @@ export function AppointmentMonthCarousel({
             className="appointment-month-carousel-card"
             data-appointment-month={month.month}
           >
-            {month.isPast ? (
-              <div className="appointment-month-past">
+            <BookAppointmentLauncher
+              retailerId={retailerId}
+              branches={branches}
+              initialReason="in_the_mood_for_something_fresh"
+              purpose={`${month.title} Appointment`}
+              initialMonth={month.month}
+              className="appointment-month-launcher"
+              style={
+                {
+                  "--appointment-image": `url(${month.imageUrl})`,
+                } as CSSProperties
+              }
+            >
+              <span className="appointment-month-topline">
                 <span className="appointment-month-name">
                   {month.monthName}
                 </span>
-                <span className="appointment-month-year">{month.year}</span>
-              </div>
-            ) : (
-              <BookAppointmentLauncher
-                retailerId={retailerId}
-                branches={branches}
-                initialReason="in_the_mood_for_something_fresh"
-                purpose={`${month.title} Appointment`}
-                initialMonth={month.month}
-                className="appointment-month-launcher"
-                style={
-                  {
-                    "--appointment-image": `url(${month.imageUrl})`,
-                  } as CSSProperties
-                }
-              >
-                <span className="appointment-month-topline">
-                  <span className="appointment-month-name">
-                    {month.monthName}
-                  </span>
-                </span>
-                <span className="appointment-month-year">{month.year}</span>
-                <span className="appointment-month-title">{month.title}</span>
-                <span className="appointment-month-copy">{month.copy}</span>
-                <span className="appointment-month-cta">Book visit →</span>
-              </BookAppointmentLauncher>
-            )}
+              </span>
+              <span className="appointment-month-year">{month.year}</span>
+              <span className="appointment-month-title">{month.title}</span>
+              <span className="appointment-month-copy">{month.copy}</span>
+              <span className="appointment-month-cta">Book visit →</span>
+            </BookAppointmentLauncher>
           </div>
         ))}
       </div>
