@@ -145,6 +145,7 @@ export function WelcomeCard({ firstName }: { firstName: string }) {
    * sentence was already on screen, so it flashed whole, snapped back to empty
    * and only then wrote itself. `settled` just starts the tween.
    */
+  const lastEnvironmentSettledRef = useRef<number>(0);
   useEffect(() => {
     const arm = (event: Event) => {
       if ((event as CustomEvent<string>).detail !== "customer") return;
@@ -157,13 +158,45 @@ export function WelcomeCard({ firstName }: { firstName: string }) {
       gsap.set(words, { yPercent: 115, opacity: 0 });
     };
     const onSettled = (event: Event) => {
-      if ((event as CustomEvent<string>).detail === "customer") play();
+      if ((event as CustomEvent<string>).detail === "customer") {
+        lastEnvironmentSettledRef.current = performance.now();
+        play();
+      }
     };
     window.addEventListener("paon:environment-entering", arm);
     window.addEventListener("paon:environment-settled", onSettled);
     return () => {
       window.removeEventListener("paon:environment-entering", arm);
       window.removeEventListener("paon:environment-settled", onSettled);
+    };
+  }, [play]);
+
+  /* Replay animations when returning to /dashboard via tab switch or route change.
+     Coalesce with environment-settled to avoid double-firing within 400ms. */
+  useEffect(() => {
+    const onRouteVisible = (event: Event) => {
+      const customEvent = event as CustomEvent<{ pathname: string }>;
+      const pathname = customEvent.detail?.pathname;
+      if (!pathname || pathname !== "/dashboard") return;
+
+      const now = performance.now();
+      const timeSinceSettled = now - lastEnvironmentSettledRef.current;
+      /* Skip if environment-settled fired very recently (coalesce window). */
+      if (timeSinceSettled < 400) return;
+
+      const node = copyRef.current;
+      if (!node) return;
+      const words = node.querySelectorAll<HTMLElement>(
+        ".paon-welcome-word > *",
+      );
+      if (words.length === 0) return;
+      gsap.set(words, { yPercent: 115, opacity: 0 });
+      lastEnvironmentSettledRef.current = now;
+      play();
+    };
+    window.addEventListener("paon:customer-route-visible", onRouteVisible);
+    return () => {
+      window.removeEventListener("paon:customer-route-visible", onRouteVisible);
     };
   }, [play]);
 
