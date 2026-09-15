@@ -7564,3 +7564,14 @@ h2.paon-outfit-heading,
 .paon-overview-morning .paon-morning-readings .paon-stat-value {
   font-size: clamp(18.2px, 8.4cqi, 36.4px);
 }
+
+/* Keep the three-column morning canvas inside the workspace gutters. The
+   continuous slate remains intact between columns, while the outer canvas,
+   viewer, outfit tiles, delivery leaves and fitting mark keep their house
+   squircle geometry instead of being cut off at the viewport edges. */
+.paon-overview-morning .paon-morning {
+  height: calc(100vh - 46px);
+  margin: -2px 0 0;
+  border-radius: 2rem;
+  corner-shape: squircle;
+}
