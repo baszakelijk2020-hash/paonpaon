@@ -9089,12 +9089,11 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
   - **Dependencies:** `20.6`; current local calendar commits `c07d502`,
     `6c3fdcb`, `a52f402`, and `ab38734` on
     `platform-integrated-20260903`.
-  - **Current state:** the local `/appointments` route starts with the current
-    quarter, renders four chronological quarter rows in a three-column grid,
-    keeps paid-care actions above the calendar, uses one-month-ahead booking
-    themes, restores progressive image blur, removes Concierge, and has flush
-    square zero-gap cells. Vercel production is intentionally paused. The
-    latest founder content/typography/image revision below is not implemented.
+  - **Current state:** code landed at `28acd2f` on
+    `platform-integrated-20260903` (sparse Jan–Dec themes with empty April,
+    TableService images, title-only header, 3-column/`20px` row-gap grid).
+    Vercel production remains intentionally paused. Checkbox stays open until
+    authenticated local desktop proof at `1512x982` is accepted.
   - **Owned paths:**
     `apps/customer/app/(shell)/(dashboard)/appointments/page.tsx` and
     appointment-scoped rules only in
@@ -9103,10 +9102,10 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     rows, but leave some months intentionally empty. Program only: September —
     `Fall/Winter Wardrobe`; October — `Winter Coat Shopping`; November —
     `Holiday Season Outfit`; December — `Purchase customised gift vouchers
-    for loved ones or staff`; January — `Retail Therapy Session`; February —
+for loved ones or staff`; January — `Retail Therapy Session`; February —
     `Spring/Summer Tailoring`; March — `Wedding & Event`; May — `Summer
-    Holiday` covering summer knits, linen shirts, and loafers; June — `Private
-    Cloth Preview`, an invitation-only first look at limited cloth and the next
+Holiday` covering summer knits, linen shirts, and loafers; June — `Private
+Cloth Preview`, an invitation-only first look at limited cloth and the next
     autumn book; July — `Private Archive Appointment`, using one-off cloth,
     house favourites, and a mid-year fit review to create a non-summer reason
     to visit; August — `Back to the Office Refresh`. April remains empty.
@@ -9138,8 +9137,31 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     Appointments audit after the local visual pass is accepted.
 
 - [ ] **20.38 customer-appointments-guided-booking-and-advisor-platform — authoritative multi-step booking**
-  - **Dependencies:** `20.37`; requires frontier-owned schema, RLS, auth, guest
-    identity, availability, and email-link decisions before implementation.
+  - **Dependencies:** `20.37`; frontier schema/RLS/auth contracts settled below —
+    implementation may proceed in vertical slices; security review still
+    mandatory before merge of lifecycle email links.
+  - **Settled contracts (2026-09-15):**
+    - **Reuse** existing `booking-flow.tsx`, `request_guest_appointment`,
+      `computeAvailableSlots`, `EmailOutboxRepository` / gift-style enqueue,
+      and customer `assigned_staff_id`. Do not invent a second booking system.
+    - **Schema:** `appointments.party_size int not null default 1 check (1..8)`;
+      `retailer_staff_members.photo_url`, `bio`, `bookable boolean not null
+default true`; `appointment_action_tokens` (uuid token, change|cancel,
+      expiry, used_at) with deny-by-default RLS (platform staff only until
+      SECURITY DEFINER redeem RPC); staff overlap via `EXCLUDE USING gist`
+      on non-canceled rows with non-null `staff_id`.
+    - **Types/duration:** `Introduction` → 60m (`styling_consultation`);
+      `Making something new` → 90m (`personal_shopping`); persist via
+      `starts_at`/`ends_at`.
+    - **Advisor:** preselect `assigned_staff_id`; `No preference` stores
+      null `staff_id`; RLS keeps tenant isolation.
+    - **Guest identity:** extend existing guest appointment RPC/route; do not
+      fabricate Apple/Google unless already configured in env.
+    - **Email links:** confirmation email enqueues tokens; change/cancel
+      redeem once via SECURITY DEFINER RPC, expire, and leak nothing
+      cross-tenant.
+  - **Foundation slice:** schema/domain/repo at worker `f8a5f4e` pending
+    frontier merge after independent verification.
   - **Requirement:** replace the current
     `reason → location → date → time → review` flow with equal-size numbered
     pages and a compact directly navigable progress rail for month, date, time,
@@ -9151,7 +9173,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     action, and `No preference`. Party size defaults to one and uses animated
     minus/plus controls that add or remove person figures. Every option has an
     image. Appointment types are `Introduction (60m)` and `Making something
-    new (90m)` and the stored duration must match the choice.
+new (90m)` and the stored duration must match the choice.
   - **Identity/confirmation:** prefill logged-in customer name and phone and
     provide a comment field. Guest confirmation keeps all booking selections
     in-screen while offering `Returning customer` sign-in, `Create new account`
