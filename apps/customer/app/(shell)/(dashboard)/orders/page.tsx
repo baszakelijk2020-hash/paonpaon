@@ -199,24 +199,12 @@ function CompleteTheLookModule({
         >
           {source.imageUrl ? (
             <>
-              {/* Restrained blurred backing layer only — never plain
-                  empty letterboxing — while the full original image
-                  stays primary via object-contain below (§5.3's
-                  owned-card treatment, reused here). */}
-              <Image
-                src={source.imageUrl}
-                alt=""
-                fill
-                unoptimized
-                aria-hidden="true"
-                className="scale-110 object-cover opacity-50 blur-md"
-              />
               <Image
                 src={source.imageUrl}
                 alt={source.name}
                 fill
                 unoptimized
-                className="object-contain"
+                className="object-cover object-top"
               />
             </>
           ) : (
@@ -241,18 +229,10 @@ function CompleteTheLookModule({
                       <>
                         <Image
                           src={suggestion.primaryImageUrl}
-                          alt=""
-                          fill
-                          unoptimized
-                          aria-hidden="true"
-                          className="scale-110 object-cover opacity-50 blur-md"
-                        />
-                        <Image
-                          src={suggestion.primaryImageUrl}
                           alt={suggestion.displayName}
                           fill
                           unoptimized
-                          className="object-contain"
+                          className="object-cover object-top"
                         />
                       </>
                     ) : (

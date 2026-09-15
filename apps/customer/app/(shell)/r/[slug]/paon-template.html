@@ -8837,19 +8837,24 @@ body.product-detail-open .paon-bottom-service-btn,body.filter-active .paon-botto
     .detail-right,
     #detail-right,
     .detail-right-scroll,
+    /* The product panel runs dark at the top to light at the foot, the way
+       the left sidebar does (#1a1a1a → #4d4d4d), and ten per cent darker than
+       it so the two read as the same family without the panel competing:
+       #171717 → #454545. It used to run left to right, which fought the
+       sidebar beside it. */
     .detail-right-scroll-bg,
     .detail-right-lock,
     body.product-detail-open .detail-right,
     body.product-detail-open .detail-right-scroll {
-        background: linear-gradient(to right, #1a1a1a, #000000) !important;
+        background: linear-gradient(180deg, #171717 0%, #454545 100%) !important;
     }
     /* seam strip left of right panel */
     .detail-right::before {
-        background: linear-gradient(to right, #1a1a1a, #1a1a1a) !important;
+        background: #171717 !important;
     }
-    /* right footer */
+    /* right footer — the foot of the same run, so it carries the light end */
     .detail-right-footer {
-        background: linear-gradient(to right, #1f1f1f, #050505) !important;
+        background: linear-gradient(180deg, #3a3a3a 0%, #454545 100%) !important;
     }
 
     /* 1. Footer description text #808080 */
@@ -12888,6 +12893,13 @@ body.grid-return-animating #product-grid .grid-card .grid-card-overlay{
     overflow:hidden!important;
 }
 
+/* Anchored to the top, not the middle. Cover has to crop a tall garment
+   somewhere, and centred it took the crop off BOTH ends — the shoulders and
+   the collar of every suit and jacket went with it. Off the top is the one
+   place it must never come; the hem can go. The hover zoom grows from the
+   same edge for the same reason, otherwise it pushed the collar back out at
+   every scale. Holds for the 2-, 3- and 4-column grids alike: this is the
+   crop rule, not a per-width one. */
 #product-grid .grid-card img{
     width:100%!important;
     height:100%!important;
@@ -12896,16 +12908,18 @@ body.grid-return-animating #product-grid .grid-card .grid-card-overlay{
     min-width:100%!important;
     min-height:100%!important;
     object-fit:cover!important;
-    object-position:center center!important;
-    transform-origin:center center!important;
+    object-position:center top!important;
+    transform-origin:center top!important;
     will-change:transform!important;
     backface-visibility:hidden!important;
     -webkit-backface-visibility:hidden!important;
     transition:transform 900ms cubic-bezier(.22,.61,.36,1)!important;
 }
 
+/* 5% is the ceiling for the hover zoom. It was running to 5.5% off a 1.8%
+   resting scale, which read as a lurch rather than a lift. */
 #product-grid .grid-card:hover img{
-    transform:scale3d(1.045,1.045,1)!important;
+    transform:scale3d(1.05,1.05,1)!important;
 }
 
 #product-grid .grid-card.paon-product-grid-visible img{
@@ -12913,7 +12927,7 @@ body.grid-return-animating #product-grid .grid-card .grid-card-overlay{
 }
 
 #product-grid .grid-card.paon-product-grid-visible:hover img{
-    transform:scale3d(1.055,1.055,1)!important;
+    transform:scale3d(1.05,1.05,1)!important;
 }
 
 #product-grid .grid-card.paon-product-grid-waiting img{
@@ -16221,8 +16235,8 @@ html:not(.paon-mobile) #paon-desktop-also-like-grid::-webkit-scrollbar {
 /* The carousel runs under the right-hand panel by --detail-seam-overlap
    (48px): that is where the right arrow was, invisible behind the panel.
    The container now stops at the panel's edge, so both arrows sit on the
-   visible carousel, and two whole cards fill the width — no third card cut
-   off by the panel. */
+   visible carousel. Two and a half cards show at a time: the half card at
+   the edge is what says the row slides and there is more to see. */
 html:not(.paon-mobile) #paon-desktop-also-like {
     padding-right: var(--detail-seam-overlap, 0px) !important;
 }
@@ -16231,10 +16245,10 @@ html:not(.paon-mobile) .paon-also-like-viewport {
     overflow: hidden !important;
 }
 html:not(.paon-mobile) #paon-desktop-also-like-grid .grid-card {
-    flex: 0 0 50% !important;
-    width: 50% !important;
-    min-width: 50% !important;
-    max-width: 50% !important;
+    flex: 0 0 40% !important;
+    width: 40% !important;
+    min-width: 40% !important;
+    max-width: 40% !important;
     scroll-snap-align: start !important;
     overflow: hidden !important;
 }
@@ -16482,19 +16496,24 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
 html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
     display: none !important;
 }
+/* Full height of the carousel, square. `top: 56px` started the arrow below
+   the first card's shoulder and left a bare strip above it; the radius put a
+   rounded corner on a blurred overlay that has no card to belong to. Both
+   gone: the arrow is the full edge of the viewport it scrolls. */
 .paon-carousel-btn {
-    top: 56px !important;
+    top: 0 !important;
     bottom: 0 !important;
     width: 56px !important;
+    border-radius: 0 !important;
     background: linear-gradient(90deg, rgba(244,241,236,.06), rgba(244,241,236,.70)) !important;
 }
 .paon-carousel-btn-left {
     left: 0 !important;
-    border-radius: 0 14px 14px 0 !important;
+    border-radius: 0 !important;
 }
 .paon-carousel-btn-right {
     right: 0 !important;
-    border-radius: 14px 0 0 14px !important;
+    border-radius: 0 !important;
     background: linear-gradient(90deg, rgba(244,241,236,.70), rgba(244,241,236,.06)) !important;
 }
 
@@ -17734,6 +17753,14 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
         return false; // only reached the bare dark feed / page backing
     }
 
+    /* The "Ask TableService" label and its waiter glyph sit in the same
+       optical family as the five top-bar icons, so they take the top bar's
+       own dark grey rather than the widget's near-black. The rest of the
+       widget (messages, close, attach) keeps the darker ink — that is body
+       copy on glass and needs the contrast. Kept in step with the
+       body[data-topbar="light"] colour in #paon-topbar-contrast. */
+    var TOPBAR_DARK_INK = '#6c6c69';
+
     function inkFor(el) {
         var r = el.getBoundingClientRect();
         if (r.width < 1 || r.height < 1) return null;
@@ -17783,7 +17810,9 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
         var rowInk = (open && clip) ? inkFor(clip) : inkFor(toggleBtn);
         if (rowInk) {
             if (clip) clip.style.setProperty('filter', rowInk === '#ffffff' ? 'invert(1)' : 'invert(0.05)', 'important');
-            toggleBtn.style.setProperty('color', rowInk, 'important');
+            // The label carries the glyph with it: .gcw-toggle-icon is a mask
+            // painted with currentColor, so colouring the button colours both.
+            toggleBtn.style.setProperty('color', rowInk === '#ffffff' ? rowInk : TOPBAR_DARK_INK, 'important');
             chatInput.style.setProperty('color', rowInk, 'important');
         }
         /* The Send label is always dark (its button is a near-white pill). */
@@ -18156,6 +18185,9 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
     window.addEventListener('resize', scheduleInk, { passive: true });
     updateGcwInk();
 
+    /* One curve for the whole shrink back into the pill. */
+    var CLOSE_S = 0.5;
+
     function closeChatWidget() {
         if (!launcher.classList.contains('open')) return;
         var launcherRect = launcher.getBoundingClientRect();
@@ -18170,6 +18202,13 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
         var toggleArrow = toggleBtn.querySelector('.gcw-toggle-arrow');
         gsap.killTweensOf([chatWidget, chatWrapper, toggleBtn, toggleArrow]);
         gsap.set(toggleArrow, { display: '' });
+        /* The open panel's stylesheet holds the label at opacity 0 with
+           !important, which no tween can override — so the label stayed
+           invisible for the whole shrink and only faded in after the panel
+           was gone. Closing lifts that rule (.gcw-closing) with the label
+           pinned at 0 first, and the timeline below brings it in. */
+        gsap.set(toggleBtn, { autoAlpha: 0 });
+        launcher.classList.add('gcw-closing');
         // Keep the label's own glass OFF for the whole shrink — otherwise a
         // small opaque pill flashes over the still-visible panel body.
         // restoreLauncher() (onComplete) removes the inline styles and the CSS
@@ -18177,22 +18216,29 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
         gsap.timeline({
             onComplete: function() {
                 restoreLauncher();
+                launcher.classList.remove('gcw-closing');
                 chatWrapper.style.removeProperty('opacity');
                 chatWrapper.style.removeProperty('visibility');
                 chatWrapper.style.removeProperty('height');
                 toggleBtn.focus();
             }
         })
-            .to(chatWrapper, { autoAlpha: 0, duration: 0.12, ease: 'power1.in' })
+            .to(chatWrapper, { autoAlpha: 0, duration: 0.16, ease: 'power1.out' }, 0)
+            /* The panel shrinks INTO the pill: frame, label and arrow move as
+               one, on one smooth in-out curve, and the label is visible the
+               whole way. It used to stay hidden (the field had faded it out)
+               until the panel was gone, so the frame shrank to an empty
+               sliver and the pill then faded in on its own. */
             .to(toggleBtn, {
                 left: home.left - launcherRect.left,
                 minWidth: 290,
                 paddingLeft: 22,
                 paddingRight: 22,
-                duration: 0.34,
-                ease: 'power3.in'
-            }, 0.06)
-            .to(toggleArrow, { opacity: 1, duration: 0.2, ease: 'none' }, 0.22)
+                duration: CLOSE_S,
+                ease: 'power3.inOut'
+            }, 0)
+            .to(toggleBtn, { autoAlpha: 1, duration: 0.24, ease: 'power1.out' }, 0.1)
+            .to(toggleArrow, { opacity: 1, duration: 0.24, ease: 'power1.out' }, CLOSE_S - 0.24)
             .to(chatWidget, {
                 transformOrigin: 'bottom left',
                 left: home.left,
@@ -18200,14 +18246,14 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
                 width: home.width,
                 height: home.height,
                 boxShadow: 'none',
-                duration: 0.34,
-                ease: 'power3.in'
-            }, 0.06)
+                duration: CLOSE_S,
+                ease: 'power3.inOut'
+            }, 0)
             .to(chatWrapper, {
                 height: home.height,
-                duration: 0.34,
-                ease: 'power3.in'
-            }, 0.06);
+                duration: CLOSE_S,
+                ease: 'power3.inOut'
+            }, 0);
     }
 
     toggleBtn.addEventListener('click', function() {
@@ -19709,7 +19755,13 @@ body.filter-active #filter-panel {
 <script id="paon-catalog-filter-grid-controls">
 (function () {
     function defaultColumns(category) {
-        return String(category || '') === 'Pants' ? 3 : 2;
+        var name = String(category || '');
+        /* Suits and Jackets open on three. Two made every card a full-height
+           figure and only a pair of looks fitted on screen; three is the
+           density the catalogue is meant to be read at. The visitor can still
+           choose 2 or 4 — this is only where it starts. */
+        if (name === 'Pants' || name === 'Suits' || name === 'Jackets') return 3;
+        return 2;
     }
     /* Suits and Jackets are the same shared catalogue photography, cut the
        same way, so a column count chosen on one is the column count for both.
@@ -20512,6 +20564,35 @@ body.filter-active #filter-panel {
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
     else start();
+})();
+</script>
+<style id="paon-product-grid-clear-header">
+/* The first row of the grid started at y=0, underneath the fixed, blurred
+   #header — so the top of every suit and jacket on that row was behind frosted
+   glass. That is the "clipping": not the image fit, which fills the card
+   exactly, but the bar sitting on top of it.
+
+   The grid starts below the bar instead. --paon-header-h is measured from the
+   real element on load and on resize, so this holds at whatever height the bar
+   takes, and it is a padding on the grid rather than on #main, which several
+   rules above pin to 0. Independent of column count: 2, 3 and 4 all inherit
+   it from the one container. */
+#product-grid {
+    padding-top: var(--paon-header-h, 60px) !important;
+}
+</style>
+<script id="paon-product-grid-clear-header-js">
+(function () {
+    var root = document.documentElement;
+    function measure() {
+        var bar = document.getElementById('header');
+        if (!bar) return;
+        var h = Math.round(bar.getBoundingClientRect().height);
+        if (h > 0) root.style.setProperty('--paon-header-h', h + 'px');
+    }
+    measure();
+    window.addEventListener('resize', measure, { passive: true });
+    window.addEventListener('load', measure, { passive: true });
 })();
 </script>
 </body>

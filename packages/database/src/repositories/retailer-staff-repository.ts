@@ -35,7 +35,9 @@ function isUniqueViolation(error: PostgrestError): boolean {
   return error.code === UNIQUE_VIOLATION;
 }
 
-function toDomain(row: RetailerStaffRowWithBookableFields): RetailerStaffMember {
+function toDomain(
+  row: RetailerStaffRowWithBookableFields,
+): RetailerStaffMember {
   return {
     id: asId<"StaffId">(row.id),
     ...(row.user_id ? { userId: asId<"UserId">(row.user_id) } : {}),
@@ -89,7 +91,9 @@ export class RetailerStaffRepository {
       throw error;
     }
 
-    return data.map((row) => toDomain(row as RetailerStaffRowWithBookableFields));
+    return data.map((row) =>
+      toDomain(row as RetailerStaffRowWithBookableFields),
+    );
   }
 
   async findByUserId(userId: UserId): Promise<RetailerStaffMember | null> {

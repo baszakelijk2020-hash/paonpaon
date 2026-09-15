@@ -439,7 +439,13 @@
     opacity 260ms ease,
     background 200ms ease !important;
 }
-#gilda-chat-widget-launcher.open
+/* While the panel shrinks back into the pill, GSAP owns the label's opacity:
+   no CSS fade may run alongside it (.gcw-closing, set by closeChatWidget). */
+#gilda-chat-widget-launcher.gcw-closing
+  #gilda-chat-widget-toggle#gilda-chat-widget-toggle {
+  transition: background 200ms ease !important;
+}
+#gilda-chat-widget-launcher.open:not(.gcw-closing)
   #gilda-chat-widget-toggle#gilda-chat-widget-toggle {
   opacity: 0 !important;
   pointer-events: none !important;

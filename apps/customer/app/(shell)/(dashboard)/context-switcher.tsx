@@ -162,9 +162,8 @@ export function ContextSwitcher({ storeHref }: ContextSwitcherProps) {
           border: "none",
           borderRadius: "999px",
           background: "rgba(0,0,0,0.35)",
-          // The stat tiles' one-pixel lighter rim along the top edge, so the
-          // track sits in the same material as the cards beside it.
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
+          // Flat. No rim, no relief — the plain track it was.
+          boxShadow: "none",
         }}
       >
         <span

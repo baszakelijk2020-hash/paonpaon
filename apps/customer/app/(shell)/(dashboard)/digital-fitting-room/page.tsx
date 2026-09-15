@@ -258,7 +258,7 @@ export default async function DigitalFittingRoomPage({
                   alt=""
                   fill
                   sizes="(min-width: 1024px) 36vw, 100vw"
-                  className="object-contain p-8"
+                  className="object-cover object-top"
                   unoptimized
                 />
               </div>

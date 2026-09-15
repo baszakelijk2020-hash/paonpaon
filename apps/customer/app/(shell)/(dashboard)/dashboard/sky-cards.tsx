@@ -104,7 +104,7 @@ export function SunCard() {
         : { label: "Sunset", time: clockOf(today.sunset) };
 
   return (
-    <div className="paon-stat-extra" aria-label="Sun">
+    <div className="paon-stat-extra paon-stat-extra-sun" aria-label="Sun">
       {reading?.label === "Sunrise" ? (
         <SunriseIcon className="paon-stat-icon" />
       ) : (
@@ -145,7 +145,7 @@ export function AirCard() {
   return (
     <div
       className={[
-        "paon-stat-extra",
+        "paon-stat-extra paon-stat-extra-air",
         aqi === null ? "paon-stat-value-idle" : "",
       ].join(" ")}
       aria-label="Air quality"
@@ -227,9 +227,10 @@ export function WindCard() {
 
   return (
     <div
-      className={["paon-stat-extra", wind ? "" : "paon-stat-value-idle"].join(
-        " ",
-      )}
+      className={[
+        "paon-stat-extra paon-stat-extra-wind",
+        wind ? "" : "paon-stat-value-idle",
+      ].join(" ")}
       aria-label="Wind"
     >
       {/* The arrow points the way the wind blows: from `from`, so + 180. */}

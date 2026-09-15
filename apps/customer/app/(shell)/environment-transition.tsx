@@ -32,6 +32,20 @@ const ENTER_BLUR = "blur(14px)";
  */
 const ENTER_BLUR_DURATION = 0.9;
 const ENTER_BLUR_EASE_CSS = "ease";
+/*
+ * How far through the customer layer's exit the storefront starts to focus.
+ *
+ * Keyed to the exit tween's own progress, not to the clock. The exit is a
+ * GSAP tween — it only advances when the main thread hands out a frame — while
+ * the focus is a composited CSS transition that keeps every frame regardless.
+ * Started on a timer, the two came apart under load: the main thread stalled,
+ * the customer layer sat opaque over the store, and the blur underneath it
+ * ran its course unseen. When the layer finally faded, the store was already
+ * sharp — the "snap" on the way back. Starting the focus from the tween's own
+ * progress means it cannot begin before the store is visible, however late
+ * that turns out to be.
+ */
+const STOREFRONT_FOCUS_AT = 0.8;
 
 /**
  * Focus an element in with a CSS transition, not a GSAP tween.
@@ -163,8 +177,16 @@ export function EnvironmentTransition() {
       }),
     );
     const target = inStore ? away : here;
+    // Set below, once the storefront is held blurred; run from the exit tween.
+    let releaseStorefront: (() => void) | null = null;
     const transition = gsap.timeline({
+      onUpdate: () => {
+        if (transition.progress() >= STOREFRONT_FOCUS_AT) releaseStorefront?.();
+      },
       onComplete: () => {
+        // A tween that skipped straight to its end (reduced motion, a hidden
+        // tab) still releases the focus.
+        releaseStorefront?.();
         overlay.style.willChange = "";
         // The other environment is fully on screen now — anything that wants
         // to animate in with it (the sidebar's category reveal) starts here.
@@ -253,6 +275,7 @@ export function EnvironmentTransition() {
     // the element and the <body> backdrop, so nothing is left painted.
     cancelStorefrontFocus.current?.();
     if (!inStore) {
+      storefront.style.transition = "";
       storefront.style.filter = "";
       storefront.style.willChange = "";
       return;
@@ -288,17 +311,36 @@ export function EnvironmentTransition() {
     if (paintsBackdrop) {
       document.body.style.backgroundColor = storefrontBackdrop;
     }
-    cancelStorefrontFocus.current = focusIn(storefront, {
-      // The customer layer is on top of it for the length of its exit, so a
-      // focus that started with the click would be most of the way done
-      // before any of it was visible.
-      delay: EXIT_DURATION * 0.8,
-      reducedMotion,
-      done: () => {
-        cancelStorefrontFocus.current = null;
-        if (paintsBackdrop) document.body.style.backgroundColor = "";
-      },
-    });
+    /*
+     * Held at full blur, no transition, while the customer layer still covers
+     * it; the focus itself is released by the exit tween once the layer has
+     * thinned enough for the store to show (STOREFRONT_FOCUS_AT). Until then
+     * the cancel simply lets go of the hold.
+     */
+    storefront.style.willChange = "filter";
+    storefront.style.transition = "none";
+    storefront.style.filter = ENTER_BLUR;
+    let released = false;
+    cancelStorefrontFocus.current = () => {
+      released = true;
+      cancelStorefrontFocus.current = null;
+      storefront.style.transition = "";
+      storefront.style.filter = "";
+      storefront.style.willChange = "";
+      if (paintsBackdrop) document.body.style.backgroundColor = "";
+    };
+    releaseStorefront = () => {
+      if (released) return;
+      released = true;
+      cancelStorefrontFocus.current = focusIn(storefront, {
+        delay: 0,
+        reducedMotion,
+        done: () => {
+          cancelStorefrontFocus.current = null;
+          if (paintsBackdrop) document.body.style.backgroundColor = "";
+        },
+      });
+    };
   }, [inStore]);
 
   /*

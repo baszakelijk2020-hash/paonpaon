@@ -1,14 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import { type ReactNode, useCallback, useEffect, useState } from "react";
-
 import {
-  CarIcon,
-  SunIcon,
-  WeatherIcon,
-  WorkIcon,
-} from "../dashboard/stat-icons";
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
+import { SunIcon, WeatherIcon } from "../dashboard/stat-icons";
 
 const CITY_STREAMS_ENABLED = true;
 
@@ -83,6 +84,14 @@ interface Coords {
 }
 
 export const WORK_ADDRESS_STORAGE_KEY = "paon-work-address";
+export const HOME_ADDRESS_STORAGE_KEY = "paon-home-address";
+
+/** Within this distance of home or of work, the customer is taken to be there. */
+const NEAR_KM = 1;
+/** Away from both, the drive shown turns homeward from this hour on. */
+const HOMEWARD_FROM_HOUR = 14;
+/** How often the live drive time is read again. */
+const COMMUTE_REFRESH_MS = 5 * 60_000;
 
 /**
  * The customer's home base. The overview reads as Breda: weather, clock and
@@ -91,21 +100,85 @@ export const WORK_ADDRESS_STORAGE_KEY = "paon-work-address";
  */
 export const HOME_LOCATION = {
   label: "Breda",
+  /** Noord-Brabant. The reading is printed as "Breda, NB". */
+  region: "NB",
   coords: { lat: 51.5719, lon: 4.7683 },
   timeZone: "Europe/Amsterdam",
 } as const;
+
+/**
+ * The province or state, two letters, from a Nominatim reverse lookup.
+ *
+ * It prefers the ISO 3166-2 subdivision code the API returns — NL-NB, DE-BY,
+ * US-NY — and takes the half after the dash, which is the code a local would
+ * write. Where the API has no code it makes one from the initials of the
+ * state's name, so "Noord-Brabant" still comes back NB.
+ */
+function regionCode(address: Record<string, unknown> | undefined): string {
+  const iso = address?.["ISO3166-2-lvl4"];
+  if (typeof iso === "string" && iso.includes("-"))
+    return iso.slice(iso.indexOf("-") + 1).toUpperCase();
+  const state = address?.state;
+  if (typeof state !== "string") return "";
+  return state
+    .split(/[\s-]+/)
+    .map((word) => word[0] ?? "")
+    .join("")
+    .slice(0, 3)
+    .toUpperCase();
+}
+
+/** "Breda, NB" — the city, and the province after it. */
+function placeLabel(city: string, region: string): string {
+  return region ? `${city}, ${region}` : city;
+}
 export const DEFAULT_WORK_ADDRESS =
   "Molengracht 21, 4818 CK Breda, Netherlands";
 
 /**
- * Real driving time over the road network, routed by OSRM (keyless, the
- * public demo router). Falls back to a straight-line estimate only if the
- * router is unreachable.
+ * Where the car photograph's ink ends, as a fraction of the file's height.
+ * Measured off /images/front-car.png: it fills the file across but carries
+ * 12% of clear film above and below, so its box bottom is not where the car
+ * is. A raster has no getBBox, hence the constant.
+ */
+const CAR_INK_BOTTOM = 0.879;
+
+/**
+ * How far above the car's line the sky glyph's body stands: none — the two
+ * marks share one baseline. (A 3px lift once stood here, asked for while the
+ * glyph was visibly 3px low. That low was the re-run bug below, fixed at the
+ * same time, so the lift double-corrected and left the cloud 3px high.)
+ */
+const SKY_LIFT_PX = 0;
+
+/**
+ * Driving time now. Live — the road network with current traffic — through
+ * /api/commute when the server holds a traffic key; otherwise a real road
+ * route from OSRM (keyless, no traffic); a straight-line estimate only if
+ * neither answers.
  */
 async function driveTime(
   from: Coords,
   to: Coords,
-): Promise<{ km: number; minutes: number; routed: boolean }> {
+): Promise<{ km: number; minutes: number; routed: boolean; live: boolean }> {
+  try {
+    const res = await fetch(
+      `/api/commute?from=${from.lat},${from.lon}&to=${to.lat},${to.lon}`,
+      { cache: "no-store" },
+    );
+    if (res.status === 200) {
+      const live = (await res.json()) as { minutes?: number; km?: number };
+      if (typeof live.minutes === "number")
+        return {
+          km: live.km ?? 0,
+          minutes: live.minutes,
+          routed: true,
+          live: true,
+        };
+    }
+  } catch {
+    // No live source; the road route below.
+  }
   try {
     const res = await fetch(
       `https://router.project-osrm.org/route/v1/driving/${from.lon},${from.lat};${to.lon},${to.lat}?overview=false`,
@@ -119,6 +192,7 @@ async function driveTime(
         km: Math.round(route.distance / 100) / 10,
         minutes: Math.max(1, Math.round(route.duration / 60)),
         routed: true,
+        live: false,
       };
     }
   } catch {
@@ -129,6 +203,7 @@ async function driveTime(
     km: Math.round(km * 10) / 10,
     minutes: Math.max(4, Math.round((km / 28) * 60)),
     routed: false,
+    live: false,
   };
 }
 
@@ -142,6 +217,65 @@ function haversineKm(a: Coords, b: Coords): number {
     Math.sin(dLat / 2) ** 2 +
     Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+/** The hour, 0–23, at the customer's home — the clock the overview keeps. */
+function homeHour(date: Date): number {
+  return Number(
+    new Intl.DateTimeFormat("en-GB", {
+      hour: "numeric",
+      hourCycle: "h23",
+      timeZone: HOME_LOCATION.timeZone,
+    }).format(date),
+  );
+}
+
+/**
+ * Which drive the commute reading shows, and from where.
+ *
+ * Within a kilometre of home the customer is at home, so it is the drive to
+ * work; within a kilometre of work, the drive home. Anywhere else — or with
+ * no location at all — the time of day decides: before two in the afternoon
+ * the drive to work, from two on the drive home. It starts from where the
+ * customer is when that is known, and from the other end of the commute
+ * when it is not.
+ */
+export function commuteLeg(
+  here: Coords | null,
+  home: Coords,
+  work: Coords,
+  now: Date,
+): { from: Coords; to: "work" | "home" } {
+  if (here && haversineKm(here, home) <= NEAR_KM)
+    return { from: here, to: "work" };
+  if (here && haversineKm(here, work) <= NEAR_KM)
+    return { from: here, to: "home" };
+  return homeHour(now) >= HOMEWARD_FROM_HOUR
+    ? { from: here ?? work, to: "home" }
+    : { from: here ?? home, to: "work" };
+}
+
+export function formatCommuteMinutes(minutes: number): string {
+  if (minutes <= 60) return `${minutes}m`;
+  if (minutes > 24 * 60) return `${Math.round(minutes / (24 * 60))}d`;
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return remainder
+    ? `${hours}h${String(remainder).padStart(2, "0")}`
+    : `${hours}h`;
+}
+
+async function geocode(address: string): Promise<Coords | null> {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(address)}`,
+      { headers: { Accept: "application/json" } },
+    );
+    const hit = (await res.json())?.[0];
+    return hit ? { lat: Number(hit.lat), lon: Number(hit.lon) } : null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -167,7 +301,7 @@ export function LocalWidgets({
 }) {
   const [coords, setCoords] = useState<Coords | null>(HOME_LOCATION.coords);
   const [locationLabel, setLocationLabel] = useState<string>(
-    HOME_LOCATION.label,
+    placeLabel(HOME_LOCATION.label, HOME_LOCATION.region),
   );
   const [weather, setWeather] = useState<{
     tempC: number;
@@ -184,7 +318,15 @@ export function LocalWidgets({
     km: number;
     minutes: number;
     routed: boolean;
+    live: boolean;
   } | null>(null);
+  /** Which way the commute reading points: to work, or home. */
+  const [commuteTo, setCommuteTo] = useState<"work" | "home">("work");
+  const [homeAddress, setHomeAddress] = useState("");
+  const [homeCoords, setHomeCoords] = useState<Coords>(HOME_LOCATION.coords);
+  const [workCoords, setWorkCoords] = useState<Coords | null>(null);
+  /** Where the customer is — only once they have granted location access. */
+  const [here, setHere] = useState<Coords | null>(null);
   const [now, setNow] = useState<Date | null>(null);
   const [activeCameras, setActiveCameras] = useState<ReadonlySet<string>>(
     new Set(),
@@ -192,6 +334,74 @@ export function LocalWidgets({
   const [loadedCameras, setLoadedCameras] = useState<ReadonlySet<string>>(
     new Set(),
   );
+
+  /**
+   * The sky glyphs are drawn on a 24-grid and none of them reaches its own
+   * left edge — a cloud's arc starts around x=3.5, a sun ray around x=3 — so
+   * the drawing sits a few per cent inside its box and the reading looks
+   * indented against the label under it. Measured rather than guessed: every
+   * weather code draws a different shape, so a fixed nudge would be right for
+   * one of them and wrong for the rest. getBBox gives the ink's real left
+   * edge, and the box is pulled back by exactly that.
+   */
+  const weatherIconRef = useRef<SVGSVGElement>(null);
+  const commuteIconRef = useRef<HTMLImageElement>(null);
+  useEffect(() => {
+    const svg = weatherIconRef.current;
+    if (!svg) return;
+
+    const place = () => {
+      try {
+        /* The glyph's own grid, read off the element — the sky marks are on a
+           16-grid and the house's line marks on a 24-grid. */
+        const grid = svg.viewBox.baseVal.width || 24;
+        const ink = svg.getBBox();
+        if (!ink.width) return;
+        /* getBBox ignores the stroke, which straddles the path; half of a
+           1.75 stroke hangs outside the geometry. Solid glyphs have none. */
+        const overhang = svg.getAttribute("stroke") === "none" ? 0 : 0.875;
+        const inset = Math.max(0, ink.x - overhang);
+        /* In pixels of the glyph's own box. It was an em, and an em here is
+           the FIGURE's font size, not the icon's — so the pull-back grew and
+           shrank with the temperature's type rather than with the drawing. */
+        const boxWidth = svg.getBoundingClientRect().width;
+        svg.style.marginLeft = `${(-(inset / grid) * boxWidth).toFixed(2)}px`;
+
+        /* And the same on the vertical: stand the sky mark on the line the
+           car stands on. Every sky code inks its grid to a different depth —
+           an overcast cloud stops well short of the bottom edge where a
+           cloud-and-sun runs right to it — so the drop is measured for
+           whichever glyph is showing rather than set once. */
+        const car = commuteIconRef.current;
+        if (!car) return;
+        const box = svg.getBoundingClientRect();
+        const carBox = car.getBoundingClientRect();
+        if (!box.height || !carBox.height) return;
+        /* By the glyph's LOWEST ink — rain drops, snowflakes and bolts
+           included — never by the cloud above them. Nothing in the sky mark
+           may reach below the car's wheels: the two marks end on one line. */
+        const inkBottom = box.top + ((ink.y + ink.height) / grid) * box.height;
+        const carInkBottom = carBox.top + CAR_INK_BOTTOM * carBox.height;
+        /* Added to the offset already on it, not written over it: the rect
+           being measured already includes that offset, so the difference is
+           what is still missing. Writing it over the offset threw the
+           correction away on every re-run — a resize, the fonts landing, the
+           observer's own first call — and the glyph settled back ~3px off. */
+        const applied = parseFloat(svg.style.top) || 0;
+        svg.style.top = `${(applied + carInkBottom - SKY_LIFT_PX - inkBottom).toFixed(2)}px`;
+      } catch {
+        // No layout box yet (a hidden panel); the glyph keeps its own edge.
+      }
+    };
+
+    place();
+    /* The readings are sized in container units, so both marks change size
+       with the column. */
+    const watcher = new ResizeObserver(place);
+    watcher.observe(svg);
+    if (commuteIconRef.current) watcher.observe(commuteIconRef.current);
+    return () => watcher.disconnect();
+  }, [weather]);
 
   useEffect(() => {
     setNow(new Date());
@@ -205,6 +415,7 @@ export function LocalWidgets({
         localStorage.getItem(WORK_ADDRESS_STORAGE_KEY) ?? DEFAULT_WORK_ADDRESS;
       setWorkAddress(stored);
       setWorkInput(stored);
+      setHomeAddress(localStorage.getItem(HOME_ADDRESS_STORAGE_KEY) ?? "");
     } catch {
       setWorkAddress(DEFAULT_WORK_ADDRESS);
       setWorkInput(DEFAULT_WORK_ADDRESS);
@@ -265,7 +476,7 @@ export function LocalWidgets({
         if (cancelled) return;
         const city =
           data?.address?.city ?? data?.address?.town ?? data?.address?.village;
-        if (city) setLocationLabel(city);
+        if (city) setLocationLabel(placeLabel(city, regionCode(data?.address)));
       })
       .catch(() => {
         // Reverse geocoding unavailable — keep the generic label.
@@ -275,22 +486,6 @@ export function LocalWidgets({
     };
   }, [coords]);
 
-  async function geocodeWorkAddress(address: string) {
-    try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(address)}`,
-        { headers: { Accept: "application/json" } },
-      );
-      const data = await res.json();
-      const hit = data?.[0];
-      if (!hit || !coords) return;
-      const workCoords = { lat: Number(hit.lat), lon: Number(hit.lon) };
-      setCommute(await driveTime(coords, workCoords));
-    } catch {
-      setCommute(null);
-    }
-  }
-
   function saveWorkAddress(address: string) {
     setWorkAddress(address);
     try {
@@ -298,33 +493,150 @@ export function LocalWidgets({
     } catch {
       // Per-viewer convenience only — fine if it doesn't persist.
     }
-    void geocodeWorkAddress(address);
   }
 
+  /* Home and work as points on the map. Home without an address of its own
+     is the overview's home base. */
   useEffect(() => {
-    if (workAddress && coords) void geocodeWorkAddress(workAddress);
-    // Home is fixed, so this fires once the stored (or preset) address lands.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [coords, workAddress]);
+    let cancelled = false;
+    if (!homeAddress) setHomeCoords(HOME_LOCATION.coords);
+    else
+      void geocode(homeAddress).then((hit) => {
+        if (!cancelled && hit) setHomeCoords(hit);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [homeAddress]);
+  useEffect(() => {
+    if (!workAddress) return;
+    let cancelled = false;
+    void geocode(workAddress).then((hit) => {
+      if (!cancelled) setWorkCoords(hit);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [workAddress]);
+
+  /*
+   * Where the customer is, followed — but only once they have ALREADY
+   * granted location access. This never asks: the overview does not open on
+   * a permission prompt. "Use my location" asks, and a grant given there
+   * starts it. Rounded to about 100 m, so moving about the house does not
+   * re-route.
+   */
+  useEffect(() => {
+    if (!navigator.geolocation || !navigator.permissions?.query) return;
+    let watch = -1;
+    let disposed = false;
+    let status: PermissionStatus | null = null;
+    const follow = () => {
+      if (disposed || watch !== -1 || status?.state !== "granted") return;
+      watch = navigator.geolocation.watchPosition(
+        (position) => {
+          const next = {
+            lat: Math.round(position.coords.latitude * 1000) / 1000,
+            lon: Math.round(position.coords.longitude * 1000) / 1000,
+          };
+          setHere((prev) =>
+            prev && prev.lat === next.lat && prev.lon === next.lon
+              ? prev
+              : next,
+          );
+        },
+        () => undefined,
+        { maximumAge: 60_000, timeout: 15_000 },
+      );
+    };
+    navigator.permissions
+      .query({ name: "geolocation" })
+      .then((result) => {
+        status = result;
+        follow();
+        result.onchange = () => {
+          if (result.state === "granted") {
+            follow();
+            return;
+          }
+          if (watch !== -1) navigator.geolocation.clearWatch(watch);
+          watch = -1;
+          setHere(null);
+        };
+      })
+      .catch(() => undefined);
+    return () => {
+      disposed = true;
+      if (status) status.onchange = null;
+      if (watch !== -1) navigator.geolocation.clearWatch(watch);
+    };
+  }, []);
+
+  /* The reading: which way, then how long by road right now. Re-read every
+     few minutes, which also lets the two o'clock turn happen on an open
+     page. */
+  useEffect(() => {
+    if (!workCoords) return;
+    let cancelled = false;
+    const read = async () => {
+      const leg = commuteLeg(here, homeCoords, workCoords, new Date());
+      const time = await driveTime(
+        leg.from,
+        leg.to === "work" ? workCoords : homeCoords,
+      );
+      if (cancelled) return;
+      setCommuteTo(leg.to);
+      setCommute(time);
+    };
+    void read();
+    const refresh = window.setInterval(read, COMMUTE_REFRESH_MS);
+    return () => {
+      cancelled = true;
+      window.clearInterval(refresh);
+    };
+  }, [here, homeCoords, workCoords]);
 
   if (variant === "dashboard") {
+    const commuteDuration = commute
+      ? formatCommuteMinutes(commute.minutes)
+      : null;
+    /* The commute's mark is the founder's own car glyph (white on
+       transparent), not the line icon the other readings use. */
+    /* The car's headlights are holes in the glyph, so they showed the grey
+       behind it. A lit layer sits over the car cut to exactly those two
+       shapes (front-car-headlights.png, traced from the holes themselves),
+       warm white with a glow. */
+    const CommuteCarIcon = () => (
+      <span className="paon-car" aria-hidden="true">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          ref={commuteIconRef}
+          src="/images/front-car.png"
+          alt=""
+          aria-hidden="true"
+          className="paon-stat-icon paon-stat-icon-image"
+        />
+        <span className="paon-car-lights" />
+      </span>
+    );
     return (
       <section className="paon-overview-widget-grid" aria-label="Local context">
         <article className="paon-stat paon-stat-weather">
           {weather ? (
             <>
               <p className="paon-stat-value">
-                <WeatherIcon code={weather.code} className="paon-stat-icon" />
+                <WeatherIcon
+                  ref={weatherIconRef}
+                  code={weather.code}
+                  className="paon-stat-icon"
+                />
                 {Math.round(weather.tempC)}°
               </p>
+              {/* The glyph beside the temperature already says what the
+                  sky is doing; spelling it out again was a third line in a
+                  strip that has room for two. */}
               <div className="paon-stat-meta">
                 <span className="paon-stat-label">{locationLabel}</span>
-                <span className="paon-stat-detail">
-                  {weather.label} ·{" "}
-                  {[51, 61, 63, 65, 80, 95].includes(weather.code)
-                    ? "rain likely"
-                    : "no rain"}
-                </span>
               </div>
             </>
           ) : (
@@ -361,26 +673,21 @@ export function LocalWidgets({
         <article className="paon-stat paon-stat-commute">
           {commute ? (
             <p className="paon-stat-value">
-              <CarIcon className="paon-stat-icon" />
-              {commute.minutes}
-              <small>min</small>
+              <CommuteCarIcon />
+              {commuteDuration}
             </p>
           ) : (
             <p className="paon-stat-value paon-stat-value-idle">
-              <CarIcon className="paon-stat-icon" />—<small>min</small>
+              <CommuteCarIcon />—<small>min</small>
             </p>
           )}
+          {/* The car glyph on the figure is the commute's mark, so the
+              suitcase beside the word was a second icon saying the same
+              thing; the distance was the third line. Minutes and the word
+              are the whole reading. */}
           <div className="paon-stat-meta">
-            <span className="paon-stat-label paon-stat-label-icon">
-              <WorkIcon />
-              Commute
-            </span>
-            <span className="paon-stat-detail">
-              {commute
-                ? commute.routed
-                  ? `${commute.km} km by road`
-                  : `${commute.km} km straight-line`
-                : "Routing…"}
+            <span className="paon-stat-label">
+              {commuteTo === "work" ? "To work" : "To home"}
             </span>
           </div>
         </article>
@@ -449,7 +756,7 @@ export function LocalWidgets({
               </div>
               <div className="bg-[#1d1c19] p-5">
                 <p className="font-accent text-[10px] uppercase tracking-[0.16em] text-white/45">
-                  Drive to work
+                  Drive to {commuteTo}
                 </p>
                 <form
                   onSubmit={(e) => {

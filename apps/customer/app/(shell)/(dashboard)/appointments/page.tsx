@@ -22,6 +22,7 @@ import type { BookableBranch } from "./booking-flow";
 import { APPOINTMENT_REASONS } from "./booking-reasons";
 import type { PricedOperation } from "./paid-care-flow";
 import { PaidCareLauncher } from "./paid-care-launcher";
+import { QuickBookBar } from "./quick-book-bar";
 import { AppointmentStatusBadge } from "./status-badge";
 
 import { getCustomersForUser } from "@/lib/customer-context";
@@ -331,6 +332,15 @@ export default async function AppointmentsPage({
       </header>
 
       {primaryCustomer ? (
+        <section className="appointment-quick-book" aria-label="Quick book">
+          <QuickBookBar
+            retailerId={primaryCustomer.retailerId}
+            branches={bookableBranches}
+          />
+        </section>
+      ) : null}
+
+      {primaryCustomer ? (
         <section
           className="appointment-care-actions"
           aria-label="Garment care services"
@@ -386,7 +396,7 @@ export default async function AppointmentsPage({
                     initialReason="in_the_mood_for_something_fresh"
                     purpose={`${month.title} Appointment`}
                     initialMonth={month.month}
-                    className={`appointment-month-launcher${month.isCurrent ? "is-current" : ""}`}
+                    className="appointment-month-launcher"
                     style={
                       {
                         "--appointment-image": `url(${month.imageUrl})`,
@@ -397,11 +407,6 @@ export default async function AppointmentsPage({
                       <span className="appointment-month-name">
                         {month.monthName}
                       </span>
-                      {month.isCurrent ? (
-                        <span className="appointment-month-current-marker">
-                          Current month
-                        </span>
-                      ) : null}
                     </span>
                     <span className="appointment-month-year">{month.year}</span>
                     <span className="appointment-month-title">

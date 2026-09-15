@@ -5,7 +5,6 @@ scratchpad
 .playwright-mcp
 run_tests.sh
 downloaded_pages
-*.png
 apps/admin
 apps/retailer
 supabase/migrations
@@ -16,6 +15,7 @@ node_modules
 supabase/.branches
 supabase/.temp
 .next
+**/.next*
 .turbo
 .vscode
 .env

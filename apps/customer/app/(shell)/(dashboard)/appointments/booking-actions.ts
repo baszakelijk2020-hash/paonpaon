@@ -47,6 +47,7 @@ const bookAppointmentSchema = z.object({
   // appointment still books exactly like a plain, unprefixed booking.
   wardrobeItemId: z.string().uuid().optional(),
   roadmapGapId: z.string().uuid().optional(),
+  notes: z.string().max(1000).optional(),
 });
 
 /** Real garment/gap context, re-verified against this session's own
@@ -137,7 +138,10 @@ export async function bookAppointment(
       ? { roadmapGapId: parsed.data.roadmapGapId }
       : {}),
   });
-  const notes = [reasonLabel, contextLabel].filter(Boolean).join(" — ");
+  const noteParts = [reasonLabel, contextLabel, parsed.data.notes].filter(
+    Boolean,
+  );
+  const notes = noteParts.length > 0 ? noteParts.join(" — ") : undefined;
 
   let appointmentId: string;
   try {

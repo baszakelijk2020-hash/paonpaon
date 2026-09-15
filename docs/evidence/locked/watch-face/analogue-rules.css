@@ -1,0 +1,262 @@
+/* ── The analogue face, first in the readings row ────────────────────────
+   The time as a shape. Small — it sits beside the readings, it does not
+   become one. */
+.paon-overview-morning .paon-morning-readings .paon-analogue {
+  align-self: center;
+  flex: none;
+  margin-right: 16px;
+}
+
+.paon-analogue-face {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  opacity: 0.28;
+}
+
+.paon-analogue-tick {
+  stroke: currentColor;
+  stroke-width: 2;
+  opacity: 0.3;
+}
+
+.paon-analogue-tick.is-hour {
+  stroke-width: 3.5;
+  opacity: 0.55;
+}
+
+.paon-analogue-hand {
+  stroke: currentColor;
+  stroke-linecap: round;
+}
+
+.paon-analogue-hand.is-hour {
+  stroke-width: 6;
+}
+
+.paon-analogue-hand.is-minute {
+  stroke-width: 4;
+}
+
+/* The second hand is the only thing moving; it is drawn thin and faint so it
+   reads as motion rather than as another hand to be read. */
+.paon-analogue-hand.is-second {
+  stroke-width: 1.6;
+  opacity: 0.5;
+}
+
+.paon-analogue-pin {
+  fill: currentColor;
+}
+
+.paon-overview-morning .paon-morning-readings .paon-analogue {
+  margin-right: 22px;
+}
+
+/* ── The first column's ink: 50% black ───────────────────────────────────
+   It sat at #14120f, which is near enough full black and read as heavy over
+   the photograph's pale ground. Half black throughout — the greeting, the
+   readings, the labels and the city codes alike. The secondary lines keep
+   their step down from it. */
+.paon-overview-morning .paon-morning-hello,
+.paon-overview-morning .paon-morning-hello .paon-welcome-copy,
+.paon-overview-morning .paon-morning-readings .paon-stat,
+.paon-overview-morning .paon-morning-readings .paon-stat-value,
+.paon-overview-morning .paon-morning-readings .paon-stat-action,
+.paon-overview-morning .paon-morning-readings .paon-stat-icon,
+.paon-overview-morning .paon-morning-hello .paon-welcome-weather-icon,
+.paon-overview-morning .paon-morning-hello .paon-world-chip-code,
+.paon-overview-morning .paon-morning-hello .paon-world-chip-time,
+.paon-overview-morning .paon-morning-hello .paon-analogue {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+/* ── The first column's ink: 50% black ───────────────────────────────────
+   It sat at #14120f, near enough full black, and read heavy over the
+   photograph's pale ground. Half black throughout — the greeting, the
+   readings, the labels and the city codes alike — with the secondary lines
+   keeping their step down from it. */
+.paon-overview-morning .paon-morning-hello,
+.paon-overview-morning .paon-morning-hello .paon-welcome-copy,
+.paon-overview-morning .paon-morning-readings .paon-stat,
+.paon-overview-morning .paon-morning-readings .paon-stat-value,
+.paon-overview-morning .paon-morning-readings .paon-stat-action,
+.paon-overview-morning .paon-morning-readings .paon-stat-icon,
+.paon-overview-morning .paon-morning-hello .paon-welcome-weather-icon,
+.paon-overview-morning .paon-morning-hello .paon-world-chip-code,
+.paon-overview-morning .paon-morning-hello .paon-world-chip-time,
+.paon-overview-morning .paon-morning-hello .paon-analogue {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.paon-overview-morning .paon-morning-readings .paon-analogue {
+  flex: none;
+  margin-right: 4px;
+}
+
+.paon-overview-morning .paon-morning-readings .paon-analogue {
+  margin-right: 0;
+}
+
+.paon-overview-morning .paon-morning-readings .paon-analogue {
+  display: none;
+}
+
+.paon-overview-morning .paon-morning-readings .paon-analogue {
+  align-self: center;
+  flex: none;
+  margin: 0 6px 0 0;
+}
+
+/* ── The day-date face ───────────────────────────────────────────────────
+   Two apertures cut into the dial: the weekday in the arch under twelve,
+   the date in the square at three under its cyclops. Both windows are the
+   colour of a cut-out — a shade lighter than the ground they sit on — and
+   both are set in the toggle's face. */
+.paon-analogue-window {
+  fill: currentColor;
+  opacity: 0.1;
+}
+
+.paon-analogue-day,
+.paon-analogue-date {
+  font-family: GTBold3, Arial, sans-serif;
+  fill: currentColor;
+  text-anchor: middle;
+  letter-spacing: 0.04em;
+}
+
+.paon-analogue-day {
+  font-size: 8px;
+  opacity: 0.75;
+}
+
+/* Larger than the weekday: that size difference IS the magnification. */
+.paon-analogue-date {
+  font-size: 11.5px;
+  letter-spacing: 0;
+  opacity: 0.85;
+}
+
+/* ── The day, curved ─────────────────────────────────────────────────────
+   Set on the arc rather than flat inside it, so the word follows the window
+   the way it does on a Day-Date. text-anchor belongs on the <text>; the
+   startOffset on the <textPath> then centres it on the arc. */
+.paon-analogue-day {
+  font-size: 6px;
+  letter-spacing: 0.035em;
+}
+
+/* The dial's signature: the wordmark's own face, set as small as it will
+   still read — a watchmaker's name, not a label. */
+.paon-analogue-brand {
+  /* Aviano — the wordmark's own face, loaded as "Brand Display". */
+  font-family: "Brand Display", Aviano, serif;
+  font-size: 3.2px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  fill: currentColor;
+  text-anchor: middle;
+  opacity: 0.6;
+}
+
+/* The face keeps its own cell and stays centred in it. */
+.paon-overview-morning .paon-morning-readings .paon-analogue {
+  align-self: center;
+  justify-self: start;
+  margin: 0;
+}
+
+/* Lifted 3px off the centre line — the dial's own weight sits low, so
+   centring it by its box read as hanging — and set in from the column's
+   edge so it is not pinned to it. */
+.paon-overview-morning .paon-morning-readings .paon-analogue {
+  position: relative;
+  top: -5px;
+  left: 11px;
+}
+
+/* The seconds hand is the only colour on the dial — it is the only thing on
+   it that is always moving, and a watch marks that. */
+.paon-analogue-hand.is-second {
+  stroke: #6cb6e0;
+  opacity: 0.95;
+}
+
+/* The face sits lower on the line than the readings beside it. */
+.paon-overview-morning .paon-morning-readings .paon-analogue {
+  top: 0px;
+}
+
+/* The dial is filled, not ruled: the light-blue-to-white ground defined in
+   the clock's own <defs>, and no grey ring round it. */
+.paon-analogue-face {
+  fill: url(#paon-analogue-face-fill);
+  stroke: none;
+  opacity: 1;
+}
+
+/* The day and the signature take the date's ink: one dark grey for every
+   word printed on the dial. */
+.paon-analogue-day,
+.paon-analogue-brand {
+  fill: currentColor;
+  opacity: 0.85;
+}
+
+/* The dial's lettering is SVG text, so it is named here. */
+.paon-analogue-day,
+.paon-analogue-date,
+.paon-analogue-brand {
+  fill: rgba(0, 0, 0, 0.6);
+  opacity: 1;
+}
+
+/* ── The date under its cyclops ──────────────────────────────────────────
+   The date is set a pixel smaller on screen — the face renders 100 units at
+   72px, so a pixel is 1.39 units: 11.5 → 10.1 — and read through a white
+   window under a white-seated lens. The glass over it is shading, not a
+   frame: a bright top, a clear middle, a faint shade at the foot, one soft
+   crescent of glint and the barest rim, so it reads as a bubble in the
+   crystal rather than an outline round the date. */
+.paon-analogue-date {
+  font-size: 10.1px;
+}
+
+.paon-analogue-lens,
+.paon-analogue-datewin {
+  fill: #ffffff;
+  opacity: 1;
+}
+
+.paon-analogue-lens-glass {
+  fill: url(#paon-analogue-lens-glass);
+  stroke: rgba(0, 0, 0, 0.08);
+  stroke-width: 0.5;
+}
+
+.paon-analogue-lens-glint {
+  fill: #ffffff;
+  opacity: 0.9;
+}
+
+/* The day's arched window is white, like the date's: both apertures read as
+   white cut into the blue dial. */
+.paon-analogue-window {
+  fill: #ffffff;
+  opacity: 1;
+}
+
+/* The day's window takes the date lens's edge: the same half-point line in
+   8% black, so both apertures are cut with one hand. */
+.paon-analogue-window {
+  stroke: rgba(0, 0, 0, 0.08);
+  stroke-width: 0.5;
+}
+
+/* The seconds hand is inked like the hour and minute hands — the dial's
+   dark grey, at full strength — rather than in the light blue. */
+.paon-analogue-hand.is-second {
+  stroke: currentColor;
+  opacity: 1;
+}

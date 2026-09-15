@@ -68,8 +68,11 @@ const WORLD_CITIES: readonly WorldCity[] = [
     lon: 4.48,
     poster: "https://img.youtube.com/vi/nFozEhYTEMo/maxresdefault.jpg",
     youtubeId: "nFozEhYTEMo",
+    /* Zoomed out 20% from the original widget's 2.0: the bridge was cropped
+       too tight. 1.6 still covers the stage and still pushes the player's
+       own chrome off the top. */
     frame: {
-      scale: 2.0,
+      scale: 1.6,
       x: "12%",
       y: "18%",
       rotate: "0.9deg",
@@ -94,7 +97,8 @@ const WORLD_CITIES: readonly WorldCity[] = [
     lon: 139.69,
     poster: "https://img.youtube.com/vi/_k-5U7IeK8g/maxresdefault.jpg",
     youtubeId: "_k-5U7IeK8g",
-    frame: { scale: 1.33, x: "-4%", y: "2%" },
+    /* 20% out from the original 1.33. */
+    frame: { scale: 1.064, x: "-4%", y: "2%" },
   },
   {
     code: "SYD",
@@ -105,7 +109,8 @@ const WORLD_CITIES: readonly WorldCity[] = [
     lon: 151.21,
     poster: "https://img.youtube.com/vi/5uZa3-RMFos/maxresdefault.jpg",
     youtubeId: "5uZa3-RMFos",
-    frame: { scale: 1.65, x: "20%", y: "8%", rotate: "0.5deg" },
+    /* 15% out from the original 1.65, then 10% back in. */
+    frame: { scale: 1.54, x: "20%", y: "8%", rotate: "0.5deg" },
   },
 ];
 
@@ -155,12 +160,39 @@ function weatherSymbol(weather: CityWeather | null): string {
   return isDay ? "☀" : "☾";
 }
 
-function frameTransform(city: WorldCity): string {
+/** The large viewer shows every stream 20% further out than its chip. */
+const STAGE_ZOOM_OUT = 0.8;
+
+/**
+ * The smallest scale at which a frame still covers the 4:3 stage.
+ *
+ * The iframe is sized to cover by the stylesheet — 1.6× the stage's width by
+ * 0.9× it, for a 4:3 stage — so the stage is 0.625 of the frame's width and
+ * 0.833 of its height. Scaled about its centre and then shifted by its own
+ * x/y (a percentage of its unscaled size), it keeps covering only while
+ * s ≥ 0.625 + 2|x| across and s ≥ 0.833 + 2|y| down. A little is added for
+ * the rotations and skews some cities carry.
+ */
+function stageCoverScale(frame: NonNullable<WorldCity["frame"]>): number {
+  const x = Math.abs(parseFloat(frame.x)) / 100;
+  const y = Math.abs(parseFloat(frame.y)) / 100;
+  return Math.max(0.625 + 2 * x, 0.8333 + 2 * y) + 0.03;
+}
+
+/**
+ * The crop transform for a stream. `onStage` zooms it out for the large
+ * viewer — never past the point where the picture stops covering the stage,
+ * because a black band is worse than a tighter crop.
+ */
+function frameTransform(city: WorldCity, onStage = false): string {
   const frame = city.frame;
   if (!frame) return "translate(-50%, -50%)";
+  const scale = onStage
+    ? Math.max(frame.scale * STAGE_ZOOM_OUT, stageCoverScale(frame))
+    : frame.scale;
   return [
     `translate(calc(-50% + ${frame.x}), calc(-50% + ${frame.y}))`,
-    `scale(${frame.scale})`,
+    `scale(${scale.toFixed(3)})`,
     frame.rotate ? `rotate(${frame.rotate})` : "",
     frame.skewX ? `skewX(${frame.skewX})` : "",
   ]
@@ -175,8 +207,15 @@ function embedUrl(city: WorldCity): string {
     autoplay: "1",
     mute: "1",
     controls: "0",
-    loop: "1",
-    playlist: city.youtubeId ?? "",
+    /*
+     * No `loop`/`playlist`.
+     *
+     * Those two turn the embed into a one-video playlist that restarts when
+     * it ends — which is meaningless for a camera that never ends, and is
+     * read by the player as a cue to re-seek. Pressing play on a looped live
+     * embed made it jump and re-buffer, which is the flicker. A live stream
+     * simply runs.
+     */
     playsinline: "1",
     modestbranding: "1",
     rel: "0",
@@ -184,7 +223,10 @@ function embedUrl(city: WorldCity): string {
     fs: "0",
     disablekb: "1",
     vq: "hd720",
+    // The viewer's pause button drives every player over postMessage.
+    enablejsapi: "1",
   };
+  if (typeof window !== "undefined") params.origin = window.location.origin;
   for (const [key, value] of Object.entries(params))
     url.searchParams.set(key, value);
   return url.href;
@@ -208,6 +250,10 @@ export function WorldClock() {
   >({});
   const [live, setLive] = useState(false);
   const [inView, setInView] = useState(false);
+  /* Paused by default: the overview opens on a still frame of every city
+     rather than five players negotiating at once. The viewer presses play
+     when they want the cameras running. */
+  const [paused, setPaused] = useState(true);
   const [mountedChips, setMountedChips] = useState<ReadonlySet<string>>(
     new Set(),
   );
@@ -268,9 +314,9 @@ export function WorldClock() {
     return () => timers.forEach((timer) => window.clearTimeout(timer));
   }, [live]);
 
-  // Chips stay playing rather than pausing after a beat: a paused YouTube
-  // frame uncovers the player's own end-card and play button, which is the
-  // branding the live thumbnails existed to avoid.
+  // The chips mount on their own stagger, then follow the stage: one pause
+  // button holds all six players — the stage and the five thumbnails — and
+  // one play releases them together.
   useEffect(() => {
     if (!inView) return;
     const timers = WORLD_CITIES.map((item, index) =>
@@ -281,6 +327,115 @@ export function WorldClock() {
     );
     return () => timers.forEach((timer) => window.clearTimeout(timer));
   }, [inView]);
+
+  /**
+   * One button, every player in the module: the stage AND the five city
+   * thumbnails. Pause holds them all where they are.
+   *
+   * Play is not symmetrical with it. The stage carries all five cities
+   * stacked and shows one — the other four sit at `visibility: hidden`, and
+   * a hidden YouTube player decodes exactly as hard as a visible one. Playing
+   * the lot meant ten live decoders fighting for the machine, and the picture
+   * you were actually looking at stuttered for it. Only the city on show
+   * plays; the four behind it stay held, and are released the moment they are
+   * brought forward.
+   */
+  const playableFrames = useCallback(() => {
+    const root = sectionRef.current;
+    if (!root) return [];
+    return [...root.querySelectorAll<HTMLIFrameElement>("iframe")].filter(
+      (frame) =>
+        !frame.classList.contains("paon-world-frame") ||
+        frame.classList.contains("is-active"),
+    );
+  }, []);
+
+  const applyPause = useCallback(
+    (next: boolean) => {
+      const root = sectionRef.current;
+      if (!root) return;
+      const wanted = next
+        ? [...root.querySelectorAll<HTMLIFrameElement>("iframe")]
+        : playableFrames();
+      /* On play, everything that is NOT playable is held rather than left to
+       its own autoplay — a stage frame that was never on show has been
+       running since it mounted. */
+      if (!next) {
+        for (const frame of root.querySelectorAll<HTMLIFrameElement>(
+          "iframe",
+        )) {
+          if (wanted.includes(frame)) continue;
+          frame.contentWindow?.postMessage(
+            JSON.stringify({ event: "command", func: "pauseVideo", args: [] }),
+            "*",
+          );
+        }
+      }
+      for (const frame of wanted) {
+        const send = (func: string, args: unknown[] = []) =>
+          frame.contentWindow?.postMessage(
+            JSON.stringify({ event: "command", func, args }),
+            "*",
+          );
+        if (next) {
+          send("pauseVideo");
+        } else {
+          /*
+           * Play, and nothing else.
+           *
+           * This used to seek to a number past any live head first, to land
+           * the player back on "now". A YouTube live player answers that by
+           * tearing its buffer down and re-handshaking, which is the twitch
+           * and flicker you see on every press — and it is unnecessary: a
+           * paused live player already resumes at the edge on its own.
+           */
+          send("playVideo");
+        }
+      }
+    },
+    [playableFrames],
+  );
+
+  const toggleStreams = useCallback(() => {
+    const next = !paused;
+    setPaused(next);
+    applyPause(next);
+  }, [applyPause, paused]);
+
+  /* Switching city while the streams run hands the picture to a player that
+     was being held. Re-applying play releases the new one and holds the old.
+
+     Only on an actual change of city: it used to run on every change of
+     `paused` too, so a press of play sent the active player two playVideo
+     commands 60ms apart and it re-buffered between them. */
+  const lastCity = useRef(selectedIndex);
+  useEffect(() => {
+    const changed = lastCity.current !== selectedIndex;
+    lastCity.current = selectedIndex;
+    if (paused || !changed) return;
+    const settle = window.setTimeout(() => applyPause(false), 60);
+    return () => window.clearTimeout(settle);
+  }, [applyPause, paused, selectedIndex]);
+
+  /* Players mount on a stagger and every embed carries autoplay=1, so one
+     that arrives while the viewer is paused would start on its own. Re-send
+     the hold whenever either set grows — this is also what holds the default
+     paused state as the six players come up. */
+  useEffect(() => {
+    if (!paused) return;
+    applyPause(true);
+    /* A YouTube embed ignores postMessage until its player has finished
+       booting, which is well after the iframe is in the document and can take
+       a few seconds on a cold load. One command on insert is therefore not
+       enough — keep re-sending the hold for a few seconds so every player
+       catches it whenever it happens to become ready. */
+    let sent = 0;
+    const settle = window.setInterval(() => {
+      applyPause(true);
+      if (++sent >= 10) window.clearInterval(settle);
+    }, 800);
+    return () => window.clearInterval(settle);
+  }, [applyPause, mountedChips, mountedFrames, paused]);
 
   const loadWeather = useCallback(async (target: WorldCity) => {
     const lastFetch = weatherFetchedAt.current.get(target.code) ?? 0;
@@ -325,6 +480,10 @@ export function WorldClock() {
       className="paon-world-module"
       aria-label="World clock"
     >
+      {/* The module names itself, under the rule that closes the greeting
+          above it — the same small voice the readings strip and the STORE /
+          WARDROBE toggle use. */}
+      <h2 className="paon-world-heading">World clock</h2>
       <div className={["paon-world-stage", live ? "is-live" : ""].join(" ")}>
         {live ? (
           WORLD_CITIES.map((item) => {
@@ -339,7 +498,9 @@ export function WorldClock() {
                 className={frameClass}
                 title={`${item.name} live view`}
                 src={item.hlsUrl}
-                style={{ transform: frameTransform(item) }}
+                style={{ transform: frameTransform(item, true) }}
+                /* Held unless it is the city on show — see applyPause. */
+                paused={paused || item.code !== city.code}
               />
             ) : (
               <iframe
@@ -349,7 +510,7 @@ export function WorldClock() {
                 src={embedUrl(item)}
                 allow="autoplay; encrypted-media; picture-in-picture"
                 referrerPolicy="strict-origin-when-cross-origin"
-                style={{ transform: frameTransform(item) }}
+                style={{ transform: frameTransform(item, true) }}
               />
             );
           })
@@ -364,6 +525,31 @@ export function WorldClock() {
         ) : (
           <p className="paon-world-placeholder">{city.code}</p>
         )}
+
+        {/* Shown on hover, and kept shown while paused. One glyph turns
+            into the other: the bars fold into the triangle. */}
+        {live ? (
+          <button
+            type="button"
+            className={["paon-world-pause", paused ? "is-paused" : ""].join(
+              " ",
+            )}
+            aria-label={paused ? "Play all streams" : "Pause all streams"}
+            aria-pressed={paused}
+            data-no-press
+            onClick={toggleStreams}
+          >
+            <span className="paon-world-pause-glyph" aria-hidden="true">
+              <svg className="paon-world-pause-bars" viewBox="0 0 24 24">
+                <rect x="6" y="5" width="4" height="14" rx="1" />
+                <rect x="14" y="5" width="4" height="14" rx="1" />
+              </svg>
+              <svg className="paon-world-pause-play" viewBox="0 0 24 24">
+                <path d="M8 5.2v13.6l11.2-6.8z" />
+              </svg>
+            </span>
+          </button>
+        ) : null}
 
         {/* The card is the feed; this floating panel carries the reading. */}
         <div className="paon-world-badge">
@@ -405,6 +591,21 @@ export function WorldClock() {
             className="paon-world-chip"
             onClick={() => setSelectedIndex(index)}
           >
+            {/* The city and its local time read first, then the view:
+                the strip is a list of cities that happens to carry
+                pictures, not a row of pictures that happens to be
+                labelled. */}
+            <span className="paon-world-chip-code">{item.code}</span>
+            <span className="paon-world-chip-time">
+              {now
+                ? new Intl.DateTimeFormat("en-GB", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hourCycle: "h23",
+                    timeZone: item.timeZone,
+                  }).format(now)
+                : "--:--"}
+            </span>
             <span className="paon-world-chip-thumb">
               {mountedChips.has(item.code) && item.hlsUrl ? (
                 <HlsVideo
@@ -412,6 +613,7 @@ export function WorldClock() {
                   title={`${item.name} thumbnail`}
                   src={item.hlsUrl}
                   style={{ transform: frameTransform(item) }}
+                  paused={paused}
                 />
               ) : mountedChips.has(item.code) ? (
                 <iframe
@@ -428,17 +630,9 @@ export function WorldClock() {
                   {item.code}
                 </span>
               )}
-            </span>
-            <span className="paon-world-chip-code">{item.code}</span>
-            <span className="paon-world-chip-time">
-              {now
-                ? new Intl.DateTimeFormat("en-GB", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hourCycle: "h23",
-                    timeZone: item.timeZone,
-                  }).format(now)
-                : "--:--"}
+              {/* The chip is the live view of its city, and it holds the
+                  same still the stage does when the viewer pauses: one
+                  button, six players. */}
             </span>
           </button>
         ))}

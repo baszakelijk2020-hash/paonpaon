@@ -4,55 +4,52 @@ import { useEffect, useState } from "react";
 
 import {
   DEFAULT_WORK_ADDRESS,
+  HOME_ADDRESS_STORAGE_KEY,
   WORK_ADDRESS_STORAGE_KEY,
 } from "../morning-routine/local-widgets";
 
 /**
- * Where the overview's commute tile drives to. Lives here on the profile,
- * not on the tile itself — the tile only reads. Stored per browser; the
- * preset address is what a fresh visitor sees.
+ * The two ends of the commute: home and work. Set here on the profile, not
+ * on the overview's tile — the tile only reads them. With location access
+ * granted, the tile works out which of the two the customer is at and shows
+ * the live drive to the other one.
+ *
+ * Stored per browser. Work is preset so a fresh visitor sees a reading;
+ * home without an address of its own is the overview's home base, Breda.
  */
 export function CommuteSettings() {
-  const [address, setAddress] = useState("");
-  const [saved, setSaved] = useState<string | null>(null);
+  const [home, setHome] = useState("");
+  const [work, setWork] = useState("");
   const [status, setStatus] = useState<"idle" | "saved">("idle");
 
   useEffect(() => {
     try {
-      const stored =
-        localStorage.getItem(WORK_ADDRESS_STORAGE_KEY) ?? DEFAULT_WORK_ADDRESS;
-      setAddress(stored);
-      setSaved(stored);
+      setHome(localStorage.getItem(HOME_ADDRESS_STORAGE_KEY) ?? "");
+      setWork(
+        localStorage.getItem(WORK_ADDRESS_STORAGE_KEY) ?? DEFAULT_WORK_ADDRESS,
+      );
     } catch {
-      setAddress(DEFAULT_WORK_ADDRESS);
-      setSaved(DEFAULT_WORK_ADDRESS);
+      setWork(DEFAULT_WORK_ADDRESS);
     }
   }, []);
 
-  function save(next: string) {
-    const trimmed = next.trim();
-    if (!trimmed) return;
+  function save() {
     try {
-      localStorage.setItem(WORK_ADDRESS_STORAGE_KEY, trimmed);
+      const nextHome = home.trim();
+      const nextWork = work.trim();
+      if (nextHome) localStorage.setItem(HOME_ADDRESS_STORAGE_KEY, nextHome);
+      else localStorage.removeItem(HOME_ADDRESS_STORAGE_KEY);
+      if (nextWork) localStorage.setItem(WORK_ADDRESS_STORAGE_KEY, nextWork);
+      else localStorage.removeItem(WORK_ADDRESS_STORAGE_KEY);
     } catch {
       // Per-browser convenience only.
     }
-    setSaved(trimmed);
     setStatus("saved");
     window.setTimeout(() => setStatus("idle"), 2_000);
   }
 
-  function reset() {
-    try {
-      localStorage.removeItem(WORK_ADDRESS_STORAGE_KEY);
-    } catch {
-      // Per-browser convenience only.
-    }
-    setAddress(DEFAULT_WORK_ADDRESS);
-    setSaved(DEFAULT_WORK_ADDRESS);
-    setStatus("saved");
-    window.setTimeout(() => setStatus("idle"), 2_000);
-  }
+  const field =
+    "min-h-[48px] w-full min-w-0 rounded-full border border-[#181818]/25 bg-white/70 px-5 text-[15px] text-[#181818] outline-none focus:border-[#181818]";
 
   return (
     <section
@@ -65,41 +62,49 @@ export function CommuteSettings() {
         id="commute-settings-title"
         className="mt-3 text-2xl font-semibold tracking-[-0.03em]"
       >
-        Work address
+        Home and work
       </h2>
       <p className="mt-2 max-w-xl text-sm text-[#181818]/70">
-        The overview shows the drive time from home to here.
+        The overview shows the live drive time from wherever you are to the
+        other one — to work when you are home, home when you are at work.
       </p>
       <form
-        className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center"
+        className="mt-5 grid gap-3"
         onSubmit={(event) => {
           event.preventDefault();
-          save(address);
+          save();
         }}
       >
-        <input
-          aria-label="Work address"
-          value={address}
-          onChange={(event) => setAddress(event.target.value)}
-          placeholder="Street, postcode, city"
-          className="min-h-[48px] min-w-0 flex-1 rounded-full border border-[#181818]/25 bg-white/70 px-5 text-[15px] text-[#181818] outline-none focus:border-[#181818]"
-        />
-        <button
-          type="submit"
-          className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-[#181818] px-5 text-sm font-semibold text-white"
-        >
-          Save
-        </button>
-        <button
-          type="button"
-          onClick={reset}
-          className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-[#181818]/30 px-5 text-sm font-semibold text-[#181818]"
-        >
-          Reset
-        </button>
+        <label className="grid gap-1.5 text-sm font-semibold">
+          Home address
+          <input
+            value={home}
+            onChange={(event) => setHome(event.target.value)}
+            placeholder="Street, postcode, city"
+            autoComplete="street-address"
+            className={field}
+          />
+        </label>
+        <label className="grid gap-1.5 text-sm font-semibold">
+          Work address
+          <input
+            value={work}
+            onChange={(event) => setWork(event.target.value)}
+            placeholder="Street, postcode, city"
+            className={field}
+          />
+        </label>
+        <div>
+          <button
+            type="submit"
+            className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-[#181818] px-6 text-sm font-semibold text-white"
+          >
+            Save
+          </button>
+        </div>
       </form>
       <p className="mt-3 text-sm text-[#181818]/60" aria-live="polite">
-        {status === "saved" ? "Saved." : saved ? `Current: ${saved}` : ""}
+        {status === "saved" ? "Saved." : ""}
       </p>
     </section>
   );

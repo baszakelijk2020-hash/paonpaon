@@ -14,6 +14,7 @@ const ALLOWED_FONTS = new Set([
   "gtbold3.woff2",
   "Munged-MZgX5NxJBs.woff2",
   "Munged-teVV8iw7A5.woff2",
+  "optimaklein.woff2",
   "TN_Web_Use_Only.woff2",
   "TN_Web_Use_Only_1.woff2",
   "TN_Web_Use_Only_2.woff2",

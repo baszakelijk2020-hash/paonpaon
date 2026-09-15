@@ -128,7 +128,7 @@ export function MorningRoutineDashboardHero({
             fill
             priority
             unoptimized
-            className="object-contain"
+            className="object-cover object-top"
           />
         ) : (
           <div className="paon-overview-look-placeholder">

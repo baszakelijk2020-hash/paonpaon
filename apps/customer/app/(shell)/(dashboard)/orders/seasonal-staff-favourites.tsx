@@ -108,25 +108,12 @@ export async function SeasonalStaffFavourites({
                 <span className="relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-[15px] bg-[var(--color-stone-900)]">
                   {piece.imageUrl ? (
                     <>
-                      {/* Restrained blurred backing layer only — never
-                          plain empty letterboxing — while the full
-                          original image stays primary via object-contain
-                          below (contract §5.3's owned-card treatment,
-                          reused here for the same real-imagery rule). */}
-                      <Image
-                        src={piece.imageUrl}
-                        alt=""
-                        fill
-                        unoptimized
-                        aria-hidden="true"
-                        className="scale-110 object-cover opacity-50 blur-xl"
-                      />
                       <Image
                         src={piece.imageUrl}
                         alt={piece.name}
                         fill
                         unoptimized
-                        className="object-contain"
+                        className="object-cover object-top"
                       />
                     </>
                   ) : (

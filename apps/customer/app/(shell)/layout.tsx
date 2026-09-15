@@ -1,6 +1,7 @@
 import { ScrollMemory } from "./(dashboard)/scroll-memory";
 import { ShopCategorySidebar } from "./(dashboard)/shop-category-sidebar";
 import { EnvironmentTransition } from "./environment-transition";
+import { ResizeGate } from "./resize-gate";
 // Undoes the customer app's Tailwind preflight inside the storefront. Bundled
 // here rather than imported by the storefront route, so it lands in <head>
 // ahead of the template stylesheet the host injects at runtime — these rules
@@ -49,6 +50,7 @@ export default function ShellLayout({
    */
   return (
     <>
+      <ResizeGate />
       <StorefrontHost />
       <ScrollMemory />
       {/*
