@@ -60,7 +60,7 @@ export function AppointmentIdeaCarousel({
   return (
     <div aria-label="Appointment ideas" className="appointment-idea-section">
       <div className="appointment-idea-header">
-        <h3 className="appointment-idea-heading">Need an idea?</h3>
+        <h3 className="appointment-idea-heading">Something on your mind?</h3>
         <div className="appointment-idea-arrows">
           <button
             onClick={() => scroll("left")}

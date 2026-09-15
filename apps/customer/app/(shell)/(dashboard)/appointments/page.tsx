@@ -2,6 +2,7 @@ import {
   AlterationCatalogueRepository,
   PaidCareServicePriceRepository,
   RetailerBranchRepository,
+  RetailerRepository,
   WardrobeRepository,
   WardrobeRoadmapRepository,
 } from "@paon/database";
@@ -215,6 +216,7 @@ export default async function AppointmentsPage({
 
   const customers = await getCustomersForUser(session.userId);
   const branchRepo = new RetailerBranchRepository(supabase);
+  const retailerRepo = new RetailerRepository(supabase);
 
   const primaryCustomer = customers[0];
   const bookingPrefill = primaryCustomer
@@ -233,6 +235,14 @@ export default async function AppointmentsPage({
         }),
       )
     : [];
+
+  let retailerName = "your atelier";
+  if (primaryCustomer) {
+    const retailer = await retailerRepo.findById(primaryCustomer.retailerId);
+    if (retailer) {
+      retailerName = retailer.displayName || "your atelier";
+    }
+  }
 
   let operationsByService: Record<
     PaidCareServiceKind,
@@ -317,6 +327,7 @@ export default async function AppointmentsPage({
           className="appointment-care-actions"
           aria-label="Garment care services"
         >
+          <h2 className="appointment-care-heading">High Maintenance</h2>
           <PaidCareLauncher
             retailerId={primaryCustomer.retailerId}
             operationsByService={operationsByService}
@@ -342,6 +353,7 @@ export default async function AppointmentsPage({
             retailerId={primaryCustomer.retailerId}
             branches={bookableBranches}
             months={appointmentYear}
+            retailerName={retailerName}
           />
         </section>
       ) : null}

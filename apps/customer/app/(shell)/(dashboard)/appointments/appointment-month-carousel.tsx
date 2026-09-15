@@ -24,10 +24,12 @@ export function AppointmentMonthCarousel({
   retailerId,
   branches,
   months,
+  retailerName = "your atelier",
 }: {
   retailerId: string;
   branches: readonly BookableBranch[];
   months: readonly MonthData[];
+  retailerName?: string;
 }) {
   const carouselRef = useRef<HTMLDivElement>(null);
 
@@ -49,7 +51,7 @@ export function AppointmentMonthCarousel({
     <div className="appointment-month-carousel-section">
       <div className="appointment-month-carousel-header">
         <h2 className="appointment-month-carousel-heading">
-          Your next 12 months
+          Your next 12 months with {retailerName}
         </h2>
         <div className="appointment-month-carousel-arrows">
           <button

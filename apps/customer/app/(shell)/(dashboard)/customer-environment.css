@@ -826,6 +826,16 @@
   color: rgba(244, 242, 236, 0.6);
 }
 
+/* Appointment fit: drop workspace side padding so carousels can glide
+   edge-to-edge across the body (right of the sidebar). Content chrome
+   keeps its own inset via .appointment-fit padding. */
+.paon-env.paon-env .pe-workspace:has(.appointment-fit) {
+  max-width: none;
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: 0;
+}
+
 /* Appointment fit layout: viewport-locked above-the-fold layout */
 .paon-env.paon-env .appointment-fit {
   height: 100vh;
@@ -833,8 +843,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 12px;
-  padding-bottom: 0;
+  padding: 12px 28px 0;
   box-sizing: border-box;
 }
 
@@ -1302,7 +1311,6 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 0 12px;
 }
 .paon-env.paon-env .appointment-idea-heading {
   color: #f4f2ec;
@@ -1339,10 +1347,10 @@
   flex-wrap: nowrap;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  margin-left: -12px;
-  margin-right: -12px;
-  padding-left: 12px;
-  padding-right: 12px;
+  margin-left: -28px;
+  margin-right: -28px;
+  padding-left: 28px;
+  padding-right: 28px;
   touch-action: pan-x;
 }
 .paon-env.paon-env .appointment-idea-carousel::-webkit-scrollbar {
@@ -1644,7 +1652,6 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 0 12px;
 }
 .paon-env.paon-env .appointment-month-carousel-heading {
   color: #f4f2ec;
@@ -1682,10 +1689,10 @@
   flex-wrap: nowrap;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  margin-left: -12px;
-  margin-right: -12px;
-  padding-left: 12px;
-  padding-right: 12px;
+  margin-left: -28px;
+  margin-right: -28px;
+  padding-left: 28px;
+  padding-right: 28px;
   padding-bottom: 4px;
   touch-action: pan-x;
 }
@@ -1829,6 +1836,15 @@
   }
 }
 
+/* Care section heading */
+.paon-env.paon-env .appointment-care-heading {
+  color: #f4f2ec;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0 0 9px 0;
+}
+
 /* Quick book bar: fast appointment booking overlay ─────────────────── */
 .paon-env.paon-env .appointment-quick-book-container {
   margin-bottom: 24px;
@@ -1836,13 +1852,14 @@
 
 .paon-env.paon-env .appointment-quick-book-bar {
   display: flex;
-  gap: 12px;
-  padding: 16px 18px;
-  background: #191b1d;
-  border: 1px solid #ffffff0c;
-  border-radius: 18px;
+  gap: 8px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
   align-items: flex-end;
-  box-shadow: inset 0 1px 0 #ffffff08;
+  box-shadow: none;
+  width: 100%;
 }
 
 .paon-env.paon-env .appointment-quick-book-field {
@@ -1854,28 +1871,29 @@
 }
 
 .paon-env.paon-env .appointment-quick-book-label {
-  color: rgba(244, 242, 236, 0.6);
-  font-size: 11px;
+  color: rgba(244, 242, 236, 0.45);
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+  margin-bottom: 6px;
+  display: block;
 }
 
 .paon-env.paon-env .appointment-quick-book-input {
-  height: 44px;
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  height: 48px;
+  width: 100%;
+  padding: 0 14px;
+  background: #2a2a2a;
+  border: 0;
+  border-radius: 14px;
   color: #f4f2ec;
   font-size: 14px;
   font-family: inherit;
   box-sizing: border-box;
   -webkit-appearance: none;
   appearance: none;
-  transition:
-    background 180ms ease,
-    border-color 180ms ease;
+  transition: background 180ms ease;
 }
 
 .paon-env.paon-env input[type="date"].appointment-quick-book-input {
@@ -1886,22 +1904,18 @@
 .paon-env.paon-env
   input[type="date"].appointment-quick-book-input::-webkit-calendar-picker-indicator {
   cursor: pointer;
-  border-radius: 4px;
-  margin-right: 2px;
   opacity: 0.6;
   filter: invert(0.8);
 }
 
 .paon-env.paon-env .appointment-quick-book-input:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: #363636;
 }
 
 .paon-env.paon-env .appointment-quick-book-input:focus {
   outline: none;
-  background: rgba(255, 255, 255, 0.08);
-  border-color: #aed6e7;
-  box-shadow: inset 0 0 0 1px #aed6e7;
+  background: #363636;
+  box-shadow: inset 0 0 0 2px #aed6e7;
 }
 
 .paon-env.paon-env .appointment-quick-book-input:disabled {
@@ -1910,19 +1924,19 @@
 }
 
 .paon-env.paon-env .appointment-quick-book-button {
-  height: 44px;
-  padding: 0 20px;
+  height: 48px;
+  flex: 0 0 auto;
+  min-width: 112px;
+  padding: 0 22px;
   background: #b8e6be;
   color: #14120f;
   font-size: 14px;
   font-weight: 600;
-  border: none;
-  border-radius: 8px;
+  border: 0;
+  border-radius: 14px;
   cursor: pointer;
   transition: background 180ms ease;
   white-space: nowrap;
-  flex: 0 0 auto;
-  min-width: 90px;
   box-sizing: border-box;
 }
 
