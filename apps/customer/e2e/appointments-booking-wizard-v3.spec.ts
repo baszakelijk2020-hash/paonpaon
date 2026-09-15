@@ -187,7 +187,7 @@ for (const viewport of [
         // A real inspiration card (§6: four chronological seasonal
         // suggestions) — not an already-booked record.
         const card = page.getByRole("button", {
-          name: /Fall\/Winter Wardrobe Appointment/,
+          name: /Fall\/Winter Wardrobe/,
         });
         await expect(card).toBeVisible();
         await card.click();

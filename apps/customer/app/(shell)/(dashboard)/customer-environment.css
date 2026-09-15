@@ -979,131 +979,169 @@
   }
 }
 
-/* ── Plan-ahead appointment cards ─────────────────────────────────────────
-   A photograph of the occasion fills the card. Over its lower half a
-   progressive blur builds — heaviest at the foot, gone by the middle — with
-   a dark veil under the words, so the copy and the button read on the
-   picture without a box drawn round them. */
-.paon-env.paon-env .pe-plan-card {
-  position: relative;
-  display: block;
-  width: 100%;
-  min-height: 300px;
-  padding: 0 !important;
+/* ── Appointments: compact rolling atelier year ───────────────────────── */
+.paon-env.paon-env .appointment-care-actions > .grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px !important;
   overflow: hidden;
-  border: 0 !important;
-  border-radius: 20px !important;
-  background: #1a1a1a !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
-  color: #f4f2ec !important;
-  text-align: left;
-  cursor: pointer;
-  isolation: isolate;
+  border: 1px solid rgba(244, 242, 236, 0.16);
+  border-radius: 14px;
+  background: rgba(244, 242, 236, 0.16);
 }
-.paon-env.paon-env .pe-plan-card-image {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center 30%;
-  transform: scale(1);
-  transition: transform 900ms cubic-bezier(0.22, 0.61, 0.36, 1);
+.paon-env.paon-env .appointment-care-actions .pe-care-service {
+  min-height: 50px;
+  border-radius: 0;
+  background: #1a1a1a;
 }
-.paon-env.paon-env .pe-plan-card:hover .pe-plan-card-image {
-  transform: scale(1.04);
+.paon-env.paon-env .appointment-care-actions .pe-care-service-label {
+  font-size: 0;
 }
-/* Two layers make the progressive blur: a backdrop blur masked so it fades
-   in from the middle down, and a gradient veil for the ink. */
-.paon-env.paon-env .pe-plan-card-veil {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(
-    to top,
-    rgba(10, 10, 10, 0.86) 0%,
-    rgba(10, 10, 10, 0.62) 42%,
-    rgba(10, 10, 10, 0) 82%
-  );
+.paon-env.paon-env .appointment-care-actions .pe-care-service-label::after {
+  font-size: 13px;
 }
-/* Three stacked blur layers, each masked a little shorter than the last, so
-   the blur really builds toward the foot — ~60px at the bottom edge, ~30 in
-   the middle of the copy, ~12 where it starts — instead of one flat 18px
-   sheet with a soft edge. */
-.paon-env.paon-env .pe-plan-card-veil::before,
-.paon-env.paon-env .pe-plan-card-veil::after,
-.paon-env.paon-env .pe-plan-card-blur {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
+.paon-env.paon-env
+  .appointment-care-actions
+  .pe-care-service:nth-child(1)
+  .pe-care-service-label::after {
+  content: "Dry cleaning";
 }
-.paon-env.paon-env .pe-plan-card-veil::before {
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  -webkit-mask-image: linear-gradient(to top, #000 30%, transparent 85%);
-  mask-image: linear-gradient(to top, #000 30%, transparent 85%);
+.paon-env.paon-env
+  .appointment-care-actions
+  .pe-care-service:nth-child(2)
+  .pe-care-service-label::after {
+  content: "Shoe repair & maintenance";
 }
-.paon-env.paon-env .pe-plan-card-veil::after {
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
-  -webkit-mask-image: linear-gradient(to top, #000 18%, transparent 62%);
-  mask-image: linear-gradient(to top, #000 18%, transparent 62%);
+.paon-env.paon-env
+  .appointment-care-actions
+  .pe-care-service:nth-child(3)
+  .pe-care-service-label::after {
+  content: "Alterations";
 }
-.paon-env.paon-env .pe-plan-card-blur {
-  backdrop-filter: blur(48px);
-  -webkit-backdrop-filter: blur(48px);
-  -webkit-mask-image: linear-gradient(to top, #000 6%, transparent 40%);
-  mask-image: linear-gradient(to top, #000 6%, transparent 40%);
-}
-.paon-env.paon-env .pe-plan-card-body {
-  position: relative;
-  z-index: 1;
+.paon-env.paon-env .appointment-year-heading {
   display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 6px;
-  min-height: 300px;
-  padding: 22px 22px 20px;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 9px;
 }
-.paon-env.paon-env .pe-plan-card-date {
-  font-size: 12px;
+.paon-env.paon-env .appointment-year-heading h2 {
+  color: #f4f2ec;
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: -0.02em;
-  color: rgba(244, 242, 236, 0.7);
 }
-.paon-env.paon-env .pe-plan-card-title {
-  font-size: 17px;
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
+.paon-env.paon-env .appointment-year-heading p {
+  color: rgba(244, 242, 236, 0.48);
+  font-size: 11px;
+}
+.paon-env.paon-env .appointment-year-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid rgba(244, 242, 236, 0.18);
+  border-radius: 14px;
+  background: rgba(244, 242, 236, 0.18);
+}
+.paon-env.paon-env .appointment-month-cell {
+  min-width: 0;
+  background: #171717;
+}
+.paon-env.paon-env .appointment-month-launcher {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto auto 1fr auto;
+  width: 100%;
+  height: 150px;
+  padding: 13px 15px 12px;
+  overflow: hidden;
+  border: 0;
+  background:
+    linear-gradient(90deg, var(--appointment-accent) 0 3px, transparent 3px),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.035), transparent 58%);
   color: #f4f2ec;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 180ms ease;
 }
-.paon-env.paon-env .pe-plan-card-copy {
-  font-size: 13px;
-  line-height: 1.45;
-  color: rgba(244, 242, 236, 0.72);
+.paon-env.paon-env .appointment-month-launcher:hover {
+  background-color: rgba(255, 255, 255, 0.055);
 }
-.paon-env.paon-env .pe-plan-card-cta {
-  display: inline-flex;
-  align-self: flex-start;
-  align-items: center;
-  min-height: 40px;
-  margin-top: 8px;
-  padding: 0 16px;
-  border-radius: 999px;
-  background: #f4f2ec;
-  color: #14120f;
-  font-size: 13px;
+.paon-env.paon-env .appointment-month-launcher:focus-visible {
+  z-index: 2;
+  outline: 2px solid #f4f2ec;
+  outline-offset: -3px;
+}
+.paon-env.paon-env .appointment-month-topline {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.paon-env.paon-env .appointment-month-name {
+  font-size: 20px;
   font-weight: 500;
-  transition: background-color 220ms ease;
+  letter-spacing: -0.045em;
+  line-height: 1;
 }
-.paon-env.paon-env .pe-plan-card:hover .pe-plan-card-cta {
-  background: #ffffff;
+.paon-env.paon-env .appointment-month-number {
+  color: color-mix(in srgb, var(--appointment-accent) 78%, #f4f2ec);
+  font-size: 30px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 300;
+  letter-spacing: -0.06em;
+  line-height: 0.8;
 }
-.paon-env.paon-env .pe-plan-card:focus-visible {
-  outline: 2px solid rgba(244, 242, 236, 0.7);
-  outline-offset: 2px;
+.paon-env.paon-env .appointment-month-year {
+  margin-top: 2px;
+  color: rgba(244, 242, 236, 0.42);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.12em;
+}
+.paon-env.paon-env .appointment-month-title {
+  margin-top: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.paon-env.paon-env .appointment-month-copy {
+  margin-top: 3px;
+  overflow: hidden;
+  color: rgba(244, 242, 236, 0.55);
+  font-size: 10px;
+  line-height: 1.3;
+}
+.paon-env.paon-env .appointment-month-cta {
+  align-self: end;
+  color: color-mix(in srgb, var(--appointment-accent) 72%, #f4f2ec);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+@media (max-width: 900px) {
+  .paon-env.paon-env .appointment-year-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 520px) {
+  .paon-env.paon-env .appointment-care-actions > .grid {
+    grid-template-columns: 1fr;
+  }
+  .paon-env.paon-env .appointment-year-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .paon-env.paon-env .appointment-year-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .paon-env.paon-env .appointment-month-launcher {
+    transition: none;
+  }
 }
 
 /* ── Paid-care services: an icon and a label per tile ─────────────────── */

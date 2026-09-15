@@ -12,8 +12,8 @@ import {
   type PaidCareServiceKind,
 } from "@paon/domain";
 import { formatDate } from "@paon/utils";
-import Image from "next/image";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { z } from "zod";
 
 import { RelatedLinks } from "../related-links";
@@ -101,45 +101,85 @@ async function resolveBookingPrefill(
   return null;
 }
 
-/*
- * The four appointments to plan a year around, in the order the founder set
- * them. Each card is a setting from the house's own photography with the
- * words and the button laid over a progressive blur of it.
- */
-const INSPIRATION_APPOINTMENTS = [
+const MONTHLY_APPOINTMENT_THEMES = [
   {
-    id: "fall-winter-2026",
-    dateLabel: "September 2026",
-    month: "2026-09",
-    title: "Fall/Winter Wardrobe Appointment",
-    copy: "Plan the wardrobe before the weather does — cloth, coats and the pieces the season will ask of you.",
-    image: "https://www.nebelspiegel.com/images/chatpic04.png",
+    title: "Wardrobe Reset",
+    copy: "Review fit, condition and the pieces that should lead the new year.",
+    accent: "#a79a86",
   },
   {
-    id: "holiday-season-2027",
-    dateLabel: "November 2027",
-    month: "2027-11",
-    title: "Holiday Season Appointment",
-    copy: "Never be caught out by a black-tie invitation. Evening, festive, and the dinners in between.",
-    image: "https://www.nebelspiegel.com/images/chatpic02.png",
+    title: "Spring/Summer Preview",
+    copy: "Choose lighter cloth and set the season's wardrobe before warmth arrives.",
+    accent: "#aeb7a0",
   },
   {
-    id: "spring-summer-2027",
-    dateLabel: "February 2027",
-    month: "2027-02",
-    title: "Spring/Summer 2027 Appointment",
-    copy: "Lighter cloth, sharper lines. Set the season's wardrobe before the first warm week arrives.",
-    image: "https://www.nebelspiegel.com/images/chats222.png",
+    title: "Transitional Tailoring",
+    copy: "Tune layers, weight and colour for changeable early-spring days.",
+    accent: "#829192",
   },
   {
-    id: "summer-holiday-2027",
-    dateLabel: "April 2027",
-    month: "2027-04",
-    title: "Summer Holiday Appointment",
-    copy: "Summer is no excuse to look like a sack. Linen, holiday tailoring, and what actually goes in the case.",
-    image: "https://www.nebelspiegel.com/images/chatpic03.png",
+    title: "Summer Holiday",
+    copy: "Plan linen, holiday tailoring and the pieces that earn a place in the case.",
+    accent: "#b7aa84",
+  },
+  {
+    title: "Wedding & Occasion",
+    copy: "Prepare formal looks early, from ceremony tailoring to evening details.",
+    accent: "#a79691",
+  },
+  {
+    title: "Linen & Travel",
+    copy: "Build a breathable, crease-conscious wardrobe for work and weekends away.",
+    accent: "#c0ad87",
+  },
+  {
+    title: "Midseason Fit Check",
+    copy: "Reassess fit and refresh the hardworking pieces already in rotation.",
+    accent: "#8f877b",
+  },
+  {
+    title: "Autumn Preview",
+    copy: "Reserve new-season cloth and decide which cooler-weather gaps to fill.",
+    accent: "#8d765e",
+  },
+  {
+    title: "Fall/Winter Wardrobe",
+    copy: "Plan cloth, coats and the pieces the colder season will ask of you.",
+    accent: "#726653",
+  },
+  {
+    title: "Outerwear & Layering",
+    copy: "Balance coats, knitwear and tailoring before temperatures settle.",
+    accent: "#66706a",
+  },
+  {
+    title: "Holiday Season",
+    copy: "Prepare evening, festive and dinner looks before invitations arrive.",
+    accent: "#76544d",
+  },
+  {
+    title: "Festive & Black Tie",
+    copy: "Finish the year with black tie, polished accessories and assured fit.",
+    accent: "#786f82",
   },
 ] as const;
+
+function buildRollingAppointmentYear(from: Date) {
+  return Array.from({ length: 12 }, (_, index) => {
+    const date = new Date(from.getFullYear(), from.getMonth() + index, 1);
+    const theme = MONTHLY_APPOINTMENT_THEMES[date.getMonth()]!;
+    return {
+      ...theme,
+      id: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`,
+      month: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`,
+      monthName: new Intl.DateTimeFormat("en-US", { month: "long" }).format(
+        date,
+      ),
+      monthNumber: String(date.getMonth() + 1).padStart(2, "0"),
+      year: date.getFullYear(),
+    };
+  });
+}
 
 export default async function AppointmentsPage({
   searchParams,
@@ -241,6 +281,7 @@ export default async function AppointmentsPage({
     formatDate(iso, "en-US", { hour: "numeric", minute: "2-digit" });
   const formatRange = (startsAt: string, endsAt: string) =>
     `${formatTime(startsAt)}–${formatTime(endsAt)}`;
+  const appointmentYear = buildRollingAppointmentYear(new Date());
 
   return (
     <div className="customer-page flex flex-col gap-6 bg-black pb-12 text-white">
@@ -282,57 +323,63 @@ export default async function AppointmentsPage({
       </header>
 
       {primaryCustomer ? (
-        <section>
-          <h2 className="customer-kicker mb-4 text-white/55">Plan ahead</h2>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {INSPIRATION_APPOINTMENTS.map((card) => (
-              <div key={card.id} data-pe-card>
-                <BookAppointmentLauncher
-                  retailerId={primaryCustomer.retailerId}
-                  branches={bookableBranches}
-                  initialReason="in_the_mood_for_something_fresh"
-                  purpose={card.title}
-                  initialMonth={card.month}
-                  className="pe-plan-card group"
-                >
-                  {/* The setting is the whole card; the lower half blurs
-                      progressively so the words sit on it without a box. */}
-                  <Image
-                    src={card.image}
-                    alt=""
-                    aria-hidden="true"
-                    fill
-                    unoptimized
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                    className="pe-plan-card-image"
-                  />
-                  <span className="pe-plan-card-veil" aria-hidden="true" />
-                  <span className="pe-plan-card-blur" aria-hidden="true" />
-                  <span className="pe-plan-card-body">
-                    <span className="pe-plan-card-date">{card.dateLabel}</span>
-                    <span className="pe-plan-card-title">{card.title}</span>
-                    <span className="pe-plan-card-copy">{card.copy}</span>
-                    <span className="pe-plan-card-cta">
-                      Book this appointment
-                    </span>
-                  </span>
-                </BookAppointmentLauncher>
-              </div>
-            ))}
-          </div>
+        <section
+          className="appointment-care-actions"
+          aria-label="Garment care services"
+        >
+          <PaidCareLauncher
+            retailerId={primaryCustomer.retailerId}
+            operationsByService={operationsByService}
+          />
         </section>
       ) : null}
 
       {primaryCustomer ? (
         <section
-          className="pe-card rounded-[32px] bg-[#191b1d] p-6 text-white sm:p-8"
-          data-pe-card
+          className="appointment-year"
+          aria-labelledby="appointment-year-title"
         >
-          <p className="customer-kicker mb-3">Paid-care services</p>
-          <PaidCareLauncher
-            retailerId={primaryCustomer.retailerId}
-            operationsByService={operationsByService}
-          />
+          <div className="appointment-year-heading">
+            <h2 id="appointment-year-title">Your next 12 months</h2>
+            <p>One useful atelier visit for every month ahead.</p>
+          </div>
+          <div className="appointment-year-grid">
+            {appointmentYear.map((month) => (
+              <div
+                key={month.id}
+                className="appointment-month-cell"
+                data-appointment-month={month.month}
+              >
+                <BookAppointmentLauncher
+                  retailerId={primaryCustomer.retailerId}
+                  branches={bookableBranches}
+                  initialReason="in_the_mood_for_something_fresh"
+                  purpose={`${month.title} Appointment`}
+                  initialMonth={month.month}
+                  className="appointment-month-launcher"
+                  style={
+                    { "--appointment-accent": month.accent } as CSSProperties
+                  }
+                >
+                  <span className="appointment-month-topline">
+                    <span className="appointment-month-name">
+                      {month.monthName}
+                    </span>
+                    <span
+                      className="appointment-month-number"
+                      aria-hidden="true"
+                    >
+                      {month.monthNumber}
+                    </span>
+                  </span>
+                  <span className="appointment-month-year">{month.year}</span>
+                  <span className="appointment-month-title">{month.title}</span>
+                  <span className="appointment-month-copy">{month.copy}</span>
+                  <span className="appointment-month-cta">Book visit →</span>
+                </BookAppointmentLauncher>
+              </div>
+            ))}
+          </div>
         </section>
       ) : null}
 
