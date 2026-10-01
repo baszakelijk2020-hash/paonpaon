@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  ORDER_STATUSES,
+  allowedOrderTransitions,
   ORDER_STATUS_LABELS,
   type OrderStatus,
 } from "@paon/domain";
@@ -36,11 +36,13 @@ export function StatusForm({
           Status
         </label>
         <Select id="status" name="status" defaultValue={currentStatus}>
-          {ORDER_STATUSES.map((status) => (
-            <option key={status} value={status}>
-              {ORDER_STATUS_LABELS[status]}
-            </option>
-          ))}
+          {[currentStatus, ...allowedOrderTransitions(currentStatus)].map(
+            (status) => (
+              <option key={status} value={status}>
+                {ORDER_STATUS_LABELS[status]}
+              </option>
+            ),
+          )}
         </Select>
       </div>
       <Button type="submit" disabled={isPending}>

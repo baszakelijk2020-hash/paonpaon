@@ -6,7 +6,12 @@ import {
   OrderRepository,
   RetailerStaffRepository,
 } from "@paon/database";
-import { asId, updateOrderStatusInputSchema } from "@paon/domain";
+import {
+  asId,
+  canTransitionOrder,
+  ORDER_STATUS_LABELS,
+  updateOrderStatusInputSchema,
+} from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
 import { requireModuleSession } from "@/lib/module-session";
@@ -33,12 +38,23 @@ export async function updateOrderStatus(
   }
 
   const supabase = await getSupabaseServerClient();
+  const repo = new OrderRepository(supabase);
+
+  // The dropdown lists only legal next statuses, but the action is the gate:
+  // a stale page or a hand-made request could otherwise jump an order from
+  // pending_payment to completed, or resurrect a cancelled one.
+  const current = await repo.findById(asId<"OrderId">(orderId));
+  if (!current) {
+    return { formError: "Order not found." };
+  }
+  if (!canTransitionOrder(current.status, parsed.data.status)) {
+    return {
+      formError: `An order cannot go from ${ORDER_STATUS_LABELS[current.status]} to ${ORDER_STATUS_LABELS[parsed.data.status]}.`,
+    };
+  }
 
   try {
-    await new OrderRepository(supabase).updateStatus(
-      asId<"OrderId">(orderId),
-      parsed.data.status,
-    );
+    await repo.updateStatus(asId<"OrderId">(orderId), parsed.data.status);
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown error";
     return { formError: message };
@@ -120,6 +136,13 @@ export async function requestReturn(
   }
   if (order.status === "refunded") {
     return { formError: "This order has already been refunded." };
+  }
+  // The same lifecycle gate as updateOrderStatus: only a delivered or
+  // completed order can be returned.
+  if (!canTransitionOrder(order.status, "refunded")) {
+    return {
+      formError: "This order cannot be returned in its current status.",
+    };
   }
 
   const staff = await new RetailerStaffRepository(supabase).findByUserId(

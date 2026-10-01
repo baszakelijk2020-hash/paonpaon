@@ -53,7 +53,7 @@ export default async function EventsPage() {
             <option value="public">Public</option>
             <option value="invite_only">Invite only</option>
             <option value="vip_tier">
-              {RETAILER_LOYALTY_TIER_LABELS.gold} tier members
+              {RETAILER_LOYALTY_TIER_LABELS.micron} tier members
             </option>
           </select>
           <textarea

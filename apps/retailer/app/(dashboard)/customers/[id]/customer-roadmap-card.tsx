@@ -15,12 +15,20 @@ export function CustomerRoadmapCard({
   roadmaps,
   catalogueProducts,
   canManage,
+  removedGapIds,
 }: {
   customerId: string;
   roadmaps: readonly WardrobeRoadmap[];
   catalogueProducts: readonly { id: string; name: string }[];
   canManage: boolean;
+  /**
+   * Gaps the customer has taken off their own plan. The roadmap itself is
+   * untouched by that — which is why, without this, an advisor keeps reading a
+   * selection the customer has already dismissed and follows up on it.
+   */
+  removedGapIds: readonly string[];
 }) {
+  const removed = new Set(removedGapIds);
   const initialState: RoadmapActionState = { fieldErrors: {} };
   const [state, action, pending] = useActionState(
     createCustomerWardrobeRoadmap,
@@ -83,16 +91,32 @@ export function CustomerRoadmapCard({
                 </div>
               </div>
               <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-[var(--color-stone-700)]">
-                {roadmap.gaps.map((gap) => (
-                  <li key={gap.id}>
-                    <span className="font-medium">#{gap.rank}</span> {gap.title}
-                    {gap.howPurchaseFillsGap ? (
-                      <span className="block text-xs text-[var(--color-stone-500)]">
-                        {gap.howPurchaseFillsGap}
+                {roadmap.gaps.map((gap) => {
+                  const isRemoved = removed.has(gap.id);
+                  return (
+                    <li
+                      key={gap.id}
+                      className={
+                        isRemoved ? "text-[var(--color-stone-400)]" : undefined
+                      }
+                    >
+                      <span className="font-medium">#{gap.rank}</span>{" "}
+                      <span className={isRemoved ? "line-through" : undefined}>
+                        {gap.title}
                       </span>
-                    ) : null}
-                  </li>
-                ))}
+                      {isRemoved ? (
+                        <span className="ml-2 rounded-full bg-[var(--color-stone-100)] px-2 py-0.5 text-[10px] uppercase tracking-wide text-[var(--color-stone-600)]">
+                          Customer removed this
+                        </span>
+                      ) : null}
+                      {gap.howPurchaseFillsGap ? (
+                        <span className="block text-xs text-[var(--color-stone-500)]">
+                          {gap.howPurchaseFillsGap}
+                        </span>
+                      ) : null}
+                    </li>
+                  );
+                })}
               </ol>
               <ul className="mt-3 space-y-2 text-sm text-[var(--color-stone-700)]">
                 {roadmap.stages.map((stage) => (

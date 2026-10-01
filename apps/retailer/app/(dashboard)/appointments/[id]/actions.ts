@@ -2,7 +2,11 @@
 
 import { requireRetailerRole } from "@paon/auth";
 import { AppointmentRepository } from "@paon/database";
-import { asId, updateAppointmentInputSchema } from "@paon/domain";
+import {
+  APPOINTMENT_STATUS_LABELS,
+  asId,
+  updateAppointmentInputSchema,
+} from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
 import { requireModuleSession } from "@/lib/module-session";
@@ -32,22 +36,40 @@ export async function updateAppointment(
   }
 
   const supabase = await getSupabaseServerClient();
+  const repo = new AppointmentRepository(supabase);
 
   try {
-    await new AppointmentRepository(supabase).update(
-      asId<"AppointmentId">(appointmentId),
-      {
-        ...(parsed.data.status !== undefined
-          ? { status: parsed.data.status }
-          : {}),
-        ...(parsed.data.staffId !== undefined
-          ? { staffId: asId<"StaffId">(parsed.data.staffId) }
-          : {}),
-      },
-    );
+    await repo.update(asId<"AppointmentId">(appointmentId), {
+      ...(parsed.data.status !== undefined
+        ? { status: parsed.data.status }
+        : {}),
+      ...(parsed.data.staffId !== undefined
+        ? { staffId: asId<"StaffId">(parsed.data.staffId) }
+        : {}),
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown error";
     return { formError: message };
+  }
+
+  // A status change is the customer's business: they are the one waiting to
+  // hear whether the time stands. Reassigning an advisor internally is not, so
+  // only the status triggers this.
+  if (parsed.data.status !== undefined) {
+    const label = APPOINTMENT_STATUS_LABELS[parsed.data.status];
+    try {
+      await repo.notifyCustomerOfChange({
+        appointmentId: asId<"AppointmentId">(appointmentId),
+        title:
+          parsed.data.status === "canceled"
+            ? "Your appointment was cancelled"
+            : `Your appointment is now ${label.toLowerCase()}`,
+        body: "Open your appointment for the details.",
+      });
+    } catch {
+      // The change itself is already saved and is the thing that matters; a
+      // failed notification must not report the update as failed.
+    }
   }
 
   revalidatePath(`/appointments/${appointmentId}`);

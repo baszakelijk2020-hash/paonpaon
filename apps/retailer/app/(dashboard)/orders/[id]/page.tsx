@@ -2,6 +2,7 @@ import {
   CustomerRepository,
   HoneymoonProgrammeRepository,
   OrderRepository,
+  PaymentRepository,
   ProductVariantRepository,
 } from "@paon/database";
 import { asId, retailerRoleAtLeast } from "@paon/domain";
@@ -39,9 +40,13 @@ export default async function OrderDetailPage({
     notFound();
   }
 
-  const [lines, customer] = await Promise.all([
+  const [lines, customer, payment] = await Promise.all([
     orderRepo.findLinesByOrder(order.id),
     new CustomerRepository(supabase).findById(order.customerId),
+    // Staff previously inferred payment purely from `order.status`; the real
+    // Payment row — amount captured, provider reference, capture time — was
+    // never read on this page even though it has always existed.
+    new PaymentRepository(supabase).findByOrder(order.id),
   ]);
 
   const variantRepo = new ProductVariantRepository(supabase);
@@ -129,6 +134,62 @@ export default async function OrderDetailPage({
         <p className="font-medium text-[var(--color-stone-900)]">
           {formatMoney(order.total, "en-US")}
         </p>
+      </Card>
+
+      <Card className="p-6">
+        <h2 className="font-display text-lg text-[var(--color-stone-900)]">
+          Payment
+        </h2>
+        {payment === null ? (
+          <p className="mt-2 text-sm text-[var(--color-stone-500)]">
+            No payment recorded against this order yet.
+          </p>
+        ) : (
+          <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+            <div>
+              <dt className="text-xs uppercase text-[var(--color-stone-500)]">
+                Status
+              </dt>
+              <dd className="text-[var(--color-stone-900)]">
+                {payment.status}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase text-[var(--color-stone-500)]">
+                Captured
+              </dt>
+              <dd className="text-[var(--color-stone-900)]">
+                {payment.capturedAt
+                  ? formatDate(payment.capturedAt, "en-US")
+                  : "Not captured"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase text-[var(--color-stone-500)]">
+                Amount
+              </dt>
+              <dd className="text-[var(--color-stone-900)]">
+                {formatMoney(payment.amount, "en-US")}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase text-[var(--color-stone-500)]">
+                Platform fee
+              </dt>
+              <dd className="text-[var(--color-stone-900)]">
+                {formatMoney(payment.platformFee, "en-US")}
+              </dd>
+            </div>
+            <div className="sm:col-span-2">
+              <dt className="text-xs uppercase text-[var(--color-stone-500)]">
+                {payment.provider} reference
+              </dt>
+              <dd className="font-mono text-xs text-[var(--color-stone-700)]">
+                {payment.providerReference}
+              </dd>
+            </div>
+          </dl>
+        )}
       </Card>
 
       {canManageOrders ? (

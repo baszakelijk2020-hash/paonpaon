@@ -29,12 +29,21 @@ export default async function LoyaltyPage() {
     redirect("/dashboard");
   }
   const repository = new LoyaltyRepository(await getSupabaseServerClient());
-  const [program, rewards, accounts, milestones] = await Promise.all([
-    repository.findProgram(session.retailerId),
-    repository.findRewards(session.retailerId),
-    repository.findAccountsByRetailer(session.retailerId),
-    repository.findMilestoneDefinitions(session.retailerId),
-  ]);
+  const [program, rewards, accounts, milestones, redemptions, referrals] =
+    await Promise.all([
+      repository.findProgram(session.retailerId),
+      repository.findRewards(session.retailerId),
+      repository.findAccountsByRetailer(session.retailerId),
+      repository.findMilestoneDefinitions(session.retailerId),
+      // Both tables have carried a retailer-staff read policy since they were
+      // created; nothing ever read them, so staff saw aggregate counts only and
+      // could not tell who redeemed what or who invited whom.
+      repository.findRedemptionsByRetailer(session.retailerId),
+      repository.findReferralsByRetailer(session.retailerId),
+    ]);
+  const rewardNameById = new Map(
+    rewards.map((reward) => [reward.id as string, reward.name]),
+  );
   const builtIns = milestones.filter((item) => item.kind !== "custom");
   const peers = milestones.filter((item) => item.kind === "custom");
   return (
@@ -253,12 +262,9 @@ export default async function LoyaltyPage() {
             className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 text-sm"
           >
             <option value="">All tiers</option>
-            <option value="silver">
-              {RETAILER_LOYALTY_TIER_LABELS.silver}
-            </option>
-            <option value="gold">{RETAILER_LOYALTY_TIER_LABELS.gold}</option>
-            <option value="platinum">
-              {RETAILER_LOYALTY_TIER_LABELS.platinum}
+            <option value="milli">{RETAILER_LOYALTY_TIER_LABELS.milli}</option>
+            <option value="micron">
+              {RETAILER_LOYALTY_TIER_LABELS.micron}
             </option>
           </select>
           <Button type="submit">Create reward</Button>
@@ -295,6 +301,70 @@ export default async function LoyaltyPage() {
           <p className="text-sm text-[var(--color-stone-500)]">
             No rewards yet.
           </p>
+        )}
+      </Card>
+
+      <Card className="p-6">
+        <h2 className="font-display text-lg text-[var(--color-stone-900)]">
+          Redemptions
+        </h2>
+        <p className="text-sm text-[var(--color-stone-500)]">
+          What customers actually claimed · {redemptions.length} shown
+        </p>
+        {redemptions.length === 0 ? (
+          <p className="mt-3 text-sm text-[var(--color-stone-500)]">
+            Nothing redeemed yet.
+          </p>
+        ) : (
+          <ul className="mt-4 flex flex-col divide-y divide-white/10">
+            {redemptions.map((entry) => (
+              <li
+                key={entry.id as string}
+                className="flex flex-wrap items-baseline justify-between gap-2 py-3"
+              >
+                <span className="text-sm text-[var(--color-stone-900)]">
+                  {rewardNameById.get(entry.rewardId as string) ?? "Reward"} ·{" "}
+                  <span className="font-mono text-xs">{entry.code}</span>
+                </span>
+                <span className="text-xs text-[var(--color-stone-500)]">
+                  {entry.pointsSpent} pts · {entry.status}
+                  {entry.usedAt ? " · used" : ""} ·{" "}
+                  {new Date(entry.createdAt).toLocaleDateString("en-GB")}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+
+      <Card className="p-6">
+        <h2 className="font-display text-lg text-[var(--color-stone-900)]">
+          Introductions
+        </h2>
+        <p className="text-sm text-[var(--color-stone-500)]">
+          Who invited whom, and how far it got · {referrals.length} shown
+        </p>
+        {referrals.length === 0 ? (
+          <p className="mt-3 text-sm text-[var(--color-stone-500)]">
+            No introductions yet.
+          </p>
+        ) : (
+          <ul className="mt-4 flex flex-col divide-y divide-white/10">
+            {referrals.map((entry) => (
+              <li
+                key={entry.id as string}
+                className="flex flex-wrap items-baseline justify-between gap-2 py-3"
+              >
+                <span className="text-sm text-[var(--color-stone-900)]">
+                  {entry.referredEmail}
+                </span>
+                <span className="text-xs text-[var(--color-stone-500)]">
+                  {entry.status.replace(/_/g, " ")} ·{" "}
+                  {new Date(entry.createdAt).toLocaleDateString("en-GB")}
+                </span>
+              </li>
+            ))}
+          </ul>
         )}
       </Card>
     </div>

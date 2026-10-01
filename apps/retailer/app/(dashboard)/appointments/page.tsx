@@ -79,6 +79,14 @@ export default async function AppointmentsPage({
             {filtered.length === 1 ? "" : "s"} ·{" "}
             <Link href="/appointments/availability" className="underline">
               Availability
+            </Link>{" "}
+            ·{" "}
+            <Link href="/appointments/closures" className="underline">
+              Closures
+            </Link>{" "}
+            ·{" "}
+            <Link href="/appointments/paid-care" className="underline">
+              Paid care
             </Link>
           </p>
         </div>

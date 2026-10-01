@@ -23,10 +23,9 @@ import { correctCustomerFact } from "./fact-correction-actions";
 import { RETAILER_LOYALTY_TIER_LABELS } from "@/lib/loyalty-tier-labels";
 
 const TIER_TONE = {
-  member: "neutral",
-  silver: "neutral",
-  gold: "warning",
-  platinum: "success",
+  metre: "neutral",
+  milli: "neutral",
+  micron: "success",
 } as const;
 
 const EVENT_LABELS: Record<string, string> = {

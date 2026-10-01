@@ -27,6 +27,10 @@ import {
   SuitConfiguratorRepository,
   WardrobeLifecycleRepository,
   WardrobeRepository,
+  CampaignRepository,
+  CustomerPreferencesRepository,
+  ProductVariantRepository,
+  WishlistRepository,
   WardrobeRoadmapRepository,
   WardrobeVisualizationJobRepository,
   type WardrobeItemServiceView,
@@ -65,6 +69,8 @@ import { AdvisorRectangleCapture } from "./advisor-rectangle-capture";
 import { AIInsights } from "./ai-insights";
 import { CartSoftCloseCard } from "./cart-soft-close-card";
 import { ClientelingOpportunityInbox } from "./clienteling-opportunity-inbox";
+import { CustomerEngagementCard } from "./customer-engagement-card";
+import { CustomerPreferencesCard } from "./customer-preferences-card";
 import { CustomerRoadmapCard } from "./customer-roadmap-card";
 import { CustomerWardrobeCard } from "./customer-wardrobe-card";
 import { FitProfileCandidateCard } from "./fit-profile-candidate-card";
@@ -130,7 +136,13 @@ export default async function CustomerDetailPage({
     rectangleConcepts,
     wardrobeItems,
     catalogueProducts,
+    customerPreferences,
+    campaignEnrollments,
+    campaignRewardGrants,
+    retailerCampaigns,
+    wishlist,
     roadmaps,
+    removedGapIds,
     suitConfigurationIntents,
     fitProfileCandidates,
     reorderGateResult,
@@ -165,7 +177,23 @@ export default async function CustomerDetailPage({
     new MetadataRepository(supabase).findVisibleConcepts(session.retailerId),
     new WardrobeRepository(supabase).findByCustomer(customer.id),
     new ProductRepository(supabase).findByRetailer(session.retailerId),
+    new CustomerPreferencesRepository(supabase).findByCustomer(customer.id),
+    // The campaign/private-offer loop ran with no retailer surface at all: a
+    // completed challenge was invisible to the staff meant to honour it.
+    new CampaignRepository(supabase).listEnrollmentsForCustomer(customer.id),
+    new CampaignRepository(supabase).listRewardGrantsForCustomer(customer.id),
+    new CampaignRepository(supabase).listByRetailer(session.retailerId),
+    // Wishlists were readable only inside an appointment or a wedding party.
+    // Outside those, staff had no view of what a customer had saved — the
+    // plainest sales signal there is.
+    new WishlistRepository(supabase).findByCustomer(customer.id),
     new WardrobeRoadmapRepository(supabase).findByCustomer(customer.id),
+    // Staff already hold a read policy on these dispositions; nothing in this
+    // app had ever used it, so a customer quietly dropping an advisor's
+    // selection was invisible on this page.
+    new WardrobeRoadmapRepository(supabase).listRemovedGapIdsForCustomer(
+      customer.id,
+    ),
     new SuitConfiguratorRepository(supabase).findRecentByCustomer(customer.id),
     new FitProfileCandidateRepository(supabase).listByCustomer(customer.id),
     new MeasurementMonitorRepository(supabase).checkReorderAllowed({
@@ -185,6 +213,40 @@ export default async function CustomerDetailPage({
     ),
   ]);
 
+  // Resolve the saved variants to real product names; a list of variant ids
+  // is not a sales signal anyone can act on.
+  const wishlistItems = wishlist
+    ? await new WishlistRepository(supabase).findItems(wishlist.id)
+    : [];
+  const wishlistVariants = await Promise.all(
+    wishlistItems.map((item) =>
+      new ProductVariantRepository(supabase).findById(item.productVariantId),
+    ),
+  );
+  const wishlistEntries = wishlistItems.map((item, index) => {
+    const variant = wishlistVariants[index];
+    // A variant carries a SKU, size and colour but no display name; the
+    // product above it is what a person recognises.
+    const product = variant
+      ? catalogueProducts.find(
+          (candidate) => candidate.id === variant.productId,
+        )
+      : undefined;
+    const detail = [variant?.size, variant?.color].filter(Boolean).join(" · ");
+    return {
+      id: `${item.wishlistId}:${item.productVariantId}`,
+      label: product?.name ?? variant?.sku ?? "Saved piece",
+      detail,
+      addedAt: item.addedAt,
+    };
+  });
+
+  const campaignNameById = new Map(
+    retailerCampaigns.map((campaign) => [
+      campaign.id as string,
+      campaign.title,
+    ]),
+  );
   const orderRepo = new OrderRepository(supabase);
   const draftCart = await orderRepo.findCart(session.retailerId, customer.id);
   const draftCartLines = draftCart
@@ -951,9 +1013,44 @@ export default async function CustomerDetailPage({
         wardrobeCardBaseUrl={wardrobeCardBaseUrl}
       />
 
+      <CustomerPreferencesCard preferences={customerPreferences} />
+
+      {wishlistEntries.length > 0 ? (
+        <Card className="p-6">
+          <h2 className="font-display text-lg text-[var(--color-stone-900)]">
+            Saved pieces
+          </h2>
+          <p className="text-sm text-[var(--color-stone-500)]">
+            What they have put aside · {wishlistEntries.length}
+          </p>
+          <ul className="mt-4 flex flex-col divide-y divide-white/10">
+            {wishlistEntries.map((entry) => (
+              <li
+                key={entry.id}
+                className="flex flex-wrap items-baseline justify-between gap-2 py-2"
+              >
+                <span className="text-sm text-[var(--color-stone-900)]">
+                  {entry.label}
+                </span>
+                <span className="text-xs text-[var(--color-stone-500)]">
+                  {new Date(entry.addedAt).toLocaleDateString("en-GB")}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
+
+      <CustomerEngagementCard
+        enrollments={campaignEnrollments}
+        rewardGrants={campaignRewardGrants}
+        campaignNameById={campaignNameById}
+      />
+
       <CustomerRoadmapCard
         customerId={customer.id}
         roadmaps={roadmaps}
+        removedGapIds={removedGapIds}
         catalogueProducts={catalogueProducts.map((product) => ({
           id: product.id,
           name: product.name,
