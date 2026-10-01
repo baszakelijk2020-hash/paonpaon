@@ -1,16 +1,24 @@
-/* ── The wardrobe as a room ────────────────────────────────────────────────
-   The whole tab is a dim-lit wardrobe photograph; everything the customer
-   can act on floats in front of it as frosted glass, the way visionOS lays
-   windows over a space. The photo is layered over a dark gradient, so the
-   room still reads if the image is unavailable. */
+/* ── The wardrobe as one page of cards ─────────────────────────────────────
+   Same language as the Morning Routine (dashboard/morning-cards.css): every
+   part is its own dark card on one grid — three columns, then two from 979px
+   down, then one under 600px. Nothing here is a tab; each card is fully
+   working in place. Tokens and card shell values are copied from
+   morning-cards.css so the two pages read as one family. */
 
 .paon-wardrobe-scene {
+  /* Bleed to the workspace edges (.pe-workspace pads 28 / 28 / 70), then pad
+     back the workspace's own 28 gutter so edges match every other page. */
+  --paon-card-gap: 14px;
+  --paon-card-radius: 20px;
+  --paon-card-pad: 18px;
+  --paon-ink: #f4f2ec;
+  --paon-ink-soft: rgba(244, 242, 236, 0.6);
+  --paon-ink-rule: rgba(255, 255, 255, 0.12);
   position: relative;
-  /* Bleed to the workspace edges (.pe-workspace pads 28 / 28 / 70). */
   margin: -28px -28px -70px;
-  min-height: calc(100vh - 0px);
-  padding: 40px clamp(20px, 3vw, 48px) 72px;
-  color: #f4f2ec;
+  min-height: 100vh;
+  padding: 28px 28px 70px;
+  color: var(--paon-ink);
   isolation: isolate;
   overflow: hidden;
 }
@@ -21,99 +29,240 @@
   z-index: -2;
   background: #161616;
 }
-/* The warm radial "lamp" that used to sit top-left is gone: it was there for
-   the glass to refract, and the glass is gone too. It left this tab a
-   fraction warmer than the five beside it — the same #161616 everywhere now. */
 
-.paon-wardrobe-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-  max-width: 1400px;
-  margin: 0 auto;
+.paon-wardrobe-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--paon-card-gap);
+  align-items: stretch;
 }
 
-/* Four immediate calendar rows; only the garment layer performs the staggered
-   reveal, so dates and empty days never wait for animation or image loading. */
+/* ── The card shell ───────────────────────────────────────────────────── */
+.paon-wardrobe-card {
+  position: relative;
+  z-index: 0;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: var(--paon-card-pad);
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--paon-card-radius);
+  background: linear-gradient(180deg, #1a1a1a 0%, #4d4d4d 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  color: var(--paon-ink);
+  scroll-margin-top: 16px;
+}
+.paon-wardrobe-card-wide {
+  grid-column: span 2;
+}
+.paon-wardrobe-card-full {
+  grid-column: 1 / -1;
+}
+
+.paon-wardrobe-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.paon-wardrobe-scene .paon-wardrobe-card-title {
+  margin: 0;
+  font-family: inherit;
+  font-size: 16px !important;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--paon-ink);
+}
+.paon-wardrobe-card-meta {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--paon-ink-soft);
+  white-space: nowrap;
+}
+.paon-wardrobe-card-note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--paon-ink-soft);
+}
+
+/* ── Header strip: title left, the four counts inline as chips ─────────── */
+.paon-wardrobe-strip {
+  grid-column: 1 / -1;
+  display: flex;
+  min-height: 56px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 20px;
+  padding: 4px 2px;
+}
+.paon-wardrobe-strip h1 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--paon-ink);
+}
+.paon-wardrobe-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+.paon-wardrobe-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+}
+.paon-wardrobe-stat dd {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--paon-ink);
+}
+.paon-wardrobe-stat dt {
+  font-size: 12px;
+  color: var(--paon-ink-soft);
+}
+
+/* ── Top fold: calendar beside favorites + complete the look ───────────── */
+.paon-wardrobe-top {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--paon-card-gap);
+  align-items: start;
+}
+.paon-wardrobe-side {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--paon-card-gap);
+}
+
+/* Compact cards: tighter shell, one-line titles */
+.paon-wardrobe-card-compact {
+  gap: 10px;
+  padding: 14px 16px 16px;
+}
+
+/* ── Four-week calendar: a real four-week calendar ───────────────────────
+   Seven columns preserve the weekday rhythm. Garments are contained rather
+   than stretched or cropped, so the calendar remains a plan, not a contact
+   sheet of distorted product photography. */
 .paon-wardrobe-calendar {
-  width: 100%;
-  padding: clamp(16px, 1.7vw, 26px);
-  border-radius: 24px;
-  corner-shape: squircle;
-  background: linear-gradient(145deg, #f4f1f6 0%, #ddd7e2 100%);
-  color: #241f29;
+  gap: 8px;
 }
 .paon-wardrobe-calendar-weekdays,
 .paon-wardrobe-calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: clamp(6px, 0.65vw, 11px);
-}
-.paon-wardrobe-calendar-weekdays {
-  margin-bottom: 10px;
+  gap: 6px;
 }
 .paon-wardrobe-calendar-weekdays span {
-  padding: 0 0 4px;
-  color: rgba(36, 31, 41, 0.72);
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.01em;
   text-align: center;
+  color: var(--paon-ink-soft);
+}
+.paon-wardrobe-calendar-weekdays .is-second-week {
+  display: none;
 }
 .paon-wardrobe-calendar-day {
   position: relative;
   min-width: 0;
-  aspect-ratio: 0.78;
+  /* A planning calendar is a compact overview, not a vertical catalogue.
+     Garments remain contained within the cell, so their source proportions
+     are untouched while the calendar occupies a calm four-row strip. */
+  height: clamp(82px, 8.8vw, 122px);
   overflow: hidden;
-  border-radius: clamp(12px, 1vw, 18px);
-  corner-shape: squircle;
-  background: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
   isolation: isolate;
+}
+.paon-wardrobe-calendar-day.has-look {
+  /* Product cards are never allowed to invent a landscape crop around a
+     portrait source. The occupied card itself uses the source ratio; the
+     calendar track owns the surrounding breathing room. */
+  width: clamp(43px, 4.57vw, 63px);
+  height: auto;
+  max-width: 100%;
+  aspect-ratio: 1069 / 2057;
+  justify-self: center;
+  background: transparent;
 }
 .paon-wardrobe-calendar-number {
   position: absolute;
-  inset: 50% auto auto 50%;
-  z-index: 1;
-  color: #dfd1ea;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(24px, 2.4vw, 43px);
-  font-weight: 400;
-  transform: translate(-50%, -50%);
-}
-.paon-wardrobe-calendar-day.has-look .paon-wardrobe-calendar-number {
-  inset: 10px auto auto 12px;
-  z-index: 4;
-  color: rgba(36, 31, 41, 0.72);
-  font-family: inherit;
-  font-size: 12px;
+  inset: 3px auto auto 3px;
+  z-index: 3;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.62);
+  font-size: 10px;
   font-weight: 600;
-  transform: none;
+  line-height: 14px;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+}
+.paon-wardrobe-calendar-day:not(.has-look) .paon-wardrobe-calendar-number {
+  background: transparent;
+  color: var(--paon-ink-soft);
+}
+.paon-wardrobe-calendar-day.is-today {
+  box-shadow: inset 0 0 0 2px rgba(244, 242, 236, 0.9);
+}
+.paon-wardrobe-calendar-day.is-today::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 2px rgba(244, 242, 236, 0.9);
+  pointer-events: none;
 }
 .paon-wardrobe-calendar-look {
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: 1;
   opacity: 0;
-  animation: paon-wardrobe-calendar-reveal 4s cubic-bezier(0.22, 1, 0.36, 1)
+  animation: paon-wardrobe-calendar-reveal 4s cubic-bezier(0.16, 1, 0.3, 1)
     forwards;
 }
+.paon-wardrobe-cutout-filter {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
 .paon-wardrobe-calendar-look img {
-  user-select: none;
-}
-.paon-wardrobe-calendar-backdrop {
-  object-fit: cover;
-  filter: blur(20px) saturate(0.86);
-  opacity: 0.72;
-  transform: scale(1.2);
-}
-.paon-wardrobe-calendar-garment {
-  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   object-position: center;
+  filter: url("#paon-calendar-cutout");
+  user-select: none;
 }
 @keyframes paon-wardrobe-calendar-reveal {
   from {
     opacity: 0;
+  }
+  55% {
+    opacity: 0.82;
   }
   to {
     opacity: 1;
@@ -126,294 +275,453 @@
   }
 }
 
-/* Frosted glass, visionOS-style. */
-.paon-glass {
-  position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 30px;
-  background: rgba(255, 255, 255, 0.09);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 30px 80px rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(26px) saturate(150%);
-  -webkit-backdrop-filter: blur(26px) saturate(150%);
-  color: #f4f2ec;
+/* ── Pieces: one horizontal rail per category, fixed card width ──────────
+   Card height follows the image (never cropped, never banded); only the
+   card WIDTH is set. */
+.paon-wardrobe-scene .pe-wardrobe-rails {
+  display: flex !important;
+  flex-direction: column;
+  gap: 6px !important;
 }
-.paon-glass-pad {
-  padding: 28px 30px;
+.paon-wardrobe-scene .pe-wardrobe-rails > .pe-wardrobe-populated {
+  margin-top: 6px;
 }
-a.paon-glass {
-  text-decoration: none;
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease;
+.paon-wardrobe-rail {
+  min-width: 0;
 }
-a.paon-glass:hover {
-  background: rgba(255, 255, 255, 0.14);
-  transform: translateY(-2px);
-}
-
-.paon-wardrobe-head {
+.paon-wardrobe-rail-head {
   display: flex;
-  align-items: flex-end;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 24px;
-  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 8px;
 }
-.paon-wardrobe-head h1 {
-  margin: 8px 0 0;
-  font-size: clamp(40px, 5vw, 64px);
-  font-weight: 500;
-  letter-spacing: -0.05em;
-  line-height: 0.95;
-}
-.paon-wardrobe-head p {
-  margin: 12px 0 0;
-  max-width: 34rem;
-  font-size: 15px;
-  line-height: 1.5;
-  color: rgba(244, 242, 236, 0.7);
-}
-.paon-wardrobe-kicker {
+.paon-wardrobe-scene .paon-wardrobe-rail-head h3 {
   margin: 0;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--paon-ink);
+}
+.paon-wardrobe-rail-head span {
+  font-size: 12px;
+  color: var(--paon-ink-soft);
+}
+.paon-wardrobe-rail-track {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding-bottom: 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+}
+.paon-wardrobe-scene .paon-wardrobe-piece {
+  width: 168px;
+  min-height: 0 !important;
+  border-radius: 14px !important;
+}
+.paon-wardrobe-piece-caption {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 9px 10px 10px;
+}
+.paon-wardrobe-piece-name {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
   font-size: 13px;
   font-weight: 500;
-  color: rgba(244, 242, 236, 0.6);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  color: #fff;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.paon-wardrobe-actions-btn {
+  min-height: 26px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.paon-wardrobe-actions-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+.paon-wardrobe-actions-spacer {
+  display: block;
+  height: 26px;
 }
 
-/* Pills inside the glass: solid white on hover, glass at rest. */
-.paon-wardrobe-tools {
+/* Empty category: a single 40px line, not a card. */
+.pe-wardrobe-empty-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-.paon-glass-pill {
-  display: inline-flex;
-  min-height: 46px;
+  min-height: 40px;
   align-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 0 20px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
   color: #f4f2ec;
-  font-size: 14px;
-  font-weight: 500;
   text-decoration: none;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease;
+  transition: background-color 200ms ease;
 }
-.paon-glass-pill:hover,
-.paon-glass-pill-solid {
+.pe-wardrobe-empty-row:hover {
+  background: rgba(255, 255, 255, 0.09);
+}
+.pe-wardrobe-empty-row-label {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pe-wardrobe-empty-row-meta {
+  font-size: 12px;
+  font-weight: 400;
+  color: rgba(244, 242, 236, 0.55);
+}
+.paon-wardrobe-rails .pe-card-lavender {
+  background: #c7c1ef !important;
+}
+.paon-wardrobe-scene :is(.paon-wardrobe-rails svg, .paon-wardrobe-tile svg) {
+  stroke: currentColor;
+}
+/* Tiles about to be revealed paint hidden on their first frame. */
+.pe-wardrobe-rails.is-pending > [data-wardrobe-rail] {
+  visibility: hidden;
+}
+
+/* ── Favorites / Complete the look: same fixed-width natural-ratio tiles ── */
+.paon-wardrobe-rail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0;
+  padding: 0 0 8px;
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+}
+.paon-wardrobe-rail-row > li {
+  flex: 0 0 168px;
+  min-width: 0;
+  scroll-snap-align: start;
+}
+.paon-wardrobe-fav,
+.paon-wardrobe-tile {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+}
+.paon-wardrobe-tile {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-radius: 14px !important;
+}
+.paon-wardrobe-fav-media img,
+.paon-wardrobe-tile > img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.paon-wardrobe-fav-empty,
+.paon-wardrobe-tile-empty {
+  display: flex;
+  width: 100%;
+  height: 90px;
+  background: #25282a;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--paon-ink-soft);
+}
+.paon-wardrobe-fav-body,
+.paon-wardrobe-tile-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 9px 10px 10px;
+}
+.paon-wardrobe-fav-name,
+.paon-wardrobe-tile-name {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.paon-wardrobe-tile-note {
+  margin: 0;
+  overflow: hidden;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--paon-ink-soft);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.paon-wardrobe-pill {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
   background: #f4f2ec;
   color: #14120f;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.paon-wardrobe-pill:hover {
+  background: #ffffff;
+}
+.paon-wardrobe-pill:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.paon-wardrobe-error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-danger-500, #ff8a80);
 }
 
-/* The row of feature windows: fitting room, quiz, capsule. */
-.paon-wardrobe-windows {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
-}
-.paon-wardrobe-window {
+/* Empty states: one line and, where useful, one in-page action. */
+.paon-wardrobe-empty {
   display: flex;
-  min-height: 190px;
+  min-height: 0;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 18px;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
 }
-.paon-wardrobe-window h2 {
-  margin: 6px 0 0;
-  font-size: 24px;
+.paon-wardrobe-placeholder-gallery {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.paon-wardrobe-placeholder-gallery span {
+  min-height: 104px;
+  border-radius: 10px;
+  background:
+    linear-gradient(
+      145deg,
+      transparent 40%,
+      rgba(255, 255, 255, 0.13) 40.5% 42%,
+      transparent 42.5%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.12),
+      rgba(255, 255, 255, 0.035)
+    );
+}
+.paon-wardrobe-placeholder-gallery span:nth-child(2) {
+  opacity: 0.72;
+}
+.paon-wardrobe-placeholder-gallery span:nth-child(3) {
+  opacity: 0.45;
+}
+.paon-wardrobe-placeholder-note {
+  margin-top: 4px !important;
+  font-size: 11px !important;
+}
+.paon-wardrobe-empty p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--paon-ink-soft);
+}
+.paon-wardrobe-empty-action {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--paon-ink);
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+.paon-wardrobe-empty-action:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+/* Full-width empties read as a single line with the action at the end. */
+.paon-wardrobe-card-full .paon-wardrobe-empty {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.45fr) 1fr auto;
+  align-items: center;
+}
+
+.paon-wardrobe-embed {
+  min-width: 0;
+}
+.paon-wardrobe-quiz-preview {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) 1.2fr;
+  gap: 24px;
+  align-items: center;
+}
+.paon-wardrobe-quiz-preview p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--paon-ink-soft);
+}
+.paon-wardrobe-quiz-preview h3 {
+  margin: 8px 0 0;
+  font-size: 20px;
   font-weight: 500;
   letter-spacing: -0.03em;
-  line-height: 1.1;
 }
-.paon-wardrobe-window p {
-  margin: 8px 0 0;
-  font-size: 14px;
-  line-height: 1.45;
-  color: rgba(244, 242, 236, 0.68);
+.paon-wardrobe-quiz-options {
+  display: grid;
+  gap: 8px;
 }
-.paon-wardrobe-window-icon {
-  width: 28px;
-  height: 28px;
-  stroke-width: 1.5;
-  color: rgba(244, 242, 236, 0.85);
+.paon-wardrobe-quiz-options button {
+  padding: 13px 14px;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--paon-ink);
+  text-align: left;
+  font: inherit;
+  font-size: 13px;
+}
+.paon-wardrobe-quiz-options button:hover {
+  background: rgba(255, 255, 255, 0.14);
 }
 
-/* The rails panel keeps its own dark cards; on glass they sit a shade
-   lighter so they float rather than punch holes. */
-.paon-wardrobe-rails .pe-card,
-.paon-wardrobe-rails .customer-panel,
-.paon-wardrobe-rails .customer-panel-dark {
-  background: rgba(255, 255, 255, 0.06) !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
+/* Style quiz: the flow keeps its own markup while staying visually subordinate
+   to the wardrobe itself. */
+.paon-wardrobe-scene #style-quiz .paon-wardrobe-embed > div {
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
   box-shadow: none !important;
+  gap: 10px !important;
+}
+.paon-wardrobe-scene #style-quiz .paon-wardrobe-embed h2 {
+  margin: 0;
+  font-family: inherit;
+  font-size: 14px !important;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  color: var(--paon-ink) !important;
+}
+.paon-wardrobe-scene #style-quiz .paon-wardrobe-embed .grid {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+  gap: 8px !important;
+  max-width: 1000px;
+}
+.paon-wardrobe-scene #style-quiz .paon-wardrobe-embed .grid > button {
+  gap: 2px !important;
+  padding: 10px 10px !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: var(--paon-ink);
+}
+.paon-wardrobe-scene #style-quiz .paon-wardrobe-embed .grid > button:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+.paon-wardrobe-scene #style-quiz .paon-wardrobe-embed .grid > button .text-3xl {
+  font-size: 20px !important;
+  line-height: 1.2;
+}
+.paon-wardrobe-scene #style-quiz .paon-wardrobe-embed .grid > button span {
+  color: inherit !important;
+}
+.paon-wardrobe-scene
+  #style-quiz
+  .paon-wardrobe-embed
+  .grid
+  > button
+  span:last-child {
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--paon-ink-soft) !important;
+}
+.paon-wardrobe-scene #style-quiz .paon-wardrobe-embed p,
+.paon-wardrobe-scene #style-quiz .paon-wardrobe-embed span.text-xs {
+  font-size: 12px;
+  color: var(--paon-ink-soft) !important;
+}
+.paon-wardrobe-scene
+  #style-quiz
+  .paon-wardrobe-embed
+  button:not(.grid > button) {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: transparent !important;
+  color: var(--paon-ink) !important;
 }
 
-@media (max-width: 1100px) {
-  .paon-wardrobe-windows {
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 979px) {
+  .paon-wardrobe-top {
     grid-template-columns: minmax(0, 1fr);
   }
 }
 @media (max-width: 700px) {
   .paon-wardrobe-scene {
     margin: -18px -14px -40px;
-    padding: 24px 14px 48px;
-  }
-  .paon-glass {
-    border-radius: 22px;
-  }
-  .paon-glass-pad {
-    padding: 20px;
+    padding: 18px 14px 48px;
   }
 }
-
-/* Tiles about to be revealed paint hidden on their first frame. */
-.pe-wardrobe-rails.is-pending > [data-wardrobe-rail] {
-  visibility: hidden;
-}
-
-/* ── Overview language ───────────────────────────────────────────────────
-   The wardrobe tab was frosted glass — 30px radius, a 26px backdrop blur,
-   a display-size title — while the overview beside it is flat dark tiles. It
-   takes the overview's tile, radius, pill and type here; the layout stays. */
-.paon-wardrobe-scene .paon-glass {
-  background: linear-gradient(180deg, #1a1a1a 0%, #4d4d4d 100%) !important;
-  border: 0 !important;
-  border-radius: 20px !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-.paon-wardrobe-scene .paon-glass-pad {
-  padding: 22px 24px !important;
-}
-.paon-wardrobe-scene .paon-wardrobe-head h1 {
-  font-size: 28px !important;
-  font-weight: 500 !important;
-  letter-spacing: -0.02em !important;
-  line-height: 1.1 !important;
-  color: #f4f2ec !important;
-}
-.paon-wardrobe-scene .paon-wardrobe-head p,
-.paon-wardrobe-scene .paon-wardrobe-window p {
-  font-size: 13px !important;
-  line-height: 1.5 !important;
-  color: rgba(244, 242, 236, 0.6) !important;
-}
-.paon-wardrobe-scene .paon-wardrobe-kicker {
-  font-size: 12px !important;
-  font-weight: 600 !important;
-  letter-spacing: -0.02em !important;
-  text-transform: none !important;
-  color: rgba(244, 242, 236, 0.6) !important;
-}
-.paon-wardrobe-scene .paon-wardrobe-window h2,
-.paon-wardrobe-scene .paon-wardrobe-window h3 {
-  font-size: 16px !important;
-  font-weight: 500 !important;
-  letter-spacing: -0.02em !important;
-  color: #f4f2ec !important;
-}
-.paon-wardrobe-scene .paon-glass-pill {
-  min-height: 44px !important;
-  padding: 0 18px !important;
-  border: 0 !important;
-  border-radius: 999px !important;
-  background: #f4f2ec !important;
-  color: #14120f !important;
-  font-size: 13px !important;
-  font-weight: 500 !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-.paon-wardrobe-scene .paon-glass-pill:hover {
-  background: #ffffff !important;
-}
-.paon-wardrobe-scene .paon-wardrobe-stack,
-.paon-wardrobe-scene .paon-wardrobe-windows {
-  gap: 18px !important;
-}
-/* The rails panel's cards follow the same tile. */
-.paon-wardrobe-scene .paon-wardrobe-rails .pe-card,
-.paon-wardrobe-scene .paon-wardrobe-rails [data-pe-card] {
-  background: rgba(255, 255, 255, 0.05) !important;
-  border: 0 !important;
-  border-radius: 18px !important;
-}
-/* Icons in the tiles take the muted ink, not a tint of their own; and a rail
-   card is as tall as what it holds. */
-.paon-wardrobe-scene
-  :is(
-    .paon-wardrobe-window-icon,
-    .paon-wardrobe-rails svg,
-    .paon-wardrobe-window svg
-  ) {
-  color: rgba(244, 242, 236, 0.6) !important;
-  stroke: currentColor;
-}
-.paon-wardrobe-scene .paon-wardrobe-rails [class*="min-h-"] {
-  min-height: 0 !important;
-}
-
-/* Empty categories as rows inside the rails card: the rails container is a
-   4-column grid for populated rails; an empty row spans the full width so
-   the list stacks, and stays a row whatever the column count. */
-.paon-wardrobe-scene .pe-wardrobe-rails {
-  gap: 2px 16px !important;
-}
-.paon-wardrobe-scene .pe-wardrobe-rails > .pe-wardrobe-empty-row {
-  grid-column: 1 / -1;
-}
-.paon-wardrobe-scene .pe-wardrobe-rails > .pe-wardrobe-populated {
-  margin-top: 14px;
-}
-.pe-wardrobe-empty-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: 52px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  color: #f4f2ec;
-  text-decoration: none;
-  opacity: 0.6;
-  transition:
-    opacity 220ms ease,
-    background-color 220ms ease;
-}
-.pe-wardrobe-empty-row:hover {
-  opacity: 1;
-  background: rgba(255, 255, 255, 0.05);
-}
-.pe-wardrobe-empty-row-label {
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: -0.02em;
-}
-.pe-wardrobe-empty-row-meta {
-  font-size: 13px;
-  color: rgba(244, 242, 236, 0.6);
-  white-space: nowrap;
-}
-
-/* The same left and right edge as every other tab: the scene used to inset
-   its stack a further 20px, so its cards started and ended 20px inside the
-   overview's. */
-.paon-wardrobe-scene {
-  /* The scene bleeds to the workspace edge with a -28px margin and then
-     pads back in by a fluid 20–48px; the workspace's own 28 is the gutter
-     every other tab has, so pad back exactly that. Top pad matches the
-     overview's stat row start, bottom the workspace's. */
-  padding: 28px 28px 70px !important;
-}
-.paon-wardrobe-scene .paon-wardrobe-stack {
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-  max-width: none !important;
+@media (max-width: 599px) {
+  .paon-wardrobe-quiz-preview {
+    grid-template-columns: 1fr;
+  }
+  .paon-wardrobe-side {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .paon-wardrobe-card {
+    padding: 14px;
+  }
+  .paon-wardrobe-calendar-weekdays,
+  .paon-wardrobe-calendar-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 4px;
+  }
+  .paon-wardrobe-calendar-weekdays .is-second-week {
+    display: none;
+  }
+  .paon-wardrobe-calendar-day {
+    border-radius: 6px;
+  }
+  .paon-wardrobe-calendar-number {
+    inset: 2px auto auto 2px;
+    padding: 0 4px;
+    font-size: 9px;
+    line-height: 13px;
+  }
+  .paon-wardrobe-strip h1 {
+    font-size: 22px;
+  }
 }

@@ -14,8 +14,11 @@ const initialState: CreateWeddingPartyState = {};
 
 export function NewWeddingPartyForm({
   retailers,
+  defaults = { eventDate: "", eventTime: "", notes: "" },
 }: {
   retailers: readonly Retailer[];
+  /** Carried over from the Tailoring Party planner on Appointments. */
+  defaults?: { eventDate: string; eventTime: string; notes: string };
 }) {
   const [state, formAction, isPending] = useActionState(
     createWeddingParty,
@@ -39,10 +42,20 @@ export function NewWeddingPartyForm({
           <input type="hidden" name="retailerId" value={retailers[0]!.id} />
         )}
         <FormField label="Event date" htmlFor="eventDate" hint="Optional">
-          <Input id="eventDate" name="eventDate" type="date" />
+          <Input
+            id="eventDate"
+            name="eventDate"
+            type="date"
+            defaultValue={defaults.eventDate}
+          />
         </FormField>
         <FormField label="Fitting time" htmlFor="eventTime" hint="Optional">
-          <Input id="eventTime" name="eventTime" type="time" />
+          <Input
+            id="eventTime"
+            name="eventTime"
+            type="time"
+            defaultValue={defaults.eventTime}
+          />
         </FormField>
         <FormField
           label="Wedding venue"
@@ -63,7 +76,7 @@ export function NewWeddingPartyForm({
           />
         </FormField>
         <FormField label="Notes" htmlFor="notes" hint="Optional">
-          <Input id="notes" name="notes" />
+          <Input id="notes" name="notes" defaultValue={defaults.notes} />
         </FormField>
         {state.formError ? (
           <p role="alert" className="text-sm text-[var(--color-danger-500)]">

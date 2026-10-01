@@ -119,6 +119,7 @@ export async function composeCustomerOutfit(
   }
 
   revalidatePath("/digital-fitting-room");
+  revalidatePath("/wardrobe");
   return { outfitId };
 }
 
@@ -234,6 +235,7 @@ export async function generateOutfitLook(
     ...(writtenInstructions ? { writtenInstructions } : {}),
   });
   revalidatePath("/digital-fitting-room");
+  revalidatePath("/wardrobe");
   return result;
 }
 
@@ -281,6 +283,7 @@ export async function generateAllSavedLooks(
   }
 
   revalidatePath("/digital-fitting-room");
+  revalidatePath("/wardrobe");
   return { enqueued, errors };
 }
 
@@ -293,6 +296,7 @@ export async function cancelOutfitGeneration(
     asId<"WardrobeVisualizationJobId">(jobId),
   );
   revalidatePath("/digital-fitting-room");
+  revalidatePath("/wardrobe");
 }
 
 /** "Cancel all queued" (PHASE 4.10) — cancels every still-queued job across
@@ -321,6 +325,7 @@ export async function cancelAllQueuedLooks(
   }
 
   revalidatePath("/digital-fitting-room");
+  revalidatePath("/wardrobe");
   return { cancelled };
 }
 
@@ -420,6 +425,7 @@ export async function recordLookFeedback(
   });
   await new WardrobeVisualizationFeedbackRepository(supabase).record(parsed);
   revalidatePath("/digital-fitting-room");
+  revalidatePath("/wardrobe");
 
   try {
     await feedStyleProfileEvidence(supabase, {

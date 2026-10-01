@@ -1,7 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+
+import { usePaonEnvironment } from "../../environment-store";
 
 import { HlsVideo } from "./hls-video";
 
@@ -164,19 +167,22 @@ function weatherSymbol(weather: CityWeather | null): string {
 const STAGE_ZOOM_OUT = 0.8;
 
 /**
- * The smallest scale at which a frame still covers the 4:3 stage.
+ * The smallest scale at which a frame still covers the stage.
  *
- * The iframe is sized to cover by the stylesheet — 1.6× the stage's width by
- * 0.9× it, for a 4:3 stage — so the stage is 0.625 of the frame's width and
- * 0.833 of its height. Scaled about its centre and then shifted by its own
- * x/y (a percentage of its unscaled size), it keeps covering only while
- * s ≥ 0.625 + 2|x| across and s ≥ 0.833 + 2|y| down. A little is added for
+ * The morning stylesheet sizes the iframe to cover at 120% of the stage on
+ * its tighter axis, so the stage is at most 0.833 of the frame's width and
+ * of its height, whatever the stage's shape. (It was 1.6× the width for the
+ * original 4:3 stage, and a bound of 0.625 across then; kept, that left a
+ * black strip down the side of any stream shifted sideways, Tokyo's and
+ * Sydney's.) Scaled about its centre and then shifted by its own x/y (a
+ * percentage of its unscaled size), it keeps covering only while
+ * s ≥ 0.833 + 2|x| across and s ≥ 0.833 + 2|y| down. A little is added for
  * the rotations and skews some cities carry.
  */
 function stageCoverScale(frame: NonNullable<WorldCity["frame"]>): number {
   const x = Math.abs(parseFloat(frame.x)) / 100;
   const y = Math.abs(parseFloat(frame.y)) / 100;
-  return Math.max(0.625 + 2 * x, 0.8333 + 2 * y) + 0.03;
+  return 0.8333 + 2 * Math.max(x, y) + 0.03;
 }
 
 /**
@@ -249,7 +255,13 @@ export function WorldClock() {
     Record<string, CityWeather>
   >({});
   const [live, setLive] = useState(false);
-  const [inView, setInView] = useState(false);
+  const [nearViewport, setNearViewport] = useState(false);
+  /* The overview is also pre-rendered behind the storefront so switching to
+     the Wardrobe is instant. Covered there, it still intersects the
+     viewport, so without this its six players loaded under the store's home
+     grid and starved it. */
+  const environment = usePaonEnvironment(usePathname());
+  const inView = nearViewport && environment === "customer";
   /* Paused by default: the overview opens on a still frame of every city
      rather than five players negotiating at once. The viewer presses play
      when they want the cameras running. */
@@ -278,11 +290,11 @@ export function WorldClock() {
   useEffect(() => {
     const node = sectionRef.current;
     if (!node || !("IntersectionObserver" in window)) {
-      setInView(true);
+      setNearViewport(true);
       return;
     }
     const observer = new IntersectionObserver(
-      ([entry]) => setInView(Boolean(entry?.isIntersecting)),
+      ([entry]) => setNearViewport(Boolean(entry?.isIntersecting)),
       { rootMargin: "600px 0px" },
     );
     observer.observe(node);

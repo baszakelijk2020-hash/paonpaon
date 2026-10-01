@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@paon/ui/components/Button";
-import Image from "next/image";
 import { useActionState } from "react";
 
 import {
@@ -30,30 +29,87 @@ export interface SuggestedLookSuggestionView {
 export function SuggestedLookTile({
   retailerId,
   suggestion,
+  compact = false,
 }: {
   retailerId: string;
   suggestion: SuggestedLookSuggestionView;
+  /** Wardrobe rails: a narrow, natural-ratio tile with a slim caption. */
+  compact?: boolean;
 }) {
   const boundGenerate = generateSuggestedLookTryOn.bind(null, retailerId);
   const [state, formAction, isPending] = useActionState(boundGenerate, initial);
+
+  if (compact) {
+    return (
+      <li className="paon-wardrobe-tile" data-pe-card>
+        {suggestion.primaryImageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={suggestion.primaryImageUrl} alt="" />
+        ) : (
+          <div className="paon-wardrobe-tile-empty" aria-hidden>
+            No image
+          </div>
+        )}
+        <div className="paon-wardrobe-tile-body">
+          <p className="paon-wardrobe-tile-name">{suggestion.displayName}</p>
+          <p className="paon-wardrobe-tile-note" title={suggestion.explanation}>
+            {suggestion.explanation}
+          </p>
+          <form action={formAction}>
+            <input
+              type="hidden"
+              name="productId"
+              value={suggestion.productId}
+            />
+            <input
+              type="hidden"
+              name="categoryCode"
+              value={suggestion.categoryCode}
+            />
+            <input
+              type="hidden"
+              name="displayName"
+              value={suggestion.displayName}
+            />
+            <button
+              type="submit"
+              className="paon-wardrobe-pill"
+              disabled={isPending}
+            >
+              {isPending ? "Generating…" : "See it on me"}
+            </button>
+          </form>
+          {state.error ? (
+            <p role="alert" className="paon-wardrobe-error">
+              {state.error}
+            </p>
+          ) : null}
+          {!isPending && !state.error && state !== initial ? (
+            <p role="status" className="paon-wardrobe-tile-note">
+              Generating your look.
+            </p>
+          ) : null}
+        </div>
+      </li>
+    );
+  }
 
   return (
     <li
       className="group min-w-0 snap-start overflow-hidden rounded-[32px] bg-[#191b1d] text-white"
       data-pe-card
     >
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-b-[24px] bg-[#25282a]">
+      <div className="w-full">
         {suggestion.primaryImageUrl ? (
-          <Image
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
             src={suggestion.primaryImageUrl}
             alt=""
-            fill
-            unoptimized
-            className="object-cover"
+            className="block h-auto w-full"
           />
         ) : (
           <div
-            className="flex h-full w-full items-center justify-center text-xs text-white/45"
+            className="flex h-40 w-full items-center justify-center bg-[#25282a] text-xs text-white/45"
             aria-hidden
           >
             No image

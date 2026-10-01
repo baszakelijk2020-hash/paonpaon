@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import {
   type ReactNode,
   useCallback,
@@ -10,6 +11,12 @@ import {
 } from "react";
 
 import { SunIcon, WeatherIcon } from "../dashboard/stat-icons";
+
+import {
+  GUEST_COMMUTE_MINUTES,
+  HOME_LOCATION,
+  useHomeLocation,
+} from "./home-location";
 
 const CITY_STREAMS_ENABLED = true;
 
@@ -93,18 +100,8 @@ const HOMEWARD_FROM_HOUR = 14;
 /** How often the live drive time is read again. */
 const COMMUTE_REFRESH_MS = 5 * 60_000;
 
-/**
- * The customer's home base. The overview reads as Breda: weather, clock and
- * commute all start here rather than from a browser location prompt, and the
- * work address is preset so the commute shows a reading on first visit.
- */
-export const HOME_LOCATION = {
-  label: "Breda",
-  /** Noord-Brabant. The reading is printed as "Breda, NB". */
-  region: "NB",
-  coords: { lat: 51.5719, lon: 4.7683 },
-  timeZone: "Europe/Amsterdam",
-} as const;
+// Re-exported: the watch face and the sky cards import the home base from here.
+export { HOME_LOCATION } from "./home-location";
 
 /**
  * The province or state, two letters, from a Nominatim reverse lookup.
@@ -132,8 +129,7 @@ function regionCode(address: Record<string, unknown> | undefined): string {
 function placeLabel(city: string, region: string): string {
   return region ? `${city}, ${region}` : city;
 }
-export const DEFAULT_WORK_ADDRESS =
-  "Molengracht 21, 4818 CK Breda, Netherlands";
+export const DEFAULT_WORK_ADDRESS = HOME_LOCATION.workAddress;
 
 /**
  * Where the car photograph's ink ends, as a fraction of the file's height.
@@ -220,12 +216,12 @@ function haversineKm(a: Coords, b: Coords): number {
 }
 
 /** The hour, 0–23, at the customer's home — the clock the overview keeps. */
-function homeHour(date: Date): number {
+function homeHour(date: Date, timeZone: string): number {
   return Number(
     new Intl.DateTimeFormat("en-GB", {
       hour: "numeric",
       hourCycle: "h23",
-      timeZone: HOME_LOCATION.timeZone,
+      timeZone,
     }).format(date),
   );
 }
@@ -245,12 +241,13 @@ export function commuteLeg(
   home: Coords,
   work: Coords,
   now: Date,
+  timeZone: string = HOME_LOCATION.timeZone,
 ): { from: Coords; to: "work" | "home" } {
   if (here && haversineKm(here, home) <= NEAR_KM)
     return { from: here, to: "work" };
   if (here && haversineKm(here, work) <= NEAR_KM)
     return { from: here, to: "home" };
-  return homeHour(now) >= HOMEWARD_FROM_HOUR
+  return homeHour(now, timeZone) >= HOMEWARD_FROM_HOUR
     ? { from: here ?? work, to: "home" }
     : { from: here ?? home, to: "work" };
 }
@@ -299,9 +296,10 @@ export function LocalWidgets({
    */
   skyExtras?: ReactNode;
 }) {
-  const [coords, setCoords] = useState<Coords | null>(HOME_LOCATION.coords);
+  const home = useHomeLocation();
+  const [coords, setCoords] = useState<Coords | null>(home.coords);
   const [locationLabel, setLocationLabel] = useState<string>(
-    placeLabel(HOME_LOCATION.label, HOME_LOCATION.region),
+    placeLabel(home.label, home.region),
   );
   const [weather, setWeather] = useState<{
     tempC: number;
@@ -309,7 +307,8 @@ export function LocalWidgets({
     code: number;
   } | null>(null);
   // The forecast remains opt-in until the browser has granted location access.
-  const [locationDenied, setLocationDenied] = useState(false);
+  const locationDenied = home.locationStatus === "denied";
+  const locationGranted = home.locationStatus === "granted";
   const [locationRequested, setLocationRequested] = useState(false);
   const [weatherError, setWeatherError] = useState(false);
   const [workAddress, setWorkAddress] = useState("");
@@ -323,7 +322,7 @@ export function LocalWidgets({
   /** Which way the commute reading points: to work, or home. */
   const [commuteTo, setCommuteTo] = useState<"work" | "home">("work");
   const [homeAddress, setHomeAddress] = useState("");
-  const [homeCoords, setHomeCoords] = useState<Coords>(HOME_LOCATION.coords);
+  const [homeCoords, setHomeCoords] = useState<Coords>(home.coords);
   const [workCoords, setWorkCoords] = useState<Coords | null>(null);
   /** Where the customer is — only once they have granted location access. */
   const [here, setHere] = useState<Coords | null>(null);
@@ -409,37 +408,26 @@ export function LocalWidgets({
     return () => clearInterval(tick);
   }, []);
 
+  /* The commute's two ends are the ones saved on the profile; a guest gets
+     the demo persona's. */
   useEffect(() => {
-    try {
-      const stored =
-        localStorage.getItem(WORK_ADDRESS_STORAGE_KEY) ?? DEFAULT_WORK_ADDRESS;
-      setWorkAddress(stored);
-      setWorkInput(stored);
-      setHomeAddress(localStorage.getItem(HOME_ADDRESS_STORAGE_KEY) ?? "");
-    } catch {
-      setWorkAddress(DEFAULT_WORK_ADDRESS);
-      setWorkInput(DEFAULT_WORK_ADDRESS);
-    }
-  }, []);
+    setWorkAddress(home.workAddress);
+    setWorkInput(home.workAddress);
+    setHomeAddress(home.homeAddress);
+  }, [home.workAddress, home.homeAddress]);
 
+  /* The weather follows the home base, which moves to where the viewer is
+     once location access is granted. */
+  useEffect(() => {
+    setCoords(home.coords);
+  }, [home.coords]);
+
+  const { requestLocation: askForLocation } = home;
   const requestLocation = useCallback(() => {
     setLocationRequested(true);
-    setLocationDenied(false);
     setWeatherError(false);
-    if (!navigator.geolocation) {
-      setLocationDenied(true);
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (position) =>
-        setCoords({
-          lat: position.coords.latitude,
-          lon: position.coords.longitude,
-        }),
-      () => setLocationDenied(true),
-      { maximumAge: 10 * 60_000, timeout: 8_000 },
-    );
-  }, []);
+    askForLocation();
+  }, [askForLocation]);
 
   useEffect(() => {
     if (!coords) return;
@@ -488,18 +476,13 @@ export function LocalWidgets({
 
   function saveWorkAddress(address: string) {
     setWorkAddress(address);
-    try {
-      localStorage.setItem(WORK_ADDRESS_STORAGE_KEY, address);
-    } catch {
-      // Per-viewer convenience only — fine if it doesn't persist.
-    }
   }
 
   /* Home and work as points on the map. Home without an address of its own
      is the overview's home base. */
   useEffect(() => {
     let cancelled = false;
-    if (!homeAddress) setHomeCoords(HOME_LOCATION.coords);
+    if (!homeAddress) setHomeCoords(home.coords);
     else
       void geocode(homeAddress).then((hit) => {
         if (!cancelled && hit) setHomeCoords(hit);
@@ -507,7 +490,7 @@ export function LocalWidgets({
     return () => {
       cancelled = true;
     };
-  }, [homeAddress]);
+  }, [homeAddress, home]);
   useEffect(() => {
     if (!workAddress) return;
     let cancelled = false;
@@ -576,10 +559,16 @@ export function LocalWidgets({
      few minutes, which also lets the two o'clock turn happen on an open
      page. */
   useEffect(() => {
-    if (!workCoords) return;
+    if (home.guest || !workCoords) return;
     let cancelled = false;
     const read = async () => {
-      const leg = commuteLeg(here, homeCoords, workCoords, new Date());
+      const leg = commuteLeg(
+        here,
+        homeCoords,
+        workCoords,
+        new Date(),
+        home.timeZone,
+      );
       const time = await driveTime(
         leg.from,
         leg.to === "work" ? workCoords : homeCoords,
@@ -594,12 +583,26 @@ export function LocalWidgets({
       cancelled = true;
       window.clearInterval(refresh);
     };
-  }, [here, homeCoords, workCoords]);
+  }, [here, homeCoords, workCoords, home]);
 
   if (variant === "dashboard") {
-    const commuteDuration = commute
-      ? formatCommuteMinutes(commute.minutes)
-      : null;
+    /* A guest sees the demo persona's drive. Signed in, the drive needs a
+       work address on the profile and location access; until then the tile
+       asks for whichever is missing. */
+    const commuteNeeds = home.guest
+      ? null
+      : !home.workAddress
+        ? "work-address"
+        : !locationGranted
+          ? "location"
+          : null;
+    const commuteMinutes = home.guest
+      ? GUEST_COMMUTE_MINUTES
+      : commuteNeeds
+        ? null
+        : (commute?.minutes ?? null);
+    const commuteDuration =
+      commuteMinutes === null ? null : formatCommuteMinutes(commuteMinutes);
     /* The commute's mark is the founder's own car glyph (white on
        transparent), not the line icon the other readings use. */
     /* The car's headlights are holes in the glyph, so they showed the grey
@@ -671,7 +674,7 @@ export function LocalWidgets({
         </article>
 
         <article className="paon-stat paon-stat-commute">
-          {commute ? (
+          {commuteDuration ? (
             <p className="paon-stat-value">
               <CommuteCarIcon />
               {commuteDuration}
@@ -686,9 +689,25 @@ export function LocalWidgets({
               thing; the distance was the third line. Minutes and the word
               are the whole reading. */}
           <div className="paon-stat-meta">
-            <span className="paon-stat-label">
-              {commuteTo === "work" ? "To work" : "To home"}
-            </span>
+            {commuteNeeds === "work-address" ? (
+              <Link href="/account" className="paon-stat-action">
+                Set work address
+              </Link>
+            ) : commuteNeeds === "location" ? (
+              <button
+                type="button"
+                className="paon-stat-action"
+                onClick={requestLocation}
+              >
+                {locationDenied
+                  ? "Allow location in browser"
+                  : "Allow location"}
+              </button>
+            ) : (
+              <span className="paon-stat-label">
+                {home.guest || commuteTo === "work" ? "To work" : "To home"}
+              </span>
+            )}
           </div>
         </article>
       </section>

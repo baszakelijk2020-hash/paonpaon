@@ -6,7 +6,40 @@ import { NewWeddingPartyForm } from "./new-wedding-party-form";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
-export default async function NewWeddingPartyPage() {
+const OCCASION_LABELS: Record<string, string> = {
+  wedding: "Wedding",
+  office: "Office",
+  friends: "Friends",
+  none: "No occasion",
+};
+
+const first = (value: string | string[] | undefined) =>
+  Array.isArray(value) ? value[0] : value;
+
+export default async function NewWeddingPartyPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  // What the Tailoring Party planner on Appointments already chose: the day,
+  // the time, how many people and the occasion.
+  const params = await searchParams;
+  const date = first(params.date);
+  const time = first(params.time);
+  const size = Number(first(params.size));
+  const occasion = OCCASION_LABELS[first(params.occasion) ?? ""];
+  const defaults = {
+    eventDate: date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : "",
+    eventTime: time && /^\d{2}:\d{2}$/.test(time) ? time : "",
+    notes: [
+      occasion ? `Occasion: ${occasion}` : "",
+      Number.isInteger(size) && size >= 2 && size <= 8
+        ? `Party of ${size}`
+        : "",
+    ]
+      .filter(Boolean)
+      .join(" · "),
+  };
   const session = await requireSession();
   const supabase = await getSupabaseServerClient();
   const relationships = await new CustomerRepository(supabase).findByUserId(
@@ -41,7 +74,7 @@ export default async function NewWeddingPartyPage() {
           to find yours.
         </p>
       ) : (
-        <NewWeddingPartyForm retailers={retailers} />
+        <NewWeddingPartyForm retailers={retailers} defaults={defaults} />
       )}
     </div>
   );

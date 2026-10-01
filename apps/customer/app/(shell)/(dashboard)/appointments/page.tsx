@@ -1,10 +1,11 @@
 import {
   AlterationCatalogueRepository,
+  AppointmentRepository,
   PaidCareServicePriceRepository,
   RetailerBranchRepository,
-  RetailerRepository,
   WardrobeRepository,
   WardrobeRoadmapRepository,
+  WeddingPartyRepository,
 } from "@paon/database";
 import type { PaidCareServiceKind } from "@paon/domain";
 import { z } from "zod";
@@ -17,9 +18,20 @@ import { APPOINTMENT_REASONS } from "./booking-reasons";
 import type { PricedOperation } from "./paid-care-flow";
 import { PaidCareLauncher } from "./paid-care-launcher";
 import { QuickBookBar } from "./quick-book-bar";
+import {
+  TailoringPartyInvitee,
+  type TailoringPartyInvite,
+} from "./tailoring-party-invitee";
+import {
+  TailoringPartyPlanner,
+  type TailoringPartyBooking,
+  type TailoringPartyMember,
+} from "./tailoring-party-planner";
 
 import { getCustomersForUser } from "@/lib/customer-context";
-import { requireSession } from "@/lib/session";
+import { getGuestRetailerId } from "@/lib/guest-house";
+import { getViewerSession } from "@/lib/session";
+import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 const prefillParamsSchema = z.object({
@@ -136,14 +148,14 @@ const MONTHLY_APPOINTMENT_THEMES = [
     accent: "#c0ad87",
   },
   {
+    title: "",
+    copy: "",
+    accent: "#ffffff00",
+  },
+  {
     title: "Fall/Winter Wardrobe",
     copy: "Plan cloth, coats and the colder season's essentials.",
     accent: "#8d765e",
-  },
-  {
-    title: "Winter Coat Shopping",
-    copy: "Choose outerwear for comfort and style.",
-    accent: "#726653",
   },
   {
     title: "Holiday Season Outfit",
@@ -178,11 +190,13 @@ interface AppointmentYearMonth {
   readonly isCurrent: boolean;
 }
 
+/** The timeline opens on the launch month: no month before it is shown. */
+const TIMELINE_LAUNCH = new Date(2026, 9, 1);
+
 function buildAppointmentYear(from: Date): AppointmentYearMonth[] {
   const currentMonth = from.getMonth();
-  const cycleStartMonth = Math.floor(currentMonth / 3) * 3;
   return Array.from({ length: 12 }, (_, index) => {
-    const date = new Date(from.getFullYear(), cycleStartMonth + index, 1);
+    const date = new Date(from.getFullYear(), currentMonth + index, 1);
     const theme = MONTHLY_APPOINTMENT_THEMES[date.getMonth()]!;
     return {
       ...theme,
@@ -197,7 +211,7 @@ function buildAppointmentYear(from: Date): AppointmentYearMonth[] {
         APPOINTMENT_LANDSCAPE_IMAGES[
           index % APPOINTMENT_LANDSCAPE_IMAGES.length
         ]!,
-      isPast: date < new Date(from.getFullYear(), currentMonth, 1),
+      isPast: false,
       isCurrent:
         date.getFullYear() === from.getFullYear() &&
         date.getMonth() === currentMonth,
@@ -210,15 +224,23 @@ export default async function AppointmentsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const session = await requireSession();
+  const session = await getViewerSession();
   const supabase = await getSupabaseServerClient();
   const resolvedSearchParams = await searchParams;
 
   const customers = await getCustomersForUser(session.userId);
   const branchRepo = new RetailerBranchRepository(supabase);
-  const retailerRepo = new RetailerRepository(supabase);
 
   const primaryCustomer = customers[0];
+  // A guest browses as a client of the demo house: its branches and price
+  // lists are public, and booking itself still asks them to sign in.
+  const retailerId =
+    primaryCustomer?.retailerId ??
+    (session.isGuest ? await getGuestRetailerId() : null);
+  // Some of the house's tables are readable to clients only; a guest simply
+  // sees those sections without their prices rather than an error.
+  const guestSafe = <T,>(read: Promise<T>, fallback: T): Promise<T> =>
+    session.isGuest ? read.catch(() => fallback) : read;
   const bookingPrefill = primaryCustomer
     ? await resolveBookingPrefill(
         supabase,
@@ -226,35 +248,49 @@ export default async function AppointmentsPage({
         resolvedSearchParams,
       )
     : null;
-  const bookableBranches: readonly BookableBranch[] = primaryCustomer
-    ? (await branchRepo.listByRetailer(primaryCustomer.retailerId)).map(
-        (branch) => ({
-          id: branch.id,
-          name: branch.name,
-          openingHours: branch.openingHours,
-        }),
-      )
+  // A guest cannot list every branch, but may read the published ones, so
+  // the location pill works signed in or not.
+  const listedBranches = retailerId
+    ? await guestSafe(branchRepo.listByRetailer(retailerId), [])
     : [];
-
-  let retailerName = "your atelier";
-  if (primaryCustomer) {
-    const retailer = await retailerRepo.findById(primaryCustomer.retailerId);
-    if (retailer) {
-      retailerName = retailer.displayName || "your atelier";
-    }
-  }
+  const bookableBranches: readonly BookableBranch[] = (
+    listedBranches.length > 0 || !retailerId
+      ? listedBranches
+      : await branchRepo
+          .findPublishedByRetailer(retailerId)
+          .catch(() => [] as typeof listedBranches)
+  ).map((branch) => ({
+    id: branch.id,
+    name: branch.name,
+    openingHours: branch.openingHours,
+    timezone: branch.timezone,
+    ...(branch.addressLine1 ? { address: branch.addressLine1 } : {}),
+    ...(branch.latitude !== null ? { latitude: branch.latitude } : {}),
+    ...(branch.longitude !== null ? { longitude: branch.longitude } : {}),
+  }));
 
   let operationsByService: Record<
     PaidCareServiceKind,
     readonly PricedOperation[]
   > = { dry_cleaning: [], shoe_repair: [], alteration: [] };
-  if (primaryCustomer) {
-    const priceRepo = new PaidCareServicePriceRepository(supabase);
+  if (retailerId) {
+    // A guest cannot read price lists under RLS (they are for the house's
+    // clients and staff), but the booker needs them to show what things
+    // cost before sign-in. For a guest, and only for the guest house, the
+    // server reads the published labels and prices with the service client;
+    // nothing else from those tables reaches the page.
+    const priceClient = session.isGuest ? getSupabaseAdminClient() : supabase;
+    const priceRepo = new PaidCareServicePriceRepository(priceClient);
     const [dryCleaning, shoeRepair, catalogue] = await Promise.all([
-      priceRepo.findForRetailer(primaryCustomer.retailerId, "dry_cleaning"),
-      priceRepo.findForRetailer(primaryCustomer.retailerId, "shoe_repair"),
-      new AlterationCatalogueRepository(supabase).findForRetailer(
-        primaryCustomer.retailerId,
+      guestSafe(priceRepo.findForRetailer(retailerId, "dry_cleaning"), []),
+      guestSafe(priceRepo.findForRetailer(retailerId, "shoe_repair"), []),
+      guestSafe<Awaited<
+        ReturnType<AlterationCatalogueRepository["findForRetailer"]>
+      > | null>(
+        new AlterationCatalogueRepository(priceClient).findForRetailer(
+          retailerId,
+        ),
+        null,
       ),
     ]);
     operationsByService = {
@@ -270,7 +306,7 @@ export default async function AppointmentsPage({
         amountMinorUnits: price.amountMinorUnits,
         currency: price.currency,
       })),
-      alteration: catalogue.operations
+      alteration: (catalogue?.operations ?? [])
         .filter((op) => op.enabled && op.effectivePrice)
         .map((op) => ({
           code: op.code,
@@ -280,80 +316,222 @@ export default async function AppointmentsPage({
         })),
     };
   }
-  const appointmentYear = buildAppointmentYear(new Date());
+  const appointmentYear = buildAppointmentYear(
+    new Date(Math.max(Date.now(), TIMELINE_LAUNCH.getTime())),
+  );
 
+  const weddingPartyRepo = new WeddingPartyRepository(supabase);
+  const tailoringParties = primaryCustomer
+    ? await weddingPartyRepo.findByCustomer(primaryCustomer.id)
+    : [];
+  // Only a party this client organizes opens the organizer's controls; one
+  // they merely belong to is reached through its invite link instead.
+  const tailoringParty =
+    tailoringParties.find(
+      (party) => party.organizerCustomerId === primaryCustomer?.id,
+    ) ?? null;
+  const tailoringPartyMembers = tailoringParty
+    ? await weddingPartyRepo.findMembers(tailoringParty.id)
+    : [];
+  // A guest is "You"; a signed-in client is shown by name.
+  // A guest is "You"; a signed-in client is shown by name.
+  const tailoringPartyCenterName = primaryCustomer?.fullName ?? "You";
+  // The organizer's booked party fitting: their next live appointment whose
+  // notes lead with the party marker the planner writes.
+  const tailoringPartyBooking: TailoringPartyBooking | null = primaryCustomer
+    ? await new AppointmentRepository(supabase)
+        .findByCustomer(primaryCustomer.id)
+        .then((appointments) => {
+          const found = appointments
+            .filter(
+              (appointment) =>
+                !["completed", "canceled", "no_show"].includes(
+                  appointment.status,
+                ) &&
+                Date.parse(appointment.startsAt) >= Date.now() &&
+                (appointment.notes ?? "").includes("Tailoring party"),
+            )
+            .sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt))[0];
+          return found
+            ? {
+                appointmentId: found.id,
+                startsAt: found.startsAt,
+                ...(found.branchId ? { branchId: found.branchId } : {}),
+                ...(found.notes ? { notes: found.notes } : {}),
+              }
+            : null;
+        })
+        .catch(() => null)
+    : null;
+
+  // Arriving from a party invite (/appointments?party=<token>): the party as
+  // its organizer set it up, read through the public preview function.
+  const partyToken =
+    typeof resolvedSearchParams.party === "string"
+      ? resolvedSearchParams.party
+      : null;
+  const tailoringPartyInvite: TailoringPartyInvite | null = partyToken
+    ? await weddingPartyRepo
+        .previewInvite(partyToken)
+        .then((preview) => ({
+          token: partyToken,
+          retailerName: preview.retailerName,
+          ...(preview.eventDate ? { eventDate: preview.eventDate } : {}),
+          ...(preview.eventTime ? { eventTime: preview.eventTime } : {}),
+          ...(preview.venueName ? { venueName: preview.venueName } : {}),
+          ...(preview.fittingLocation
+            ? { fittingLocation: preview.fittingLocation }
+            : {}),
+        }))
+        .catch(() => null)
+    : null;
+
+  // The organizer is the centre of the orbit, never one of their own guests.
+  const tailoringPartyMemberSlots: TailoringPartyMember[] =
+    tailoringPartyMembers
+      .filter((member) => member.customerId !== primaryCustomer?.id)
+      .map((member) => ({
+        name: member.name,
+        status: member.fittingStatus,
+        ...(member.attendance === "declined" || member.attendance === "rebooked"
+          ? { attendance: member.attendance }
+          : {}),
+        ...(member.photoUrl ? { photoUrl: member.photoUrl } : {}),
+      }));
   return (
     <div className="customer-page appointment-fit flex flex-col gap-6 bg-black text-white">
-      <header className="pe-page-head items-end gap-3 pb-2">
-        <div>
-          <h1 className="font-display text-4xl font-semibold leading-none tracking-[-0.055em] text-white">
-            Appointments
-          </h1>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          {primaryCustomer ? (
-            <BookAppointmentLauncher
-              retailerId={primaryCustomer.retailerId}
-              branches={bookableBranches}
-              {...(bookingPrefill
-                ? {
-                    autoOpen: true,
-                    initialReason: bookingPrefill.initialReason,
-                    purpose: bookingPrefill.purpose,
-                    ...(bookingPrefill.wardrobeItemId
-                      ? { wardrobeItemId: bookingPrefill.wardrobeItemId }
-                      : {}),
-                    ...(bookingPrefill.roadmapGapId
-                      ? { roadmapGapId: bookingPrefill.roadmapGapId }
-                      : {}),
-                  }
-                : {})}
-            />
-          ) : null}
-        </div>
-      </header>
+      {primaryCustomer && bookingPrefill ? (
+        <BookAppointmentLauncher
+          retailerId={primaryCustomer.retailerId}
+          branches={bookableBranches}
+          autoOpen
+          initialReason={bookingPrefill.initialReason}
+          purpose={bookingPrefill.purpose}
+          {...(bookingPrefill.wardrobeItemId
+            ? { wardrobeItemId: bookingPrefill.wardrobeItemId }
+            : {})}
+          {...(bookingPrefill.roadmapGapId
+            ? { roadmapGapId: bookingPrefill.roadmapGapId }
+            : {})}
+          className="appointment-prefill-launcher"
+        />
+      ) : null}
 
-      {primaryCustomer ? (
-        <section className="appointment-quick-book" aria-label="Quick book">
-          <QuickBookBar
-            retailerId={primaryCustomer.retailerId}
-            branches={bookableBranches}
-          />
+      {retailerId ? (
+        <section
+          className="appointment-quick-book"
+          aria-label="Quick book"
+          // 12px page padding + 42 + the section's 6px puts the bar's top on
+          // the Store / Wardrobe switch's top, 60px down.
+          style={{ marginTop: "42px" }}
+        >
+          <QuickBookBar retailerId={retailerId} branches={bookableBranches} />
         </section>
       ) : null}
 
-      {primaryCustomer ? (
+      {tailoringPartyInvite ? (
+        <TailoringPartyInvitee
+          invite={tailoringPartyInvite}
+          isGuest={session.isGuest}
+        />
+      ) : null}
+
+      {retailerId ? (
         <section
           className="appointment-care-actions"
           aria-label="Garment care services"
         >
-          <h2 className="appointment-care-heading">High Maintenance</h2>
+          <h2
+            className="appointment-care-heading"
+            style={{
+              margin: "0 0 9px",
+              color: "rgba(244, 242, 236, 0.5)",
+              fontFamily: "GTBold3, Arial, sans-serif",
+              fontSize: 7,
+              fontWeight: 700,
+              letterSpacing: "0.04em",
+              textTransform: "uppercase",
+            }}
+          >
+            High Maintenance
+          </h2>
           <PaidCareLauncher
-            retailerId={primaryCustomer.retailerId}
+            retailerId={retailerId}
             operationsByService={operationsByService}
+            isGuest={session.isGuest}
           />
         </section>
       ) : null}
 
-      {primaryCustomer ? (
+      {retailerId ? (
         <section
           className="appointment-idea-carousel-section"
           aria-label="Appointment ideas"
         >
           <AppointmentIdeaCarousel
-            retailerId={primaryCustomer.retailerId}
+            retailerId={retailerId}
             branches={bookableBranches}
           />
         </section>
       ) : null}
 
-      {primaryCustomer ? (
-        <section className="min-h-0 flex-1">
+      {retailerId ? (
+        /* The timeline inside this section is pinned to the bottom of
+           whatever height is left, so its cards end on the Visit in-store
+           button's line — the wedding party entry point below it sits
+           outside that pinned layout, as its own block. */
+        <section className="appointment-timeline-section">
           <AppointmentMonthCarousel
-            retailerId={primaryCustomer.retailerId}
+            retailerId={retailerId}
             branches={bookableBranches}
             months={appointmentYear}
-            retailerName={retailerName}
+          />
+        </section>
+      ) : null}
+
+      {retailerId && !tailoringPartyInvite ? (
+        <section
+          className="appointment-tailoring-party-section"
+          aria-label="Tailoring party planning"
+        >
+          <h2
+            className="appointment-care-heading"
+            style={{
+              margin: "0 0 9px",
+              color: "rgba(244, 242, 236, 0.5)",
+              fontFamily: "GTBold3, Arial, sans-serif",
+              fontWeight: 700,
+              letterSpacing: "0.04em",
+              textTransform: "uppercase",
+            }}
+          >
+            Tailoring Party
+          </h2>
+          <p
+            style={{
+              margin: "0 0 20px",
+              color: "rgba(244, 242, 236, 0.55)",
+              fontSize: "13px",
+              maxWidth: "420px",
+            }}
+          >
+            A wedding, a milestone birthday, or just a fitting with the crew —
+            invite the people getting suited up alongside you.
+          </p>
+          <TailoringPartyPlanner
+            href={
+              tailoringParty
+                ? `/wedding-parties/${tailoringParty.id}`
+                : "/wedding-parties/new"
+            }
+            retailerId={retailerId}
+            partyId={tailoringParty?.id ?? null}
+            centerName={tailoringPartyCenterName}
+            members={tailoringPartyMemberSlots}
+            branches={bookableBranches}
+            booking={tailoringPartyBooking}
+            inviteToken={tailoringParty?.inviteToken ?? null}
+            isGuest={session.isGuest}
           />
         </section>
       ) : null}

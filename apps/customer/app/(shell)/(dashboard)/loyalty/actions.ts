@@ -17,13 +17,31 @@ export async function joinLoyalty(formData: FormData) {
 }
 export async function inviteFriend(formData: FormData) {
   await requireSession();
-  const values = referralInviteSchema.parse({
-    retailerId: formData.get("retailerId"),
-    referredEmail: formData.get("referredEmail"),
-  });
-  await new LoyaltyRepository(await getSupabaseServerClient()).createMyReferral(
-    values.retailerId as never,
-    values.referredEmail,
+  const emails = [
+    ...new Set(
+      formData
+        .getAll("referredEmail")
+        .map((value) => String(value).trim().toLowerCase())
+        .filter(Boolean),
+    ),
+  ].slice(0, 10);
+  const referrals = [];
+  for (const referredEmail of emails) {
+    const result = referralInviteSchema.safeParse({
+      retailerId: formData.get("retailerId"),
+      referredEmail,
+    });
+    if (result.success) referrals.push(result.data);
+  }
+  if (referrals.length === 0) return;
+  const loyalty = new LoyaltyRepository(await getSupabaseServerClient());
+  await Promise.all(
+    referrals.map((referral) =>
+      loyalty.createMyReferral(
+        referral.retailerId as never,
+        referral.referredEmail,
+      ),
+    ),
   );
   revalidatePath("/loyalty");
 }

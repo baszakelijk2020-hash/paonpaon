@@ -1,42 +1,75 @@
-import { Suspense } from "react";
-
 import "./customer-environment.css";
+
+import type { Address } from "@paon/domain";
 
 import { CustomerNavigationLifecycle } from "./customer-navigation-lifecycle";
 import { EnvironmentMotion } from "./environment-motion";
-import { GuestDashboardPreview } from "./guest-dashboard-preview";
-import { GuestPortalPreview } from "./guest-portal-preview";
+import { HomeLocationProvider } from "./morning-routine/home-location";
+import { SmoothScrollBinder } from "./smooth-scroll-binder";
 
-import { getSession } from "@/lib/session";
+import { getCustomersForUser } from "@/lib/customer-context";
+import { getViewerSession, type ViewerSession } from "@/lib/session";
 
+/** One line a geocoder can read: "Street 1, 1234 AB City". */
+function addressLine(address: Address | undefined): string {
+  if (!address) return "";
+  return [
+    [address.line1, address.line2].filter(Boolean).join(" "),
+    [address.postalCode, address.city].filter(Boolean).join(" "),
+  ]
+    .filter(Boolean)
+    .join(", ");
+}
+
+/** The first home and work address saved across the viewer's profiles. */
+async function savedAddresses(
+  userId: ViewerSession["userId"],
+): Promise<{ home: string; work: string }> {
+  try {
+    const addresses = (await getCustomersForUser(userId)).flatMap(
+      (customer) => customer.shippingAddresses,
+    );
+    return {
+      home: addressLine(addresses.find((a) => a.label === "home")),
+      work: addressLine(addresses.find((a) => a.label === "work")),
+    };
+  } catch {
+    return { home: "", work: "" };
+  }
+}
+
+/**
+ * Guests get the whole environment, not a login wall: pages read through
+ * `getViewerSession`, whose guest stand-in owns no rows, and the overview
+ * greets the demo persona in New York. Anything that writes still signs in.
+ */
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getSession();
-  const isCustomer = session?.accountType === "customer";
-
-  if (!isCustomer) {
-    return (
-      <div className="customer-page min-h-screen">
-        <div className="min-w-0">
-          <main className="mx-auto w-full max-w-[92rem] px-4 py-0 sm:px-7 lg:px-10 xl:px-14">
-            <Suspense fallback={null}>
-              <GuestPortalPreview backdrop={<GuestDashboardPreview />} />
-            </Suspense>
-          </main>
-        </div>
-      </div>
-    );
-  }
+  const session = await getViewerSession();
+  const addresses = session.isGuest
+    ? { home: "", work: "" }
+    : await savedAddresses(session.userId);
 
   return (
-    <div data-customer-shell className="paon-env customer-page min-h-screen">
+    <div
+      data-customer-shell
+      data-guest-viewer={session.isGuest ? "" : undefined}
+      className="paon-env customer-page min-h-screen"
+    >
       <div className="relative z-10 min-w-0">
         <CustomerNavigationLifecycle />
         <EnvironmentMotion />
-        <main className="pe-workspace">{children}</main>
+        <SmoothScrollBinder />
+        <HomeLocationProvider
+          guest={session.isGuest}
+          homeAddress={addresses.home}
+          workAddress={addresses.work}
+        >
+          <main className="pe-workspace">{children}</main>
+        </HomeLocationProvider>
       </div>
     </div>
   );

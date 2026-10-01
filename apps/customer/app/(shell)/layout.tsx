@@ -70,7 +70,7 @@ export default function ShellLayout({
       </div>
       <div
         data-paon-shell-sidebar
-        className="fixed left-0 top-0 z-[120] hidden h-screen w-[250px] lg:block"
+        className="paon-side-rail fixed left-0 top-0 z-[120] hidden h-screen w-[250px] lg:block"
       >
         <ShopCategorySidebar />
       </div>

@@ -13,6 +13,7 @@ import {
 } from "react";
 
 import "./overview.css";
+import "./morning-cards.css";
 import { PearlField } from "./pearl-field";
 
 /**
@@ -573,189 +574,197 @@ export function OutfitBreakdown() {
         <span />
         <span />
       </div>
-      {/* The column names itself, under a rule, in the same small voice the
+      {/* Three parts. Layout-transparent (display: contents) everywhere except
+          the morning card grid, where each becomes its own card. */}
+      <div className="paon-outfit-part paon-outfit-part-list">
+        {/* The column names itself, under a rule, in the same small voice the
           readings strip and the world clock use. */}
-      <h2 className="paon-outfit-heading">Outfit of the day</h2>
-      {/* data-no-press: EnvironmentMotion squeezes every <button> in the
+        <h2 className="paon-outfit-heading">Outfit of the day</h2>
+        {/* data-no-press: EnvironmentMotion squeezes every <button> in the
           environment on pointerdown and springs it back with an overshoot;
           the rows are toggles, not buttons to be pressed, and stay still. */}
-      <ul className="paon-outfit-list" data-no-press ref={listRef}>
-        {OUTFIT.map((piece) => {
-          const inSelection = selected.has(piece.id);
-          return (
-            <li key={piece.id}>
-              {/*
-               * One rectangle, two controls. The whole card still toggles the
-               * piece — a full-bleed button laid under the copy takes every
-               * press that lands anywhere on it — and the ••• beside the make
-               * opens the piece's configuration. The card itself is a <div>,
-               * not a <button>: a button cannot contain another button, so
-               * the toggle had to step out of the wrapper to let ••• in.
-               */}
-              <div
-                className={[
-                  "paon-outfit-piece",
-                  inSelection ? "is-selected" : "",
-                  released === piece.id ? "is-released" : "",
-                ].join(" ")}
-                onPointerLeave={() => {
-                  if (released === piece.id) setReleased(null);
-                }}
-              >
-                <PearlField seed={piece.id} />
-                <button
-                  type="button"
-                  className="paon-outfit-hit"
-                  aria-pressed={inSelection}
-                  aria-label={`${inSelection ? "Remove" : "Add"} ${piece.name}, ${
-                    inSelection ? "" : "+ "
-                  }${euro(piece.priceEur)}`}
-                  onClick={() => toggle(piece.id)}
-                />
-                <span
-                  className="paon-outfit-thumb"
-                  /* The image is also handed to CSS: a square thumb fills the
+        <ul className="paon-outfit-list" data-no-press ref={listRef}>
+          {OUTFIT.map((piece) => {
+            const inSelection = selected.has(piece.id);
+            return (
+              <li key={piece.id}>
+                {/*
+                 * One rectangle, two controls. The whole card still toggles the
+                 * piece — a full-bleed button laid under the copy takes every
+                 * press that lands anywhere on it — and the ••• beside the make
+                 * opens the piece's configuration. The card itself is a <div>,
+                 * not a <button>: a button cannot contain another button, so
+                 * the toggle had to step out of the wrapper to let ••• in.
+                 */}
+                <div
+                  className={[
+                    "paon-outfit-piece",
+                    inSelection ? "is-selected" : "",
+                    released === piece.id ? "is-released" : "",
+                  ].join(" ")}
+                  onPointerLeave={() => {
+                    if (released === piece.id) setReleased(null);
+                  }}
+                >
+                  <PearlField seed={piece.id} />
+                  <button
+                    type="button"
+                    className="paon-outfit-hit"
+                    aria-pressed={inSelection}
+                    aria-label={`${inSelection ? "Remove" : "Add"} ${piece.name}, ${
+                      inSelection ? "" : "+ "
+                    }${euro(piece.priceEur)}`}
+                    onClick={() => toggle(piece.id)}
+                  />
+                  <span
+                    className="paon-outfit-thumb"
+                    /* The image is also handed to CSS: a square thumb fills the
                      space a portrait photograph leaves beside it by stretching
                      that photograph's own edge pixels, so there is never a
                      band of another colour. */
-                  style={
-                    {
-                      background: piece.swatch,
-                      ...(piece.image
-                        ? { "--paon-piece-image": `url(${piece.image})` }
-                        : {}),
-                    } as CSSProperties
-                  }
-                  aria-hidden="true"
-                >
-                  {piece.image ? (
-                    <Image
-                      src={piece.image}
-                      alt=""
-                      fill
-                      unoptimized
-                      sizes="64px"
-                    />
-                  ) : null}
-                </span>
-                <span className="paon-outfit-copy">
-                  {/* The name and the price share the top line, the price set
+                    style={
+                      {
+                        background: piece.swatch,
+                        ...(piece.image
+                          ? { "--paon-piece-image": `url(${piece.image})` }
+                          : {}),
+                      } as CSSProperties
+                    }
+                    aria-hidden="true"
+                  >
+                    {piece.image ? (
+                      <Image
+                        src={piece.image}
+                        alt=""
+                        fill
+                        unoptimized
+                        sizes="64px"
+                      />
+                    ) : null}
+                  </span>
+                  <span className="paon-outfit-copy">
+                    {/* The name and the price share the top line, the price set
                       hard right. "+" while the piece is still to be added; it
                       keeps its slot either way so the number never shifts. */}
-                  <span className="paon-outfit-head" aria-hidden="true">
-                    <span className="paon-outfit-name">{piece.name}</span>
-                    <span className="paon-outfit-price">
-                      <span className="paon-outfit-price-plus">+</span>
-                      {euro(piece.priceEur)}
+                    <span className="paon-outfit-head" aria-hidden="true">
+                      <span className="paon-outfit-name">{piece.name}</span>
+                      <span className="paon-outfit-price">
+                        <span className="paon-outfit-price-plus">+</span>
+                        {euro(piece.priceEur)}
+                      </span>
                     </span>
-                  </span>
-                  <span className="paon-outfit-material" aria-hidden="true">
-                    {piece.mill ? (
-                      <>
-                        <strong className="paon-outfit-mill">
-                          {piece.mill}
-                        </strong>{" "}
-                      </>
-                    ) : null}
-                    {piece.material}
-                  </span>
-                  {/* The make, in its own white field, and beside it the way
+                    <span className="paon-outfit-material" aria-hidden="true">
+                      {piece.mill ? (
+                        <>
+                          <strong className="paon-outfit-mill">
+                            {piece.mill}
+                          </strong>{" "}
+                        </>
+                      ) : null}
+                      {piece.material}
+                    </span>
+                    {/* The make, in its own white field, and beside it the way
                       into the piece's configuration, in a field of the same
                       cut. */}
-                  <span className="paon-outfit-tagrow">
-                    {piece.tags.length ? (
-                      <span className="paon-outfit-tags" aria-hidden="true">
-                        {piece.tags.join(" · ")}
-                      </span>
-                    ) : null}
-                    {/* In the row, not over the card: the toggle is a sibling
+                    <span className="paon-outfit-tagrow">
+                      {piece.tags.length ? (
+                        <span className="paon-outfit-tags" aria-hidden="true">
+                          {piece.tags.join(" · ")}
+                        </span>
+                      ) : null}
+                      {/* In the row, not over the card: the toggle is a sibling
                         layer beneath the copy, not a wrapper round it, so
                         this link is not inside a button and can sit in the
                         flow beside the make. */}
-                    <Link
-                      href="/r/atelier-demo/configurator"
-                      className="paon-outfit-configure"
-                      aria-label={`Configure ${piece.name}`}
-                    >
-                      <span aria-hidden="true" />
-                      <span aria-hidden="true" />
-                      <span aria-hidden="true" />
-                    </Link>
+                      <Link
+                        href="/r/atelier-demo/configurator"
+                        className="paon-outfit-configure"
+                        aria-label={`Configure ${piece.name}`}
+                      >
+                        <span aria-hidden="true" />
+                        <span aria-hidden="true" />
+                        <span aria-hidden="true" />
+                      </Link>
+                    </span>
                   </span>
-                </span>
-              </div>
-              {/* The hero is the look; everything under it is an addition to
+                </div>
+                {/* The hero is the look; everything under it is an addition to
                   it. A short rule says so without a heading. */}
-              {piece.hero ? (
-                <span className="paon-outfit-rule" aria-hidden="true" />
-              ) : null}
-            </li>
-          );
-        })}
-      </ul>
-      {/* Two halves over the total: when the pieces land, and the fitting that
-          follows the order. Ruled top and bottom, divided down the middle. */}
-      <ArrivalAndFitting />
-      <div className="paon-outfit-total">
-        <span>
-          Total incl. {Math.round(VAT_RATE * 100)}% VAT ·{" "}
-          <CrossfadePieceCount count={selected.size} />
-        </span>
-        <CrossfadePrice amount={total} />
+                {piece.hero ? (
+                  <span className="paon-outfit-rule" aria-hidden="true" />
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
       </div>
-      {/* The product panel's own checkout row: heart · Continue In-Store ·
+      <div className="paon-outfit-part paon-outfit-part-promise">
+        {/* Two halves over the total: when the pieces land, and the fitting that
+          follows the order. Ruled top and bottom, divided down the middle. */}
+        <ArrivalAndFitting />
+      </div>
+      <div className="paon-outfit-part paon-outfit-part-checkout">
+        <div className="paon-outfit-total">
+          <span>
+            Total incl. {Math.round(VAT_RATE * 100)}% VAT ·{" "}
+            <CrossfadePieceCount count={selected.size} />
+          </span>
+          <CrossfadePrice amount={total} />
+        </div>
+        {/* The product panel's own checkout row: heart · Continue In-Store ·
           Add to Bag. One vocabulary for "take this further", wherever it
           appears. */}
-      <div className="paon-outfit-actions">
-        {/* A toggle, not a link: the favourite says whether the look is
+        <div className="paon-outfit-actions">
+          {/* A toggle, not a link: the favourite says whether the look is
             saved, and it says it the way every product in the house does —
             by swapping the pierced-heart mark for its filled twin. */}
-        {/* data-no-press: EnvironmentMotion squeezes every <button> in the
+          {/* data-no-press: EnvironmentMotion squeezes every <button> in the
             environment on pointerdown and springs it back. The favourite
             became a <button> when it turned into a toggle, and picked that
             up; its feedback is the hearts cross-fading, not a squeeze. */}
-        <button
-          type="button"
-          data-no-press
-          className="paon-outfit-heart"
-          disabled={selected.size === 0}
-          aria-label={
-            selected.size === 0
-              ? "Select an outfit piece before saving"
-              : saved
-                ? "Remove this outfit from favourites"
-                : "Save this outfit"
-          }
-          aria-pressed={saved}
-          onClick={() => setSaved((current) => !current)}
-        >
-          <span className="paon-outfit-heart-mark" aria-hidden="true" />
-        </button>
-        <Link
-          href="/r/atelier-demo"
-          className="paon-outfit-action"
-          aria-disabled={selected.size === 0}
-          tabIndex={selected.size === 0 ? -1 : undefined}
-          onClick={(event) => {
-            if (selected.size === 0) event.preventDefault();
-          }}
-        >
-          Continue In-Store
-        </Link>
-        <Link
-          href="/r/atelier-demo/cart"
-          className="paon-outfit-action paon-outfit-action-primary"
-          aria-disabled={selected.size === 0}
-          tabIndex={selected.size === 0 ? -1 : undefined}
-          onClick={(event) => {
-            if (selected.size === 0) event.preventDefault();
-          }}
-        >
-          <PearlField seed="add-to-bag" />
-          {/* Its own element so the wordmark's shimmer, painted into the letters,
+          <button
+            type="button"
+            data-no-press
+            className="paon-outfit-heart"
+            disabled={selected.size === 0}
+            aria-label={
+              selected.size === 0
+                ? "Select an outfit piece before saving"
+                : saved
+                  ? "Remove this outfit from favourites"
+                  : "Save this outfit"
+            }
+            aria-pressed={saved}
+            onClick={() => setSaved((current) => !current)}
+          >
+            <span className="paon-outfit-heart-mark" aria-hidden="true" />
+          </button>
+          <Link
+            href="/r/atelier-demo"
+            className="paon-outfit-action"
+            aria-disabled={selected.size === 0}
+            tabIndex={selected.size === 0 ? -1 : undefined}
+            onClick={(event) => {
+              if (selected.size === 0) event.preventDefault();
+            }}
+          >
+            Continue In-Store
+          </Link>
+          <Link
+            href="/r/atelier-demo/cart"
+            className="paon-outfit-action paon-outfit-action-primary"
+            aria-disabled={selected.size === 0}
+            tabIndex={selected.size === 0 ? -1 : undefined}
+            onClick={(event) => {
+              if (selected.size === 0) event.preventDefault();
+            }}
+          >
+            <PearlField seed="add-to-bag" />
+            {/* Its own element so the wordmark's shimmer, painted into the letters,
               sits above the button's fill layer rather than beneath it. */}
-          <span className="paon-outfit-action-label">Add to Bag</span>
-        </Link>
+            <span className="paon-outfit-action-label">Add to Bag</span>
+          </Link>
+        </div>
       </div>
     </section>
   );

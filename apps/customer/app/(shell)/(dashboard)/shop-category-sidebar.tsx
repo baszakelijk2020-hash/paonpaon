@@ -1,3 +1,4 @@
+import { CustomerRepository, RetailerRepository } from "@paon/database";
 /* eslint-disable @next/next/no-img-element -- remote artwork tinted with
    filter(); next/image adds nothing for these and cannot optimise them. */
 import { cookies } from "next/headers";
@@ -13,6 +14,7 @@ import { StorefrontCategoryControl } from "./storefront-category-control";
 
 import { CANONICAL_CATEGORIES } from "@/app/(shell)/r/[slug]/canonical-category";
 import { getSession } from "@/lib/session";
+import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 import "./sidebar.css";
 
@@ -70,21 +72,66 @@ const ACCOUNT_NAV: AccountNavItem[] = [
 /** Same open-redirect guard as `store-return-capture.tsx`'s client-side
  * validation — the cookie is trusted only if it still matches on read. */
 const VALID_STORE_RETURN = /^\/r\/[A-Za-z0-9_-]+(?:[/?].*)?$/;
+const DEFAULT_STOREFRONT_RETURN = "/r/atelier-demo";
 
 async function storeReturnHref(): Promise<string> {
   const cookieStore = await cookies();
   const value = cookieStore.get("paon_storefront_return")?.value;
-  if (!value) return "/r/atelier-demo";
+  if (!value) return DEFAULT_STOREFRONT_RETURN;
   const decoded = decodeURIComponent(value);
-  return VALID_STORE_RETURN.test(decoded) ? decoded : "/r/atelier-demo";
+  return VALID_STORE_RETURN.test(decoded) ? decoded : DEFAULT_STOREFRONT_RETURN;
+}
+
+function storefrontBaseHref(href: string): string {
+  const slug = href.match(/^\/r\/([A-Za-z0-9_-]+)(?:[/?]|$)/)?.[1];
+  return slug ? `/r/${slug}` : DEFAULT_STOREFRONT_RETURN;
+}
+
+async function authoritativeStorefrontHref({
+  session,
+  returnHref,
+}: {
+  session: Awaited<ReturnType<typeof getSession>>;
+  returnHref: string;
+}): Promise<{ baseHref: string; returnHref: string }> {
+  if (session?.accountType !== "customer") {
+    return { baseHref: storefrontBaseHref(returnHref), returnHref };
+  }
+
+  const supabase = await getSupabaseServerClient();
+  const customer = (
+    await new CustomerRepository(supabase).findByUserId(session.userId)
+  )[0];
+  if (!customer) {
+    return { baseHref: storefrontBaseHref(returnHref), returnHref };
+  }
+
+  const retailer = await new RetailerRepository(supabase).findById(
+    customer.retailerId,
+  );
+  if (!retailer) {
+    return { baseHref: storefrontBaseHref(returnHref), returnHref };
+  }
+
+  const baseHref = `/r/${retailer.slug}`;
+  return {
+    baseHref,
+    returnHref:
+      storefrontBaseHref(returnHref) === baseHref ? returnHref : baseHref,
+  };
 }
 
 export async function ShopCategorySidebar() {
   const categories = SIDEBAR_CATEGORIES;
-  const [storeHref, session] = await Promise.all([
+  const [storeReturnCookieHref, session] = await Promise.all([
     storeReturnHref(),
     getSession(),
   ]);
+  const { baseHref: storeBaseHref, returnHref: storeHref } =
+    await authoritativeStorefrontHref({
+      session,
+      returnHref: storeReturnCookieHref,
+    });
   const isSignedIn = session?.accountType === "customer";
 
   // Tiny sidebar marks. 8px so they read as bullets beside the 7px GTBold3 labels
@@ -143,9 +190,9 @@ export async function ShopCategorySidebar() {
       }}
     >
       <StorefrontCategoryControl
-        baseHref="/r/atelier-demo"
+        baseHref={storeBaseHref}
         category={null}
-        className="paon-side-hover flex shrink-0 items-center justify-center overflow-hidden"
+        className="paon-side-wordmark paon-side-hover flex shrink-0 items-center justify-center overflow-hidden"
         style={{
           height: "60px",
           background: "transparent",
@@ -179,7 +226,7 @@ export async function ShopCategorySidebar() {
           store={
             <SidebarReveal key="store" environment="store">
               <StorefrontCategoryControl
-                baseHref="/r/atelier-demo"
+                baseHref={storeBaseHref}
                 category={null}
                 className="paon-side-row"
               >
@@ -191,7 +238,7 @@ export async function ShopCategorySidebar() {
               {/* Collection opens the first category, so the header is a
                   control like the rows beneath it. */}
               <StorefrontCategoryControl
-                baseHref="/r/atelier-demo"
+                baseHref={storeBaseHref}
                 category={categories[0] ?? null}
                 className="paon-side-row paon-side-collection"
               >
@@ -204,7 +251,7 @@ export async function ShopCategorySidebar() {
                 {categories.map((category) => (
                   <StorefrontCategoryControl
                     key={category}
-                    baseHref="/r/atelier-demo"
+                    baseHref={storeBaseHref}
                     category={category}
                     className="paon-side-category"
                   >
@@ -284,6 +331,7 @@ export async function ShopCategorySidebar() {
                 background:
                   "linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.055))",
                 color: "#e4e4e1",
+                fontFamily: "OptimaKlein, serif",
                 fontSize: "14px",
                 letterSpacing: "-0.01em",
                 padding: "0 20px",

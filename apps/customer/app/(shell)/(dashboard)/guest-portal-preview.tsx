@@ -78,7 +78,20 @@ function GoogleMark() {
 }
 
 /** The guest Wardrobe destination uses the established magic-link action. */
-export function GuestPortalPreview({ backdrop }: { backdrop?: ReactNode }) {
+export function GuestPortalPreview({
+  backdrop,
+  defaultEmail,
+  redirectTo = "/dashboard",
+  embedded = false,
+}: {
+  backdrop?: ReactNode;
+  /** Renders only the card, to sit inside another panel. */
+  embedded?: boolean;
+  /** Prefills the email, e.g. from a party invite already filled in. */
+  defaultEmail?: string;
+  /** Where signing in lands; the Wardrobe home unless a caller says so. */
+  redirectTo?: string;
+}) {
   const [state, formAction, isPending] = useActionState(
     requestEmailOtp,
     initialFormState,
@@ -95,403 +108,409 @@ export function GuestPortalPreview({ backdrop }: { backdrop?: ReactNode }) {
   const isCredentialStep =
     !returnToEmail && (state.next === "password" || state.next === "register");
 
+  const keyframes = (
+    <style>{`@keyframes guestCredentialLabelEnter { from { opacity: 0; } to { opacity: 1; } }`}</style>
+  );
+  const card = (
+    <div
+      className={
+        embedded
+          ? "relative w-full rounded-[18px] px-[4px] py-[4px]"
+          : `relative w-full max-w-[360px] rounded-[18px] bg-[rgba(17,17,17,0.88)] px-[28px] py-[24px] shadow-[0_18px_60px_rgba(0,0,0,0.16)] ${
+              state.next === "password" && !returnToEmail ? "" : "min-h-[332px]"
+            }`
+      }
+      style={{
+        ...(!embedded && state.next === "password" && !returnToEmail
+          ? { alignSelf: "start", marginTop: "calc(50vh - 166px)" }
+          : {}),
+      }}
+    >
+      {isCredentialStep ? (
+        <button
+          type="button"
+          onClick={() => setReturnToEmail(true)}
+          aria-label="Back"
+          style={{ position: "absolute", top: "12px", left: "14px" }}
+          className="flex h-[24px] w-[24px] items-center justify-center rounded-full text-white transition hover:bg-white/[0.12]"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            className="h-[14px] w-[14px]"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m14 6-6 6 6 6" />
+          </svg>
+        </button>
+      ) : null}
+      <button
+        type="button"
+        onClick={showStoreEnvironment}
+        aria-label="Close"
+        style={{ position: "absolute", top: "12px", right: "14px" }}
+        className="flex h-[24px] w-[24px] items-center justify-center rounded-full text-white transition hover:bg-white/[0.12]"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          className="h-[14px] w-[14px]"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        >
+          <line x1="6" y1="6" x2="18" y2="18" />
+          <line x1="18" y1="6" x2="6" y2="18" />
+        </svg>
+      </button>
+      <h1
+        className="text-center leading-none"
+        style={{
+          ...SWITCHER_LABEL,
+          color: "#fff",
+          marginTop: "-4px",
+          // This is deliberately owned by the heading: flex reordering of
+          // the social block must never pull the Apple pill into the title.
+          marginBottom: "24px",
+        }}
+      >
+        {state.next === "password" && !returnToEmail
+          ? "Welcome back"
+          : state.next === "register" && !returnToEmail
+            ? "New customer"
+            : "Register or Log in"}
+      </h1>
+
+      <div className="flex flex-col">
+        {!returnToEmail && state.next === "password" ? (
+          <div className="mt-0 animate-[guestCredentialLabelEnter_400ms_ease-out]">
+            <form action={signIn}>
+              <input type="hidden" name="email" value={state.email ?? ""} />
+              <input type="hidden" name="redirectTo" value={redirectTo} />
+              <label className="sr-only" htmlFor="guest-wardrobe-password">
+                Password
+              </label>
+              <input
+                id="guest-wardrobe-password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                placeholder="Password"
+                required
+                style={{ background: "#fff", border: 0, boxShadow: "none" }}
+                className="h-[48px] w-full rounded-full px-[20px] text-[14px] tracking-[0.01em] text-[#30312f] outline-none [font-family:OptimaKlein,serif] placeholder:text-[#979797]"
+              />
+              <button
+                type="submit"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #808080 0%, #bfbfbf 100%)",
+                }}
+                className="mt-[10px] h-[48px] w-full rounded-full text-[14px] font-normal tracking-[0.01em] text-white transition [font-family:OptimaKlein,serif] hover:brightness-95"
+              >
+                Log in
+              </button>
+            </form>
+            <form action={passwordResetAction}>
+              <input type="hidden" name="email" value={state.email ?? ""} />
+              <button
+                type="submit"
+                disabled={isPasswordResetPending}
+                className="mx-auto mt-[8px] block text-[11px] text-white underline underline-offset-[2px] [font-family:OptimaKlein,serif] disabled:cursor-wait disabled:opacity-70"
+              >
+                {isPasswordResetPending ? "Sending…" : "Reset password"}
+              </button>
+            </form>
+            {passwordResetState.sent ? (
+              <p className="mt-[4px] text-center text-[10px] text-[#555654] [font-family:OptimaKlein,serif]">
+                Password reset email sent.
+              </p>
+            ) : passwordResetState.formError ? (
+              <p
+                role="alert"
+                className="mt-[4px] text-center text-[10px] text-[#db3330] [font-family:OptimaKlein,serif]"
+              >
+                {passwordResetState.formError}
+              </p>
+            ) : null}
+            <form action={magicLinkAction}>
+              <input type="hidden" name="email" value={state.email ?? ""} />
+              <button
+                type="submit"
+                disabled={isMagicLinkPending}
+                style={{
+                  background: "transparent",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  color: "#fff",
+                }}
+                className="mt-[10px] h-[48px] w-full rounded-full text-[14px] font-normal tracking-[0.01em] transition [font-family:OptimaKlein,serif] hover:bg-white/[0.12] disabled:cursor-wait disabled:opacity-70"
+              >
+                {isMagicLinkPending ? "Sending…" : "Email me a sign-in link"}
+              </button>
+            </form>
+            {magicLinkState.sent ? (
+              <p className="mt-[4px] text-center text-[10px] text-[#555654] [font-family:OptimaKlein,serif]">
+                Sign-in email sent.
+              </p>
+            ) : magicLinkState.formError ? (
+              <p
+                role="alert"
+                className="mt-[4px] text-center text-[10px] text-[#db3330] [font-family:OptimaKlein,serif]"
+              >
+                {magicLinkState.formError}
+              </p>
+            ) : null}
+          </div>
+        ) : !returnToEmail && state.next === "register" ? (
+          <form
+            action={registrationAction}
+            className="mt-0 animate-[guestCredentialLabelEnter_400ms_ease-out]"
+          >
+            <input type="hidden" name="email" value={state.email ?? ""} />
+            <label className="sr-only" htmlFor="guest-wardrobe-new-password">
+              Set password
+            </label>
+            <input
+              id="guest-wardrobe-new-password"
+              name="password"
+              type="password"
+              autoComplete="new-password"
+              placeholder="Set password"
+              required
+              className="h-[48px] w-full rounded-full border-0 bg-white px-[20px] text-[14px] tracking-[0.01em] text-[#30312f] outline-none [font-family:OptimaKlein,serif] placeholder:text-[#979797]"
+            />
+            <label className="sr-only" htmlFor="guest-wardrobe-first-name">
+              First name
+            </label>
+            <input
+              id="guest-wardrobe-first-name"
+              name="firstName"
+              autoComplete="given-name"
+              placeholder="First name"
+              required
+              className="mt-[10px] h-[48px] w-full rounded-full border-0 bg-white px-[20px] text-[14px] tracking-[0.01em] text-[#30312f] outline-none [font-family:OptimaKlein,serif] placeholder:text-[#979797]"
+            />
+            <label className="sr-only" htmlFor="guest-wardrobe-last-name">
+              Last name
+            </label>
+            <input
+              id="guest-wardrobe-last-name"
+              name="lastName"
+              autoComplete="family-name"
+              placeholder="Last name"
+              required
+              className="mt-[10px] h-[48px] w-full rounded-full border-0 bg-white px-[20px] text-[14px] tracking-[0.01em] text-[#30312f] outline-none [font-family:OptimaKlein,serif] placeholder:text-[#979797]"
+            />
+            <label className="sr-only" htmlFor="guest-wardrobe-phone">
+              Phone number
+            </label>
+            <input
+              id="guest-wardrobe-phone"
+              name="phone"
+              type="tel"
+              autoComplete="tel"
+              placeholder="Phone number"
+              required
+              className="mt-[10px] h-[48px] w-full rounded-full border-0 bg-white px-[20px] text-[14px] tracking-[0.01em] text-[#30312f] outline-none [font-family:OptimaKlein,serif] placeholder:text-[#979797]"
+            />
+            {Object.values(registrationState.fieldErrors)[0] ? (
+              <p
+                role="alert"
+                className="mt-[6px] text-[10px] text-[#db3330] [font-family:OptimaKlein,serif]"
+              >
+                {Object.values(registrationState.fieldErrors)[0]}
+              </p>
+            ) : null}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "32px",
+                marginTop: "32px",
+              }}
+            >
+              <label className="flex items-center gap-[8px] text-[11px] text-white [font-family:OptimaKlein,serif]">
+                <input
+                  name="newsletterOptIn"
+                  type="checkbox"
+                  defaultChecked
+                  className="h-[13px] w-[13px] accent-[#30312f]"
+                />
+                Sign me up for the newsletter
+              </label>
+              <button
+                type="submit"
+                disabled={isRegistrationPending}
+                className="h-[48px] w-full rounded-full bg-gradient-to-r from-white/50 to-white/75 text-[14px] font-normal tracking-[0.01em] text-white [font-family:OptimaKlein,serif] disabled:cursor-wait disabled:opacity-70"
+              >
+                {isRegistrationPending ? "Registering…" : "Register"}
+              </button>
+            </div>
+            {registrationState.sent ? (
+              <p className="mt-[4px] text-center text-[10px] text-[#555654] [font-family:OptimaKlein,serif]">
+                Check your email to confirm your account.
+              </p>
+            ) : registrationState.formError ? (
+              <p
+                role="alert"
+                className="mt-[4px] text-center text-[10px] text-[#db3330] [font-family:OptimaKlein,serif]"
+              >
+                {registrationState.formError}
+              </p>
+            ) : null}
+          </form>
+        ) : (
+          <form
+            action={formAction}
+            onSubmit={() => setReturnToEmail(false)}
+            className={`mt-0 translate-y-[3px] transition-opacity duration-[400ms] ${isPending ? "opacity-0" : "opacity-100"}`}
+          >
+            <input type="hidden" name="redirectTo" value={redirectTo} />
+            <label className="sr-only" htmlFor="guest-wardrobe-email">
+              Email
+            </label>
+            <input
+              id="guest-wardrobe-email"
+              name="email"
+              type="email"
+              autoComplete="username"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              inputMode="email"
+              defaultValue={returnToEmail ? "" : (state.email ?? defaultEmail)}
+              placeholder="Email"
+              aria-invalid={!!state.fieldErrors.email}
+              aria-describedby={
+                state.fieldErrors.email
+                  ? "guest-wardrobe-email-error"
+                  : undefined
+              }
+              required
+              style={{ background: "#fff", border: 0, boxShadow: "none" }}
+              className="h-[48px] w-full rounded-full px-[20px] text-[14px] tracking-[0.01em] text-[#30312f] outline-none [font-family:OptimaKlein,serif] placeholder:text-[#979797]"
+            />
+            {state.fieldErrors.email ? (
+              <p
+                id="guest-wardrobe-email-error"
+                role="alert"
+                className="mt-[8px] text-[14px] text-[#db3330]"
+              >
+                {state.fieldErrors.email}
+              </p>
+            ) : null}
+            {state.formError ? (
+              <p role="alert" className="mt-[8px] text-[14px] text-[#db3330]">
+                {state.formError}
+              </p>
+            ) : null}
+            <button
+              type="submit"
+              disabled={isPending}
+              style={{
+                display: "flex",
+                width: "100%",
+                height: "48px",
+                alignItems: "center",
+                justifyContent: "center",
+                border: 0,
+                borderRadius: "9999px",
+                background: "linear-gradient(135deg, #808080 0%, #bfbfbf 100%)",
+              }}
+              className="mt-[10px] text-[14px] font-normal tracking-[0.01em] text-white transition-all duration-[400ms] [font-family:OptimaKlein,serif] hover:brightness-95 disabled:cursor-wait disabled:opacity-70"
+            >
+              {isPending ? "Sending…" : "Continue"}
+            </button>
+          </form>
+        )}
+
+        {!isCredentialStep ? (
+          <div className="order-first mt-0">
+            <div className="space-y-[10px]">
+              <button
+                type="button"
+                disabled
+                aria-disabled="true"
+                aria-describedby="social-auth-unavailable"
+                style={{
+                  background: "transparent",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  color: "#fff",
+                }}
+                className="flex h-[48px] w-full items-center rounded-full px-[20px] text-[14px] tracking-[0.01em] transition-colors duration-[400ms] [font-family:OptimaKlein,serif] hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-100"
+              >
+                <span className="flex-1 text-left">Continue with Apple</span>
+                <AppleMark />
+              </button>
+              <button
+                type="button"
+                disabled
+                aria-disabled="true"
+                aria-describedby="social-auth-unavailable"
+                style={{
+                  background: "transparent",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  color: "#fff",
+                }}
+                className="flex h-[48px] w-full items-center rounded-full px-[20px] text-[14px] tracking-[0.01em] transition-colors duration-[400ms] [font-family:OptimaKlein,serif] hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-100"
+              >
+                <span className="flex-1 text-left">Continue with Google</span>
+                <GoogleMark />
+              </button>
+            </div>
+            <div
+              className="mb-[11.5px] mt-[15.5px] -translate-y-[0.5px] text-center"
+              style={{ ...SWITCHER_LABEL, color: "rgba(255,255,255,0.8)" }}
+              aria-hidden="true"
+            >
+              or
+            </div>
+            <p
+              id="social-auth-unavailable"
+              style={{
+                position: "absolute",
+                width: 1,
+                height: 1,
+                padding: 0,
+                margin: -1,
+                overflow: "hidden",
+                clip: "rect(0, 0, 0, 0)",
+                whiteSpace: "nowrap",
+                border: 0,
+              }}
+            >
+              Apple and Google sign-in are not available.
+            </p>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+
+  // Inside another card (a booking's last step): the sign-in card on its
+  // own, without the full-window ground and centring.
+  if (embedded) {
+    return (
+      <div data-guest-login data-embedded className="relative w-full">
+        {keyframes}
+        {card}
+      </div>
+    );
+  }
+
   return (
     <section
       data-guest-login
       className="relative h-dvh w-full overflow-hidden bg-transparent"
     >
-      <style>{`@keyframes guestCredentialLabelEnter { from { opacity: 0; } to { opacity: 1; } }`}</style>
-      {/* Blurred stand-in for the signed-in Overview tab. */}
+      {keyframes}
       {backdrop ?? <GuestWardrobeBackdrop />}
       <div className="absolute inset-0 z-10 grid place-items-center px-[20px]">
-        <div
-          className={`relative w-full max-w-[360px] rounded-[18px] bg-[rgba(0,0,0,0.1)] px-[28px] py-[24px] shadow-[0_18px_60px_rgba(0,0,0,0.16)] ${
-            state.next === "password" && !returnToEmail ? "" : "min-h-[332px]"
-          }`}
-          style={{
-            ...(state.next === "password" && !returnToEmail
-              ? { alignSelf: "start", marginTop: "calc(50vh - 166px)" }
-              : {}),
-            backdropFilter: "blur(20px) invert(1)",
-            WebkitBackdropFilter: "blur(20px) invert(1)",
-          }}
-        >
-          {isCredentialStep ? (
-            <button
-              type="button"
-              onClick={() => setReturnToEmail(true)}
-              aria-label="Back"
-              style={{ position: "absolute", top: "12px", left: "14px" }}
-              className="flex h-[24px] w-[24px] items-center justify-center rounded-full text-white transition hover:bg-white/[0.12]"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                className="h-[14px] w-[14px]"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="m14 6-6 6 6 6" />
-              </svg>
-            </button>
-          ) : null}
-          <button
-            type="button"
-            onClick={showStoreEnvironment}
-            aria-label="Close"
-            style={{ position: "absolute", top: "12px", right: "14px" }}
-            className="flex h-[24px] w-[24px] items-center justify-center rounded-full text-white transition hover:bg-white/[0.12]"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              className="h-[14px] w-[14px]"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-            >
-              <line x1="6" y1="6" x2="18" y2="18" />
-              <line x1="18" y1="6" x2="6" y2="18" />
-            </svg>
-          </button>
-          <h1
-            className="text-center leading-none"
-            style={{
-              ...SWITCHER_LABEL,
-              color: "#fff",
-              marginTop: "-4px",
-              // This is deliberately owned by the heading: flex reordering of
-              // the social block must never pull the Apple pill into the title.
-              marginBottom: "24px",
-            }}
-          >
-            {state.next === "password" && !returnToEmail
-              ? "Welcome back"
-              : state.next === "register" && !returnToEmail
-                ? "New customer"
-                : "Register or Log in"}
-          </h1>
-
-          <div className="flex flex-col">
-            {!returnToEmail && state.next === "password" ? (
-              <div className="mt-0 animate-[guestCredentialLabelEnter_400ms_ease-out]">
-                <form action={signIn}>
-                  <input type="hidden" name="email" value={state.email ?? ""} />
-                  <input type="hidden" name="redirectTo" value="/dashboard" />
-                  <label className="sr-only" htmlFor="guest-wardrobe-password">
-                    Password
-                  </label>
-                  <input
-                    id="guest-wardrobe-password"
-                    name="password"
-                    type="password"
-                    autoComplete="current-password"
-                    placeholder="Password"
-                    required
-                    style={{ background: "#fff", border: 0, boxShadow: "none" }}
-                    className="h-[48px] w-full rounded-full px-[20px] text-[14px] tracking-[0.01em] text-[#30312f] outline-none [font-family:OptimaKlein,serif] placeholder:text-[#979797]"
-                  />
-                  <button
-                    type="submit"
-                    style={{
-                      background:
-                        "linear-gradient(135deg, #808080 0%, #bfbfbf 100%)",
-                    }}
-                    className="mt-[10px] h-[48px] w-full rounded-full text-[14px] font-normal tracking-[0.01em] text-white transition [font-family:OptimaKlein,serif] hover:brightness-95"
-                  >
-                    Log in
-                  </button>
-                </form>
-                <form action={passwordResetAction}>
-                  <input type="hidden" name="email" value={state.email ?? ""} />
-                  <button
-                    type="submit"
-                    disabled={isPasswordResetPending}
-                    className="mx-auto mt-[8px] block text-[11px] text-white underline underline-offset-[2px] [font-family:OptimaKlein,serif] disabled:cursor-wait disabled:opacity-70"
-                  >
-                    {isPasswordResetPending ? "Sending…" : "Reset password"}
-                  </button>
-                </form>
-                {passwordResetState.sent ? (
-                  <p className="mt-[4px] text-center text-[10px] text-[#555654] [font-family:OptimaKlein,serif]">
-                    Password reset email sent.
-                  </p>
-                ) : passwordResetState.formError ? (
-                  <p
-                    role="alert"
-                    className="mt-[4px] text-center text-[10px] text-[#db3330] [font-family:OptimaKlein,serif]"
-                  >
-                    {passwordResetState.formError}
-                  </p>
-                ) : null}
-                <form action={magicLinkAction}>
-                  <input type="hidden" name="email" value={state.email ?? ""} />
-                  <button
-                    type="submit"
-                    disabled={isMagicLinkPending}
-                    style={{
-                      background: "transparent",
-                      border: "1px solid rgba(255,255,255,0.15)",
-                      color: "#fff",
-                    }}
-                    className="mt-[10px] h-[48px] w-full rounded-full text-[14px] font-normal tracking-[0.01em] transition [font-family:OptimaKlein,serif] hover:bg-white/[0.12] disabled:cursor-wait disabled:opacity-70"
-                  >
-                    {isMagicLinkPending
-                      ? "Sending…"
-                      : "Email me a sign-in link"}
-                  </button>
-                </form>
-                {magicLinkState.sent ? (
-                  <p className="mt-[4px] text-center text-[10px] text-[#555654] [font-family:OptimaKlein,serif]">
-                    Sign-in email sent.
-                  </p>
-                ) : magicLinkState.formError ? (
-                  <p
-                    role="alert"
-                    className="mt-[4px] text-center text-[10px] text-[#db3330] [font-family:OptimaKlein,serif]"
-                  >
-                    {magicLinkState.formError}
-                  </p>
-                ) : null}
-              </div>
-            ) : !returnToEmail && state.next === "register" ? (
-              <form
-                action={registrationAction}
-                className="mt-0 animate-[guestCredentialLabelEnter_400ms_ease-out]"
-              >
-                <input type="hidden" name="email" value={state.email ?? ""} />
-                <label
-                  className="sr-only"
-                  htmlFor="guest-wardrobe-new-password"
-                >
-                  Set password
-                </label>
-                <input
-                  id="guest-wardrobe-new-password"
-                  name="password"
-                  type="password"
-                  autoComplete="new-password"
-                  placeholder="Set password"
-                  required
-                  className="h-[48px] w-full rounded-full border-0 bg-white px-[20px] text-[14px] tracking-[0.01em] text-[#30312f] outline-none [font-family:OptimaKlein,serif] placeholder:text-[#979797]"
-                />
-                <label className="sr-only" htmlFor="guest-wardrobe-first-name">
-                  First name
-                </label>
-                <input
-                  id="guest-wardrobe-first-name"
-                  name="firstName"
-                  autoComplete="given-name"
-                  placeholder="First name"
-                  required
-                  className="mt-[10px] h-[48px] w-full rounded-full border-0 bg-white px-[20px] text-[14px] tracking-[0.01em] text-[#30312f] outline-none [font-family:OptimaKlein,serif] placeholder:text-[#979797]"
-                />
-                <label className="sr-only" htmlFor="guest-wardrobe-last-name">
-                  Last name
-                </label>
-                <input
-                  id="guest-wardrobe-last-name"
-                  name="lastName"
-                  autoComplete="family-name"
-                  placeholder="Last name"
-                  required
-                  className="mt-[10px] h-[48px] w-full rounded-full border-0 bg-white px-[20px] text-[14px] tracking-[0.01em] text-[#30312f] outline-none [font-family:OptimaKlein,serif] placeholder:text-[#979797]"
-                />
-                <label className="sr-only" htmlFor="guest-wardrobe-phone">
-                  Phone number
-                </label>
-                <input
-                  id="guest-wardrobe-phone"
-                  name="phone"
-                  type="tel"
-                  autoComplete="tel"
-                  placeholder="Phone number"
-                  required
-                  className="mt-[10px] h-[48px] w-full rounded-full border-0 bg-white px-[20px] text-[14px] tracking-[0.01em] text-[#30312f] outline-none [font-family:OptimaKlein,serif] placeholder:text-[#979797]"
-                />
-                {Object.values(registrationState.fieldErrors)[0] ? (
-                  <p
-                    role="alert"
-                    className="mt-[6px] text-[10px] text-[#db3330] [font-family:OptimaKlein,serif]"
-                  >
-                    {Object.values(registrationState.fieldErrors)[0]}
-                  </p>
-                ) : null}
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "32px",
-                    marginTop: "32px",
-                  }}
-                >
-                  <label className="flex items-center gap-[8px] text-[11px] text-white [font-family:OptimaKlein,serif]">
-                    <input
-                      name="newsletterOptIn"
-                      type="checkbox"
-                      defaultChecked
-                      className="h-[13px] w-[13px] accent-[#30312f]"
-                    />
-                    Sign me up for the newsletter
-                  </label>
-                  <button
-                    type="submit"
-                    disabled={isRegistrationPending}
-                    className="h-[48px] w-full rounded-full bg-gradient-to-r from-white/50 to-white/75 text-[14px] font-normal tracking-[0.01em] text-white [font-family:OptimaKlein,serif] disabled:cursor-wait disabled:opacity-70"
-                  >
-                    {isRegistrationPending ? "Registering…" : "Register"}
-                  </button>
-                </div>
-                {registrationState.sent ? (
-                  <p className="mt-[4px] text-center text-[10px] text-[#555654] [font-family:OptimaKlein,serif]">
-                    Check your email to confirm your account.
-                  </p>
-                ) : registrationState.formError ? (
-                  <p
-                    role="alert"
-                    className="mt-[4px] text-center text-[10px] text-[#db3330] [font-family:OptimaKlein,serif]"
-                  >
-                    {registrationState.formError}
-                  </p>
-                ) : null}
-              </form>
-            ) : (
-              <form
-                action={formAction}
-                onSubmit={() => setReturnToEmail(false)}
-                className={`mt-0 translate-y-[3px] transition-opacity duration-[400ms] ${isPending ? "opacity-0" : "opacity-100"}`}
-              >
-                <input type="hidden" name="redirectTo" value="/dashboard" />
-                <label className="sr-only" htmlFor="guest-wardrobe-email">
-                  Email
-                </label>
-                <input
-                  id="guest-wardrobe-email"
-                  name="email"
-                  type="email"
-                  autoComplete="username"
-                  autoCapitalize="none"
-                  autoCorrect="off"
-                  spellCheck={false}
-                  inputMode="email"
-                  defaultValue={returnToEmail ? "" : state.email}
-                  placeholder="Email"
-                  aria-invalid={!!state.fieldErrors.email}
-                  aria-describedby={
-                    state.fieldErrors.email
-                      ? "guest-wardrobe-email-error"
-                      : undefined
-                  }
-                  required
-                  style={{ background: "#fff", border: 0, boxShadow: "none" }}
-                  className="h-[48px] w-full rounded-full px-[20px] text-[14px] tracking-[0.01em] text-[#30312f] outline-none [font-family:OptimaKlein,serif] placeholder:text-[#979797]"
-                />
-                {state.fieldErrors.email ? (
-                  <p
-                    id="guest-wardrobe-email-error"
-                    role="alert"
-                    className="mt-[8px] text-[14px] text-[#db3330]"
-                  >
-                    {state.fieldErrors.email}
-                  </p>
-                ) : null}
-                {state.formError ? (
-                  <p
-                    role="alert"
-                    className="mt-[8px] text-[14px] text-[#db3330]"
-                  >
-                    {state.formError}
-                  </p>
-                ) : null}
-                <button
-                  type="submit"
-                  disabled={isPending}
-                  style={{
-                    display: "flex",
-                    width: "100%",
-                    height: "48px",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    border: 0,
-                    borderRadius: "9999px",
-                    background:
-                      "linear-gradient(135deg, #808080 0%, #bfbfbf 100%)",
-                  }}
-                  className="mt-[10px] text-[14px] font-normal tracking-[0.01em] text-white transition-all duration-[400ms] [font-family:OptimaKlein,serif] hover:brightness-95 disabled:cursor-wait disabled:opacity-70"
-                >
-                  {isPending ? "Sending…" : "Continue"}
-                </button>
-              </form>
-            )}
-
-            {!isCredentialStep ? (
-              <div className="order-first mt-0">
-                <div className="space-y-[10px]">
-                  <button
-                    type="button"
-                    disabled
-                    aria-disabled="true"
-                    aria-describedby="social-auth-unavailable"
-                    style={{
-                      background: "transparent",
-                      border: "1px solid rgba(255,255,255,0.15)",
-                      color: "#fff",
-                    }}
-                    className="flex h-[48px] w-full items-center rounded-full px-[20px] text-[14px] tracking-[0.01em] transition-colors duration-[400ms] [font-family:OptimaKlein,serif] hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-100"
-                  >
-                    <span className="flex-1 text-left">
-                      Continue with Apple
-                    </span>
-                    <AppleMark />
-                  </button>
-                  <button
-                    type="button"
-                    disabled
-                    aria-disabled="true"
-                    aria-describedby="social-auth-unavailable"
-                    style={{
-                      background: "transparent",
-                      border: "1px solid rgba(255,255,255,0.15)",
-                      color: "#fff",
-                    }}
-                    className="flex h-[48px] w-full items-center rounded-full px-[20px] text-[14px] tracking-[0.01em] transition-colors duration-[400ms] [font-family:OptimaKlein,serif] hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-100"
-                  >
-                    <span className="flex-1 text-left">
-                      Continue with Google
-                    </span>
-                    <GoogleMark />
-                  </button>
-                </div>
-                <div
-                  className="mb-[11.5px] mt-[15.5px] -translate-y-[0.5px] text-center"
-                  style={{ ...SWITCHER_LABEL, color: "rgba(255,255,255,0.8)" }}
-                  aria-hidden="true"
-                >
-                  or
-                </div>
-                <p
-                  id="social-auth-unavailable"
-                  style={{
-                    position: "absolute",
-                    width: 1,
-                    height: 1,
-                    padding: 0,
-                    margin: -1,
-                    overflow: "hidden",
-                    clip: "rect(0, 0, 0, 0)",
-                    whiteSpace: "nowrap",
-                    border: 0,
-                  }}
-                >
-                  Apple and Google sign-in are not available.
-                </p>
-              </div>
-            ) : null}
-          </div>
-        </div>
+        {card}
       </div>
     </section>
   );

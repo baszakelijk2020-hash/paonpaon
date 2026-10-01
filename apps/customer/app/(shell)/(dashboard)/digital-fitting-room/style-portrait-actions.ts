@@ -59,6 +59,7 @@ export async function grantStylePortraitConsent(
     customer.id,
   );
   revalidatePath("/digital-fitting-room");
+  revalidatePath("/wardrobe");
 }
 
 export async function withdrawStylePortraitConsent(
@@ -71,6 +72,7 @@ export async function withdrawStylePortraitConsent(
     customer.id,
   );
   revalidatePath("/digital-fitting-room");
+  revalidatePath("/wardrobe");
 }
 
 export interface UploadReferenceState {
@@ -154,6 +156,7 @@ export async function uploadStylePortraitReference(
   }
 
   revalidatePath("/digital-fitting-room");
+  revalidatePath("/wardrobe");
   return {};
 }
 
@@ -183,6 +186,7 @@ export async function declareFitArchetype(
   }
 
   revalidatePath("/digital-fitting-room");
+  revalidatePath("/wardrobe");
 }
 
 /** The onboarding preview is an actual neutral AI render. It uses the same
@@ -258,6 +262,7 @@ export async function generateStylePortraitPreview(
     snapshot,
   );
   revalidatePath("/digital-fitting-room");
+  revalidatePath("/wardrobe");
 }
 
 export async function approveStylePortrait(formData: FormData): Promise<void> {
@@ -274,6 +279,7 @@ export async function approveStylePortrait(formData: FormData): Promise<void> {
   await portraitRepo.approve(portrait.id);
   revalidatePath("/digital-fitting-room");
   revalidatePath("/wardrobe");
+  revalidatePath("/wardrobe");
 }
 
 export async function restartStylePortrait(formData: FormData): Promise<void> {
@@ -288,4 +294,5 @@ export async function restartStylePortrait(formData: FormData): Promise<void> {
     await portraitRepo.reject(portrait.id, "Customer chose a different photo.");
   }
   revalidatePath("/digital-fitting-room");
+  revalidatePath("/wardrobe");
 }

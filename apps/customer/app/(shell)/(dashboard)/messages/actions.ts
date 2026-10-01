@@ -56,10 +56,16 @@ async function classifyAndRecordIntent(conversationId: string, body: string) {
 
 export async function startConversation(formData: FormData) {
   await requireSession();
-  const value = startCustomerConversationSchema.parse({
+  // The body is typed by the customer, so an empty or over-long one is an
+  // ordinary thing to submit — a double-click resubmits the form with the
+  // textarea already cleared. .parse() would throw that into an error
+  // boundary and take the page down; there is nothing to do but ignore it.
+  const result = startCustomerConversationSchema.safeParse({
     retailerId: formData.get("retailerId"),
     body: formData.get("body"),
   });
+  if (!result.success) return;
+  const value = result.data;
   const repo = new MessagingRepository(await getSupabaseServerClient());
   const id = await repo.getOrCreateForCustomer(value.retailerId as never);
   await repo.send(id, value.body);
@@ -68,10 +74,14 @@ export async function startConversation(formData: FormData) {
 }
 export async function sendMessage(formData: FormData) {
   await requireSession();
-  const value = sendMessageSchema.parse({
+  // Same as startConversation: a customer-typed body that fails validation is
+  // a no-op, never a crashed thread.
+  const result = sendMessageSchema.safeParse({
     conversationId: formData.get("conversationId"),
     body: formData.get("body"),
   });
+  if (!result.success) return;
+  const value = result.data;
   await new MessagingRepository(await getSupabaseServerClient()).send(
     value.conversationId as never,
     value.body,

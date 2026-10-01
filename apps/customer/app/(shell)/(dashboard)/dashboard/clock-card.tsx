@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { HOME_LOCATION } from "../morning-routine/local-widgets";
+import { useHomeLocation } from "../morning-routine/home-location";
 
 import "./overview.css";
 
@@ -11,6 +11,7 @@ import "./overview.css";
  * the weather tile beside it already says where. One figure, one line under
  * it — nothing in this strip runs to three lines. */
 export function ClockCard() {
+  const home = useHomeLocation();
   const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
@@ -32,7 +33,7 @@ export function ClockCard() {
         hour: "2-digit",
         minute: "2-digit",
         hourCycle: "h23",
-        timeZone: HOME_LOCATION.timeZone,
+        timeZone: home.timeZone,
       }).formatToParts(now)
     : [];
   const hour = parts.find((part) => part.type === "hour")?.value ?? "--";
@@ -74,7 +75,7 @@ export function ClockCard() {
                   weekday: "short",
                   day: "numeric",
                   month: "short",
-                  timeZone: HOME_LOCATION.timeZone,
+                  timeZone: home.timeZone,
                 })
                 /* "Sat 12 Sep" → "SAT · 12 SEP". */
                 .replace(/^(\S+)\s/, "$1 · ")

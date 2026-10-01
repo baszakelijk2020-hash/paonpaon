@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 const DAY_NAMES = [
   "Monday",
   "Tuesday",
@@ -45,6 +43,9 @@ export function WardrobeFourWeekCalendar({
       }).format(date),
     };
   });
+  const todayIndex = Math.floor(
+    (Date.parse(nowIso) - firstDay.getTime()) / DAY_IN_MS,
+  );
   const imageByDay = new Map<number, string>();
   FILLED_DAY_INDEXES.forEach((dayIndex, imageIndex) => {
     const imageUrl = imageUrls[imageIndex];
@@ -53,26 +54,61 @@ export function WardrobeFourWeekCalendar({
 
   return (
     <section
-      className="paon-wardrobe-calendar"
+      id="calendar"
+      className="paon-wardrobe-card paon-wardrobe-calendar"
       aria-labelledby="paon-wardrobe-calendar-title"
     >
-      <h2 id="paon-wardrobe-calendar-title" className="sr-only">
-        Your next four weeks
-      </h2>
+      <svg className="paon-wardrobe-cutout-filter" aria-hidden="true">
+        <filter id="paon-calendar-cutout" colorInterpolationFilters="sRGB">
+          <feColorMatrix
+            type="matrix"
+            values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 -20 -20 -20 0 55"
+          />
+        </filter>
+      </svg>
+      <div className="paon-wardrobe-card-head">
+        <h2
+          id="paon-wardrobe-calendar-title"
+          className="paon-wardrobe-card-title"
+        >
+          Your next four weeks
+        </h2>
+        <span className="paon-wardrobe-card-meta">
+          {new Intl.DateTimeFormat("en-GB", {
+            month: "long",
+            year: "numeric",
+            timeZone: "UTC",
+          }).format(firstDay)}
+        </span>
+      </div>
       <div className="paon-wardrobe-calendar-weekdays" aria-hidden="true">
-        {DAY_NAMES.map((day) => (
-          <span key={day}>{day.slice(0, 3)}</span>
+        {[...DAY_NAMES, ...DAY_NAMES].map((day, index) => (
+          <span
+            key={`${day}-${index}`}
+            className={index >= 7 ? "is-second-week" : undefined}
+          >
+            {day.slice(0, 3)}
+          </span>
         ))}
       </div>
       <div className="paon-wardrobe-calendar-grid">
         {days.map(({ date, dayNumber, label }, index) => {
           const imageUrl = imageByDay.get(index);
-          const revealDelay = ((index * 17) % 61) / 10;
+          // Nearby pieces begin almost together, then settle row by row like
+          // a light rainfall rather than waiting for a serial slideshow.
+          const revealDelay =
+            0.12 + (index % 7) * 0.11 + Math.floor(index / 7) * 0.07;
 
           return (
             <article
               key={date.toISOString()}
-              className={`paon-wardrobe-calendar-day${imageUrl ? "has-look" : ""}`}
+              className={[
+                "paon-wardrobe-calendar-day",
+                imageUrl ? "has-look" : "",
+                index === todayIndex ? "is-today" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
               aria-label={label}
             >
               <span className="paon-wardrobe-calendar-number">{dayNumber}</span>
@@ -81,21 +117,12 @@ export function WardrobeFourWeekCalendar({
                   className="paon-wardrobe-calendar-look"
                   style={{ animationDelay: `${revealDelay}s` }}
                 >
-                  <Image
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
                     src={imageUrl}
                     alt=""
-                    fill
-                    unoptimized
-                    sizes="(min-width: 1024px) 12vw, 25vw"
-                    className="paon-wardrobe-calendar-backdrop"
-                    aria-hidden="true"
-                  />
-                  <Image
-                    src={imageUrl}
-                    alt=""
-                    fill
-                    unoptimized
-                    sizes="(min-width: 1024px) 12vw, 25vw"
+                    width={1069}
+                    height={2057}
                     className="paon-wardrobe-calendar-garment"
                   />
                 </div>

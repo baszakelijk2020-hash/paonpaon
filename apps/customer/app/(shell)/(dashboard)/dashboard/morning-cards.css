@@ -1,0 +1,1064 @@
+/* ── Morning Routine as separate cards ───────────────────────────────────
+   page.tsx's OVERVIEW_LAYOUT = "morning", marked .paon-morning-cards. Every
+   part is its own card on one grid, so each can move and resize on its own:
+   three columns filling the window when everything fits, two and then one
+   as the overview narrows, and the page scrolls whenever the cards need more
+   room than the window has. The column wrappers (.paon-morning-hello,
+   .paon-morning-pieces, .paon-outfit) are dissolved with display: contents,
+   so their children are the grid items and every descendant rule in
+   overview.css still reaches them. The watch face is not styled here. */
+
+/* The outfit's three parts are only cards here; everywhere else (the
+   original overview) they are layout-transparent. */
+.paon-outfit-part {
+  display: contents;
+}
+
+/* Scrolled to the end, the cards still stop on the Sign in button's line. */
+.paon-overview.paon-overview-morning:has(.paon-morning-cards) {
+  padding-bottom: 20px;
+}
+
+/* The old layout locked the environment's scroll layer to one screen. */
+.paon-shell-content:has(
+  .paon-overview-morning .paon-morning-cards:not([hidden] *)
+) {
+  overflow-y: auto;
+}
+
+/* The day's photograph keeps the full centre column; the selected pieces and
+   their total form one coherent stack on the right. */
+.paon-overview-morning .paon-morning.paon-morning-cards {
+  --paon-card-gap: 18px;
+  --paon-card-radius: 20px;
+  --paon-card-pad: 24px;
+  --paon-ink: #f4f2ec;
+  --paon-ink-soft: rgba(244, 242, 236, 0.6);
+  --paon-ink-rule: rgba(255, 255, 255, 0.12);
+  --paon-ootd-ratio: 0.5198;
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, min(calc((100dvh - 213px) * var(--paon-ootd-ratio)), 34%))
+    minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    "readings look     pieces"
+    "greeting look     pieces"
+    "world    look     promise"
+    "world    look     checkout";
+  gap: var(--paon-card-gap);
+  align-items: stretch;
+  /* Ends on the line of the sidebar's Sign in button (20px off the bottom)
+     when the cards fit; grows, and the page scrolls, when they do not. */
+  height: auto;
+  min-height: calc(100vh - 46px);
+  min-height: calc(100dvh - 46px);
+  margin: -2px 0 0;
+  overflow: visible;
+  border-radius: 0;
+  background: none;
+}
+
+/* A flat window: the photograph takes the full height and the total moves
+   under the pieces on the right. */
+@media (min-aspect-ratio: 81/50) {
+  .paon-overview-morning .paon-morning.paon-morning-cards {
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, min(calc((100dvh - 46px) * var(--paon-ootd-ratio)), 38%))
+      minmax(0, 1fr);
+    grid-template-areas:
+      "readings look pieces"
+      "greeting look pieces"
+      "world    look promise"
+      "world    look checkout";
+  }
+}
+
+.paon-overview-morning .paon-morning.paon-morning-cards .paon-morning-hello,
+.paon-overview-morning .paon-morning.paon-morning-cards .paon-morning-pieces,
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-pieces
+  .paon-outfit {
+  display: contents;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-hello::before,
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-hello::after,
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-pieces::before,
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-pieces::after {
+  content: none;
+}
+
+/* ── The cards: the environment's card, as on Orders and Appointments ───── */
+.paon-overview-morning .paon-morning.paon-morning-cards .paon-morning-readings,
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-hello
+  .paon-welcome-message,
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-hello
+  .paon-world-module,
+.paon-overview-morning .paon-morning.paon-morning-cards .paon-morning-ootd,
+.paon-overview-morning .paon-morning.paon-morning-cards .paon-outfit-part {
+  position: relative;
+  z-index: 0;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--paon-card-radius);
+  background: linear-gradient(180deg, #1a1a1a 0%, #4d4d4d 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  color: var(--paon-ink);
+}
+.paon-overview-morning .paon-morning.paon-morning-cards .paon-outfit-part {
+  display: flex;
+  flex-direction: column;
+  padding: var(--paon-card-pad);
+}
+
+/* ── Light ink on the dark cards ──────────────────────────────────────────
+   overview.css sets every word under the old columns to 60% black with one
+   rule weighted by :not(#paon-ink). These carry the same kind of weight (an
+   id in a :not() matches nothing and only adds specificity), one step more,
+   so they win: 60% light for the words, full light for the figures and the
+   greeting. The light surfaces inside the cards — a chosen piece, the landed
+   calendar day, the buttons — keep their dark ink. The exclusions sit in
+   :where() so they add no weight and the rules keep their order:
+   words < figures < light surfaces. */
+.paon-overview-morning
+  .paon-morning-cards:not(#paon-ink-cards)
+  :is(.paon-morning-hello, .paon-morning-pieces):not(#paon-ink)
+  *:where(
+    :not(
+      svg,
+      svg *,
+      .paon-world-stage *,
+      .paon-morning-readings > :first-child,
+      .paon-morning-readings > :first-child *
+    )
+  ) {
+  color: var(--paon-ink-soft);
+}
+.paon-overview-morning
+  .paon-morning-cards:not(#paon-ink-cards)
+  :is(.paon-morning-hello, .paon-morning-pieces):not(#paon-ink)
+  :is(
+    .paon-welcome-copy,
+    .paon-welcome-copy *,
+    .paon-stat-value,
+    .paon-stat-value *,
+    .paon-stat-extra-value,
+    .paon-stat-extra-value *,
+    .paon-world-chip-time,
+    .paon-outfit-total-price,
+    .paon-outfit-total-price *,
+    .paon-outfit-promise-copy strong
+  ):where(:not(svg, svg *)) {
+  color: var(--paon-ink);
+}
+.paon-overview-morning
+  .paon-morning-cards:not(#paon-ink-cards)
+  :is(.paon-morning-hello, .paon-morning-pieces):not(#paon-ink)
+  :is(.paon-outfit-action-primary, .paon-outfit-action-primary *):where(
+    :not(svg, svg *)
+  ) {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* Favourite and Continue In-Store: no fill and a 15% white line on the dark
+   card, light label and heart. They came as a grey gradient ring with a
+   white fill layer (::before) made for the old pale ground. */
+.paon-overview-morning
+  .paon-morning-cards:not(#paon-ink-cards)
+  .paon-morning-pieces:not(#paon-ink)
+  :is(
+    .paon-outfit-heart,
+    .paon-outfit-action:not(.paon-outfit-action-primary)
+  ) {
+  background: none;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  color: var(--paon-ink);
+}
+.paon-overview-morning
+  .paon-morning-cards:not(#paon-ink-cards)
+  .paon-morning-pieces:not(#paon-ink)
+  :is(
+    .paon-outfit-heart,
+    .paon-outfit-action:not(.paon-outfit-action-primary)
+  )::before {
+  display: none;
+}
+.paon-overview-morning
+  .paon-morning-cards:not(#paon-ink-cards)
+  .paon-morning-pieces:not(#paon-ink)
+  :is(
+    .paon-outfit-heart,
+    .paon-outfit-action:not(.paon-outfit-action-primary)
+  ):hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.paon-overview-morning
+  .paon-morning-cards:not(#paon-ink-cards)
+  .paon-morning-pieces:not(#paon-ink)
+  .paon-outfit-action:not(.paon-outfit-action-primary)
+  * {
+  color: var(--paon-ink);
+}
+.paon-overview-morning
+  .paon-morning-cards:not(#paon-ink-cards)
+  .paon-morning-pieces:not(#paon-ink)
+  .paon-outfit-heart-mark::before,
+.paon-overview-morning
+  .paon-morning-cards:not(#paon-ink-cards)
+  .paon-morning-pieces:not(#paon-ink)
+  .paon-outfit-heart-mark::after {
+  background-color: var(--paon-ink);
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  :is(
+    .paon-welcome-weather-icon,
+    .paon-stat-extra > svg,
+    .paon-stat-value > svg
+  ) {
+  color: var(--paon-ink);
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-pieces
+  .paon-outfit-rule {
+  background: var(--paon-ink-rule);
+}
+
+/* ── Chosen is lighter, the rest is a quiet dark ──────────────────────────
+   Every piece is a plain card on the dark ground, no pearl: one in the
+   selection a lighter lift, one that is not a faint one, each a step
+   lighter on hover. The delivery calendar does the same — the landed day
+   lighter, the others faint — and the fitting mark is a faint squircle.
+   Same :not(#…) weight as the ink above. */
+.paon-overview-morning
+  .paon-morning-cards:not(#paon-ink-cards)
+  .paon-morning-pieces:not(#paon-ink)
+  :is(.paon-outfit-piece, .paon-outfit-leaf, .paon-outfit-fitting-mark) {
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+.paon-overview-morning
+  .paon-morning-cards:not(#paon-ink-cards)
+  .paon-morning-pieces:not(#paon-ink)
+  .paon-outfit-piece.is-selected {
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+/* The calendar's leaves carry a white paper layer (::before) from the old
+   pale design; on the dark card every leaf is the fitting mark's fill, and
+   the landed day is told apart by its white line alone. */
+.paon-overview-morning
+  .paon-morning-cards:not(#paon-ink-cards)
+  .paon-morning-pieces:not(#paon-ink)
+  .paon-outfit-leaf::before {
+  display: none;
+}
+.paon-overview-morning
+  .paon-morning-cards:not(#paon-ink-cards)
+  .paon-morning-pieces:not(#paon-ink)
+  .paon-outfit-piece:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.paon-overview-morning
+  .paon-morning-cards:not(#paon-ink-cards)
+  .paon-morning-pieces:not(#paon-ink)
+  .paon-outfit-piece.is-selected:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* The chosen piece carries a white 1px line just inside its edge and a soft
+   glow; the landed delivery day keeps the fitting mark's faint line. A piece
+   gives a short press when it is picked and a smaller one when it is let go
+   (is-released is the piece just let go while the pointer is still on it). */
+.paon-overview-morning
+  .paon-morning-cards:not(#paon-ink-cards)
+  .paon-morning-pieces:not(#paon-ink)
+  .paon-outfit-piece.is-selected {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.9),
+    0 0 18px rgba(255, 255, 255, 0.16);
+}
+.paon-overview-morning
+  .paon-morning-cards:not(#paon-ink-cards)
+  .paon-morning-pieces:not(#paon-ink)
+  .paon-outfit-piece {
+  transition:
+    background-color 240ms ease,
+    box-shadow 320ms ease;
+}
+.paon-overview-morning
+  .paon-morning-cards:not(#paon-ink-cards)
+  .paon-morning-pieces:not(#paon-ink)
+  .paon-outfit-piece.is-selected {
+  animation: paon-piece-pick 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.paon-overview-morning
+  .paon-morning-cards:not(#paon-ink-cards)
+  .paon-morning-pieces:not(#paon-ink)
+  .paon-outfit-piece.is-released {
+  animation: paon-piece-drop 360ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes paon-piece-pick {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(0.97);
+  }
+  70% {
+    transform: scale(1.012);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes paon-piece-drop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(0.975);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .paon-overview-morning
+    .paon-morning-cards:not(#paon-ink-cards)
+    .paon-morning-pieces:not(#paon-ink)
+    .paon-outfit-piece:is(.is-selected, .is-released) {
+    animation: none;
+  }
+}
+.paon-overview-morning
+  .paon-morning-cards:not(#paon-ink-cards)
+  .paon-morning-pieces:not(#paon-ink)
+  .paon-outfit-piece
+  .paon-pearl-field {
+  opacity: 0;
+}
+.paon-overview-morning
+  .paon-morning-cards:not(#paon-ink-cards)
+  .paon-morning-pieces:not(#paon-ink)
+  .paon-outfit-piece
+  :is(.paon-outfit-tags, .paon-outfit-configure) {
+  background: rgba(255, 255, 255, 0.08);
+}
+.paon-overview-morning
+  .paon-morning-cards:not(#paon-ink-cards)
+  .paon-morning-pieces:not(#paon-ink)
+  .paon-outfit-piece
+  .paon-outfit-configure
+  span {
+  background: var(--paon-ink-soft);
+}
+.paon-overview-morning
+  .paon-morning-cards:not(#paon-ink-cards)
+  .paon-morning-pieces:not(#paon-ink)
+  :is(
+    .paon-outfit-piece :is(.paon-outfit-name, .paon-outfit-price),
+    .paon-outfit-piece .paon-outfit-price *,
+    .paon-outfit-leaf.is-landed *
+  ) {
+  color: var(--paon-ink);
+}
+.paon-overview-morning
+  .paon-morning-cards:not(#paon-ink-cards)
+  .paon-morning-pieces:not(#paon-ink)
+  .paon-outfit-fitting-mark {
+  color: var(--paon-ink);
+}
+
+/* ── Greeting ─────────────────────────────────────────────────────────────
+   The padding sits on the copy, not the card: FitCopy measures the card's
+   height against the copy's, so the gutter has to be inside the copy for
+   the fitted type to stay clear of the card's edge. */
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-hello
+  .paon-welcome-message {
+  grid-area: greeting;
+  display: block;
+  min-height: 200px;
+  padding: 0;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-hello
+  .paon-welcome-copy {
+  padding: var(--paon-card-pad);
+}
+
+/* ── World clock: the picture window takes the height the card gets ────── */
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-hello
+  .paon-world-module {
+  grid-area: world;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: var(--paon-card-pad);
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-hello
+  .paon-world-stage {
+  flex: 1 1 auto;
+  min-height: 150px;
+  aspect-ratio: auto;
+}
+
+/* ── The outfit photograph fills its card ─────────────────────────────── */
+.paon-overview-morning .paon-morning.paon-morning-cards .paon-morning-ootd {
+  grid-area: look;
+  display: block;
+  width: auto;
+  height: auto;
+  aspect-ratio: auto;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-ootd
+  .paon-welcome-look {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+  aspect-ratio: auto;
+  border-radius: 0;
+}
+
+/* ── The outfit's three cards ─────────────────────────────────────────── */
+.paon-overview-morning .paon-morning.paon-morning-cards .paon-outfit-part-list {
+  grid-area: pieces;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-pieces
+  .paon-outfit-heading {
+  margin-top: 0;
+  margin-bottom: 14px;
+  padding-top: 0;
+  border-top: 0;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-pieces
+  .paon-outfit-list {
+  flex: none;
+  overflow: visible;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-outfit-part-promise {
+  grid-area: promise;
+  justify-content: center;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-pieces
+  .paon-outfit-promise {
+  margin: 0;
+  border-top: 0;
+  border-bottom: 0;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-pieces
+  .paon-outfit-promise-half
+  + .paon-outfit-promise-half {
+  border-left-color: var(--paon-ink-rule);
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-outfit-part-checkout {
+  grid-area: checkout;
+  justify-content: center;
+  gap: 14px;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-pieces
+  .paon-outfit-total {
+  margin: 0;
+  padding-top: 0;
+  border-top: 0;
+  border-bottom-color: var(--paon-ink-rule);
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-pieces
+  .paon-outfit-actions {
+  margin: 0;
+}
+
+/* ── Readings ─────────────────────────────────────────────────────────────
+   One hero, one row. Narrow card: the watch, and beside it the time and the
+   date; under a hairline, the weather, the drive, sunset and air in
+   one row of four at one small size (the weather's column a little wider
+   for its place name). Wide card: all of it in one row beside the watch, in
+   the same order. Every value sits on one line with its glyph, every label
+   on one line under it. Sizes are a share of the card's width (cqi) held
+   between a floor and a ceiling. The weather tile is dissolved so its sky
+   readings can be placed on the card's grid like the others; the columns
+   carry no gap so the hairline runs unbroken, and each reading keeps its
+   own right-hand room. */
+.paon-overview-morning .paon-morning.paon-morning-cards .paon-morning-readings {
+  --paon-rd-hero: clamp(26px, 10cqi, 38px);
+  --paon-rd-small: clamp(13px, 4.3cqi, 16px);
+  --paon-rd-label: clamp(8px, 2.3cqi, 10px);
+  grid-area: readings;
+  container: paon-readings / inline-size;
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  justify-content: space-between;
+  grid-template-rows: auto auto auto auto;
+  align-items: end;
+  column-gap: 0;
+  row-gap: 0;
+  height: auto;
+  padding: 20px var(--paon-card-pad) 22px;
+}
+
+/* The watch: placed, and given back the 60% black it inherited from the old
+   pale strip so nothing it draws in currentColor changes. */
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  > :first-child {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  align-self: center;
+  justify-self: start;
+  left: 0;
+  color: rgba(0, 0, 0, 0.6);
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  .paon-stat-weather {
+  display: contents;
+}
+/* The old tiles drew their dividers as pseudo-elements; with the weather
+   tile dissolved they would even land on the grid as stray cells. */
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  .paon-stat::before,
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  .paon-stat::after {
+  content: none;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  :is(
+    .paon-stat,
+    .paon-stat-extra,
+    .paon-stat-value,
+    .paon-stat-meta,
+    .paon-stat-extra-meta,
+    .paon-stat-label
+  ) {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  left: 0;
+  transform: none;
+  translate: none;
+}
+/* The hero: the time and the date, set against the card's right edge so the
+   pair balances the watch on the left. The time is large with its colon
+   drawn tight; the date sits under it in plain words, not small capitals. */
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  .paon-stat-clock {
+  grid-column: 2 / -1;
+  grid-row: 1 / span 2;
+  justify-self: end;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  text-align: right;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  .paon-stat-clock
+  > .paon-stat-value {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  font-size: clamp(36px, 14cqi, 52px);
+  font-weight: 300;
+  font-variant-numeric: proportional-nums;
+  letter-spacing: -0.03em;
+  line-height: 0.9;
+  white-space: nowrap;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  .paon-stat-clock
+  .paon-clock-colon {
+  margin: 0 -0.05em;
+  padding: 0;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  .paon-stat-clock
+  .paon-stat-label {
+  margin-top: 0;
+  font-size: clamp(11px, 3.6cqi, 13px);
+  letter-spacing: 0.08em;
+}
+
+/* The row under the hairline: the weather, the drive, then the sky. The
+   drive and the sky readings are two-row subgrids of the card, and the
+   weather's two parts sit on the same two rows, so every value and every
+   label shares one line. overview.css gives .paon-stat a row gap; a
+   subgrid's own gap moves its rows off the card's, hence row-gap: 0. */
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  :is(
+    .paon-stat-weather > .paon-stat-value,
+    .paon-stat-commute,
+    .paon-stat-extra
+  ) {
+  margin-top: clamp(14px, 4.5cqi, 18px);
+  padding-top: clamp(12px, 4cqi, 16px);
+  font-size: var(--paon-rd-small);
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  .paon-stat-weather
+  > .paon-stat-value {
+  grid-column: 1;
+  grid-row: 3;
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  line-height: 1;
+  white-space: nowrap;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  .paon-stat-weather
+  > .paon-stat-meta {
+  grid-column: 1;
+  grid-row: 4;
+  display: block;
+}
+/* The hairline over the row, drawn once across the card's full inner width
+   from the first reading, so it runs unbroken past the gaps. */
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  .paon-stat-weather
+  > .paon-stat-value {
+  position: relative;
+  overflow: visible;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  .paon-stat-weather
+  > .paon-stat-value::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100cqi;
+  height: 1px;
+  background: var(--paon-ink-rule);
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  .paon-stat-weather
+  > .paon-stat-value
+  > svg {
+  flex: none;
+  width: 0.85em;
+  height: 0.85em;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  :is(.paon-stat-commute, .paon-stat-extra) {
+  display: grid;
+  grid-row: 3 / span 2;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: subgrid;
+  align-items: end;
+  row-gap: 0;
+  column-gap: 0.35em;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  .paon-stat-commute {
+  grid-column: 2;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  .paon-stat-extra-sun {
+  grid-column: 3;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  .paon-stat-extra-air {
+  grid-column: 4;
+}
+
+/* The drive's value carries its glyph inside it; the sky readings carry
+   theirs beside the value. Both land as glyph, value on the first row. */
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  .paon-stat-commute
+  > .paon-stat-value {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  font-size: 1em;
+  line-height: 1;
+  white-space: nowrap;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  .paon-stat-commute
+  > .paon-stat-meta {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  .paon-stat-extra
+  > svg {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: center;
+  width: 0.85em;
+  height: 0.85em;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  .paon-stat-extra-value {
+  grid-column: 2;
+  grid-row: 1;
+  font-size: 1em;
+  line-height: 1;
+  white-space: nowrap;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  .paon-stat-extra-value
+  small {
+  margin-left: 0.15em;
+  font-size: 0.6em;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  .paon-stat-extra-meta {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: block;
+}
+
+/* The car is a white raster; overview.css knocked it to 50% black with
+   !important for the old pale strip, so turning it back needs the same. Its
+   headlight layer follows its box. */
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  .paon-stat-icon-image {
+  width: 0.95em;
+  height: 0.95em;
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+/* Every glyph centred on its value. The old strip nudged them to share a
+   baseline — the car 3px down (its headlights with it), the sky glyph by an
+   inline top that local-widgets.tsx measures and writes — which on this grid
+   only knocks them off centre. The sky readings' glyphs are grid cells of
+   their own, so they sit on the value row's floor and are lifted by half the
+   difference between the value's 1em line and their own box. */
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  :is(.paon-stat-weather svg, .paon-stat-icon-image, .paon-car-lights) {
+  top: 0 !important;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  .paon-stat-extra
+  > svg {
+  align-self: end;
+  margin-bottom: calc((1em - 0.85em) / 2);
+}
+@container overview (min-width: 600px) and (max-width: 979px) {
+  .paon-overview-morning
+    .paon-morning.paon-morning-cards
+    .paon-morning-readings
+    .paon-stat-extra
+    > svg {
+    margin-bottom: calc((1em - 0.8em) / 2);
+  }
+}
+
+/* Every label on one line, hanging from the top of the label row. */
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  :is(.paon-stat-meta, .paon-stat-extra-meta) {
+  align-self: start;
+}
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  .paon-stat-label {
+  display: block;
+  overflow: hidden;
+  margin-top: 6px;
+  font-size: var(--paon-rd-label);
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Labels only: "Today" and "Moderate" are not shown. */
+.paon-overview-morning
+  .paon-morning.paon-morning-cards
+  .paon-morning-readings
+  .paon-stat-detail {
+  display: none;
+}
+
+/* Wide: all of it in one row beside the watch — the time and date, the
+   weather, the drive, sunset, air — every value one size, every glyph
+   one size and centred on its value, every label one size, and the space
+   between readings equal whatever their widths (columns sized to their
+   content, the free space shared out between them). The card is only this
+   wide in the two-column layout, where it spans both columns; the query is
+   on the overview because a container cannot restyle its own grid. */
+@container overview (min-width: 600px) and (max-width: 979px) {
+  .paon-overview-morning
+    .paon-morning.paon-morning-cards
+    .paon-morning-readings {
+    --paon-rd-hero: clamp(17px, 2.9cqi, 23px);
+    --paon-rd-small: var(--paon-rd-hero);
+    grid-template-columns: repeat(6, auto);
+    justify-content: space-between;
+  }
+  .paon-overview-morning
+    .paon-morning.paon-morning-cards
+    .paon-morning-readings
+    .paon-stat-weather
+    > .paon-stat-value::before {
+    content: none;
+  }
+  .paon-overview-morning
+    .paon-morning.paon-morning-cards
+    .paon-morning-readings
+    .paon-stat-clock {
+    grid-column: 2;
+    justify-self: stretch;
+    align-self: stretch;
+    display: grid;
+    grid-template-rows: subgrid;
+    row-gap: 0;
+    align-items: end;
+    text-align: left;
+  }
+  .paon-overview-morning
+    .paon-morning.paon-morning-cards
+    .paon-morning-readings
+    .paon-stat-clock
+    > .paon-stat-value {
+    grid-row: 1;
+    justify-content: flex-start;
+    font-size: var(--paon-rd-hero);
+    font-weight: inherit;
+    letter-spacing: normal;
+    line-height: 1;
+  }
+  .paon-overview-morning
+    .paon-morning.paon-morning-cards
+    .paon-morning-readings
+    .paon-stat-clock
+    > .paon-stat-meta {
+    grid-row: 2;
+    align-self: start;
+  }
+  .paon-overview-morning
+    .paon-morning.paon-morning-cards
+    .paon-morning-readings
+    .paon-stat-clock
+    .paon-stat-label {
+    margin-top: 6px;
+    font-size: var(--paon-rd-label);
+    letter-spacing: inherit;
+  }
+  .paon-overview-morning
+    .paon-morning.paon-morning-cards
+    .paon-morning-readings
+    :is(
+      .paon-stat-weather > .paon-stat-value,
+      .paon-stat-commute,
+      .paon-stat-extra
+    ) {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+  .paon-overview-morning
+    .paon-morning.paon-morning-cards
+    .paon-morning-readings
+    .paon-stat-weather
+    > .paon-stat-value {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .paon-overview-morning
+    .paon-morning.paon-morning-cards
+    .paon-morning-readings
+    .paon-stat-weather
+    > .paon-stat-meta {
+    grid-column: 3;
+    grid-row: 2;
+  }
+  .paon-overview-morning
+    .paon-morning.paon-morning-cards
+    .paon-morning-readings
+    :is(.paon-stat-commute, .paon-stat-extra) {
+    grid-row: 1 / span 2;
+  }
+  .paon-overview-morning
+    .paon-morning.paon-morning-cards
+    .paon-morning-readings
+    .paon-stat-commute {
+    grid-column: 4;
+  }
+  .paon-overview-morning
+    .paon-morning.paon-morning-cards
+    .paon-morning-readings
+    .paon-stat-extra-sun {
+    grid-column: 5;
+  }
+  .paon-overview-morning
+    .paon-morning.paon-morning-cards
+    .paon-morning-readings
+    .paon-stat-extra-air {
+    grid-column: 6;
+  }
+  .paon-overview-morning
+    .paon-morning.paon-morning-cards
+    .paon-morning-readings
+    :is(.paon-stat-weather > .paon-stat-value > svg, .paon-stat-extra > svg) {
+    width: 0.8em;
+    height: 0.8em;
+  }
+  .paon-overview-morning
+    .paon-morning.paon-morning-cards
+    .paon-morning-readings
+    .paon-stat-icon-image {
+    width: 0.9em;
+    height: 0.9em;
+  }
+}
+
+/* ── Two columns ───────────────────────────────────────────────────────────
+   The greeting beside the city view, the readings across the full width
+   under them, and the outfit beneath: the photograph beside its pieces,
+   delivery and total. */
+@container overview (max-width: 979px) {
+  .paon-overview-morning .paon-morning.paon-morning-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: none;
+    grid-template-areas:
+      "greeting world"
+      "readings readings"
+      "look     pieces"
+      "look     promise"
+      "look     checkout";
+    min-height: 0;
+  }
+  .paon-overview-morning
+    .paon-morning.paon-morning-cards
+    .paon-morning-hello
+    .paon-world-stage {
+    flex: none;
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+  }
+}
+
+/* ── One column ────────────────────────────────────────────────────────────
+   Stacked in reading order; the photograph in its own proportions. */
+@container overview (max-width: 599px) {
+  .paon-overview-morning .paon-morning.paon-morning-cards {
+    --paon-card-gap: 12px;
+    --paon-card-radius: 18px;
+    --paon-card-pad: 20px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "greeting"
+      "readings"
+      "look"
+      "pieces"
+      "promise"
+      "checkout"
+      "world";
+  }
+  .paon-overview-morning .paon-morning.paon-morning-cards .paon-morning-ootd {
+    aspect-ratio: 1800 / 3463;
+  }
+  .paon-overview-morning
+    .paon-morning.paon-morning-cards
+    .paon-morning-hello
+    .paon-welcome-message {
+    min-height: 180px;
+  }
+}

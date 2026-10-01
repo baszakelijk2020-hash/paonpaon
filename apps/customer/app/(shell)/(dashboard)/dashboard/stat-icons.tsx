@@ -114,22 +114,21 @@ export const ThunderIcon = (p: SVGProps<SVGSVGElement>) => (
   </SkyGlyph>
 );
 
+/* The sun and the air readings sit in one row with the sky glyph and the
+   solid car, so they are solid Bootstrap marks too, not the line family. */
+
+/* bootstrap-icons: sunrise-fill */
 export const SunriseIcon = (p: SVGProps<SVGSVGElement>) => (
-  <Icon {...p}>
-    <path d="M3 18h18M6 21h12" />
-    <path d="M7 15a5 5 0 0 1 10 0" />
-    <path d="M12 3v5m-3-2 3-3 3 3" />
-    <path d="M4.5 12l1.3 1.3M19.5 12l-1.3 1.3M2 15.5h2m18 0h-2" />
-  </Icon>
+  <SkyGlyph {...p}>
+    <path d="M7.646 1.146a.5.5 0 0 1 .708 0l1.5 1.5a.5.5 0 0 1-.708.708L8.5 2.707V4.5a.5.5 0 0 1-1 0V2.707l-.646.647a.5.5 0 1 1-.708-.708zM2.343 4.343a.5.5 0 0 1 .707 0l1.414 1.414a.5.5 0 0 1-.707.707L2.343 5.05a.5.5 0 0 1 0-.707m11.314 0a.5.5 0 0 1 0 .707l-1.414 1.414a.5.5 0 1 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0M11.709 11.5a4 4 0 1 0-7.418 0H.5a.5.5 0 0 0 0 1h15a.5.5 0 0 0 0-1h-3.79zM0 10a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2A.5.5 0 0 1 0 10m13 0a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5" />
+  </SkyGlyph>
 );
 
+/* bootstrap-icons: sunset-fill */
 export const SunsetIcon = (p: SVGProps<SVGSVGElement>) => (
-  <Icon {...p}>
-    <path d="M3 18h18M6 21h12" />
-    <path d="M7 15a5 5 0 0 1 10 0" />
-    <path d="M12 3v5m-3-2 3 3 3-3" />
-    <path d="M4.5 12l1.3 1.3M19.5 12l-1.3 1.3M2 15.5h2m18 0h-2" />
-  </Icon>
+  <SkyGlyph {...p}>
+    <path d="M7.646 4.854a.5.5 0 0 0 .708 0l1.5-1.5a.5.5 0 0 0-.708-.708l-.646.647V1.5a.5.5 0 0 0-1 0v1.793l-.646-.647a.5.5 0 1 0-.708.708zm-5.303-.51a.5.5 0 0 1 .707 0l1.414 1.413a.5.5 0 0 1-.707.707L2.343 5.05a.5.5 0 0 1 0-.707zm11.314 0a.5.5 0 0 1 0 .706l-1.414 1.414a.5.5 0 1 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zM11.709 11.5a4 4 0 1 0-7.418 0H.5a.5.5 0 0 0 0 1h15a.5.5 0 0 0 0-1h-3.79zM0 10a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2A.5.5 0 0 1 0 10m13 0a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5" />
+  </SkyGlyph>
 );
 
 export const CarIcon = (p: SVGProps<SVGSVGElement>) => (
@@ -148,12 +147,12 @@ export const WorkIcon = (p: SVGProps<SVGSVGElement>) => (
   </Icon>
 );
 
+/* bootstrap-icons: lungs-fill — air quality as what you breathe; a haze
+   cloud would sit as a second cloud beside the weather's. */
 export const AirIcon = (p: SVGProps<SVGSVGElement>) => (
-  <Icon {...p}>
-    <path d="M3 8h10a2.5 2.5 0 1 0-2.5-2.5" />
-    <path d="M3 13h14a3 3 0 1 1-3 3" />
-    <path d="M3 18h7" />
-  </Icon>
+  <SkyGlyph {...p}>
+    <path d="M8 1a.5.5 0 0 1 .5.5v5.243L9 7.1V4.72C9 3.77 9.77 3 10.72 3c.524 0 1.023.27 1.443.592.431.332.847.773 1.216 1.229.736.908 1.347 1.946 1.58 2.48.176.405.393 1.16.556 2.011.165.857.283 1.857.24 2.759-.04.867-.232 1.79-.837 2.33-.67.6-1.622.556-2.741-.004l-1.795-.897A2.5 2.5 0 0 1 9 11.264V8.329l-1-.715-1 .715V7.214c-.1 0-.202.03-.29.093l-2.5 1.786a.5.5 0 1 0 .58.814L7 8.329v2.935A2.5 2.5 0 0 1 5.618 13.5l-1.795.897c-1.12.56-2.07.603-2.741.004-.605-.54-.798-1.463-.838-2.33-.042-.902.076-1.902.24-2.759.164-.852.38-1.606.558-2.012.232-.533.843-1.571 1.579-2.479.37-.456.785-.897 1.216-1.229C4.257 3.27 4.756 3 5.28 3 6.23 3 7 3.77 7 4.72V7.1l.5-.357V1.5A.5.5 0 0 1 8 1m3.21 8.907a.5.5 0 1 0 .58-.814l-2.5-1.786A.5.5 0 0 0 9 7.214V8.33z" />
+  </SkyGlyph>
 );
 
 /** A compass needle; rotated by the caller to point where the wind goes. */

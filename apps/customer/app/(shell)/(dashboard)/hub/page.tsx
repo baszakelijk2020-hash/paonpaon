@@ -3,7 +3,6 @@ import { Suspense } from "react";
 import AccountPage from "../account/page";
 import AppointmentsPage from "../appointments/page";
 import DashboardPage from "../dashboard/page";
-import DigitalFittingRoomPage from "../digital-fitting-room/page";
 import LoyaltyPage from "../loyalty/page";
 import OrdersPage from "../orders/page";
 import PrivateOffersPage from "../private-offers/page";
@@ -30,7 +29,6 @@ const TAB_META = [
   { id: "wardrobe", href: "/wardrobe" },
   { id: "appointments", href: "/appointments" },
   { id: "orders", href: "/orders" },
-  { id: "digital-fitting-room", href: "/digital-fitting-room" },
   { id: "loyalty", href: "/loyalty" },
   { id: "account", href: "/account" },
   { id: "private-offers", href: "/private-offers" },
@@ -48,17 +46,30 @@ export default async function HubPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const requested = typeof params["tab"] === "string" ? params["tab"] : null;
+  const requested =
+    typeof params["panel"] === "string"
+      ? params["panel"]
+      : typeof params["tab"] === "string"
+        ? params["tab"]
+        : null;
   const initialTabId =
     TAB_META.find((t) => t.id === requested)?.id ?? TAB_META[0].id;
 
-  // The two tabs that read the query string take it as a promise, matching the
+  // The tabs that read the query string take it as a promise, matching the
   // Next 15 page contract; re-wrapping the already-awaited params satisfies it.
   const forwarded = Promise.resolve(params);
 
   const panels: Record<string, React.ReactNode> = {
     dashboard: <DashboardPage />,
-    wardrobe: <WardrobePage />,
+    wardrobe: (
+      <WardrobePage
+        searchParams={
+          forwarded as unknown as Parameters<
+            typeof WardrobePage
+          >[0]["searchParams"]
+        }
+      />
+    ),
     appointments: (
       <AppointmentsPage
         searchParams={
@@ -69,15 +80,6 @@ export default async function HubPage({
       />
     ),
     orders: <OrdersPage />,
-    "digital-fitting-room": (
-      <DigitalFittingRoomPage
-        searchParams={
-          forwarded as unknown as Parameters<
-            typeof DigitalFittingRoomPage
-          >[0]["searchParams"]
-        }
-      />
-    ),
     loyalty: <LoyaltyPage />,
     account: <AccountPage />,
     "private-offers": <PrivateOffersPage />,

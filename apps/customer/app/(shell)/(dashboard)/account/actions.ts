@@ -6,6 +6,7 @@ import {
   CustomerRepository,
 } from "@paon/database";
 import {
+  asId,
   setCustomerConsentInputSchema,
   upsertCustomerPreferencesInputSchema,
   type ConsentPurpose,
@@ -171,4 +172,293 @@ export async function savePreferences(
 
   revalidatePath("/account");
   return { values, fieldErrors: {}, success: true };
+}
+
+export interface IdentityFormState {
+  fieldErrors: Record<string, string>;
+  formError?: string;
+  success?: boolean;
+}
+
+export async function updateProfileDetails(
+  _prevState: IdentityFormState,
+  formData: FormData,
+): Promise<IdentityFormState> {
+  const session = await requireSession();
+  const supabase = await getSupabaseServerClient();
+
+  const retailerId = String(formData.get("retailerId"));
+  const fullName = String(formData.get("fullName"));
+  const dateOfBirth = formData.get("dateOfBirth");
+  const dateOfBirthStr = dateOfBirth ? String(dateOfBirth) : null;
+  const profilePhotoUrl = formData.get("profilePhotoUrl");
+  const profilePhotoUrlStr = profilePhotoUrl ? String(profilePhotoUrl) : null;
+
+  const parsed = z
+    .object({
+      retailerId: z.string().uuid(),
+      fullName: z.string().min(1, "Full name is required"),
+      dateOfBirth: z
+        .string()
+        .optional()
+        .refine(
+          (val) => !val || /^\d{4}-\d{2}-\d{2}$/.test(val),
+          "Invalid date format",
+        ),
+    })
+    .safeParse({
+      retailerId,
+      fullName,
+      dateOfBirth: dateOfBirthStr,
+    });
+
+  if (!parsed.success) {
+    const fieldErrors: Record<string, string> = {};
+    for (const issue of parsed.error.issues) {
+      const key = issue.path.join(".");
+      fieldErrors[key] ??= issue.message;
+    }
+    return { fieldErrors };
+  }
+
+  const customers = await new CustomerRepository(supabase).findByUserId(
+    session.userId,
+  );
+  const customer = customers.find((c) => c.retailerId === retailerId);
+
+  if (!customer) {
+    return {
+      fieldErrors: {},
+      formError: "No relationship with this retailer.",
+    };
+  }
+
+  try {
+    await new CustomerRepository(supabase).updateMyProfileDetails(
+      asId<"RetailerId">(parsed.data.retailerId),
+      {
+        fullName: parsed.data.fullName,
+        dateOfBirth: parsed.data.dateOfBirth ?? null,
+        // The identity form has no photo field: keep the stored photo
+        // rather than clearing it on every save.
+        profilePhotoUrl: formData.has("profilePhotoUrl")
+          ? profilePhotoUrlStr
+          : (customer.profilePhotoUrl ?? null),
+      },
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown error";
+    return { fieldErrors: {}, formError: message };
+  }
+
+  revalidatePath("/account");
+  return { fieldErrors: {}, success: true };
+}
+
+export interface AddressFormState {
+  fieldErrors: Record<string, string>;
+  formError?: string;
+  success?: boolean;
+}
+
+export async function saveAddress(
+  label: "home" | "work",
+  _prevState: AddressFormState,
+  formData: FormData,
+): Promise<AddressFormState> {
+  const session = await requireSession();
+  const supabase = await getSupabaseServerClient();
+
+  const retailerId = String(formData.get("retailerId"));
+  const line1 = String(formData.get("line1"));
+  const postalCode = String(formData.get("postalCode"));
+  const city = String(formData.get("city"));
+  const floor = formData.get("floor");
+  const floorStr = floor ? String(floor) : undefined;
+  const deliveryNotes = formData.get("deliveryNotes");
+  const deliveryNotesStr = deliveryNotes ? String(deliveryNotes) : undefined;
+  const countryCode = String(formData.get("countryCode") || "NL");
+
+  const parsed = z
+    .object({
+      retailerId: z.string().uuid(),
+      line1: z.string().min(1, "Street address is required"),
+      postalCode: z.string().min(1, "Postal code is required"),
+      city: z.string().min(1, "City is required"),
+      floor: z.string().optional(),
+      deliveryNotes: z.string().optional(),
+      countryCode: z.string(),
+    })
+    .safeParse({
+      retailerId,
+      line1,
+      postalCode,
+      city,
+      floor: floorStr,
+      deliveryNotes: deliveryNotesStr,
+      countryCode,
+    });
+
+  if (!parsed.success) {
+    const fieldErrors: Record<string, string> = {};
+    for (const issue of parsed.error.issues) {
+      const key = issue.path.join(".");
+      fieldErrors[key] ??= issue.message;
+    }
+    return { fieldErrors };
+  }
+
+  const customers = await new CustomerRepository(supabase).findByUserId(
+    session.userId,
+  );
+  const customer = customers.find((c) => c.retailerId === retailerId);
+
+  if (!customer) {
+    return {
+      fieldErrors: {},
+      formError: "No relationship with this retailer.",
+    };
+  }
+
+  try {
+    await new CustomerRepository(supabase).upsertMyLabeledAddress(
+      asId<"RetailerId">(parsed.data.retailerId),
+      label,
+      {
+        line1: parsed.data.line1,
+        postalCode: parsed.data.postalCode,
+        city: parsed.data.city,
+        countryCode: parsed.data.countryCode,
+        ...(parsed.data.floor && { floor: parsed.data.floor }),
+        ...(parsed.data.deliveryNotes && {
+          deliveryNotes: parsed.data.deliveryNotes,
+        }),
+      } as never,
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown error";
+    return { fieldErrors: {}, formError: message };
+  }
+
+  revalidatePath("/account");
+  // The overview's commute reads the work address.
+  revalidatePath("/dashboard");
+  return { fieldErrors: {}, success: true };
+}
+
+export interface UploadProfilePhotoState {
+  error?: string;
+  photoUrl?: string;
+}
+
+const PROFILE_PHOTO_MIME_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+] as const;
+type ProfilePhotoMimeType = (typeof PROFILE_PHOTO_MIME_TYPES)[number];
+const MAX_PROFILE_PHOTO_BYTES = 10 * 1024 * 1024;
+const PROFILE_PHOTOS_BUCKET = "customer-profile-photos";
+
+export async function uploadProfilePhoto(
+  _prevState: UploadProfilePhotoState,
+  formData: FormData,
+): Promise<UploadProfilePhotoState> {
+  const session = await requireSession();
+  const supabase = await getSupabaseServerClient();
+
+  const retailerId = String(formData.get("retailerId"));
+  const file = formData.get("photo");
+
+  const retailerIdParsed = retailerIdSchema.safeParse(retailerId);
+  if (!retailerIdParsed.success) {
+    return { error: "Invalid retailer." };
+  }
+
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: "Choose a photo first." };
+  }
+
+  if (file.size > MAX_PROFILE_PHOTO_BYTES) {
+    return { error: "Photo must be 10 MB or smaller." };
+  }
+
+  if (!PROFILE_PHOTO_MIME_TYPES.includes(file.type as ProfilePhotoMimeType)) {
+    return { error: "Use a JPEG, PNG or WEBP photo." };
+  }
+
+  const customers = await new CustomerRepository(supabase).findByUserId(
+    session.userId,
+  );
+  const customer = customers.find(
+    (c) => c.retailerId === (retailerIdParsed.data as never),
+  );
+
+  if (!customer) {
+    return { error: "No relationship with this retailer." };
+  }
+
+  try {
+    const content = await file.arrayBuffer();
+    const mimeType = file.type as ProfilePhotoMimeType;
+    const fileName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_").slice(-255);
+    const storagePath = `${customer.retailerId}/${customer.id}/${crypto.randomUUID()}-${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from(PROFILE_PHOTOS_BUCKET)
+      .upload(storagePath, content, { contentType: mimeType, upsert: false });
+
+    if (uploadError) throw uploadError;
+
+    const { data: urlData } = supabase.storage
+      .from(PROFILE_PHOTOS_BUCKET)
+      .getPublicUrl(storagePath);
+
+    return { photoUrl: urlData?.publicUrl };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown error";
+    return { error: message };
+  }
+}
+
+export interface OneClickCheckoutState {
+  error?: string;
+  success?: boolean;
+}
+
+export async function requestOneClickCheckoutEligibility(
+  _prevState: OneClickCheckoutState,
+  formData: FormData,
+): Promise<OneClickCheckoutState> {
+  const session = await requireSession();
+  const supabase = await getSupabaseServerClient();
+  const retailerId = String(formData.get("retailerId"));
+  const retailerIdParsed = retailerIdSchema.safeParse(retailerId);
+
+  if (!retailerIdParsed.success) {
+    return { error: "Invalid retailer." };
+  }
+
+  const customers = await new CustomerRepository(supabase).findByUserId(
+    session.userId,
+  );
+  const customer = customers.find(
+    (c) => c.retailerId === (retailerIdParsed.data as never),
+  );
+
+  if (!customer) {
+    return { error: "No relationship with this retailer." };
+  }
+
+  try {
+    await new CustomerRepository(supabase).requestMyOneClickCheckoutEligibility(
+      asId<"RetailerId">(retailerIdParsed.data),
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown error";
+    return { error: message };
+  }
+
+  revalidatePath("/account");
+  return { success: true };
 }

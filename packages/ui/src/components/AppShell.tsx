@@ -71,10 +71,13 @@ function SidebarGroups({
             {...(active ? { "aria-current": "page" as const } : {})}
             {...(onNavigate ? { onClick: onNavigate } : {})}
             className={cn(
-              "group relative flex h-8 items-center pl-2.5 pr-3 text-[13px] leading-none transition-[color,opacity,transform] duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)]",
+              // Customer-environment sidebar row: 26px tall, 12px/500 at
+              // negative tracking, 8px gap to its mark. Hover changes colour
+              // and lights the icon; it never moves the row.
+              "group relative flex min-h-[26px] items-center gap-2 pl-2.5 pr-3 text-[12px] font-medium leading-none tracking-[-0.01em] transition-[color,opacity] duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] [&_svg]:transition-[filter,color] [&_svg]:duration-[var(--duration-quiet)]",
               active
-                ? "text-[#d9d9d9] opacity-100"
-                : "text-[#c4c4c1] opacity-[0.76] hover:translate-x-[3px] hover:text-[#d9d9d9] hover:opacity-90",
+                ? "text-white opacity-100 [&_svg]:[filter:drop-shadow(0_0_4px_rgba(255,255,255,.9))_drop-shadow(0_0_12px_rgba(255,255,255,.55))]"
+                : "text-[#b5b5b2] opacity-[0.86] hover:text-white hover:opacity-100 hover:[&_svg]:[filter:drop-shadow(0_0_4px_rgba(255,255,255,.55))]",
             )}
           >
             <span
@@ -84,11 +87,54 @@ function SidebarGroups({
                 active ? "w-3 opacity-100" : "w-0 opacity-0",
               )}
             />
+            <NavIcon label={group.label} />
             {group.label}
           </Link>
         );
       })}
     </nav>
+  );
+}
+
+/**
+ * One mark per sidebar group, in the customer environment's own convention:
+ * a 19px box, `viewBox="0 0 24 24"`, outline paths on `currentColor` at
+ * stroke-width 1.65, so each icon inherits its row's colour and hover glow.
+ * The box never resizes, which is what keeps every icon centred on one column.
+ *
+ * Keyed by group label with a neutral fallback, so a new group added by an app
+ * still renders a row rather than a gap.
+ */
+const NAV_ICON_PATHS: Record<string, string> = {
+  Today:
+    "M12 3v2m0 14v2m9-9h-2M5 12H3m14.5-6.5-1.4 1.4M7.9 16.1l-1.4 1.4m0-11.9 1.4 1.4m8.2 8.2 1.4 1.4M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z",
+  "Fitting room":
+    "M9 6a3 3 0 1 1 5 2c-1 1-2 1-2 3l9 6a1.5 1.5 0 0 1-1 3H4a1.5 1.5 0 0 1-1-3l9-6",
+  Relationships:
+    "M16 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1m7-9a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm13 9v-1a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8",
+  Merchandise: "M4 8h16l-1 12H5L4 8Zm4 0V6a4 4 0 0 1 8 0v2",
+  Atelier: "M4 20V9l8-5 8 5v11M9 20v-6h6v6M4 20h16",
+  Appointments:
+    "M8 3v3m8-3v3M4 9h16M5 6h14a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1Z",
+  Orders: "M4 8h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8Zm4 0V6a4 4 0 0 1 8 0v2",
+};
+
+const FALLBACK_ICON_PATH = "M5 12h14M5 7h14M5 17h9";
+
+function NavIcon({ label }: { label: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.65"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-[19px] w-[19px] shrink-0"
+    >
+      <path d={NAV_ICON_PATHS[label] ?? FALLBACK_ICON_PATH} />
+    </svg>
   );
 }
 
@@ -105,6 +151,7 @@ function SubTabs({ groups }: { groups: AppShellNavGroup[] }) {
     <div className="bg-[var(--color-stone-50)]/95 sticky top-16 z-30 border-b border-black/[0.07] backdrop-blur lg:top-[4.5rem]">
       <nav
         aria-label={`${activeGroup.label} sections`}
+        data-paon-subtabs
         className="mx-auto flex max-w-[92rem] gap-1 overflow-x-auto px-4 sm:px-7 lg:px-10 xl:px-14"
       >
         {activeGroup.items.map((item) => {
@@ -212,8 +259,10 @@ export function AppShell({
   const pathname = usePathname();
 
   return (
-    <div className="min-h-screen bg-[var(--color-stone-50)] text-[var(--color-stone-900)]">
-      <aside className="fixed inset-y-0 left-0 z-50 hidden w-[250px] grid-rows-[4.5rem_1fr_auto] overflow-hidden bg-[linear-gradient(to_right,#333,#1a1a1a)] text-white lg:grid">
+    // `paon-dark-env` inverts the stone ramp to the customer environment's own
+    // values, so every component below paints dark without being rewritten.
+    <div className="paon-dark-env min-h-screen bg-[var(--color-stone-50)] text-[var(--color-stone-900)]">
+      <aside className="fixed inset-y-0 left-0 z-50 hidden w-[250px] grid-rows-[60px_1fr_auto] overflow-hidden bg-[linear-gradient(to_bottom,#1a1a1a,#4d4d4d)] text-white lg:grid">
         <Link
           href={homeHref}
           className="flex items-center justify-center gap-3 border-b border-white/10 px-6"
@@ -347,7 +396,7 @@ export function AppShell({
             onClick={() => setMenuOpen(false)}
             className="absolute inset-0 bg-black/55 backdrop-blur-sm"
           />
-          <aside className="absolute inset-y-0 left-0 grid w-[min(86vw,22rem)] grid-rows-[4.5rem_1fr_auto] overflow-hidden bg-[linear-gradient(to_right,#333,#1a1a1a)] text-white shadow-[20px_0_60px_rgba(0,0,0,.35)]">
+          <aside className="absolute inset-y-0 left-0 grid w-[min(86vw,22rem)] grid-rows-[60px_1fr_auto] overflow-hidden bg-[linear-gradient(to_bottom,#1a1a1a,#4d4d4d)] text-white shadow-[20px_0_60px_rgba(0,0,0,.35)]">
             <div className="flex items-center justify-between border-b border-white/10 px-6">
               <Link
                 href={homeHref}

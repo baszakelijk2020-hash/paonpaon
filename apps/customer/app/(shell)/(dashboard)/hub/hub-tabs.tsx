@@ -68,7 +68,8 @@ export function HubTabs({
     const onPop = () => {
       const requested =
         window.location.pathname === "/hub"
-          ? (new URLSearchParams(window.location.search).get("tab") ??
+          ? (new URLSearchParams(window.location.search).get("panel") ??
+            new URLSearchParams(window.location.search).get("tab") ??
             "dashboard")
           : tabs.find((t) => t.href === window.location.pathname)?.id;
       if (requested && tabs.some((t) => t.id === requested))
@@ -100,13 +101,18 @@ export function HubTabs({
       first.current = false;
       return;
     }
+    // The sidebar stacks its tabs vertically, so a switch reads as travel up or
+    // down that column, not sideways — sideways is the STORE / WARDROBE toggle's
+    // axis and stays its alone. `direction` is +1 when the tab chosen sits below
+    // the current one, so the page rises into place from underneath, and -1 when
+    // it sits above, so it drops in from over the top.
     const context = gsap.context(() => {
       gsap.fromTo(
         panel,
-        { opacity: 0.3, x: direction.current * 24, filter: "blur(10px)" },
+        { opacity: 0.3, y: direction.current * 34, filter: "blur(10px)" },
         {
           opacity: 1,
-          x: 0,
+          y: 0,
           filter: "blur(0px)",
           duration: 0.55,
           ease: "power4.out",

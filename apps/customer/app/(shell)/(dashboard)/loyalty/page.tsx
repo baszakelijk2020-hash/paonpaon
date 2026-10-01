@@ -1,4 +1,8 @@
-import { LoyaltyRepository, RetailerRepository } from "@paon/database";
+import {
+  LoyaltyRepository,
+  RetailerRepository,
+  WardrobeRepository,
+} from "@paon/database";
 import {
   LOYALTY_TIER_LABELS,
   milestonePresentation,
@@ -8,20 +12,18 @@ import { Badge } from "@paon/ui/components/Badge";
 import { Button } from "@paon/ui/components/Button";
 import { Input } from "@paon/ui/components/Input";
 
-import { RelatedLinks } from "../related-links";
-
 import { inviteFriend, joinLoyalty, redeemReward } from "./actions";
 import { BadgesShelf } from "./badges-shelf";
+import { LoyaltyTierCards } from "./loyalty-tier-cards";
 
 import { getCustomersForUser } from "@/lib/customer-context";
-import { requireSession } from "@/lib/session";
+import { getViewerSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 const TIER_TONE = {
-  member: "neutral",
-  silver: "neutral",
-  gold: "warning",
-  platinum: "success",
+  metre: "neutral",
+  milli: "neutral",
+  micron: "success",
 } as const;
 
 const REFERRAL_TONE = {
@@ -32,46 +34,76 @@ const REFERRAL_TONE = {
 } as const;
 
 export default async function LoyaltyPage() {
-  const session = await requireSession();
+  const session = await getViewerSession();
   const client = await getSupabaseServerClient();
   const customers = await getCustomersForUser(session.userId);
   const loyalty = new LoyaltyRepository(client);
   const retailers = new RetailerRepository(client);
+  const wardrobe = new WardrobeRepository(client);
+  const rollingStart = Date.now() - 365 * 24 * 60 * 60 * 1000;
   // These five are independent of one another. Awaited as object-literal fields they
   // ran strictly one after the next — five round trips deep per customer. Batched, the
   // whole set costs one round trip's worth of latency.
   const relationships = await Promise.all(
     customers.map(async (customer) => {
-      const [retailer, account, rewards, referrals, milestones] =
-        await Promise.all([
-          retailers.findById(customer.retailerId),
-          loyalty.findAccountByCustomer(customer.id),
-          loyalty.findRewards(customer.retailerId),
-          loyalty.findReferrals(customer.id),
-          loyalty.findMilestoneAwardsForCustomer(customer.id),
-        ]);
-      return { customer, retailer, account, rewards, referrals, milestones };
+      const [
+        retailer,
+        program,
+        account,
+        rewards,
+        referrals,
+        milestones,
+        items,
+      ] = await Promise.all([
+        retailers.findById(customer.retailerId),
+        loyalty.findProgram(customer.retailerId),
+        loyalty.findAccountByCustomer(customer.id),
+        loyalty.findRewards(customer.retailerId),
+        loyalty.findReferrals(customer.id),
+        loyalty.findMilestoneAwardsForCustomer(customer.id),
+        wardrobe.findByCustomer(customer.id),
+      ]);
+      return {
+        customer,
+        retailer,
+        program,
+        account,
+        rewards,
+        referrals,
+        milestones,
+        completedSets: items.filter(
+          (item) =>
+            item.categoryCode === "suit" &&
+            Date.parse(item.acquiredAt ?? item.createdAt) >= rollingStart,
+        ).length,
+      };
     }),
   );
   return (
-    <div className="customer-page flex flex-col gap-6 bg-black pb-12 text-white">
+    <div className="customer-page loyalty-environment flex flex-col gap-6 bg-black pb-12 text-white">
       <header className="pe-page-head items-end gap-6 pb-3">
         <div>
           <p className="customer-kicker mb-2 text-white/55">Your membership</p>
-          <h1 className="font-display text-5xl font-semibold leading-none tracking-[-0.055em] text-white sm:text-6xl">
+          <h1 className="font-brand text-5xl font-semibold leading-none tracking-[-0.055em] text-white sm:text-6xl">
             Rewards &amp; Referrals
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-white/60">
             See your points, choose a reward, and share a retailer you love.
           </p>
         </div>
-        <RelatedLinks
-          links={[{ href: "/private-offers", label: "Private Offers" }]}
-        />
       </header>
       {relationships.map(
         (
-          { customer, retailer, account, rewards, referrals, milestones },
+          {
+            customer,
+            retailer,
+            program,
+            account,
+            rewards,
+            referrals,
+            milestones,
+            completedSets,
+          },
           index,
         ) => (
           <section
@@ -125,6 +157,62 @@ export default async function LoyaltyPage() {
             </div>
             {account ? (
               <>
+                <section
+                  aria-label="Membership tiers and points"
+                  className="grid gap-3 lg:grid-cols-[1.25fr_0.75fr]"
+                >
+                  <div
+                    className="pe-card rounded-[32px] bg-[#191b1d] p-6 text-white sm:p-8"
+                    data-pe-card
+                  >
+                    <div className="flex items-baseline justify-between gap-4">
+                      <div>
+                        <p className="customer-kicker text-white/55">
+                          Membership tiers
+                        </p>
+                        <h2 className="mt-2">Every relationship deepens.</h2>
+                      </div>
+                      <Badge tone={TIER_TONE[account.tier]}>
+                        You are {LOYALTY_TIER_LABELS[account.tier]}
+                      </Badge>
+                    </div>
+                    <div className="mt-6">
+                      <LoyaltyTierCards
+                        name={customer.fullName}
+                        currentTier={account.tier}
+                        completedSets={completedSets}
+                      />
+                    </div>
+                  </div>
+                  <div
+                    className="pe-card pe-card-mint rounded-[32px] bg-[#b8e6be] p-6 text-[#181818] sm:p-8"
+                    data-pe-card
+                  >
+                    <p className="customer-kicker text-[#181818]/60">
+                      Your points
+                    </p>
+                    <p className="mt-3 text-5xl font-semibold tracking-[-0.06em]">
+                      {account.pointsBalance}
+                    </p>
+                    <p className="mt-1 text-sm text-[#181818]/65">
+                      available points
+                    </p>
+                    <dl className="mt-6 grid gap-3 text-sm">
+                      <div className="flex items-center justify-between gap-3 border-t border-[#181818]/10 pt-3">
+                        <dt className="text-[#181818]/60">Lifetime earned</dt>
+                        <dd className="font-medium">
+                          {account.lifetimePoints} points
+                        </dd>
+                      </div>
+                      <div className="flex items-center justify-between gap-3 border-t border-[#181818]/10 pt-3">
+                        <dt className="text-[#181818]/60">Every €1 spent</dt>
+                        <dd className="font-medium">
+                          {program?.pointsPerCurrencyUnit ?? 0} points
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+                </section>
                 <section
                   aria-labelledby={`badges-${customer.id}`}
                   className="pe-card rounded-[32px] bg-[#191b1d] p-6 text-white sm:p-8"
@@ -246,22 +334,35 @@ export default async function LoyaltyPage() {
                   <form
                     id="referrals"
                     action={inviteFriend}
-                    className="flex scroll-mt-24 flex-col gap-2 sm:flex-row"
+                    className="scroll-mt-24"
                   >
                     <input
                       type="hidden"
                       name="retailerId"
                       value={customer.retailerId}
                     />
-                    <Input
-                      name="referredEmail"
-                      type="email"
-                      placeholder="Their email address"
-                      required
-                    />
-                    <Button type="submit" className="customer-button">
-                      Send invitation
-                    </Button>
+                    <p className="mb-4 max-w-xl text-sm text-[#181818]/65">
+                      {program?.referralPoints ?? 0} points are added when a
+                      friend joins and completes their first commission.
+                    </p>
+                    <div className="grid gap-2 sm:grid-cols-[repeat(3,minmax(0,1fr))_auto]">
+                      {[1, 2, 3].map((slot) => (
+                        <Input
+                          key={slot}
+                          name="referredEmail"
+                          type="email"
+                          placeholder={`Friend ${slot} email`}
+                          required={slot === 1}
+                        />
+                      ))}
+                      <Button type="submit" className="customer-button">
+                        Refer friends
+                      </Button>
+                    </div>
+                    <p className="mt-3 text-xs text-[#181818]/55">
+                      Each invitation has its own referral code and progress
+                      tracker.
+                    </p>
                   </form>
                 </div>
                 {referrals.length ? (
@@ -296,13 +397,160 @@ export default async function LoyaltyPage() {
         ),
       )}
       {relationships.length === 0 ? (
-        <section
-          className="pe-card paon-reveal rounded-[32px] bg-[#191b1d] p-8"
-          data-pe-card
-        >
-          <p className="text-sm text-white/60">
-            Shop or book with a retailer to begin a relationship.
-          </p>
+        <section className="paon-reveal flex flex-col gap-5" data-guest-preview>
+          <div
+            className="pe-card flex flex-wrap items-start justify-between gap-6"
+            data-pe-card
+          >
+            <div>
+              <p className="customer-kicker">Nebel &amp; Spiegel membership</p>
+              <h2 className="mt-2">Rewards that follow your wardrobe.</h2>
+              <p className="mt-2 max-w-xl text-sm leading-6 text-white/60">
+                Earn points from commissions and meaningful introductions. Sign
+                in to make this your own.
+              </p>
+            </div>
+            <p className="text-6xl font-semibold leading-none tracking-[-0.06em] sm:text-7xl">
+              0
+              <span className="ml-2 font-sans text-base font-normal tracking-normal">
+                points
+              </span>
+            </p>
+          </div>
+          <LoyaltyTierCards
+            name="J. Smith"
+            currentTier="milli"
+            completedSets={0}
+          />
+          <section
+            className="pe-card rounded-[32px] bg-[#191b1d] p-6 text-white sm:p-8"
+            data-pe-card
+          >
+            <div className="mb-5 flex items-end justify-between gap-4">
+              <div>
+                <p className="customer-kicker text-white/55">
+                  Achievement collection
+                </p>
+                <h2 className="mt-2">Your achievements.</h2>
+              </div>
+              <span className="text-xs text-white/45">1/6 earned</span>
+            </div>
+            <BadgesShelf milestones={[]} />
+          </section>
+          <div className="grid hidden gap-3 lg:grid-cols-[1.25fr_0.75fr]">
+            <div
+              className="pe-card rounded-[32px] bg-[#191b1d] p-6 text-white sm:p-8"
+              data-pe-card
+            >
+              <div className="flex items-baseline justify-between gap-4">
+                <div>
+                  <p className="customer-kicker text-white/55">
+                    Membership tiers
+                  </p>
+                  <h2 className="mt-2">Every relationship deepens.</h2>
+                </div>
+                <Badge tone="neutral">Preview</Badge>
+              </div>
+              <ol className="mt-6 grid gap-2 sm:grid-cols-3">
+                <li className="rounded-[22px] bg-white/[0.06] p-4">
+                  <p className="text-sm font-semibold">Milli</p>
+                  <p className="mt-2 text-xs leading-5 text-white/55">
+                    Your first privileges begin here.
+                  </p>
+                </li>
+                <li className="rounded-[22px] bg-white p-4 text-[#181818]">
+                  <p className="text-sm font-semibold">Metre</p>
+                  <p className="mt-2 text-xs leading-5 text-[#181818]/65">
+                    For a growing wardrobe and return visits.
+                  </p>
+                  <span className="mt-4 inline-flex rounded-full bg-[#181818] px-2.5 py-1 text-xs font-medium text-white">
+                    Example tier
+                  </span>
+                </li>
+                <li className="rounded-[22px] bg-white/[0.06] p-4">
+                  <p className="text-sm font-semibold">Micron</p>
+                  <p className="mt-2 text-xs leading-5 text-white/55">
+                    For the highest level of private-client recognition.
+                  </p>
+                </li>
+              </ol>
+            </div>
+            <div
+              className="pe-card pe-card-mint rounded-[32px] bg-[#b8e6be] p-6 text-[#181818] sm:p-8"
+              data-pe-card
+            >
+              <p className="customer-kicker text-[#181818]/60">Your points</p>
+              <p className="mt-3 text-5xl font-semibold tracking-[-0.06em]">
+                0
+              </p>
+              <p className="mt-1 text-sm text-[#181818]/65">available points</p>
+              <dl className="mt-6 grid gap-3 text-sm">
+                <div className="flex items-center justify-between gap-3 border-t border-[#181818]/10 pt-3">
+                  <dt className="text-[#181818]/60">Lifetime earned</dt>
+                  <dd className="font-medium">0 points</dd>
+                </div>
+                <div className="flex items-center justify-between gap-3 border-t border-[#181818]/10 pt-3">
+                  <dt className="text-[#181818]/60">Every €1 spent</dt>
+                  <dd className="font-medium">10 points</dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+          <div className="grid gap-3 lg:grid-cols-2">
+            <div
+              className="pe-card pe-card-lavender rounded-[32px] bg-[#c7c1ef] p-6 text-[#181818] sm:p-8"
+              data-pe-card
+            >
+              <p className="customer-kicker mb-4 text-[#181818]/60">
+                Available rewards
+              </p>
+              <div className="grid gap-2">
+                <div className="flex items-center justify-between rounded-[22px] bg-[#181818]/[0.07] px-4 py-3 text-sm">
+                  <span>Personal fitting appointment · 800 points</span>
+                  <span className="font-medium">Sign in to redeem</span>
+                </div>
+                <div className="flex items-center justify-between rounded-[22px] bg-[#181818]/[0.07] px-4 py-3 text-sm">
+                  <span>Early access to new cloth · 1,200 points</span>
+                  <span className="font-medium">Sign in to redeem</span>
+                </div>
+              </div>
+            </div>
+            <div
+              className="pe-card pe-card-coral rounded-[32px] bg-[#f0b6a4] p-6 text-[#181818] sm:p-8"
+              data-pe-card
+            >
+              <p className="customer-kicker text-[#181818]/60">
+                Introduce a friend
+              </p>
+              <p className="mt-3 text-sm text-[#181818]/65">
+                Earn 500 points when a friend joins and completes their first
+                commission.
+              </p>
+              <div className="mt-5 grid gap-2 sm:grid-cols-3">
+                <input
+                  disabled
+                  placeholder="Friend 1 email"
+                  className="min-h-11 rounded-full border-0 bg-white/55 px-4 text-sm placeholder:text-[#181818]/45"
+                />
+                <input
+                  disabled
+                  placeholder="Friend 2 email"
+                  className="min-h-11 rounded-full border-0 bg-white/55 px-4 text-sm placeholder:text-[#181818]/45"
+                />
+                <input
+                  disabled
+                  placeholder="Friend 3 email"
+                  className="min-h-11 rounded-full border-0 bg-white/55 px-4 text-sm placeholder:text-[#181818]/45"
+                />
+              </div>
+              <a
+                href="/login?redirectTo=/loyalty"
+                className="mt-4 inline-flex min-h-11 items-center rounded-full bg-[#181818] px-5 text-sm font-medium text-white"
+              >
+                Sign in to refer friends
+              </a>
+            </div>
+          </div>
         </section>
       ) : null}
     </div>

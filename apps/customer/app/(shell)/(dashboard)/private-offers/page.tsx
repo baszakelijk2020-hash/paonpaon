@@ -26,7 +26,7 @@ import {
 } from "./actions";
 
 import { getCustomersForUser } from "@/lib/customer-context";
-import { requireSession } from "@/lib/session";
+import { getViewerSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 const DAY_LABELS = [
@@ -40,7 +40,7 @@ const DAY_LABELS = [
 ] as const;
 
 export default async function PrivateOffersPage() {
-  const session = await requireSession();
+  const session = await getViewerSession();
   const supabase = await getSupabaseServerClient();
   const customers = await getCustomersForUser(session.userId);
   const campaignRepo = new CampaignRepository(supabase);

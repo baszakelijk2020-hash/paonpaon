@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { HOME_LOCATION } from "../morning-routine/local-widgets";
+import { useHomeLocation } from "../morning-routine/home-location";
 
 import { AirIcon, SunriseIcon, SunsetIcon, WindIcon } from "./stat-icons";
 
@@ -42,6 +42,7 @@ function clockOf(iso: string): string {
 }
 
 export function SunCard() {
+  const home = useHomeLocation();
   const [sun, setSun] = useState<Sun | null>(null);
   const [now, setNow] = useState<Date | null>(null);
 
@@ -53,8 +54,8 @@ export function SunCard() {
 
   useEffect(() => {
     let disposed = false;
-    const { lat, lon } = HOME_LOCATION.coords;
-    const zone = encodeURIComponent(HOME_LOCATION.timeZone);
+    const { lat, lon } = home.coords;
+    const zone = encodeURIComponent(home.timeZone);
     fetch(
       `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=sunrise,sunset&timezone=${zone}&forecast_days=2`,
     )
@@ -75,7 +76,7 @@ export function SunCard() {
     return () => {
       disposed = true;
     };
-  }, []);
+  }, [home]);
 
   // Local wall clock at home, as "HH:MM", to compare against Open-Meteo's
   // local timestamps.
@@ -84,7 +85,7 @@ export function SunCard() {
         hour: "2-digit",
         minute: "2-digit",
         hour12: false,
-        timeZone: HOME_LOCATION.timeZone,
+        timeZone: home.timeZone,
       })
     : null;
 
@@ -122,11 +123,12 @@ export function SunCard() {
 }
 
 export function AirCard() {
+  const home = useHomeLocation();
   const [aqi, setAqi] = useState<number | null>(null);
 
   useEffect(() => {
     let disposed = false;
-    const { lat, lon } = HOME_LOCATION.coords;
+    const { lat, lon } = home.coords;
     fetch(
       `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi`,
     )
@@ -140,7 +142,7 @@ export function AirCard() {
     return () => {
       disposed = true;
     };
-  }, []);
+  }, [home]);
 
   return (
     <div
@@ -153,7 +155,7 @@ export function AirCard() {
       <AirIcon className="paon-stat-icon" />
       <span className="paon-stat-extra-value">{aqi ?? "—"}</span>
       <span className="paon-stat-extra-meta">
-        <span className="paon-stat-label">Air quality</span>
+        <span className="paon-stat-label">AQI</span>
         <span className="paon-stat-detail">
           {aqi === null ? "Loading…" : aqiLabel(aqi)}
         </span>
@@ -194,11 +196,12 @@ function compass(degrees: number): string {
 }
 
 export function WindCard() {
+  const home = useHomeLocation();
   const [wind, setWind] = useState<{ ms: number; from: number } | null>(null);
 
   useEffect(() => {
     let disposed = false;
-    const { lat, lon } = HOME_LOCATION.coords;
+    const { lat, lon } = home.coords;
     fetch(
       `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=wind_speed_10m,wind_direction_10m&wind_speed_unit=ms`,
     )
@@ -221,7 +224,7 @@ export function WindCard() {
     return () => {
       disposed = true;
     };
-  }, []);
+  }, [home]);
 
   const force = wind ? beaufort(wind.ms) : null;
 

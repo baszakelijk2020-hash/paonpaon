@@ -1,10 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 
-import { showCustomerEnvironment } from "../environment-store";
-
-/** Opens the guest customer environment without leaving the storefront. */
+/** Opens authentication while the Wardrobe preview remains guest-accessible. */
 export function GuestSignInButton({
   children,
   className,
@@ -15,13 +14,12 @@ export function GuestSignInButton({
   style?: CSSProperties;
 }) {
   return (
-    <button
-      type="button"
-      onClick={showCustomerEnvironment}
+    <Link
+      href="/login?redirectTo=%2Fdashboard"
       className={className}
-      style={{ appearance: "none", border: 0, cursor: "pointer", ...style }}
+      style={{ cursor: "pointer", ...style }}
     >
       {children}
-    </button>
+    </Link>
   );
 }

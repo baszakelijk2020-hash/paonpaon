@@ -2,7 +2,11 @@
 
 import { randomUUID } from "node:crypto";
 
-import { CustomerRepository, WeddingPartyRepository } from "@paon/database";
+import {
+  CustomerRepository,
+  RetailerRepository,
+  WeddingPartyRepository,
+} from "@paon/database";
 import {
   addWeddingInspirationItemSchema,
   asId,
@@ -13,6 +17,7 @@ import {
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { env } from "@/lib/env";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -435,4 +440,201 @@ export async function updatePartySchedule(
   }
   revalidatePath(`/wedding-parties/${partyId}`);
   return { success: "Schedule saved." };
+}
+
+export interface TailoringPartyInviteResult {
+  readonly inviteUrl?: string;
+  /** The party's link token, which also opens its chat. */
+  readonly inviteToken?: string;
+  readonly formError?: string;
+}
+
+/** The Tailoring Party planner's Send: returns the party's join link —
+ * the same one the party page offers to copy — starting the party first
+ * when the organizer has none yet. As in `createWeddingParty`, the
+ * organizer is resolved from the signed-in customer's own relationship
+ * with the atelier, never from input, and an existing party must be one
+ * they organize (their latest date, time, location and notes are written
+ * back to it, so invitees see the current plan). Nothing is emailed from here: the planner hands the link
+ * to the organizer's own mail app, because party invitations have no
+ * outbox entry point (ADR-032) yet. */
+export async function prepareTailoringPartyInvite(input: {
+  retailerId: string;
+  partyId?: string;
+  eventDate?: string;
+  eventTime?: string;
+  fittingLocation?: string;
+  notes?: string;
+}): Promise<TailoringPartyInviteResult> {
+  const session = await requireSession();
+  const supabase = await getSupabaseServerClient();
+
+  const uuid =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuid.test(input.retailerId)) return { formError: "Atelier not found." };
+  if (input.partyId !== undefined && !uuid.test(input.partyId))
+    return { formError: "Party not found." };
+
+  let party;
+  if (input.partyId) {
+    const owned = await requireOrganizerParty(input.partyId);
+    if ("error" in owned) return { formError: owned.error };
+    party = owned.party;
+    // Keep what invitees see in step with the organizer's latest plan.
+    const parsedSchedule = createWeddingPartySchema
+      .omit({ organizerCustomerId: true })
+      .safeParse({
+        eventDate: input.eventDate || undefined,
+        eventTime: input.eventTime || undefined,
+        fittingLocation: input.fittingLocation || undefined,
+        notes: input.notes || undefined,
+      });
+    if (parsedSchedule.success) {
+      await owned.repo.updateSchedule(party.id, {
+        ...(parsedSchedule.data.eventDate
+          ? { eventDate: parsedSchedule.data.eventDate }
+          : {}),
+        ...(parsedSchedule.data.eventTime
+          ? { eventTime: parsedSchedule.data.eventTime }
+          : {}),
+        ...(parsedSchedule.data.fittingLocation
+          ? { fittingLocation: parsedSchedule.data.fittingLocation }
+          : {}),
+        ...(parsedSchedule.data.notes
+          ? { notes: parsedSchedule.data.notes }
+          : {}),
+      });
+    }
+  } else {
+    const parsed = createWeddingPartySchema
+      .omit({ organizerCustomerId: true })
+      .safeParse({
+        eventDate: input.eventDate || undefined,
+        eventTime: input.eventTime || undefined,
+        fittingLocation: input.fittingLocation || undefined,
+        notes: input.notes || undefined,
+      });
+    if (!parsed.success) {
+      return {
+        formError: parsed.error.issues[0]?.message ?? "Invalid input",
+      };
+    }
+    const relationships = await new CustomerRepository(supabase).findByUserId(
+      session.userId,
+    );
+    const customer = relationships.find(
+      (c) => c.retailerId === input.retailerId,
+    );
+    if (!customer) {
+      return { formError: "You don't have a relationship with that atelier." };
+    }
+    party = await new WeddingPartyRepository(supabase).create({
+      retailerId: customer.retailerId,
+      organizerCustomerId: customer.id,
+      ...(parsed.data.eventDate ? { eventDate: parsed.data.eventDate } : {}),
+      ...(parsed.data.eventTime ? { eventTime: parsed.data.eventTime } : {}),
+      ...(parsed.data.fittingLocation
+        ? { fittingLocation: parsed.data.fittingLocation }
+        : {}),
+      ...(parsed.data.notes ? { notes: parsed.data.notes } : {}),
+    });
+  }
+
+  const retailer = await new RetailerRepository(supabase).findById(
+    party.retailerId,
+  );
+  if (!retailer) return { formError: "Atelier not found." };
+  revalidatePath("/appointments");
+  // Invitees land in the Wardrobe's Appointments, where the party sits at
+  // the top with their own details to fill in.
+  return {
+    inviteUrl: `${env.appUrl}/appointments?party=${encodeURIComponent(party.inviteToken)}`,
+    inviteToken: party.inviteToken,
+  };
+}
+
+export interface PartyMessage {
+  readonly id: string;
+  readonly authorName: string;
+  readonly body: string;
+  readonly createdAt: string;
+  readonly isOrganizer: boolean;
+}
+
+const INVITE_TOKEN_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function chatError(error: unknown): string {
+  const raw = error instanceof Error ? error.message : "";
+  return raw && raw.length <= 160 ? raw : "The chat is unavailable just now.";
+}
+
+/** The party chat, for anyone holding the party's link — signed in or not.
+ * `list_wedding_party_messages` checks the token; nothing else is trusted. */
+export async function listPartyMessages(
+  inviteToken: string,
+): Promise<{ messages?: PartyMessage[]; formError?: string }> {
+  if (!INVITE_TOKEN_PATTERN.test(inviteToken)) {
+    return { formError: "Invite link is no longer valid." };
+  }
+  try {
+    const supabase = await getSupabaseServerClient();
+    return {
+      messages: await new WeddingPartyRepository(supabase).listMessages(
+        inviteToken,
+      ),
+    };
+  } catch (error) {
+    return { formError: chatError(error) };
+  }
+}
+
+/** Posts to the party chat; `post_wedding_party_message` checks the token,
+ * the name and the length, and rate-limits the party. */
+export async function postPartyMessage(input: {
+  inviteToken: string;
+  authorName: string;
+  body: string;
+}): Promise<{ ok?: boolean; formError?: string }> {
+  if (!INVITE_TOKEN_PATTERN.test(input.inviteToken)) {
+    return { formError: "Invite link is no longer valid." };
+  }
+  const authorName = input.authorName.trim().slice(0, 120);
+  const body = input.body.trim().slice(0, 1000);
+  if (!authorName) return { formError: "Add your name first." };
+  if (!body) return { formError: "Write a message first." };
+  try {
+    const supabase = await getSupabaseServerClient();
+    await new WeddingPartyRepository(supabase).postMessage({
+      inviteToken: input.inviteToken,
+      authorName,
+      body,
+    });
+    return { ok: true };
+  } catch (error) {
+    return { formError: chatError(error) };
+  }
+}
+
+/** A guest saying whether they come to the group fitting. The function
+ * checks the party's token and that the member is in that party. */
+export async function setPartyAttendance(input: {
+  inviteToken: string;
+  memberId: string;
+  attendance: "attending" | "declined" | "rebooked";
+}): Promise<{ ok?: boolean; formError?: string }> {
+  if (
+    !INVITE_TOKEN_PATTERN.test(input.inviteToken) ||
+    !INVITE_TOKEN_PATTERN.test(input.memberId)
+  ) {
+    return { formError: "Invite link is no longer valid." };
+  }
+  try {
+    const supabase = await getSupabaseServerClient();
+    await new WeddingPartyRepository(supabase).setMemberAttendance(input);
+    revalidatePath("/appointments");
+    return { ok: true };
+  } catch (error) {
+    return { formError: chatError(error) };
+  }
 }

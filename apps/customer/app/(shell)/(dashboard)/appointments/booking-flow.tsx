@@ -2,15 +2,24 @@
 
 import type { BranchOpeningHoursEntry } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 
+import { findUnavailableSlots } from "./availability-actions";
 import { bookAppointment, type BookAppointmentState } from "./booking-actions";
 import { APPOINTMENT_REASONS, type AppointmentReason } from "./booking-reasons";
+import { LocationFinder } from "./location-finder";
 
 export interface BookableBranch {
   readonly id: string;
   readonly name: string;
   readonly openingHours: readonly BranchOpeningHoursEntry[];
+  /** IANA zone the location keeps its hours in, e.g. Europe/Brussels. */
+  readonly timezone?: string;
+  /** Street and house number, shown small under the location's name. */
+  readonly address?: string;
+  /** Public coordinates power client-side nearby-atelier ranking. */
+  readonly latitude?: number;
+  readonly longitude?: number;
 }
 
 const DAY_KEYS = [
@@ -111,6 +120,14 @@ function timesForDay(branch: BookableBranch, date: Date): readonly string[] {
   return times;
 }
 
+/** Local wall-clock "HH:MM" on `date`, as the ISO instant the server checks. */
+function isoForDayAndTime(date: Date, time: string): string {
+  const [hour, minute] = time.split(":").map(Number);
+  const at = new Date(date);
+  at.setHours(hour ?? 0, minute ?? 0, 0, 0);
+  return at.toISOString();
+}
+
 type Step = "reason" | "location" | "date" | "time" | "review" | "confirmed";
 
 const initialState: BookAppointmentState = { fieldErrors: {} };
@@ -187,6 +204,46 @@ export function BookingFlow({
   const cells = useMemo(() => monthCells(month), [month]);
   const canGoBack = month.getTime() > startOfMonth(today).getTime();
   const availableTimes = date && branch ? timesForDay(branch, date) : [];
+
+  // Opening hours say when the door is open; they do not say whether the slot
+  // is already taken or the day is closed for a holiday. Only the server can
+  // answer that — a customer cannot read anyone else's appointments — so the
+  // day's candidate slots are checked as soon as a date is picked, and a
+  // refusal is shown on the button rather than after submitting.
+  const [unavailable, setUnavailable] = useState<Record<string, string>>({});
+  const [checkingSlots, setCheckingSlots] = useState(false);
+  const slotStartsKey =
+    date && branch
+      ? availableTimes.map((option) => isoForDayAndTime(date, option)).join("|")
+      : "";
+
+  useEffect(() => {
+    if (!slotStartsKey) {
+      setUnavailable({});
+      return;
+    }
+    let cancelled = false;
+    setCheckingSlots(true);
+    void findUnavailableSlots({
+      retailerId,
+      ...(branchId ? { branchId } : {}),
+      startsAt: slotStartsKey.split("|"),
+    })
+      .then((result) => {
+        if (!cancelled) setUnavailable(result);
+      })
+      .catch(() => {
+        // The write path re-checks, so a failed pre-check must never make a
+        // bookable day look fully booked.
+        if (!cancelled) setUnavailable({});
+      })
+      .finally(() => {
+        if (!cancelled) setCheckingSlots(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [slotStartsKey, retailerId, branchId]);
   const reasonLabel = APPOINTMENT_REASONS.find(
     (r) => r.value === reason,
   )?.label;
@@ -260,19 +317,14 @@ export function BookingFlow({
               No branches configured yet.
             </p>
           ) : (
-            branches.map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                onClick={() => {
-                  setBranchId(option.id);
-                  setStep("date");
-                }}
-                className="rounded-[10px] bg-white/[0.06] px-4 py-3 text-left text-sm"
-              >
-                {option.name}
-              </button>
-            ))
+            <LocationFinder
+              branches={branches}
+              selectedBranchId={branchId ?? ""}
+              onSelect={(branch) => {
+                setBranchId(branch.id);
+                setStep("date");
+              }}
+            />
           )}
           <button
             type="button"
@@ -365,21 +417,37 @@ export function BookingFlow({
             </p>
           ) : (
             <div className="grid grid-cols-4 gap-2">
-              {availableTimes.map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => {
-                    setTime(option);
-                    setStep("review");
-                  }}
-                  className="rounded-[10px] bg-white/[0.06] px-2 py-2 text-xs"
-                >
-                  {option}
-                </button>
-              ))}
+              {availableTimes.map((option) => {
+                const reasonTaken = date
+                  ? unavailable[isoForDayAndTime(date, option)]
+                  : undefined;
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    disabled={Boolean(reasonTaken)}
+                    title={reasonTaken ?? undefined}
+                    onClick={() => {
+                      setTime(option);
+                      setStep("review");
+                    }}
+                    className={
+                      reasonTaken
+                        ? "rounded-[10px] bg-white/[0.02] px-2 py-2 text-xs text-[var(--color-stone-500)] line-through"
+                        : "rounded-[10px] bg-white/[0.06] px-2 py-2 text-xs"
+                    }
+                  >
+                    {option}
+                  </button>
+                );
+              })}
             </div>
           )}
+          {checkingSlots ? (
+            <p className="text-xs text-[var(--color-stone-500)]">
+              Checking what is still free&hellip;
+            </p>
+          ) : null}
           <button
             type="button"
             onClick={() => setStep("date")}

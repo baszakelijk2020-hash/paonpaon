@@ -5,6 +5,7 @@ import { Button, buttonVariants } from "@paon/ui/components/Button";
 import Image from "next/image";
 import { useActionState, useEffect, useState, useTransition } from "react";
 
+import type { ComposableItem } from "./fitting-room-types";
 import {
   cancelAllQueuedLooks,
   cancelOutfitGeneration,
@@ -15,15 +16,7 @@ import {
   type ComposeOutfitState,
 } from "./virtual-studio-actions";
 
-export interface ComposableItem {
-  readonly key: string;
-  readonly kind: "wardrobe" | "product";
-  readonly id: string;
-  readonly label: string;
-  readonly imageUrl?: string;
-  readonly suggestedSlotKind?:
-    "jacket" | "trousers" | "shirt" | "shoes" | "accessories" | "pocket_square";
-}
+export type { ComposableItem };
 
 const initialComposeState: ComposeOutfitState = {};
 
@@ -178,7 +171,10 @@ function ComposeLookStudio({
   );
 }
 
-const JOB_STATUS_COPY: Record<WardrobeVisualizationJob["status"], string> = {
+export const JOB_STATUS_COPY: Record<
+  WardrobeVisualizationJob["status"],
+  string
+> = {
   queued: "Queued",
   generating: "Generating…",
   ready: "Ready",
@@ -319,7 +315,7 @@ function OutfitCanvas({
   );
 }
 
-function BatchLookActions({
+export function BatchLookActions({
   retailerId,
   hasOutfits,
 }: {

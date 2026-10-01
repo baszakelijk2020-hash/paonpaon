@@ -57,6 +57,8 @@ export interface MorningRoutinePanelProps {
   retailerSlug: string;
   customerId: string;
   forDate: string;
+  oneClickCheckoutStatus?:
+    "not_requested" | "pending_review" | "eligible" | "active";
   view: {
     selectionId: string;
     summary: string;
@@ -229,6 +231,7 @@ export function MorningRoutinePanel({
   retailerSlug,
   customerId,
   forDate,
+  oneClickCheckoutStatus,
   view,
 }: MorningRoutinePanelProps) {
   const [generateState, generateAction, generatePending] = useActionState(
@@ -271,23 +274,45 @@ export function MorningRoutinePanel({
             pick. For {forDate}.
           </p>
         </div>
-        <form action={generateAction}>
-          <input type="hidden" name="retailerId" value={retailerId} />
-          <input type="hidden" name="customerId" value={customerId} />
-          <input type="hidden" name="forDate" value={forDate} />
-          <Button
-            type="submit"
-            size="sm"
-            variant="outline"
-            disabled={generatePending}
-          >
-            {generatePending
-              ? "Selecting…"
-              : view
-                ? "Refresh today"
-                : "Select today"}
-          </Button>
-        </form>
+        <div className="flex flex-col items-end gap-3">
+          {oneClickCheckoutStatus &&
+            oneClickCheckoutStatus !== "not_requested" && (
+              <Link
+                href="/account"
+                className="inline-flex items-center rounded-full bg-[var(--color-stone-100)] px-3 py-1.5 text-xs font-medium text-[var(--color-stone-600)] transition-colors hover:bg-[var(--color-stone-200)]"
+              >
+                {oneClickCheckoutStatus === "eligible" ||
+                oneClickCheckoutStatus === "active"
+                  ? "1-Click eligible"
+                  : "Not yet 1-Click eligible"}
+              </Link>
+            )}
+          {oneClickCheckoutStatus === "not_requested" && (
+            <Link
+              href="/account"
+              className="inline-flex items-center rounded-full bg-[var(--color-stone-100)] px-3 py-1.5 text-xs font-medium text-[var(--color-stone-600)] transition-colors hover:bg-[var(--color-stone-200)]"
+            >
+              Not yet 1-Click eligible — Activate
+            </Link>
+          )}
+          <form action={generateAction}>
+            <input type="hidden" name="retailerId" value={retailerId} />
+            <input type="hidden" name="customerId" value={customerId} />
+            <input type="hidden" name="forDate" value={forDate} />
+            <Button
+              type="submit"
+              size="sm"
+              variant="outline"
+              disabled={generatePending}
+            >
+              {generatePending
+                ? "Selecting…"
+                : view
+                  ? "Refresh today"
+                  : "Select today"}
+            </Button>
+          </form>
+        </div>
       </div>
 
       {generateState.formError ? (

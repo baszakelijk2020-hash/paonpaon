@@ -43,7 +43,29 @@ const ITEM_SELECTOR = ".paon-side-row, .paon-side-category";
  * that actually changes animates.
  */
 
-let mountedBefore = false;
+/**
+ * Whether this page has finished its first client render. Read during render to
+ * decide whether a menu animates, so it must NOT flip while that first render
+ * is still in progress: the sidebar mounts two of these (customer and store),
+ * and parts of the shell hydrate in separate passes. If the first instance set
+ * this synchronously in its layout effect, a second instance hydrating a beat
+ * later would read `true`, render `is-pending`, and mismatch the server's
+ * markup — which is exactly the hydration error this used to throw on roughly
+ * every other load. Flipped a frame after the commit instead, so every instance
+ * in the initial render agrees with the server on `false`.
+ */
+let pageHasMounted = false;
+let flipScheduled = false;
+
+function scheduleMountedFlip(): void {
+  if (pageHasMounted || flipScheduled) return;
+  flipScheduled = true;
+  // Deliberately not cancelled on unmount: the flag describes the page, not
+  // this instance, and cancelling it would strand every later mount unanimated.
+  requestAnimationFrame(() => {
+    pageHasMounted = true;
+  });
+}
 
 export function SidebarReveal({
   environment,
@@ -58,13 +80,13 @@ export function SidebarReveal({
   // first frame (via the class below) rather than a beat later from an
   // effect — on a busy main thread that beat was a visible flash of the whole
   // menu. The first mount of the page hydrates unanimated.
-  const [animate] = useState(() => mountedBefore);
+  const [animate] = useState(() => pageHasMounted);
 
   useLayoutEffect(() => {
     const node = root.current;
     if (!node) return;
     if (!animate) {
-      mountedBefore = true;
+      scheduleMountedFlip();
       return;
     }
     const rows = Array.from(node.querySelectorAll<HTMLElement>(ITEM_SELECTOR));

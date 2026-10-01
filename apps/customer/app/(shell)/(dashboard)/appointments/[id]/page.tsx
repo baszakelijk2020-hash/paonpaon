@@ -9,6 +9,8 @@ import { notFound } from "next/navigation";
 
 import { AppointmentStatusBadge } from "../status-badge";
 
+import { ManageAppointment } from "./manage-appointment";
+
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -106,6 +108,14 @@ export default async function AppointmentDetailPage({
           </div>
         )}
       </section>
+
+      {isTerminal || appointment.status === "completed" ? null : (
+        <ManageAppointment
+          appointmentId={appointment.id}
+          startsAt={appointment.startsAt}
+          endsAt={appointment.endsAt}
+        />
+      )}
 
       {appointment.status === "requested" ? (
         <p className="text-sm text-[var(--color-stone-500)]">

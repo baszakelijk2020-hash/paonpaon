@@ -18,6 +18,8 @@ import {
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { ALTERATION_PRICE_MENU } from "./alteration-price-menu";
+
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -40,6 +42,9 @@ const schema = z.object({
   returnMethod: z.enum(["home", "office", "store"]),
   paymentChoice: z.enum(["pay_now", "pay_at_pickup"]),
   notes: z.string().trim().max(1000).optional(),
+  // When the courier should come and when to bring it back, e.g.
+  // "Pick-up: morning · Return: afternoon" — shown to the atelier.
+  preferredWindow: z.string().trim().max(120).optional(),
 });
 
 /**
@@ -66,6 +71,7 @@ export async function createPaidCareBooking(
     returnMethod: formData.get("returnMethod"),
     paymentChoice: formData.get("paymentChoice"),
     notes: formData.get("notes") || undefined,
+    preferredWindow: formData.get("preferredWindow") || undefined,
   });
 
   if (!parsed.success) {
@@ -131,6 +137,16 @@ export async function createPaidCareBooking(
         unitAmountMinorUnits = operation.effectivePrice.amountMinorUnits;
         currency = operation.effectivePrice.currency;
         pricingStatus = "priced";
+      } else {
+        const fallback = ALTERATION_PRICE_MENU.find(
+          (candidate) => candidate.code === parsed.data.operationCode,
+        );
+        if (fallback) {
+          operationLabel = fallback.label;
+          unitAmountMinorUnits = fallback.amountMinorUnits;
+          currency = fallback.currency;
+          pricingStatus = "priced";
+        }
       }
     }
   }
@@ -167,6 +183,9 @@ export async function createPaidCareBooking(
       pickupMethod: parsed.data.pickupMethod as PaidCareFulfilmentMethod,
       returnMethod,
       ...(parsed.data.notes ? { notes: parsed.data.notes } : {}),
+      ...(parsed.data.preferredWindow
+        ? { preferredWindow: parsed.data.preferredWindow }
+        : {}),
       paymentChoice,
       paymentStatus,
       ...(qrToken ? { qrToken } : {}),

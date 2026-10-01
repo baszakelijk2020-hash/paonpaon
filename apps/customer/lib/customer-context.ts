@@ -4,6 +4,7 @@ import { CustomerRepository } from "@paon/database";
 import { type UserId } from "@paon/domain";
 import { cache } from "react";
 
+import { GUEST_USER_ID } from "./session";
 import { getSupabaseServerClient } from "./supabase-server";
 
 /**
@@ -21,6 +22,8 @@ import { getSupabaseServerClient } from "./supabase-server";
 export const getCustomersForUser = cache(async function getCustomersForUser(
   userId: UserId,
 ) {
+  // The guest Wardrobe owns no customer records; skip the round trip.
+  if (userId === GUEST_USER_ID) return [];
   const supabase = await getSupabaseServerClient();
   return new CustomerRepository(supabase).findByUserId(userId);
 });

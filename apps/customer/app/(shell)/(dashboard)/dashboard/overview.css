@@ -3442,19 +3442,14 @@ iframe.paon-world-chip-frame {
   border-radius: 1rem;
   overflow: hidden;
 }
-.paon-overview-morning .paon-morning-pieces .paon-outfit-thumb:has(img) {
-  background: #f2f2f1;
-}
-/* The edge-stretch fill belongs to the old full-bleed thumb; on a contained
-   product shot the grey ground is the frame. */
-.paon-overview-morning .paon-morning-pieces .paon-outfit-thumb::before,
-.paon-overview-morning .paon-morning-pieces .paon-outfit-thumb::after {
-  display: none;
-}
+/* The grey ground, the hidden edge-stretch fill and the 8px inset that used to
+   live here were all turned back off by the "product square fills itself from
+   the photograph's own edges" block further down this file — same selectors,
+   same specificity, later in source order, so nothing here ever painted. Only
+   the two declarations that block does NOT restate are kept. */
 .paon-overview-morning .paon-morning-pieces .paon-outfit-thumb img {
   border-radius: 0;
   object-fit: contain;
-  padding: 8px;
 }
 
 /* The copy block: head line, cloth, make. */

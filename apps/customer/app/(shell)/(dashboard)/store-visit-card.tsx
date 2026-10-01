@@ -10,7 +10,8 @@ type StoreVisitCardProps = {
 
 /** Guest-side invitation to start the existing in-store booking flow. */
 export function StoreVisitCard({ storeHref }: StoreVisitCardProps) {
-  const bookHref = `${storeHref}#book`;
+  void storeHref;
+  const bookHref = "/appointments";
 
   return (
     <Link

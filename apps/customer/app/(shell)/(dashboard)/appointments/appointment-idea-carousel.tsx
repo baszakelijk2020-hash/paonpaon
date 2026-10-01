@@ -5,6 +5,7 @@ import { useRef } from "react";
 
 import { BookAppointmentLauncher } from "./book-appointment-launcher";
 import type { BookableBranch } from "./booking-flow";
+import { useSmoothCarousel } from "./use-smooth-carousel";
 
 const APPOINTMENT_IDEAS = [
   {
@@ -47,20 +48,32 @@ export function AppointmentIdeaCarousel({
   branches: readonly BookableBranch[];
 }) {
   const carouselRef = useRef<HTMLDivElement>(null);
+  // Both carousels share one card width, set in customer-environment.css so the
+  // width and the two aspect ratios that depend on it cannot drift apart.
+  const cardWidth = "var(--paon-card-w)";
 
+  const scrollBy = useSmoothCarousel(carouselRef);
   const scroll = (direction: "left" | "right") => {
-    if (!carouselRef.current) return;
-    const scrollAmount = 280 + 10; // card width + gap
-    carouselRef.current.scrollBy({
-      left: direction === "left" ? -scrollAmount : scrollAmount,
-      behavior: "smooth",
-    });
+    const card = carouselRef.current?.firstElementChild as HTMLElement | null;
+    scrollBy(direction, (card?.offsetWidth ?? 280) + 10);
   };
 
   return (
     <div aria-label="Appointment ideas" className="appointment-idea-section">
       <div className="appointment-idea-header">
-        <h3 className="appointment-idea-heading">Something on your mind?</h3>
+        <h3
+          className="appointment-idea-heading"
+          style={{
+            color: "rgba(244, 242, 236, 0.5)",
+            fontFamily: "GTBold3, Arial, sans-serif",
+            fontSize: 7,
+            fontWeight: 700,
+            letterSpacing: "0.04em",
+            textTransform: "uppercase",
+          }}
+        >
+          Get started
+        </h3>
         <div className="appointment-idea-arrows">
           <button
             onClick={() => scroll("left")}
@@ -78,7 +91,17 @@ export function AppointmentIdeaCarousel({
           </button>
         </div>
       </div>
-      <div className="appointment-idea-carousel" ref={carouselRef}>
+      <div
+        className="appointment-idea-carousel"
+        ref={carouselRef}
+        style={{
+          width: "calc(100% + 56px)",
+          marginLeft: -28,
+          marginRight: -28,
+          paddingLeft: 28,
+          paddingRight: 28,
+        }}
+      >
         {APPOINTMENT_IDEAS.map((idea, index) => (
           <BookAppointmentLauncher
             key={index}
@@ -90,6 +113,9 @@ export function AppointmentIdeaCarousel({
             style={
               {
                 "--appointment-idea-image": `url(${idea.img})`,
+                "--spawn-index": Math.min(index, 7),
+                flex: `0 0 ${cardWidth}`,
+                width: cardWidth,
               } as CSSProperties
             }
           >

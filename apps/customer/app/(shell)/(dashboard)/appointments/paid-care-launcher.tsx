@@ -2,9 +2,10 @@
 
 import type { PaidCareServiceKind } from "@paon/domain";
 import { PAID_CARE_SERVICE_KIND_LABELS } from "@paon/domain";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 
-import { PaidCareFlow, type PricedOperation } from "./paid-care-flow";
+import { CARE_RESUME_KEY, CareBooker } from "./care-booker";
+import type { PricedOperation } from "./paid-care-flow";
 
 /* One mark per service, in the sidebar's line weight: a hanger for
    dry-cleaning, a shoe for repair, a needle for alteration. */
@@ -53,42 +54,97 @@ const SERVICE_ICON: Record<PaidCareServiceKind, ReactNode> = {
 export function PaidCareLauncher({
   retailerId,
   operationsByService,
+  isGuest,
 }: {
   retailerId: string;
   operationsByService: Readonly<
     Record<PaidCareServiceKind, readonly PricedOperation[]>
   >;
+  isGuest: boolean;
 }) {
   const [active, setActive] = useState<PaidCareServiceKind | null>(null);
+  // A card being closed keeps its booker mounted until the fold has shut,
+  // so the content slides away with it instead of vanishing first.
+  const [closing, setClosing] = useState<PaidCareServiceKind | null>(null);
 
-  if (active) {
-    return (
-      <PaidCareFlow
-        retailerId={retailerId}
-        serviceKind={active}
-        operations={operationsByService[active]}
-        onCloseAction={() => setActive(null)}
-      />
-    );
-  }
+  // Back from signing in mid-booking: reopen the service where it was.
+  useEffect(() => {
+    try {
+      const resume = window.sessionStorage.getItem(CARE_RESUME_KEY);
+      if (
+        resume === "dry_cleaning" ||
+        resume === "shoe_repair" ||
+        resume === "alteration"
+      ) {
+        window.sessionStorage.removeItem(CARE_RESUME_KEY);
+        setActive(resume);
+      }
+    } catch {
+      // Nothing to resume.
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!closing) return;
+    const timer = window.setTimeout(() => setClosing(null), 520);
+    return () => window.clearTimeout(timer);
+  }, [closing]);
+
+  const toggle = (kind: PaidCareServiceKind) => {
+    if (active === kind) {
+      setClosing(kind);
+      setActive(null);
+    } else {
+      if (active) setClosing(active);
+      setActive(kind);
+    }
+  };
 
   return (
-    <div className="grid gap-3 sm:grid-cols-3">
-      {(["dry_cleaning", "shoe_repair", "alteration"] as const).map((kind) => (
-        <button
-          key={kind}
-          type="button"
-          onClick={() => setActive(kind)}
-          className="pe-care-service"
-        >
-          <span className="pe-care-service-icon" aria-hidden="true">
-            {SERVICE_ICON[kind]}
-          </span>
-          <span className="pe-care-service-label">
-            {PAID_CARE_SERVICE_KIND_LABELS[kind]}
-          </span>
-        </button>
-      ))}
+    <div
+      className="pe-care-grid grid gap-3 sm:grid-cols-3"
+      data-expanded={active || closing ? "true" : undefined}
+    >
+      {(["dry_cleaning", "shoe_repair", "alteration"] as const).map((kind) => {
+        const isOpen = active === kind;
+        const mounted = isOpen || closing === kind;
+        return (
+          // The card itself is the drawer: its label row keeps its place and
+          // height, and the fold opens downwards under it to one fixed height.
+          <div
+            key={kind}
+            className="pe-care-service pe-care-service-card"
+            data-open={isOpen || undefined}
+            data-closing={closing === kind || undefined}
+          >
+            <button
+              type="button"
+              onClick={() => toggle(kind)}
+              className="pe-care-service-trigger"
+              aria-expanded={isOpen}
+            >
+              <span className="pe-care-service-icon" aria-hidden="true">
+                {SERVICE_ICON[kind]}
+              </span>
+              <span className="pe-care-service-label">
+                {PAID_CARE_SERVICE_KIND_LABELS[kind]}
+              </span>
+            </button>
+            <div className="pe-care-service-drawer" inert={!isOpen}>
+              <div className="pe-care-service-drawer-inner">
+                {mounted ? (
+                  <CareBooker
+                    retailerId={retailerId}
+                    serviceKind={kind}
+                    operations={operationsByService[kind]}
+                    isGuest={isGuest}
+                  />
+                ) : null}
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

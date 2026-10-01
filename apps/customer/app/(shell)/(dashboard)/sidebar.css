@@ -267,9 +267,10 @@
   color: #e4e4e1 !important;
 }
 
-/* The About Us mark is a hand; on hover it waves. Pivot at the wrist (bottom
-   right of the glyph), two beats out and back, and the row's colour lift
-   still applies underneath. Reduced-motion users get the lift only. */
+/* The About Us mark is a hand; on hover it waves. The pivot is the wrist, which
+   on this glyph sits just above the bottom edge and left of centre — swinging
+   from the bottom-right corner rotated the whole hand like a flag instead of
+   hinging it at the joint. Reduced-motion users get the row's colour lift only. */
 @keyframes paon-side-wave {
   0% {
     transform: rotate(0deg);
@@ -291,7 +292,7 @@
   }
 }
 .paon-side-footer .paon-side-row[href="/founder"] > img {
-  transform-origin: 78% 92%;
+  transform-origin: 38% 82%;
 }
 .paon-side-footer .paon-side-row[href="/founder"]:hover > img,
 .paon-side-footer .paon-side-row[href="/founder"]:focus-visible > img {

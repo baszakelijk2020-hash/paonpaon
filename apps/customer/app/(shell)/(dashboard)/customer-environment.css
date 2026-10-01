@@ -167,11 +167,6 @@
 }
 .paon-env
   :is(.pe-card-blue, .pe-card-mint, .pe-card-lavender, .pe-card-coral)
-  :is(h1, h2, h3, h4) {
-  color: #f4f2ec;
-}
-.paon-env
-  :is(.pe-card-blue, .pe-card-mint, .pe-card-lavender, .pe-card-coral)
   :is([class*="text-[#181818]"], [class*="text-[#11191d]"]) {
   color: #f4f2ec !important;
 }
@@ -469,7 +464,6 @@
     scroll-behavior: auto !important;
   }
 }
-
 /* Nested shared form cards inherit the colored card instead of repainting it. */
 .paon-env
   :is(.pe-card-blue, .pe-card-mint, .pe-card-lavender, .pe-card-coral)
@@ -610,7 +604,6 @@
     }
   }
 }
-
 /* ══════════════════════════════════════════════════════════════════════════
    The overview's language, applied to every other tab.
    ──────────────────────────────────────────────────────────────────────────
@@ -632,7 +625,6 @@
    inline Tailwind shapes the pages carry, so the pages themselves need no
    re-templating. Loads after the definitions above and repeats .paon-env for
    specificity. */
-
 /* Page head: a heading in the overview's size, not a display title. */
 .paon-env.paon-env .pe-page-head {
   align-items: flex-end;
@@ -653,7 +645,6 @@
   line-height: 1.5 !important;
   color: rgba(244, 242, 236, 0.6) !important;
 }
-
 /* Kicker: the stat-tile label. */
 .paon-env.paon-env .customer-kicker {
   font-size: 12px;
@@ -663,7 +654,6 @@
   text-transform: none;
   color: rgba(244, 242, 236, 0.6) !important;
 }
-
 /* Cards: the stat tile. Every colour variant already resolves to the grey
    gradient; this pins its shape and padding to the overview's. */
 .paon-env.paon-env :is(.pe-card, .customer-panel, .customer-panel-dark),
@@ -715,7 +705,6 @@
   ) {
   color: rgba(244, 242, 236, 0.6) !important;
 }
-
 /* Rows inside cards — the outfit pieces: a card on the card, lit by weight. */
 .paon-env.paon-env .customer-list-row,
 .paon-env.paon-env
@@ -737,7 +726,6 @@
 .paon-env.paon-env a.customer-list-row:hover {
   background: rgba(255, 255, 255, 0.1) !important;
 }
-
 /* Buttons: the outfit's bone pill. */
 .paon-env.paon-env
   :is(
@@ -798,7 +786,6 @@
   font-size: 11px !important;
   font-weight: 600 !important;
 }
-
 /* Inputs: the appointment sheet's field-as-card. */
 .paon-env.paon-env
   .pe-card
@@ -825,35 +812,38 @@
   letter-spacing: -0.02em;
   color: rgba(244, 242, 236, 0.6);
 }
-
 /* Appointment fit: drop workspace side padding so carousels can glide
    edge-to-edge across the body (right of the sidebar). Content chrome
-   keeps its own inset via .appointment-fit padding. */
-.paon-env.paon-env .pe-workspace:has(.appointment-fit) {
+   keeps its own inset via .appointment-fit padding.
+
+   The shell keeps every tab mounted and hides the inactive ones, so a bare
+   :has(.appointment-fit) stays true on Morning Routine, Orders and the rest
+   once Appointments has been visited — which is what stripped their gutter and
+   put their cards flush against the sidebar. Match only while the appointment
+   content is actually on screen, the same guard the morning-overview rule
+   below uses. */
+.paon-env.paon-env .pe-workspace:has(.appointment-fit:not([hidden] *)) {
   max-width: none;
   padding-left: 0;
   padding-right: 0;
   padding-top: 0;
 }
-
 /* Appointment fit layout: viewport-locked above-the-fold layout */
 .paon-env.paon-env .appointment-fit {
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
+  overflow: visible;
   display: flex;
   flex-direction: column;
   gap: 10px;
   padding: 12px 28px 0;
   box-sizing: border-box;
 }
-
 /* Page rhythm: the overview's 18px between blocks — and the same 18px
    between cards that share a row, wherever a grid of them appears. */
 .paon-env.paon-env .customer-page {
   gap: 18px !important;
   padding-bottom: 28px !important;
 }
-
 .appointment-fit.customer-page {
   gap: 10px !important;
   padding-bottom: 0 !important;
@@ -869,7 +859,6 @@
 .paon-env.paon-env .customer-page > section > .customer-kicker {
   margin-bottom: 18px !important;
 }
-
 /* Loose pastel blocks (Appointments' "Plan ahead", Orders' supporting modules)
    are plain divs carrying a Tailwind colour, not .pe-card. Same tile. */
 .paon-env.paon-env
@@ -939,7 +928,6 @@
   font-size: 13px !important;
   font-weight: 500 !important;
 }
-
 /* Words in a card are headings, not readouts: only NUMBERS get the 34px
    value size (they carry `tabular-nums`). A "Paid-care services" set at 34px
    was a display title again by the back door. */
@@ -963,7 +951,6 @@
 .paon-env.paon-env .pe-card[class*="min-h-"] {
   min-height: 0 !important;
 }
-
 /* Non-interactive pills (the "Nebel & Spiegel" badge on Profile, status
    labels) are chips: a label on the card, not a button. Some carried the
    black-pill classes and were being turned into blank bone buttons. */
@@ -979,7 +966,6 @@
   letter-spacing: -0.02em !important;
   line-height: 1.2 !important;
 }
-
 /* Load-in without the lift. The shared `paon-reveal` utility (packages/ui)
    rises 20px and scales from .97 as it fades — on Rewards, Orders and the
    others that read as the cards sliding up into place. Inside this
@@ -1004,15 +990,10 @@
     animation: none;
   }
 }
-
 /* ── Appointments: compact rolling atelier year ───────────────────────── */
 .paon-env.paon-env .appointment-care-actions > .grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  overflow: visible;
-  border: none;
-  border-radius: 0;
-  background: none;
 }
 .paon-env.paon-env .appointment-care-actions .pe-care-service {
   min-height: 72px;
@@ -1044,13 +1025,10 @@
   .pe-care-service-label::after {
   content: "Alterations/repairs";
 }
-
 /* Safari fallback: squircle polygon for care cards */
 @supports not (corner-shape: squircle) {
   .paon-env.paon-env .appointment-care-actions .pe-care-service {
     --paon-sq-r: 18px;
-  }
-  .paon-env.paon-env .appointment-care-actions .pe-care-service {
     --paon-sq-clip: polygon(
       0 var(--paon-sq-r),
       calc(var(--paon-sq-r) * 0.0062) calc(var(--paon-sq-r) * 0.6045),
@@ -1144,79 +1122,13 @@
   background: #3a3a3a;
   border-radius: 0;
 }
-.paon-env.paon-env .appointment-month-past {
-  display: flex;
-  height: 100%;
-  min-height: 0;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 15px;
-  background: #4a4a4a;
-  color: rgba(244, 242, 236, 0.55);
-}
 .paon-env.paon-env .appointment-month-empty {
   display: block;
   height: 100%;
   background: #3a3a3a;
 }
-.paon-env.paon-env .appointment-month-launcher {
-  position: relative;
-  display: grid;
-  grid-template-rows: auto auto 1fr auto;
-  width: 100%;
-  height: 150px;
-  padding: 13px 15px 12px;
-  overflow: hidden;
-  border: 0;
-  height: 170px;
-  min-height: 0;
-  border-radius: 0;
-  background-image: var(--appointment-image);
-  background-position: center 42%;
-  background-size: cover;
-  isolation: isolate;
-  color: #f4f2ec;
-  text-align: left;
-  cursor: pointer;
-  transition: background-color 180ms ease;
-}
-.paon-env.paon-env .appointment-month-launcher::before,
-.paon-env.paon-env .appointment-month-launcher::after {
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  content: "";
-  pointer-events: none;
-}
-.paon-env.paon-env .appointment-month-launcher::before {
-  background: linear-gradient(
-    to bottom,
-    rgba(8, 8, 8, 0.04) 20%,
-    rgba(8, 8, 8, 0.18) 55%,
-    rgba(8, 8, 8, 0.72) 100%
-  );
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
-  mask-image: linear-gradient(to bottom, transparent 10%, black 78%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 10%, black 78%);
-}
-.paon-env.paon-env .appointment-month-launcher::after {
-  background: linear-gradient(to bottom, transparent 36%, rgba(8, 8, 8, 0.82));
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  mask-image: linear-gradient(to bottom, transparent 35%, black 72%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 35%, black 72%);
-}
 .paon-env.paon-env .appointment-month-launcher.is-current {
   filter: none;
-}
-.paon-env.paon-env .appointment-month-launcher:hover {
-  background-color: rgba(255, 255, 255, 0.055);
-}
-.paon-env.paon-env .appointment-month-launcher:focus-visible {
-  z-index: 2;
-  outline: 0;
-  box-shadow: inset 0 0 0 999px rgba(244, 242, 236, 0.08);
 }
 .paon-env.paon-env .appointment-month-topline {
   display: flex;
@@ -1243,21 +1155,6 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-}
-.paon-env.paon-env .appointment-month-title {
-  margin-top: 7px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-}
-.paon-env.paon-env .appointment-month-copy {
-  margin-top: 3px;
-  overflow: hidden;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.3;
 }
 .paon-env.paon-env .appointment-month-cta {
   align-self: end;
@@ -1299,7 +1196,6 @@
     filter: none;
   }
 }
-
 /* ── Appointment idea carousel: tableservice-style starter cards ────────── */
 .paon-env.paon-env .appointment-idea-section {
   display: flex;
@@ -1357,25 +1253,7 @@
   display: none;
 }
 .paon-env.paon-env .appointment-idea-card {
-  position: relative;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-start;
-  flex: 0 0 auto;
-  width: 280px;
-  height: 220px;
-  border-radius: 18px;
-  corner-shape: squircle;
-  overflow: hidden;
-  padding: 12px;
-  background-image: var(--appointment-idea-image);
-  background-size: cover;
-  background-position: center;
-  border: none;
-  cursor: pointer;
   transition: opacity 180ms ease;
-  scroll-snap-align: start;
-  isolation: isolate;
 }
 .paon-env.paon-env .appointment-idea-card:hover {
   opacity: 0.85;
@@ -1407,17 +1285,6 @@
   mask-image: linear-gradient(to bottom, transparent 35%, black 72%);
   -webkit-mask-image: linear-gradient(to bottom, transparent 35%, black 72%);
 }
-.paon-env.paon-env .appointment-idea-caption {
-  position: relative;
-  z-index: 2;
-  color: #f4f2ec;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.3;
-  text-align: left;
-  max-width: calc(100% - 12px);
-}
-
 @media (prefers-reduced-motion: reduce) {
   .paon-env.paon-env .appointment-idea-card {
     transition: none;
@@ -1428,13 +1295,10 @@
     filter: none;
   }
 }
-
 /* Safari fallback: squircle polygon for idea cards */
 @supports not (corner-shape: squircle) {
   .paon-env.paon-env .appointment-idea-card {
     --paon-sq-r: 24px;
-  }
-  .paon-env.paon-env .appointment-idea-card {
     --paon-sq-clip: polygon(
       0 var(--paon-sq-r),
       calc(var(--paon-sq-r) * 0.0062) calc(var(--paon-sq-r) * 0.6045),
@@ -1494,7 +1358,6 @@
     clip-path: var(--paon-sq-clip);
   }
 }
-
 /* ── Paid-care services: an icon and a label per tile ─────────────────── */
 .paon-env.paon-env .pe-care-service {
   display: flex;
@@ -1531,7 +1394,6 @@
   font-weight: 500;
   letter-spacing: -0.02em;
 }
-
 /* ── Capsule pieces ───────────────────────────────────────────────────────
    The photographs come on their own dark ground, so each tile is that
    ground, unboxed: a soft 5% well, the garment `contain`ed inside it with
@@ -1581,7 +1443,6 @@
   font-variant-numeric: tabular-nums;
   color: rgba(244, 242, 236, 0.6);
 }
-
 /* ── Booking calendar ─────────────────────────────────────────────────────
    A month at a time, Monday first. Days the atelier is closed or that are
    already past are shown but not offered. */
@@ -1667,13 +1528,7 @@
   background: #f4f2ec;
   color: #14120f;
 }
-
 /* ── Appointment month carousel: horizontal month planning ─────────────── */
-.paon-env.paon-env .appointment-month-carousel-section {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-}
 .paon-env.paon-env .appointment-month-carousel-header {
   display: flex;
   align-items: center;
@@ -1709,28 +1564,13 @@
   background: rgba(255, 255, 255, 0.14);
 }
 .paon-env.paon-env .appointment-month-carousel {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  flex-wrap: nowrap;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
   margin-left: -28px;
   margin-right: -28px;
   padding-left: 28px;
   padding-right: 28px;
-  padding-bottom: 4px;
-  touch-action: pan-x;
 }
 .paon-env.paon-env .appointment-month-carousel::-webkit-scrollbar {
   display: none;
-}
-.paon-env.paon-env .appointment-month-carousel-card {
-  flex: 0 0 auto;
-  width: 260px;
-  height: 200px;
-  scroll-snap-align: start;
 }
 .paon-env.paon-env .appointment-month-past {
   display: flex;
@@ -1742,26 +1582,6 @@
   background: #4a4a4a;
   border-radius: 18px;
   color: rgba(244, 242, 236, 0.55);
-}
-.paon-env.paon-env .appointment-month-launcher {
-  position: relative;
-  display: grid;
-  grid-template-rows: auto auto 1fr auto;
-  width: 100%;
-  height: 100%;
-  padding: 13px 15px 12px;
-  overflow: hidden;
-  border: 0;
-  border-radius: 18px;
-  corner-shape: squircle;
-  background-image: var(--appointment-image);
-  background-position: center 42%;
-  background-size: cover;
-  isolation: isolate;
-  color: #f4f2ec;
-  text-align: left;
-  cursor: pointer;
-  transition: background-color 180ms ease;
 }
 .paon-env.paon-env .appointment-month-launcher::before,
 .paon-env.paon-env .appointment-month-launcher::after {
@@ -1798,7 +1618,6 @@
   outline: 0;
   box-shadow: inset 0 0 0 999px rgba(244, 242, 236, 0.08);
 }
-
 /* Safari fallback: squircle polygon for month carousel cards */
 @supports not (corner-shape: squircle) {
   .paon-env.paon-env .appointment-month-launcher {
@@ -1862,7 +1681,6 @@
     clip-path: var(--paon-sq-clip);
   }
 }
-
 /* Care section heading */
 .paon-env.paon-env .appointment-care-heading {
   color: #f4f2ec;
@@ -1871,114 +1689,78 @@
   letter-spacing: -0.02em;
   margin: 0 0 9px 0;
 }
-
 /* Quick book bar: fast appointment booking overlay ─────────────────── */
-.paon-env.paon-env .appointment-quick-book-container {
-  margin-bottom: 24px;
+/* The booking controls start on the same visual baseline as the Store /
+   Wardrobe switch, not at the very top of the content pane. */
+.paon-env.paon-env .appointment-fit > .appointment-quick-book {
+  margin-top: 68px;
 }
-
-.paon-env.paon-env .appointment-quick-book-bar {
-  display: flex;
-  gap: 8px;
-  padding: 0;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  align-items: flex-end;
-  box-shadow: none;
-  width: 100%;
+.paon-env.paon-env .appointment-quick-book-shortcut,
+.paon-env.paon-env .appointment-quick-book-fit-me-in {
+  height: 45px;
+  border: 0;
+  border-radius: 999px;
+  color: #f4f2ec;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 180ms ease;
 }
-
-.paon-env.paon-env .appointment-quick-book-field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex: 1 1 0;
-  min-width: 0;
+.paon-env.paon-env .appointment-quick-book-shortcut:hover,
+.paon-env.paon-env .appointment-quick-book-fit-me-in:hover:not(:disabled) {
+  background: #363636;
 }
-
+.paon-env.paon-env .appointment-quick-book-fit-me-in {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 9px;
+  padding: 0 17px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.paon-env.paon-env .appointment-quick-book-fit-me-in:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.paon-env.paon-env .appointment-quick-book-fit-me-in-note {
+  margin: 0 0 12px;
+  color: rgba(244, 242, 236, 0.64);
+  font-size: 13px;
+  line-height: 1.45;
+}
 .paon-env.paon-env .appointment-quick-book-label {
   color: rgba(244, 242, 236, 0.45);
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  margin-bottom: 6px;
-  display: block;
+  display: none;
 }
-
-.paon-env.paon-env .appointment-quick-book-input {
-  /* Match Store/Wardrobe segment pill: content ~45px, fully rounded. */
-  height: 45px;
-  width: 100%;
-  padding: 0 16px;
-  background: #2a2a2a;
-  border: 0;
-  border-radius: 999px;
-  color: #f4f2ec;
-  font-size: 13px;
-  line-height: 45px;
-  font-family: inherit;
-  box-sizing: border-box;
-  -webkit-appearance: none;
-  appearance: none;
-  transition: background 180ms ease;
-}
-
 .paon-env.paon-env input[type="date"].appointment-quick-book-input {
   -webkit-appearance: none;
   appearance: none;
 }
-
 .paon-env.paon-env
   input[type="date"].appointment-quick-book-input::-webkit-calendar-picker-indicator {
   cursor: pointer;
   opacity: 0.6;
   filter: invert(0.8);
 }
-
 .paon-env.paon-env .appointment-quick-book-input:hover:not(:disabled) {
   background: #363636;
 }
-
 .paon-env.paon-env .appointment-quick-book-input:focus {
   outline: none;
   background: #363636;
   box-shadow: none;
 }
-
 .paon-env.paon-env .appointment-quick-book-input:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-
-.paon-env.paon-env .appointment-quick-book-button {
-  height: 45px;
-  flex: 0 0 auto;
-  min-width: 112px;
-  padding: 0 22px;
-  background: #b8e6be;
-  color: #14120f;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 45px;
-  border: 0;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background 180ms ease;
-  white-space: nowrap;
-  box-sizing: border-box;
-}
-
 .paon-env.paon-env .appointment-quick-book-button:hover:not(:disabled) {
   background: #a8d6ae;
 }
-
-.paon-env.paon-env .appointment-quick-book-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 /* Confirmation card overlay */
 .paon-env.paon-env .appointment-quick-book-confirm {
   padding: 20px;
@@ -1987,21 +1769,18 @@
   border-radius: 18px;
   box-shadow: inset 0 1px 0 #ffffff08;
 }
-
 .paon-env.paon-env .appointment-quick-book-confirm-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
 }
-
 .paon-env.paon-env .appointment-quick-book-confirm-header h3 {
   font-size: 18px;
   font-weight: 600;
   color: #f4f2ec;
   margin: 0;
 }
-
 .paon-env.paon-env .appointment-quick-book-close {
   background: none;
   border: none;
@@ -2011,32 +1790,27 @@
   line-height: 1;
   transition: color 180ms ease;
 }
-
 .paon-env.paon-env .appointment-quick-book-close:hover {
   color: #f4f2ec;
 }
-
 .paon-env.paon-env .appointment-quick-book-confirm-summary {
   padding: 12px;
   background: rgba(255, 255, 255, 0.04);
   border-radius: 8px;
   margin-bottom: 16px;
 }
-
 .paon-env.paon-env .appointment-quick-book-summary-line {
   margin: 0;
   color: #f4f2ec;
   font-size: 14px;
   font-weight: 500;
 }
-
 .paon-env.paon-env .appointment-quick-book-confirm-field {
   display: flex;
   flex-direction: column;
   gap: 6px;
   margin-bottom: 16px;
 }
-
 .paon-env.paon-env .appointment-quick-book-textarea {
   padding: 10px;
   background: rgba(255, 255, 255, 0.04);
@@ -2051,19 +1825,16 @@
     background 180ms ease,
     border-color 180ms ease;
 }
-
 .paon-env.paon-env .appointment-quick-book-textarea:hover {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.15);
 }
-
 .paon-env.paon-env .appointment-quick-book-textarea:focus {
   outline: none;
   background: rgba(255, 255, 255, 0.08);
   border-color: #aed6e7;
   box-shadow: inset 0 0 0 1px #aed6e7;
 }
-
 .paon-env.paon-env .appointment-quick-book-error {
   padding: 10px;
   background: rgba(251, 141, 141, 0.1);
@@ -2072,13 +1843,11 @@
   font-size: 13px;
   margin-bottom: 16px;
 }
-
 .paon-env.paon-env .appointment-quick-book-confirm-actions {
   display: flex;
   gap: 12px;
   justify-content: flex-end;
 }
-
 .paon-env.paon-env .appointment-quick-book-confirm-secondary,
 .paon-env.paon-env .appointment-quick-book-confirm-primary {
   padding: 10px 18px;
@@ -2089,53 +1858,3659 @@
   cursor: pointer;
   transition: opacity 180ms ease;
 }
-
 .paon-env.paon-env .appointment-quick-book-confirm-secondary {
   background: rgba(255, 255, 255, 0.1);
   color: #f4f2ec;
 }
-
 .paon-env.paon-env
   .appointment-quick-book-confirm-secondary:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.15);
 }
-
 .paon-env.paon-env .appointment-quick-book-confirm-primary {
   background: #b8e6be;
   color: #14120f;
 }
-
 .paon-env.paon-env
   .appointment-quick-book-confirm-primary:hover:not(:disabled) {
   background: #a8d6ae;
 }
-
 .paon-env.paon-env .appointment-quick-book-confirm-primary:disabled,
 .paon-env.paon-env .appointment-quick-book-confirm-secondary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-
 @media (max-width: 640px) {
+  .paon-env.paon-env .appointment-fit > .appointment-quick-book {
+    margin-top: 0;
+  }
   .paon-env.paon-env .appointment-quick-book-bar {
     flex-direction: column;
     gap: 10px;
   }
-
   .paon-env.paon-env .appointment-quick-book-field {
     width: 100%;
   }
-
   .paon-env.paon-env .appointment-quick-book-button {
     width: 100%;
   }
-
   .paon-env.paon-env .appointment-quick-book-confirm-actions {
     flex-direction: column;
   }
-
   .paon-env.paon-env .appointment-quick-book-confirm-secondary,
   .paon-env.paon-env .appointment-quick-book-confirm-primary {
     width: 100%;
+  }
+}
+/* Appointments: the booking bar and planning rails share the dashboard grid. */
+.paon-env.paon-env .appointment-prefill-launcher {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+/* Both gutters bleed, not just the right one: with padding-left 0 the track's
+   left edge sits on the content box, so a card scrolled out is clipped 28px
+   inside the body instead of running under the page gutter like the right. */
+.paon-env.paon-env .appointment-idea-carousel,
+.paon-env.paon-env .appointment-month-carousel {
+  margin-left: -28px;
+  margin-right: -28px;
+  padding-left: 28px;
+  padding-right: 28px;
+  scroll-padding-left: 28px;
+}
+/* …except on the timeline, whose rows carry it themselves (see above). */
+.paon-env.paon-env .appointment-month-carousel {
+  padding-right: 0;
+}
+.paon-env.paon-env .appointment-idea-card {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  flex: 0 0 auto;
+  height: var(--paon-idea-card-h);
+  border-radius: 18px;
+  corner-shape: squircle;
+  overflow: hidden;
+  padding: 12px;
+  background-image: var(--appointment-idea-image);
+  background-size: cover;
+  background-position: center;
+  border: none;
+  cursor: pointer;
+  scroll-snap-align: start;
+  isolation: isolate;
+  width: var(--paon-card-w);
+}
+.paon-env.paon-env .appointment-timeline-ruler,
+.paon-env.paon-env .appointment-timeline-scenes {
+  gap: 10px;
+}
+.paon-env.paon-env .appointment-timeline-ruler span {
+  flex: 0 0 var(--paon-card-w);
+  width: var(--paon-card-w);
+}
+.paon-env.paon-env .appointment-month-carousel-card {
+  scroll-snap-align: start;
+  display: block;
+  flex: 0 0 var(--paon-card-w);
+  width: var(--paon-card-w);
+  height: var(--paon-timeline-card-h);
+}
+.paon-env.paon-env .appointment-month-launcher {
+  min-height: 0;
+  position: relative;
+  grid-template-rows: auto auto 1fr auto;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: 0;
+  border-radius: 18px;
+  corner-shape: squircle;
+  background-image: var(--appointment-image);
+  background-position: center 42%;
+  background-size: cover;
+  isolation: isolate;
+  color: #f4f2ec;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 180ms ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 13px 15px;
+}
+.paon-env.paon-env .appointment-month-year,
+.paon-env.paon-env .appointment-month-cta {
+  display: none;
+}
+.paon-env.paon-env .appointment-month-copy {
+  overflow: hidden;
+  font-weight: 500;
+  display: block;
+  max-width: 31ch;
+  margin-top: 6px;
+  color: rgba(244, 242, 236, 0.68);
+  font-size: 11px;
+  line-height: 1.25;
+}
+.appointment-product-backdrop {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.58);
+  backdrop-filter: blur(12px);
+}
+.appointment-product-card {
+  position: relative;
+  width: min(390px, 100%);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  corner-shape: squircle;
+  background: #1c1c1c;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.5);
+}
+.appointment-product-close {
+  position: absolute;
+  z-index: 2;
+  top: 12px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.58);
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+}
+.appointment-product-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  background: #252525;
+}
+.appointment-product-image img {
+  object-fit: cover;
+}
+.appointment-product-copy {
+  padding: 18px 18px 16px;
+}
+.appointment-product-copy h3 {
+  margin: 0;
+  color: #f4f2ec;
+  font-size: 20px;
+}
+.appointment-product-copy strong {
+  display: block;
+  margin-top: 5px;
+  color: rgba(244, 242, 236, 0.7);
+  font-size: 13px;
+}
+.appointment-product-copy p {
+  margin: 12px 0 0;
+  color: rgba(244, 242, 236, 0.62);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.appointment-product-actions {
+  display: grid;
+  grid-template-columns: 45px 1fr 1fr;
+  gap: 8px;
+  padding: 0 18px 18px;
+}
+.appointment-product-actions form {
+  display: contents;
+}
+.appointment-product-actions :is(a, button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 45px;
+  border: 0;
+  border-radius: 999px;
+  background: #2a2a2a;
+  color: #f4f2ec;
+  font: inherit;
+  font-size: 11px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.appointment-product-actions form:last-child button {
+  background: #b8e6be;
+  color: #14120f;
+}
+.paon-env.paon-env .appointment-timeline-today {
+  left: calc(var(--paon-card-w) * 0.48);
+}
+@media (max-width: 640px) {
+  .paon-env.paon-env .appointment-timeline-ruler span,
+  .paon-env.paon-env .appointment-month-carousel-card {
+    width: 72vw;
+    flex-basis: 72vw;
+  }
+  .paon-env.paon-env .appointment-timeline-today {
+    left: 34vw;
+  }
+}
+/* Keep every quick-book control visually identical on WebKit and Safari. */
+.paon-env.paon-env .appointment-quick-book-input {
+  /* Match Store/Wardrobe segment pill: content ~45px, fully rounded. */
+  padding: 0 16px;
+  color: #f4f2ec;
+  font-size: 13px;
+  line-height: 45px;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: background 180ms ease;
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 999px !important;
+  background: #2a2a2a !important;
+  background-color: #2a2a2a !important;
+  background-image: none !important;
+  box-shadow: inset 0 0 0 999px #2a2a2a !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  width: calc(100% + 4px) !important;
+  height: 49px !important;
+  margin: -2px !important;
+  clip-path: none;
+}
+.paon-env.paon-env .appointment-quick-book-input:hover:not(:disabled),
+.paon-env.paon-env .appointment-quick-book-input:focus {
+  border: 0 !important;
+  outline: 0 !important;
+  background: #2a2a2a !important;
+  background-color: #2a2a2a !important;
+  background-image: none !important;
+  box-shadow: inset 0 0 0 999px #2a2a2a !important;
+}
+/* ── Appointments founder pass, 17 Sep 2026 ─────────────────────────────── */
+/* The wardrobe-planning titles read as right-aligned because the launcher is a
+   flex COLUMN: `align-self: end` moves a child along the cross axis, which here
+   is horizontal, so it pinned each title to the card's right edge while the copy
+   underneath stayed left. */
+.paon-env.paon-env .appointment-month-title {
+  margin-top: 7px;
+  letter-spacing: -0.02em;
+  max-width: 18ch;
+  color: #f4f2ec;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.08;
+  align-self: start;
+  text-align: left;
+}
+/* Get Started captions take the wardrobe-planning copy's voice. */
+.paon-env.paon-env .appointment-idea-caption {
+  position: relative;
+  z-index: 2;
+  text-align: left;
+  max-width: 31ch;
+  color: rgba(244, 242, 236, 0.68);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+/* High maintenance sat on the 18px feature-grid gap; the wardrobe-planning and
+   Get Started tracks are on 10px. One rhythm across the page. */
+.paon-env.paon-env .appointment-care-actions .grid,
+.paon-env.paon-env .appointment-care-actions .pe-feature-grid,
+.paon-env.paon-env .appointment-care-actions > div {
+  gap: 10px !important;
+}
+/* The month row is bounded by a rule top and bottom, and the today pill sits on
+   the label's own line between them rather than floating in the padding above. */
+.paon-env.paon-env .appointment-timeline-ruler {
+  border-top: 1px solid rgba(244, 242, 236, 0.14);
+  border-bottom: 1px solid rgba(244, 242, 236, 0.14);
+}
+/* Timeline products keep the 68px row height and take their width from the
+   image's own ratio. A square box cropped the garment; `contain` would have left
+   empty bars beside it. The slot stays one month wide so the row still lines up
+   with the ruler above and the scenes below. */
+/* Timeline products: 30% taller than the original 68px row, and only lightly
+   rounded — the heavy 16px squircle read as a button, not a garment. */
+/* A rule closes the timeline underneath the scene cards, matching the ones that
+   bound the month row and the product row. */
+.paon-env.paon-env .appointment-timeline-scenes {
+  border-bottom: 1px solid rgba(244, 242, 236, 0.14);
+}
+/* The section headings needed air above them; the page's own 24px flex gap ran
+   the three bands together. */
+.paon-env.paon-env .appointment-care-actions,
+.paon-env.paon-env .appointment-month-carousel-section {
+  margin-top: 26px;
+}
+/* The scroller is `.paon-shell-content`, and it carried the cream body colour
+   while the dark environment sat on a child inside it — so every rubber-band
+   overscroll, top or bottom, flashed a cream band around the page. The scroller
+   itself now carries the environment's own colour. */
+.paon-shell-content:has(.paon-env.customer-page) {
+  background: #161616;
+}
+/* The care row tied with `.customer-page > section > .grid { gap: 18px !important }`
+   on specificity, so source order decided it and the 18px rule won. One extra
+   class settles it in favour of the 10px rhythm the carousels use. */
+.paon-env.paon-env .customer-page .appointment-care-actions > .grid {
+  gap: 10px !important;
+}
+/* ── Quick-book bar: sticky translucent pill with pill-drawers ──────────── */
+/* The bar stays put while the rest of the tab scrolls under it. `top: 0` is
+   measured against `.paon-shell-content`, which is the real scroller here. */
+.paon-env.paon-env .appointment-quick-book-container {
+  margin-bottom: 24px;
+  position: sticky;
+  z-index: 40;
+  top: 0;
+  margin: -6px -6px 0;
+  padding: 6px;
+}
+.paon-env.paon-env .appointment-quick-book-bar {
+  border: none;
+  box-shadow: none;
+  width: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  border-radius: 999px;
+  corner-shape: squircle;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+}
+.paon-env.paon-env .appointment-quick-book-shortcut {
+  flex: 0 0 auto;
+  height: 45px;
+  padding: 0 17px;
+  border: 0;
+  border-radius: 999px;
+  background: #2a2a2a;
+  color: #f4f2ec;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 200ms ease;
+}
+.paon-env.paon-env .appointment-quick-book-shortcut:hover {
+  background: #343434;
+}
+/* Each field owns the space its drawer will fill: the drawer is positioned from
+   the pill's own top edge, so the pill reads as growing downwards and the row's
+   height never changes while it is open. */
+.paon-env.paon-env .appointment-quick-book-field {
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+  height: 45px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: #2a2a2a;
+  box-shadow: none;
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+}
+.paon-env.paon-env .appointment-quick-book-field[data-open] {
+  z-index: 3;
+}
+.paon-env.paon-env .appointment-quick-book-trigger {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 45px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: #2a2a2a;
+  color: #f4f2ec;
+  font: inherit;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: background-color 200ms ease;
+}
+.paon-env.paon-env .appointment-quick-book-trigger:hover {
+  background: #343434;
+}
+.paon-env.paon-env .appointment-quick-book-trigger[data-placeholder] {
+  color: rgba(244, 242, 236, 0.45);
+}
+.paon-env.paon-env .appointment-quick-book-drawer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: max(100%, 268px);
+  padding: 13px 15px 15px;
+  border-radius: 24px;
+  corner-shape: squircle;
+  background: #2a2a2a;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  animation: paon-quick-book-open 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: top center;
+}
+@keyframes paon-quick-book-open {
+  from {
+    opacity: 0;
+    transform: scaleY(0.82);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .paon-env.paon-env .appointment-quick-book-drawer {
+    animation: none;
+  }
+}
+.paon-env.paon-env .appointment-quick-book-drawer-label {
+  display: block;
+  margin-bottom: 9px;
+  color: rgba(244, 242, 236, 0.5);
+  font-family: GTBold3, Arial, sans-serif;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.paon-env.paon-env .appointment-quick-book-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 5px;
+}
+.paon-env.paon-env .appointment-quick-book-option:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+.paon-env.paon-env .appointment-quick-book-option[aria-pressed="true"] {
+  background: #f4f2ec;
+  color: #14120f;
+}
+.paon-env.paon-env .appointment-quick-book-location-options {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 8px;
+}
+.paon-env.paon-env
+  .appointment-quick-book-location-options
+  .appointment-quick-book-option {
+  display: flex;
+  align-items: center;
+  min-height: 68px;
+  height: auto;
+  padding: 11px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 16px;
+  white-space: normal;
+}
+.paon-env.paon-env
+  .appointment-quick-book-location-options
+  .appointment-quick-book-option-stack {
+  gap: 4px;
+}
+.paon-env.paon-env
+  .appointment-quick-book-location-options
+  .appointment-quick-book-option-stack
+  > span {
+  font-size: 14px;
+  font-weight: 500;
+}
+.paon-env.paon-env
+  .appointment-quick-book-location-options
+  .appointment-quick-book-option-stack
+  > small {
+  white-space: normal;
+  line-height: 1.3;
+}
+.paon-env.paon-env
+  .appointment-quick-book-location-options
+  .appointment-quick-book-option[aria-pressed="true"]
+  .appointment-quick-book-option-stack
+  > small {
+  color: rgba(20, 18, 15, 0.62);
+}
+/* The two request routes live at the foot of the time drawer, shaped like the
+   Visit in-store pill: label left, icon right. */
+.paon-env.paon-env .appointment-quick-book-requests {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(244, 242, 236, 0.14);
+}
+.paon-env.paon-env .appointment-quick-book-request:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+}
+.paon-env.paon-env .appointment-quick-book-request:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+/* Calendar inside the date drawer. */
+.paon-env.paon-env .appointment-quick-book-calendar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.paon-env.paon-env .appointment-quick-book-calendar-head strong {
+  color: #f4f2ec;
+  font-size: 13px;
+  font-weight: 600;
+}
+.paon-env.paon-env .appointment-quick-book-calendar-head button {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #f4f2ec;
+  cursor: pointer;
+}
+.paon-env.paon-env .appointment-quick-book-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+.paon-env.paon-env .appointment-quick-book-calendar-weekday {
+  padding-bottom: 3px;
+  color: rgba(244, 242, 236, 0.42);
+  font-size: 9px;
+  font-weight: 600;
+  text-align: center;
+}
+.paon-env.paon-env .appointment-quick-book-calendar-day {
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #f4f2ec;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background-color 160ms ease;
+}
+.paon-env.paon-env .appointment-quick-book-calendar-day:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.16);
+}
+.paon-env.paon-env .appointment-quick-book-calendar-day:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+.paon-env.paon-env .appointment-quick-book-calendar-day[data-today] {
+  box-shadow: inset 0 0 0 1px #e5eb56;
+}
+.paon-env.paon-env .appointment-quick-book-calendar-day[aria-pressed="true"] {
+  background: #f4f2ec;
+  color: #14120f;
+}
+.paon-env.paon-env .appointment-quick-book-button {
+  min-width: 112px;
+  font-size: 13px;
+  line-height: 45px;
+  white-space: nowrap;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  height: 45px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 999px;
+  background: #b8e6be;
+  color: #14120f;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 200ms ease;
+}
+.paon-env.paon-env .appointment-quick-book-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+/* Earlier rules for this bar clipped each field (`overflow: hidden`, from when a
+   field was a native select) and reset the bar's own background, which dropped
+   the blur. Both are restated here at a specificity that actually reaches. */
+.paon-env.paon-env .customer-page .appointment-quick-book-field {
+  overflow: visible;
+}
+/* Sticky has to sit on the section, not on the inner container: a sticky element
+   only travels inside its own parent's box, and the container's parent is exactly
+   as tall as the bar, so there was no room to stick in. The section is a child of
+   the page's tall flex column, which is the box it should ride. */
+/* Fixed to the viewport: left clears the sidebar and the page gutter, right
+   stops on the gutter, top sits on the sidebar toggle's line. The section above
+   keeps the bar's height in the flow so nothing below it moves. */
+/* Each timeline rule sits 10px clear of the cards above and below it: 10px of
+   row padding under the card, then the grid's own 10px gap under the rule. */
+/* The timeline band itself is lifted off the page between its top and bottom
+   rules. The background is painted on the scroll container, whose painting area
+   is the padding box, so the wash stays put while the months scroll through it —
+   inset by the 28px marker gutter on top and the 12px tail underneath. */
+/* The progressive blur left a sharp slither of the untouched image along the
+   bottom edge: a backdrop-filter has nothing outside the element to sample from,
+   so its last row of pixels reads through unblurred. Running the blur layers past
+   the card's bottom and sides puts that edge outside the card, where the card's
+   own `overflow: hidden` clips it away. */
+.paon-env.paon-env .appointment-idea-card::before,
+.paon-env.paon-env .appointment-idea-card::after,
+.paon-env.paon-env .appointment-month-launcher::before,
+.paon-env.paon-env .appointment-month-launcher::after {
+  inset: 0 -18px -18px;
+}
+/* The bar's translucent shell takes the sidebar toggle's exact pill: 51px tall,
+   sitting on the same line, with just enough padding to read as a holder around
+   the 45px pills rather than a second control. */
+/* ── Timeline rules run the full body width ─────────────────────────────── */
+/* Borders on the rows could never do this: each row is `max-content` wide, so its
+   rule started at the content edge and slid away with the months. The rules are
+   painted on the scroll container instead — a background paints into the padding
+   box, which is the bled, body-wide box, and it does not scroll with the content.
+   Row heights are pinned so the offsets below stay true. */
+.paon-env.paon-env .appointment-timeline-ruler,
+.paon-env.paon-env .appointment-timeline-scenes {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: stretch;
+  width: max-content;
+  min-width: 100%;
+  border: 0;
+  /* The trailing gutter belongs to the rows, not to the scroller. As the
+     scroller's own `padding-right` it is overflow past a grid track rather than
+     in-flow content, and the browser clamped `scrollLeft` 1.5px short of it — so
+     scrolled fully right, the last card sat 1.5px past the page's content edge
+     instead of on it. Carried by the rows it is ordinary scrolled width, and the
+     end of the track lands exactly on the same line as the cards above it. */
+  padding-right: 28px;
+}
+.paon-env.paon-env .appointment-timeline-ruler span {
+  display: block;
+  color: rgba(244, 242, 236, 0.42);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 17px;
+}
+/* Offsets from the container's padding edge:
+     28  ruler top rule      (the 28px marker gutter)
+     65  ruler bottom rule   (28 + 37)
+    173  product bottom rule (65 + 10 gap + 98)
+   and the wash spans 28 → 373, ending on the scene cards' own bottom edge.
+   There is deliberately no rule under the scenes: the timeline ends the page. */
+/* The timeline is the last thing on the page, so the page's trailing space is cut
+   back until the scene cards' bottom edge lands on the Visit in-store button's. */
+.paon-env.paon-env .pe-workspace:has(.appointment-fit) {
+  padding-bottom: 0;
+}
+/* Last 8px of trailing space, so the scene cards' bottom edge lands exactly on
+   the Visit in-store button's in the sidebar. */
+/* The bar should not travel at all: sticking at `top: 0` let it ride 62px up the
+   page before pinning. Its natural offset inside the scroller is 62px, so that is
+   the sticky inset — it is already at its stuck position on the first frame and
+   never moves again, the page just runs underneath it. */
+/* Hard sticky. A sticky element still rides the browser's elastic overscroll,
+   because the bounce translates the whole scroller and everything in it — so at
+   the top and bottom of the page the bar drifted with the rubber band. Turning
+   the bounce off on this scroller is what makes it hold: nothing translates, so
+   nothing for the bar to ride. */
+/* The page keeps its elastic overscroll. The booking bar is held out of it by
+   being fixed to the viewport rather than sticky inside the scroller — a sticky
+   element rides the bounce, because the bounce translates the scroller and
+   everything in it. */
+/* The white tint alone is what the sidebar toggle uses, but that pill sits on an
+   opaque sidebar. This one sits over scrolling content, so card labels read
+   straight through it. A dark base under the tint keeps the glass look and stops
+   the ghosting, and it still holds up where backdrop-filter is unavailable. */
+/* Time and party options: a little taller so the label sits comfortably. */
+.paon-env.paon-env .appointment-quick-book-option {
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #f4f2ec;
+  font: inherit;
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 180ms ease;
+  height: 40px;
+}
+/* The request icons are different shapes, so a square box sized them unevenly —
+   the priority-booking mark filled it top to bottom while the after-hours mark
+   floated high. Fixing the height and letting the width follow the artwork puts
+   them on the same optical weight, centred on the pill. */
+.paon-env.paon-env .appointment-quick-book-request {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: transparent;
+  color: #f4f2ec;
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 200ms ease,
+    opacity 200ms ease;
+  align-items: center;
+  padding: 10px 12px 10px 16px;
+}
+.paon-env.paon-env .appointment-quick-book-request img {
+  flex: 0 0 auto;
+  align-self: center;
+  width: auto;
+  max-width: 34px;
+  height: 20px;
+  object-fit: contain;
+}
+/* ── Product stacks ─────────────────────────────────────────────────────── */
+/* A month shows several products, overlapping by about a quarter so the stack
+   reads as a pile rather than a row. The negative margin is in pixels because
+   each product is a different width — it is its own image at 88px tall — and a
+   percentage would resolve against the month column, not against the product. */
+/* Fanned out: the pile becomes a row, 5px apart, and the month column has already
+   been widened to hold it. */
+/* ── Card entrances ─────────────────────────────────────────────────────── */
+/* Cards arrive one at a time, 0.2s apart, out of a blur — the same entrance the
+   home grid uses. `--spawn-index` is set per card by the component. */
+@keyframes paon-card-spawn {
+  from {
+    opacity: 0;
+    filter: blur(14px);
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+.paon-env.paon-env .appointment-idea-card,
+.paon-env.paon-env .appointment-month-carousel-card {
+  animation: paon-card-spawn 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--spawn-index, 0) * 0.2s);
+}
+@media (prefers-reduced-motion: reduce) {
+  .paon-env.paon-env .appointment-idea-card,
+  .paon-env.paon-env .appointment-month-carousel-card {
+    animation: none;
+  }
+}
+/* The date marker is a squircle, not a pill. `corner-shape` has no React typing,
+   so it lives here rather than in the inline style beside the radius. */
+/* ── High maintenance: each card is its own drawer ──────────────────────── */
+/* Opening a service grows its card downwards and pushes the page below it. The
+   `0fr → 1fr` row is what makes that animate: a plain `height: auto` has nothing
+   to interpolate, and this needs no measuring pass or JS to stay correct as the
+   price list changes length. The padding moves to the trigger so the drawer can
+   reach the card's own edges. */
+.paon-env.paon-env .appointment-care-actions > .grid {
+  overflow: visible;
+  border: none;
+  border-radius: 0;
+  background: none;
+  align-items: start;
+}
+.paon-env.paon-env .pe-care-service-card {
+  display: grid;
+  grid-template-rows: auto 0fr;
+  padding: 0;
+  overflow: hidden;
+  transition:
+    grid-template-rows 520ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 220ms ease;
+}
+.paon-env.paon-env .pe-care-service-card[data-open] {
+  grid-template-rows: auto 1fr;
+  background: rgba(255, 255, 255, 0.08);
+}
+.paon-env.paon-env .pe-care-service-trigger {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 64px;
+  padding: 14px 18px;
+  border: 0;
+  border-radius: inherit;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.paon-env.paon-env .pe-care-service-drawer {
+  min-height: 0;
+  overflow: hidden;
+}
+.paon-env.paon-env .pe-care-service-drawer-inner {
+  padding: 0 18px 16px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .paon-env.paon-env .pe-care-service-card {
+    transition: none;
+  }
+}
+/* ── Section labels ─────────────────────────────────────────────────────── */
+/* The house serif. Served from our own /public rather than hotlinked: a
+   cross-origin font needs CORS headers on the far end, and the path in the brief
+   ("serrif") returns the site's HTML — the file is "serif", with one r. */
+@font-face {
+  font-family: "NS Serrif";
+  src: url("/fonts/ns-serif.woff2") format("woff2");
+  font-display: swap;
+}
+/* The three band labels are set in the house serif at 40px. Each of the three
+   components writes its own font inline, so this has to out-rank that. */
+.paon-env.paon-env .appointment-care-heading,
+.paon-env.paon-env .appointment-idea-heading,
+.paon-env.paon-env .appointment-month-carousel-heading {
+  color: rgba(244, 242, 236, 0.5);
+  font-family: "NS Serrif", "Customer Display", serif !important;
+  font-size: 40px !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.01em !important;
+  text-transform: none !important;
+  line-height: 1.05 !important;
+}
+/* ── Scene card corners ─────────────────────────────────────────────────── */
+/* The light bloom in the bottom corners was the blur layers: a `backdrop-filter`
+   element is clipped to its own box, not to the card's rounded one, so at each
+   corner it sampled and lightened the image outside the curve. Giving the layers
+   the card's own shape puts the blur inside the curve where it belongs. The
+   bottom edge is covered by a solid stop instead of by overhang, which is what
+   the earlier oversized inset was doing. */
+.paon-env.paon-env .appointment-month-launcher::before,
+.paon-env.paon-env .appointment-month-launcher::after,
+.paon-env.paon-env .appointment-idea-card::before,
+.paon-env.paon-env .appointment-idea-card::after {
+  inset: 0;
+  border-radius: inherit;
+  corner-shape: squircle;
+}
+.paon-env.paon-env .appointment-month-launcher::after,
+.paon-env.paon-env .appointment-idea-card::after {
+  background: linear-gradient(
+    to bottom,
+    transparent 36%,
+    rgba(8, 8, 8, 0.82) 88%,
+    rgba(8, 8, 8, 0.95) 100%
+  );
+}
+/* ── Product stack edges ────────────────────────────────────────────────── */
+/* Most of these garments are shot on white, so overlapping them without an edge
+   read as one wide white slab. A hairline down the left of each, plus a deeper
+   cast shadow, separates the cards without a visible border around them. */
+/* The environment's focus ring sits 5px outside whatever it is on. On these pills
+   that drew a dark loop around each one, and on the pill whose drawer was open it
+   was painted across the options. The ring moves inside the pill instead, where it
+   marks focus without touching anything around it. */
+.paon-env.paon-env .appointment-quick-book-bar button:focus,
+.paon-env.paon-env .appointment-quick-book-bar button:focus-visible,
+.paon-env.paon-env .appointment-quick-book-drawer button:focus,
+.paon-env.paon-env .appointment-quick-book-drawer button:focus-visible {
+  outline: none !important;
+  box-shadow: inset 0 0 0 1px rgba(244, 242, 236, 0.45);
+}
+.paon-env.paon-env
+  .appointment-quick-book-field[data-open]
+  .appointment-quick-book-trigger {
+  opacity: 0;
+  outline: none !important;
+  box-shadow: none !important;
+}
+/* ── Timeline rhythm: 15px between every card and its rule ──────────────── */
+.paon-env.paon-env .appointment-timeline-scenes {
+  height: var(--paon-timeline-card-h);
+  padding-bottom: 0;
+}
+/* Offsets from the container's padding edge, with the 15px gap:
+      28  ruler top rule
+      75  ruler bottom rule   (28 + 47)
+     193  product bottom rule (75 + 15 gap + 103)
+   The wash starts at the first rule and runs the full painted box, which now
+   extends 160px past the timeline so it reaches the bottom of the window. */
+/* Whatever the elastic bounce reveals above or below the page is the page's own
+   colour, top and bottom, so an overscroll never flashes a different ground. */
+.paon-shell-content:has(.paon-env.customer-page),
+.paon-env.paon-env.customer-page {
+  background-color: #161616;
+}
+/* Set here rather than inline. The wash is painted on this box, so the box has
+   to reach past the last cards and off the bottom of the window; the negative
+   margin hands back all but 20px of that so the page still ends with the scene
+   cards level with the Visit in-store button. */
+/* The care flow draws its own panel — a stone ground, a 15px radius and 24px of
+   padding — which inside the expanded card read as a second rectangle sitting in
+   the first. In the drawer it is just content: no ground, no corner, no inset.
+   Its own heading goes too; the card's trigger above already names the service. */
+.paon-env.paon-env .pe-care-service-drawer-inner > div {
+  gap: 12px;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+}
+.paon-env.paon-env .pe-care-service-drawer-inner > div > div:first-child {
+  display: none;
+}
+/* The timeline ends the page on the Visit in-store button's line. When the
+   content is shorter than the window there is nothing to scroll and the cards
+   simply stopped wherever they fell, 140px short — so the page is given the
+   window's height less the sidebar's own 20px tail, and the last band takes up
+   the slack. Taller content pushes past it and this does nothing. */
+/* The booking bar scrolls with the page like everything else — no pinning, no
+   fixed positioning, no spacer holding its place. */
+.paon-env.paon-env .appointment-quick-book {
+  z-index: 40;
+  top: 0;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  position: static;
+  height: auto;
+  margin-top: 0;
+}
+.paon-env.paon-env .customer-page .appointment-quick-book-container {
+  z-index: 40;
+  margin: 0;
+  padding: 0;
+  position: static;
+  top: auto;
+  left: auto;
+  right: auto;
+}
+/* The products carried `opacity: .84` from when they were a faint planning hint.
+   They are the subject of the row now, so they are opaque. */
+/* The 100dvh padding used to carry the wash past the window added a viewport of
+   dead scroll below the page. The wash is a layer instead: absolutely positioned,
+   so it costs no layout height, clipped by the track's own clip margin, and it
+   does not travel with the months because an absolute child of a scroller is
+   placed against the scrollport. */
+/* The scene cards finish on the Visit in-store button's line, which sits 20px
+   off the bottom of the window. */
+/* The bar takes the dry-cleaning card's ground as a flat colour — that card's
+   5% white over the page's #161616 resolves to #222 — with no translucency and
+   no blur behind it. The controls inside sit 20% lighter than that ground. */
+.paon-env.paon-env .appointment-quick-book-shortcut,
+.paon-env.paon-env .appointment-quick-book-trigger {
+  background: #3d3d3d;
+}
+.paon-env.paon-env .appointment-quick-book-shortcut:hover,
+.paon-env.paon-env .appointment-quick-book-trigger:hover {
+  background: #494949;
+}
+/* No outline around the controls — the dark ring hugging each pill was a border
+   and shadow left over from when these were native inputs. */
+.paon-env.paon-env .appointment-quick-book-shortcut,
+.paon-env.paon-env .appointment-quick-book-trigger,
+.paon-env.paon-env .appointment-quick-book-button {
+  border: 0;
+  outline: 0;
+  box-shadow: none;
+}
+/* The scene cards land exactly on the Visit in-store line. */
+/* The month row is only as tall as a month needs: the label and a little air,
+   not the 15px the card rows carry. Rules move up with it. */
+.paon-env.paon-env .appointment-timeline-ruler {
+  gap: 10px;
+  height: 27px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+/* The two ends of the elastic bounce show different grounds, because the page
+   itself does: the top opens onto the ordinary page ground, the bottom onto the
+   timeline's lighter one (that wash is 3.5% white over #161616, i.e. #1e1e1e).
+   The scroller carries the dark as a colour and the light as a band pinned to its
+   bottom edge — the only strip a bounce can ever reveal down there. */
+/* ── Timeline bands ─────────────────────────────────────────────────────── */
+/* The three tracks are told apart by ground, not by rules: each band is a step
+   lighter than the one above it. The month and product bands are backgrounds on
+   the track, which paints inside its padding box; the scene band has to run off
+   the bottom of the window, so it stays a layer. */
+/* The bottom of the bounce opens onto the scene band, so it is that colour. */
+/* Back to rules. One ground for the whole timeline, with a hairline under the
+   month row and under the product row; the wash still runs off the bottom. */
+.paon-shell-content:has(.paon-env.customer-page) {
+  overscroll-behavior-y: auto;
+  background-color: #161616;
+  background-repeat: no-repeat;
+  background-position: bottom;
+  background-size: 100% 260px;
+  background-image: linear-gradient(#1e1e1e, #1e1e1e);
+}
+/* The bar is the sidebar toggle's twin: 51px tall with 3px around the controls,
+   drawn inverted — a light pill (the toggle's own selected ink, #e4e4e1) with
+   dark controls in it — and with plain round pill ends, not squircle ones. */
+.paon-env.paon-env .customer-page .appointment-quick-book-bar {
+  overflow: visible;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  height: 51px;
+  padding: 3px;
+  corner-shape: round;
+}
+.paon-env.paon-env
+  .customer-page
+  .appointment-quick-book-bar
+  .appointment-quick-book-shortcut,
+.paon-env.paon-env
+  .customer-page
+  .appointment-quick-book-bar
+  .appointment-quick-book-field,
+.paon-env.paon-env
+  .customer-page
+  .appointment-quick-book-bar
+  .appointment-quick-book-trigger {
+  background: #262626;
+}
+.paon-env.paon-env
+  .customer-page
+  .appointment-quick-book-bar
+  .appointment-quick-book-shortcut:hover,
+.paon-env.paon-env
+  .customer-page
+  .appointment-quick-book-bar
+  .appointment-quick-book-trigger:hover {
+  background: #333333;
+}
+/* Continue is dark like the rest, keeping its green as the label. */
+.paon-env.paon-env
+  .customer-page
+  .appointment-quick-book-bar
+  .appointment-quick-book-button {
+  background: #161616;
+  color: #b8e6be;
+}
+/* More air between the page's blocks: above High Maintenance, Get started
+   and Wardrobe Planning. */
+.paon-env.paon-env .customer-page.appointment-fit {
+  gap: 40px !important;
+}
+/* An older rule gave the marker `height: calc(100% - 12px)`, and with a height
+   set the `bottom` offset is ignored — which is why the line stopped on the last
+   card instead of running off the bottom of the window. */
+/* Three garment rows now, each its own height, so the rules move with them:
+      28  above the months
+      55  under the months        (28 + 27)
+     138  under suits & jackets   (55 + 15 gap + 68)
+     230  under knits & shirts    (138 + 15 + 77)
+     298  under shoes             (230 + 15 + 53)
+   Row heights come from the component, which keeps the two in step. */
+/* The stacks no longer overlap: a plain 5px between every product, expanded or
+   not, so the negative margin and its cast shadow both go. */
+/* One garment row again, so the rules come back to three:
+      28  above the months
+      55  under the months
+     138  under suits & jackets  (55 + 15 gap + 68) */
+/* ── Timeline geometry, restated in CSS ─────────────────────────────────── */
+/* Every measurement below is also written inline by the component. It is
+   repeated here because CSS changes have been reaching the browser reliably
+   while component changes have not, and a half-applied build put the rules in
+   one place and the rows in another. With both carrying the same numbers the
+   layout holds whichever arrives. */
+/* Shown whole. The 40% bottom crop cut straight through the garment — these are
+   full-length model shots, not jacket crops, so the cut landed across the legs
+   and read as a mistake rather than a frame. */
+/* The marker starts on the month row and runs off the bottom of the window. */
+.paon-env.paon-env .appointment-timeline-today {
+  position: absolute;
+  z-index: 3;
+  width: 1px;
+  background: #e5eb56;
+  pointer-events: none;
+  top: 0 !important;
+  /* Exactly the page's own 20px bottom gutter — the distance from the last row
+     to the bottom of the window. The scroller's clip edge is extended by the
+     same 20px (see `.appointment-month-carousel`), so the line is not cut short
+     and the page gains no scroll height. */
+  bottom: -20px !important;
+  height: auto !important;
+}
+.paon-env.paon-env .appointment-timeline-today span {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: #e5eb56;
+  color: #15160d;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  corner-shape: squircle;
+  display: flex !important;
+  height: 27px !important;
+  align-items: center !important;
+  padding: 0 14px !important;
+  font-size: 12px !important;
+}
+/* Rules follow the taller product row:
+      28  above the months
+      55  under the months
+     173  under the products  (55 + 15 gap + 103) */
+/* The timeline's bottom edge is on the Visit in-store button's line at every
+   scroll position, not only when the page happens to be scrolled to its end. The
+   page is 234px taller than the window, so aligning it once at the bottom meant
+   it was wrong every other moment — it sticks to the foot of the window instead.
+   An opaque ground, because the rest of the page now passes behind it. */
+/* Sticky could never hold this: an element sticks against its own parent's box,
+   and the timeline is the last thing in the page, so there was nothing below it
+   to stick within — it only lined up when the page happened to be scrolled to the
+   end. It is docked to the window instead, and the page reserves its height so
+   the sections above still scroll clear of it.
+
+   441px is the timeline's own height: 28 gutter + 27 months + 15 + 103 products
+   + 15 + 190 scene cards, plus the heading row. It does not vary with the window,
+   only with those rows, which are fixed here and in the component together. */
+.paon-env.paon-env .appointment-month-carousel-section {
+  /* The scene cards' own bottom edge then lands on the button's line. */
+  margin: 0;
+}
+/* No reserved strip under the page: the sections above are shorter than the
+   window on their own, so nothing scrolls and the docked timeline stays put.
+   Reserving the timeline's height only made the page scroll again, which is what
+   moved it off the line. */
+/* Docking the timeline to the window is abandoned. `position: fixed` cannot work
+   inside this shell: GSAP leaves an identity transform on `.paon-shell-content`
+   after its entrance, which makes the shell the containing block for fixed
+   descendants, so the panel anchored to the shell's scrolled box and landed in
+   the middle of the page on top of Get Started. The timeline is ordinary page
+   content again, last in the flow. */
+.paon-env.paon-env .appointment-month-carousel-section {
+  left: auto;
+}
+/* ── One card geometry for both carousels ───────────────────────────────── */
+/* The cards grow with the window in BOTH directions, holding the shapes signed
+   off at 1512px wide: 344×220 for the idea cards, 344×190 for the timeline's.
+   The width takes 3.5 cards across the content column, and each height follows
+   from it, so a window that grows in either direction grows the cards in both
+   and the shape never changes. */
+.paon-env.paon-env .customer-page.appointment-fit {
+  --paon-card-w: max(220px, calc((100vw - 308px) / 3.5));
+  --paon-idea-card-h: calc(var(--paon-card-w) * 220 / 344);
+  --paon-timeline-card-h: calc(var(--paon-card-w) * 190 / 344);
+  /* The carousel's whole BORDER box, because that is what `min-height` sizes:
+     28 top gutter + 27 month rule + 15 gap + the card + the 20 bottom gutter
+     that lets the today line reach the window. Miss the 20 and the box is
+     20px short of its own content, which a scroller answers by clipping the
+     cards. 280px at the 1512px reference, i.e. the 260px box plus that gutter. */
+  --paon-timeline-h: calc(90px + var(--paon-timeline-card-h));
+}
+.paon-env.paon-env .customer-page.appointment-fit {
+  /* Exactly one window tall, border-box, so the content edge is the window's
+     bottom less this padding. The sidebar's Visit in-store button sits 20px off
+     the bottom, so the timeline's last row ends on its line. */
+  min-height: 100vh;
+  padding-bottom: 20px !important;
+}
+@media (max-width: 1180px) {
+  .paon-env.paon-env .appointment-month-carousel-section {
+    left: auto;
+  }
+}
+/* ── Safari ─────────────────────────────────────────────────────────────── */
+/* `overflow-clip-margin` does not exist in Safari, and `overflow-y: clip` beside
+   `overflow-x: auto` is handled unevenly there — the track was relying on both.
+   The track clips plainly now, and the two things that had to escape it move to
+   the section, which has nothing clipping it at all. */
+.paon-env.paon-env .appointment-month-carousel {
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  touch-action: pan-x;
+  position: relative;
+  display: grid;
+  gap: 10px;
+  scroll-snap-type: x mandatory;
+  background-repeat: no-repeat;
+  /* Two rules only: the month row's own top and bottom. The third at 173px
+     closed a products row that the timeline no longer has, so it painted
+     straight across the scene cards. */
+  /* A third rule closes the timeline at its foot, on the bottom of the padding
+     box, which is exactly where the today line ends. */
+  background-image:
+    linear-gradient(rgba(244, 242, 236, 0.14), rgba(244, 242, 236, 0.14)),
+    linear-gradient(rgba(244, 242, 236, 0.14), rgba(244, 242, 236, 0.14)),
+    linear-gradient(rgba(244, 242, 236, 0.14), rgba(244, 242, 236, 0.14));
+  background-size:
+    100% 1px,
+    100% 1px,
+    100% 1px;
+  background-position:
+    0 28px,
+    0 55px,
+    0 100%;
+  overflow-x: auto;
+  /* The today marker's line has to run past the foot of the timeline to the
+     bottom of the window, and `overflow-x: auto` forbids a visible y axis. So
+     the scroller carries the overhang as real bottom padding — which `hidden`
+     clips against, not at 260px — and gives it straight back as negative
+     margin, leaving the box 260px tall in layout exactly as before. `hidden`
+     offers the user no scrolling mechanism, so the extra height cannot be
+     wheeled into view. */
+  overflow-y: hidden;
+  /* The today marker's line has to run past the foot of the timeline to the
+     bottom of the window, and `overflow-x: auto` forbids a visible y axis —
+     `overflow-y: clip` beside it computes to `hidden`, so `overflow-clip-margin`
+     is ignored and the clip edge is the padding box. So the padding box is
+     extended by exactly the page's own 20px bottom gutter, and the same 20px is
+     handed straight back as negative margin. The clip edge lands on the bottom
+     of the window; the box still occupies 260px in layout, so the page gains no
+     scroll height. Anything larger than the gutter would: the carousel's border
+     box is real content to the page scroller, and 1400px of it put 1400px of
+     dead page under the timeline. */
+  overflow-clip-margin: initial;
+  padding-bottom: 20px !important;
+  margin-bottom: -20px !important;
+}
+.paon-env.paon-env .appointment-month-carousel::after {
+  position: absolute;
+  z-index: -1;
+  right: 0;
+  left: 0;
+  /* Measured from the first rule, so it has to cover the timeline itself plus
+     every pixel between its last card and the bottom of any window. `clip` never
+     creates scrollable overflow, so the overhang costs nothing. */
+  height: 1400px;
+  pointer-events: none;
+  top: 28px;
+  background: rgba(255, 255, 255, 0.035);
+  content: none;
+}
+.paon-env.paon-env .appointment-month-carousel-section {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  z-index: auto;
+  right: auto;
+  bottom: auto;
+  margin-bottom: 0;
+  background: none;
+  position: relative;
+  isolation: isolate;
+  /* Heading and timeline travel together to the foot of the wrapper, which
+     takes whatever height the blocks above leave. That is what puts the scene
+     cards on the Visit in-store button's line at any window height; the slack
+     falls above the heading rather than between it and its own timeline. */
+  margin-top: auto;
+}
+.paon-env.paon-env .appointment-timeline-section {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+/* The wash: from the timeline's first rule to well past the bottom of any
+   window, bleeding into both page gutters like the track does. */
+/* The wash must not hang below the section. An absolutely positioned box still
+   counts towards its scroller's scrollable area, so `bottom: -1400px` added 1400px
+   of empty page under the timeline — that was the dead space. It stops at the
+   section's own edge; the strip an overscroll reveals below is already painted in
+   the same colour on the scroller itself. */
+.paon-env.paon-env .appointment-month-carousel-section::before {
+  position: absolute;
+  z-index: -1;
+  /* Anchored to the foot, not the head: the section stretches to fill the page,
+     but the wash belongs to the timeline sitting at its bottom. 275px is the
+     carousel's 260px box, less the 28px gutter above its first rule, plus the
+     page's 20px bottom padding — so it starts ON the rule above the month
+     labels, never above it, and ends on the bottom edge of the window. */
+  top: auto;
+  right: -28px;
+  bottom: -20px;
+  left: -28px;
+  height: calc(var(--paon-timeline-h) - 28px);
+  background: rgba(255, 255, 255, 0.035);
+  content: "";
+  pointer-events: none;
+}
+
+/* ── Carousel arrows: one joined pill ───────────────────────────────────── */
+/* Both carousels' arrows sit in a single pill, split by a short hairline,
+   with thin chevrons drawn from two borders instead of the arrow glyphs. */
+.paon-env.paon-env .appointment-idea-arrows,
+.paon-env.paon-env .appointment-month-carousel-arrows {
+  position: relative;
+  display: inline-flex;
+  gap: 0;
+  height: 36px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.paon-env.paon-env .appointment-idea-arrows::before,
+.paon-env.paon-env .appointment-month-carousel-arrows::before {
+  position: absolute;
+  top: 9px;
+  bottom: 9px;
+  left: 50%;
+  width: 1px;
+  background: rgba(244, 242, 236, 0.25);
+  content: "";
+  pointer-events: none;
+}
+.paon-env.paon-env .appointment-idea-arrows .appointment-idea-arrow,
+.paon-env.paon-env
+  .appointment-month-carousel-arrows
+  .appointment-month-carousel-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 36px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: rgba(244, 242, 236, 0.6);
+  font-size: 0;
+  cursor: pointer;
+  transition:
+    color 220ms ease,
+    background-color 220ms ease;
+}
+.paon-env.paon-env .appointment-idea-arrows .appointment-idea-arrow:hover,
+.paon-env.paon-env
+  .appointment-month-carousel-arrows
+  .appointment-month-carousel-arrow:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #f4f2ec;
+}
+.paon-env.paon-env .appointment-idea-arrows .appointment-idea-arrow::before,
+.paon-env.paon-env
+  .appointment-month-carousel-arrows
+  .appointment-month-carousel-arrow::before {
+  width: 9px;
+  height: 9px;
+  border: solid currentColor;
+  border-width: 0 0 1.5px 1.5px;
+  content: "";
+}
+.paon-env.paon-env .appointment-idea-arrow-left::before,
+.paon-env.paon-env .appointment-month-carousel-arrow-left::before {
+  transform: translateX(2px) rotate(45deg);
+}
+.paon-env.paon-env .appointment-idea-arrow-right::before,
+.paon-env.paon-env .appointment-month-carousel-arrow-right::before {
+  transform: translateX(-2px) rotate(-135deg);
+}
+
+/* ── Tailoring Party planner ────────────────────────────────────────────── */
+.paon-env.paon-env .customer-page .appointment-tailoring-party-bar {
+  margin: 0 0 28px;
+}
+/* The guest sign-in card, popped up over the page. It is portalled to the
+   body, outside .paon-env, so it is not scoped to it. */
+.appointment-sign-in-overlay {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+}
+.appointment-sign-in-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.58);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.appointment-sign-in-close {
+  position: absolute;
+  z-index: 20;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #f4f2ec;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+.appointment-sign-in-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ── Request buttons' icons ─────────────────────────────────────────────── */
+/* One 20px box each, right-aligned and centred on the label. The rush
+   artwork fills only the top half of its image (ink 480x237 of 512), so it
+   is scaled to the same 20px width as the VIP rope and moved down onto the
+   centre line. */
+.paon-env.paon-env .appointment-quick-book-request img {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+.paon-env.paon-env .appointment-quick-book-request img[src$="rush.png"] {
+  transform: translate(0.64px, 5.76px) scale(1.067);
+}
+
+/* ── Titles: one distance to their content, ample air above ─────────────── */
+/* Every block's title (and its arrow pill) sits 16px above its content —
+   the cards, or the timeline's first rule — and every block has 64px of air
+   above it. The timeline carries a 28px gutter above its first rule, so it
+   is drawn up by that much; its header stays on top so the arrows keep
+   their clicks. */
+.paon-env.paon-env .customer-page.appointment-fit {
+  gap: 64px !important;
+}
+.paon-env.paon-env .appointment-care-actions {
+  margin-top: 0 !important;
+}
+.paon-env.paon-env .appointment-care-heading,
+.paon-env.paon-env .appointment-idea-heading,
+.paon-env.paon-env .appointment-month-carousel-heading {
+  margin: 0 !important;
+}
+.paon-env.paon-env .appointment-care-actions > .appointment-care-heading,
+.paon-env.paon-env
+  .appointment-tailoring-party-section
+  > .appointment-care-heading,
+.paon-env.paon-env .appointment-idea-header {
+  margin-bottom: 16px !important;
+}
+.paon-env.paon-env .appointment-month-carousel-section {
+  gap: 0 !important;
+}
+.paon-env.paon-env .appointment-month-carousel-header {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 16px;
+}
+.paon-env.paon-env
+  .appointment-month-carousel-section
+  > .appointment-month-carousel {
+  margin-top: -28px !important;
+}
+.paon-env.paon-env .appointment-idea-section {
+  gap: 0 !important;
+}
+/* The VIP rope reads heavier than the rush glyph at the same width, so it is
+   drawn at 72%, its right edge kept on the rush icon's right edge. */
+.paon-env.paon-env .appointment-quick-book-request img[src$="vipaccess.png"] {
+  transform: translateX(2.8px) scale(0.72);
+}
+
+/* ── Tailoring Party cards ──────────────────────────────────────────────── */
+/* Under the planner row: the orbit in its own card, flush with the date
+   pill's left edge, and the party's live status card filling the rest.
+   Same ground, radius and corner as the High Maintenance cards. */
+.paon-env.paon-env .appointment-tailoring-party-cards {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
+}
+.paon-env.paon-env .appointment-tailoring-party-card {
+  border-radius: 18px;
+  corner-shape: squircle;
+  background: rgba(255, 255, 255, 0.05);
+  color: #f4f2ec;
+}
+.paon-env.paon-env .appointment-tailoring-party-orbit-card {
+  display: grid;
+  place-items: center;
+  padding: 12px 24px;
+}
+.paon-env.paon-env .appointment-tailoring-party-invites {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+  padding: 24px;
+}
+.paon-env.paon-env .appointment-tailoring-party-invites-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.paon-env.paon-env .appointment-tailoring-party-invites-head h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+.paon-env.paon-env .appointment-tailoring-party-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(244, 242, 236, 0.6);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.paon-env.paon-env .appointment-tailoring-party-live i {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #b8e6be;
+  box-shadow: 0 0 0 0 rgba(184, 230, 190, 0.6);
+  animation: tp-live-pulse 2s ease-out infinite;
+}
+@keyframes tp-live-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(184, 230, 190, 0.55);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 7px rgba(184, 230, 190, 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .paon-env.paon-env .appointment-tailoring-party-live i {
+    animation: none;
+  }
+}
+.paon-env.paon-env .appointment-tailoring-party-people {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.paon-env.paon-env .appointment-tailoring-party-people li {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) minmax(0, 1.4fr) 84px;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+}
+.paon-env.paon-env
+  .appointment-tailoring-party-people
+  li
+  > .appointment-tailoring-party-person {
+  grid-column: 2 / 4;
+  overflow: hidden;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.paon-env.paon-env .appointment-tailoring-party-seat {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  font-size: 13px;
+}
+.paon-env.paon-env .appointment-tailoring-party-seat.is-open {
+  border: 1.5px dashed rgba(255, 255, 255, 0.18);
+  background: transparent;
+  color: rgba(244, 242, 236, 0.5);
+  font-size: 11px;
+}
+.paon-env.paon-env .appointment-tailoring-party-input {
+  min-width: 0;
+  height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  outline: 0;
+  background: #262626;
+  color: #f4f2ec;
+  font: inherit;
+  font-size: 14px;
+}
+.paon-env.paon-env .appointment-tailoring-party-input::placeholder {
+  color: rgba(244, 242, 236, 0.4);
+}
+.paon-env.paon-env .appointment-tailoring-party-input:focus-visible {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+}
+.paon-env.paon-env .appointment-tailoring-party-status {
+  justify-self: end;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(244, 242, 236, 0.5);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.paon-env.paon-env .appointment-tailoring-party-status.is-ready {
+  color: #f4f2ec;
+}
+.paon-env.paon-env .appointment-tailoring-party-status.is-sent,
+.paon-env.paon-env .appointment-tailoring-party-status.is-joined {
+  background: rgba(184, 230, 190, 0.12);
+  color: #b8e6be;
+}
+.paon-env.paon-env .appointment-tailoring-party-status.is-host {
+  color: rgba(244, 242, 236, 0.75);
+}
+.paon-env.paon-env .appointment-tailoring-party-error {
+  margin: 0;
+  color: #f0a8a0;
+  font-size: 13px;
+}
+.paon-env.paon-env .appointment-tailoring-party-invites-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: auto;
+}
+.paon-env.paon-env .appointment-tailoring-party-invites-foot p {
+  max-width: 340px;
+  margin: 0;
+  color: rgba(244, 242, 236, 0.5);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.paon-env.paon-env .appointment-tailoring-party-send {
+  flex: none;
+  height: 45px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 999px;
+  background: #161616;
+  color: #b8e6be;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 200ms ease;
+}
+.paon-env.paon-env .appointment-tailoring-party-send:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+@media (max-width: 1100px) {
+  .paon-env.paon-env .appointment-tailoring-party-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .paon-env.paon-env .appointment-tailoring-party-people li {
+    grid-template-columns: 32px minmax(0, 1fr) 72px;
+  }
+  .paon-env.paon-env
+    .appointment-tailoring-party-people
+    li
+    > .appointment-tailoring-party-input[type="email"] {
+    grid-column: 2 / 4;
+  }
+}
+/* The page's global input rule outlines and squares every field; these are
+   the booking bar's own dark pills. */
+.paon-env.paon-env
+  .appointment-tailoring-party-people
+  input.appointment-tailoring-party-input {
+  height: 40px !important;
+  min-height: 0 !important;
+  padding: 0 16px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  outline: 0 !important;
+  background: #262626 !important;
+  box-shadow: none !important;
+  color: #f4f2ec !important;
+  font-size: 14px !important;
+}
+.paon-env.paon-env
+  .appointment-tailoring-party-people
+  input.appointment-tailoring-party-input:focus-visible {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3) !important;
+}
+@media (max-width: 640px) {
+  .paon-env.paon-env .appointment-tailoring-party-people li {
+    row-gap: 6px;
+  }
+  .paon-env.paon-env
+    .appointment-tailoring-party-people
+    li
+    > .appointment-tailoring-party-person {
+    grid-column: 2;
+  }
+  .paon-env.paon-env
+    .appointment-tailoring-party-people
+    li
+    > .appointment-tailoring-party-status {
+    grid-row: 1;
+    grid-column: 3;
+  }
+  .paon-env.paon-env
+    .appointment-tailoring-party-people
+    li
+    > .appointment-tailoring-party-input[type="email"] {
+    grid-row: 2;
+    grid-column: 2 / 4;
+  }
+  .paon-env.paon-env .appointment-tailoring-party-invites-foot {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+/* The orbit is drawn on a fixed 344px stage; on a phone the card is
+   narrower than that, so the stage is scaled to fit. */
+@media (max-width: 640px) {
+  .paon-env.paon-env .appointment-tailoring-party-orbit-card {
+    overflow: hidden;
+    padding: 8px 0;
+  }
+  .paon-env.paon-env .appointment-tailoring-party-orbit-card .tp-orbit-root {
+    zoom: 0.88;
+  }
+}
+/* Today's pill: a yellow outline on a clear 20px-blurred ground, the date in
+   grey — the yellow line carries the marker, the pill only labels it. */
+.paon-env.paon-env .appointment-timeline-today span {
+  border: 1px solid #e5eb56 !important;
+  /* The outline's own yellow at 20%, over a 20px blur. */
+  background: rgba(229, 235, 86, 0.2) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  /* Set exactly like the month labels in the same row: 10px, semibold,
+     capitals, 0.4px tracking, the same grey. */
+  color: rgba(244, 242, 236, 0.42) !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.4px !important;
+  text-transform: uppercase !important;
+  line-height: 17px !important;
+}
+
+/* ── Tailoring Party, round 3 ───────────────────────────────────────────── */
+/* No title on the party card: the live line leads it. Every person's line is
+   seat · name · email · status · settings; the status only appears when
+   there is something to say (Invited, Joined …). */
+.paon-env.paon-env .appointment-tailoring-party-people li {
+  grid-template-columns: 32px minmax(0, 1fr) minmax(0, 1.4fr) auto 32px;
+}
+.paon-env.paon-env
+  .appointment-tailoring-party-people
+  li
+  > .appointment-tailoring-party-person {
+  grid-column: 2 / 5;
+}
+.paon-env.paon-env .appointment-tailoring-party-seat {
+  position: relative;
+  overflow: hidden;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+.paon-env.paon-env .appointment-tailoring-party-seat svg {
+  width: 15px;
+  height: 15px;
+  color: rgba(244, 242, 236, 0.85);
+}
+.paon-env.paon-env .appointment-tailoring-party-seat img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.paon-env.paon-env .appointment-tailoring-party-seat.is-photo-pick {
+  cursor: pointer;
+}
+.paon-env.paon-env .appointment-tailoring-party-seat.is-photo-pick:hover {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+.paon-env.paon-env .appointment-tailoring-party-seat input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.paon-env.paon-env .tp-person-settings-wrap {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.paon-env.paon-env .tp-person-settings {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(244, 242, 236, 0.45);
+  cursor: pointer;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
+}
+.paon-env.paon-env .tp-person-settings:hover,
+.paon-env.paon-env .tp-person-settings[aria-expanded="true"] {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f4f2ec;
+}
+.paon-env.paon-env .tp-person-settings svg {
+  width: 15px;
+  height: 15px;
+}
+.paon-env.paon-env .tp-person-menu {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 210px;
+  padding: 6px;
+  border-radius: 14px;
+  background: #262626;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+.paon-env.paon-env .tp-person-settings-wrap:has(.tp-person-menu) {
+  z-index: 80;
+}
+.paon-env.paon-env .tp-person-menu {
+  z-index: 90;
+  min-width: 228px;
+  padding: 8px;
+  border: 1px solid rgba(244, 242, 236, 0.14);
+  background: #181818;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.68);
+}
+.paon-env.paon-env .tp-person-menu button {
+  min-height: 38px;
+}
+.paon-env.paon-env .tp-person-menu button {
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #f4f2ec;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+.paon-env.paon-env .tp-person-menu button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.07);
+}
+.paon-env.paon-env .tp-person-menu button:disabled {
+  color: rgba(244, 242, 236, 0.35);
+  cursor: default;
+}
+.paon-env.paon-env .tp-person-menu button.is-danger:not(:disabled) {
+  color: #f0a8a0;
+}
+.paon-env.paon-env
+  .appointment-tailoring-party-people
+  input.appointment-tailoring-party-input[readonly] {
+  color: rgba(244, 242, 236, 0.7) !important;
+}
+/* Send: a quiet outlined pill at the foot, no explanation under it. */
+.paon-env.paon-env .appointment-tailoring-party-invites-foot {
+  justify-content: flex-end;
+}
+.paon-env.paon-env .appointment-tailoring-party-send {
+  height: 40px;
+  padding: 0 20px;
+  background: transparent;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  color: #f4f2ec;
+  font-weight: 500;
+}
+.paon-env.paon-env .appointment-tailoring-party-send:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+}
+/* Booked: the button rests, a quiet check of the state rather than an ask. */
+.paon-env.paon-env
+  .customer-page
+  .appointment-quick-book-bar
+  .appointment-quick-book-button[data-state="booked"] {
+  opacity: 1;
+  background: rgba(184, 230, 190, 0.14);
+  color: #b8e6be;
+}
+
+/* The invitee's party, under the booking bar. */
+.paon-env.paon-env .appointment-tailoring-party-invitee {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.paon-env.paon-env
+  .customer-page
+  .appointment-tailoring-party-invitee
+  .appointment-quick-book-container {
+  position: static;
+  margin: 0;
+  padding: 0;
+}
+.paon-env.paon-env
+  .appointment-quick-book-bar.is-readonly
+  .appointment-quick-book-trigger {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 45px;
+  padding: 0 20px;
+  border-radius: 999px;
+  background: #262626;
+  color: #f4f2ec;
+  cursor: default;
+}
+.paon-env.paon-env .appointment-tailoring-party-join {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 24px;
+}
+.paon-env.paon-env .appointment-tailoring-party-join-lead {
+  margin: 0;
+  color: rgba(244, 242, 236, 0.75);
+  font-size: 14px;
+}
+.paon-env.paon-env .appointment-tailoring-party-join-form {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 18px 24px;
+  align-items: start;
+}
+.paon-env.paon-env .appointment-tailoring-party-join-photo {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  overflow: hidden;
+  border: 1.5px dashed rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  color: rgba(244, 242, 236, 0.6);
+  font-size: 24px;
+  cursor: pointer;
+}
+.paon-env.paon-env .appointment-tailoring-party-join-photo svg {
+  width: 34px;
+  height: 34px;
+}
+.paon-env.paon-env .appointment-tailoring-party-join-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.paon-env.paon-env .appointment-tailoring-party-join-photo input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.paon-env.paon-env .appointment-tailoring-party-join-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 10px;
+}
+.paon-env.paon-env
+  .appointment-tailoring-party-join-fields
+  input.appointment-tailoring-party-input {
+  height: 40px !important;
+  padding: 0 16px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: #262626 !important;
+  box-shadow: none !important;
+  color: #f4f2ec !important;
+  font-size: 14px !important;
+}
+.paon-env.paon-env .appointment-tailoring-party-join-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.paon-env.paon-env
+  .appointment-tailoring-party-join-actions
+  .appointment-tailoring-party-error {
+  margin-right: auto;
+}
+.paon-env.paon-env
+  .appointment-tailoring-party-join-actions
+  .appointment-quick-book-button {
+  height: 40px;
+  line-height: 40px;
+  background: #b8e6be;
+  color: #14120f;
+}
+.paon-env.paon-env .appointment-tailoring-party-join-done {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  color: rgba(244, 242, 236, 0.6);
+  font-size: 13px;
+}
+@media (max-width: 640px) {
+  .paon-env.paon-env .appointment-tailoring-party-people li {
+    grid-template-columns: 32px minmax(0, 1fr) auto 32px;
+  }
+  .paon-env.paon-env
+    .appointment-tailoring-party-people
+    li
+    > .appointment-tailoring-party-person {
+    grid-column: 2 / 4;
+  }
+  .paon-env.paon-env
+    .appointment-tailoring-party-people
+    li
+    > .appointment-tailoring-party-input[type="email"] {
+    grid-row: 2;
+    grid-column: 2 / 5;
+  }
+  .paon-env.paon-env
+    .appointment-tailoring-party-people
+    li
+    > .appointment-tailoring-party-status {
+    grid-row: 1;
+    grid-column: 3;
+  }
+  .paon-env.paon-env .appointment-tailoring-party-join-form {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+  }
+  .paon-env.paon-env .appointment-tailoring-party-join-fields {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* Status and options each keep their own column, so "Invited" never
+   crowds the options button: name spans 2–3, status sits in 4, the three-dot
+   squircle in 5. */
+.paon-env.paon-env .appointment-tailoring-party-people li {
+  grid-template-columns: 32px minmax(0, 1fr) minmax(0, 1.4fr) 72px 32px;
+}
+.paon-env.paon-env
+  .appointment-tailoring-party-people
+  li
+  > .appointment-tailoring-party-person {
+  grid-column: 2 / 4;
+}
+.paon-env.paon-env
+  .appointment-tailoring-party-people
+  li
+  > .appointment-tailoring-party-status {
+  grid-column: 4;
+  justify-self: end;
+}
+.paon-env.paon-env
+  .appointment-tailoring-party-people
+  li
+  > .tp-person-settings-wrap {
+  grid-column: 5;
+}
+.paon-env.paon-env .tp-person-settings {
+  border-radius: 10px;
+  corner-shape: squircle;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(244, 242, 236, 0.7);
+}
+.paon-env.paon-env .tp-person-settings svg {
+  width: 14px;
+  height: 14px;
+}
+@media (max-width: 640px) {
+  .paon-env.paon-env .appointment-tailoring-party-people li {
+    grid-template-columns: 32px minmax(0, 1fr) 64px 32px;
+  }
+  .paon-env.paon-env
+    .appointment-tailoring-party-people
+    li
+    > .appointment-tailoring-party-person {
+    grid-column: 2;
+  }
+  .paon-env.paon-env
+    .appointment-tailoring-party-people
+    li
+    > .appointment-tailoring-party-status {
+    grid-row: 1;
+    grid-column: 3;
+  }
+  .paon-env.paon-env
+    .appointment-tailoring-party-people
+    li
+    > .tp-person-settings-wrap {
+    grid-row: 1;
+    grid-column: 4;
+  }
+  .paon-env.paon-env
+    .appointment-tailoring-party-people
+    li
+    > .appointment-tailoring-party-input[type="email"] {
+    grid-row: 2;
+    grid-column: 2 / 5;
+  }
+}
+
+/* ── Tailoring Party, round 4: chat column, no per-person status ─────────── */
+.paon-env.paon-env .appointment-tailoring-party-cards {
+  grid-template-columns: auto minmax(0, 1fr) minmax(280px, 0.75fr);
+}
+.paon-env.paon-env .appointment-tailoring-party-people li {
+  grid-template-columns: 32px minmax(0, 1fr) minmax(0, 1.4fr) 32px;
+}
+.paon-env.paon-env
+  .appointment-tailoring-party-people
+  li
+  > .tp-person-settings-wrap {
+  grid-column: 4;
+}
+.paon-env.paon-env .appointment-tailoring-party-invitee-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.6fr);
+  gap: 18px;
+  align-items: stretch;
+}
+/* The chat: messages above, one line to write below. */
+.paon-env.paon-env .tp-chat {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  max-height: 478px;
+  padding: 18px;
+}
+.paon-env.paon-env .tp-chat-log {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 160px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+.paon-env.paon-env .tp-chat-empty {
+  margin: auto 0;
+  color: rgba(244, 242, 236, 0.5);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+}
+.paon-env.paon-env .tp-chat-message {
+  align-self: flex-start;
+  max-width: 88%;
+  padding: 8px 12px 6px;
+  border-radius: 14px 14px 14px 4px;
+  background: rgba(255, 255, 255, 0.06);
+}
+.paon-env.paon-env .tp-chat-message.is-mine {
+  align-self: flex-end;
+  border-radius: 14px 14px 4px 14px;
+  background: rgba(184, 230, 190, 0.12);
+}
+.paon-env.paon-env .tp-chat-author {
+  display: block;
+  margin-bottom: 2px;
+  color: rgba(244, 242, 236, 0.5);
+  font-size: 11px;
+}
+.paon-env.paon-env .tp-chat-message p {
+  margin: 0;
+  color: #f4f2ec;
+  font-size: 13px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.paon-env.paon-env .tp-chat-message time {
+  display: block;
+  margin-top: 2px;
+  color: rgba(244, 242, 236, 0.35);
+  font-size: 10px;
+  text-align: right;
+}
+.paon-env.paon-env .tp-chat-error {
+  margin: 8px 0 0;
+  color: #f0a8a0;
+  font-size: 12px;
+}
+.paon-env.paon-env .tp-chat-compose {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+.paon-env.paon-env .tp-chat-compose textarea {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 40px;
+  max-height: 120px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 20px;
+  outline: 0;
+  background: #262626;
+  color: #f4f2ec;
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  resize: none;
+  field-sizing: content;
+}
+.paon-env.paon-env .tp-chat-compose textarea::placeholder {
+  color: rgba(244, 242, 236, 0.4);
+}
+.paon-env.paon-env .tp-chat-compose button {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: #161616;
+  color: #b8e6be;
+  cursor: pointer;
+}
+.paon-env.paon-env .tp-chat-compose button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.paon-env.paon-env .tp-chat-compose button svg {
+  width: 15px;
+  height: 15px;
+}
+/* A location reads as its name with the street and number small under it. */
+.paon-env.paon-env .appointment-quick-book-trigger-stack,
+.paon-env.paon-env .appointment-quick-book-option-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  line-height: 1.15;
+  text-align: left;
+}
+.paon-env.paon-env .appointment-quick-book-trigger-stack > span,
+.paon-env.paon-env .appointment-quick-book-trigger-stack > small {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.paon-env.paon-env .appointment-quick-book-trigger-stack > small,
+.paon-env.paon-env .appointment-quick-book-option-stack > small {
+  color: rgba(244, 242, 236, 0.5);
+  font-size: 11px;
+}
+@media (max-width: 1280px) {
+  .paon-env.paon-env .appointment-tailoring-party-cards {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .paon-env.paon-env .appointment-tailoring-party-cards > .tp-chat {
+    grid-column: 1 / -1;
+    max-height: 360px;
+  }
+}
+@media (max-width: 1100px) {
+  .paon-env.paon-env .appointment-tailoring-party-cards,
+  .paon-env.paon-env .appointment-tailoring-party-invitee-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .paon-env.paon-env .appointment-tailoring-party-people li {
+    grid-template-columns: 32px minmax(0, 1fr) 32px;
+  }
+  .paon-env.paon-env
+    .appointment-tailoring-party-people
+    li
+    > .tp-person-settings-wrap {
+    grid-row: 1;
+    grid-column: 3;
+  }
+  .paon-env.paon-env
+    .appointment-tailoring-party-people
+    li
+    > .appointment-tailoring-party-input[type="email"] {
+    grid-row: 2;
+    grid-column: 2 / 4;
+  }
+}
+
+/* ── Tailoring Party, round 5: status pills, animated seats, attendance ─── */
+/* A small status column between the email and the three dots. */
+.paon-env.paon-env .appointment-tailoring-party-people li {
+  grid-template-columns: 32px minmax(0, 1fr) minmax(0, 1.3fr) 118px 32px;
+}
+.paon-env.paon-env
+  .appointment-tailoring-party-people
+  li
+  > .appointment-tailoring-party-person {
+  grid-column: 2 / 4;
+}
+.paon-env.paon-env
+  .appointment-tailoring-party-people
+  li
+  > .appointment-tailoring-party-status {
+  grid-column: 4;
+  justify-self: end;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.paon-env.paon-env
+  .appointment-tailoring-party-people
+  li
+  > .tp-person-settings-wrap {
+  grid-column: 5;
+}
+.paon-env.paon-env .appointment-tailoring-party-status.is-draft {
+  color: rgba(244, 242, 236, 0.5);
+}
+.paon-env.paon-env .appointment-tailoring-party-status.is-invited {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f4f2ec;
+}
+.paon-env.paon-env .appointment-tailoring-party-status.is-fitted,
+.paon-env.paon-env .appointment-tailoring-party-status.is-rebooked {
+  background: rgba(184, 230, 190, 0.12);
+  color: #b8e6be;
+}
+.paon-env.paon-env .appointment-tailoring-party-status.is-pickup {
+  background: rgba(229, 235, 86, 0.14);
+  color: #e5eb56;
+}
+.paon-env.paon-env .appointment-tailoring-party-status.is-cancelled {
+  background: rgba(240, 168, 160, 0.12);
+  color: #f0a8a0;
+}
+/* Seats come and go with the party size: in with a short fade and drop, out
+   with the same in reverse — nothing on the page reloads. */
+@keyframes tp-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+@keyframes tp-row-out {
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+.paon-env.paon-env .appointment-tailoring-party-people li {
+  animation: tp-row-in 260ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+.paon-env.paon-env .appointment-tailoring-party-people li.is-leaving {
+  animation: tp-row-out 240ms ease forwards;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .paon-env.paon-env .appointment-tailoring-party-people li,
+  .paon-env.paon-env .appointment-tailoring-party-people li.is-leaving {
+    animation: none;
+  }
+}
+/* The guest's own answer: coming or not, and their own fitting if not. */
+.paon-env.paon-env .appointment-tailoring-party-attendance {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  color: rgba(244, 242, 236, 0.75);
+  font-size: 13px;
+}
+.paon-env.paon-env .appointment-tailoring-party-attendance-choice {
+  display: inline-flex;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.paon-env.paon-env .appointment-tailoring-party-attendance-choice button {
+  height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(244, 242, 236, 0.6);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.paon-env.paon-env
+  .appointment-tailoring-party-attendance-choice
+  button[aria-pressed="true"] {
+  background: #262626;
+  color: #f4f2ec;
+}
+.paon-env.paon-env .appointment-tailoring-party-attendance-note {
+  color: #b8e6be;
+}
+@media (max-width: 640px) {
+  .paon-env.paon-env .appointment-tailoring-party-people li {
+    grid-template-columns: 32px minmax(0, 1fr) auto 32px;
+  }
+  .paon-env.paon-env
+    .appointment-tailoring-party-people
+    li
+    > .appointment-tailoring-party-person {
+    grid-column: 2;
+  }
+  .paon-env.paon-env
+    .appointment-tailoring-party-people
+    li
+    > .appointment-tailoring-party-status {
+    grid-row: 1;
+    grid-column: 3;
+  }
+  .paon-env.paon-env
+    .appointment-tailoring-party-people
+    li
+    > .tp-person-settings-wrap {
+    grid-row: 1;
+    grid-column: 4;
+  }
+  .paon-env.paon-env
+    .appointment-tailoring-party-people
+    li
+    > .appointment-tailoring-party-input[type="email"] {
+    grid-row: 2;
+    grid-column: 2 / 5;
+  }
+}
+
+/* ── Tailoring Party, round 6 ───────────────────────────────────────────── */
+/* People: seat · name · email · dots. The status pill rides inside the end
+   of the email pill (or the name line), so both fields get the full width. */
+.paon-env.paon-env .appointment-tailoring-party-people li {
+  grid-template-columns: 32px minmax(0, 1fr) minmax(0, 1.3fr) 32px;
+}
+.paon-env.paon-env
+  .appointment-tailoring-party-people
+  li
+  > .appointment-tailoring-party-person {
+  grid-column: 2 / 4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.paon-env.paon-env
+  .appointment-tailoring-party-people
+  li
+  > .tp-person-settings-wrap {
+  grid-column: 4;
+}
+.paon-env.paon-env .tp-field-with-status {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+.paon-env.paon-env
+  .tp-field-with-status
+  > input.appointment-tailoring-party-input {
+  width: 100%;
+}
+.paon-env.paon-env
+  .appointment-tailoring-party-people
+  .tp-field-with-status
+  > input.appointment-tailoring-party-input[data-has-status] {
+  padding-right: 92px !important;
+}
+.paon-env.paon-env .tp-field-with-status > .appointment-tailoring-party-status {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+/* The three dots sit in a circle. */
+.paon-env.paon-env .tp-person-settings {
+  border-radius: 999px;
+  corner-shape: round;
+}
+/* Sending is a decisive action: it spans the actual guest-list card from the
+   first seat to the settings dots, rather than pretending it belongs only to
+   the email field. */
+.paon-env.paon-env .appointment-tailoring-party-invites-foot {
+  display: block;
+}
+.paon-env.paon-env .appointment-tailoring-party-invites-foot > span {
+  display: none;
+}
+.paon-env.paon-env
+  .appointment-tailoring-party-invites-foot
+  > .appointment-tailoring-party-send {
+  width: 100%;
+  height: 48px;
+}
+/* Chat stays beneath the guests, giving the message room to be written and
+   read instead of forcing a third cramped desktop column. */
+.paon-env.paon-env .appointment-tailoring-party-cards {
+  grid-template-columns: minmax(220px, 0.42fr) minmax(0, 1fr);
+  align-items: start;
+}
+.paon-env.paon-env .appointment-tailoring-party-orbit-card {
+  grid-row: 1 / span 2;
+}
+.paon-env.paon-env .appointment-tailoring-party-invites,
+.paon-env.paon-env .appointment-tailoring-party-cards > .tp-chat {
+  grid-column: 2;
+}
+/* Chat belongs to the whole party, not to the narrow invite column. */
+.paon-env.paon-env .appointment-tailoring-party-orbit-card {
+  grid-row: auto;
+}
+.paon-env.paon-env .appointment-tailoring-party-cards > .tp-chat {
+  grid-column: 1 / -1;
+  min-height: 260px;
+}
+.paon-env.paon-env .tp-party-progress {
+  grid-column: 1;
+  padding: 22px 20px;
+  background: linear-gradient(145deg, #262321, #171717);
+}
+.paon-env.paon-env .tp-party-progress-list {
+  display: grid;
+  gap: 0;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.paon-env.paon-env .tp-party-progress-stages {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  margin: 18px 3px 2px;
+  padding: 10px 0 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.paon-env.paon-env .tp-party-progress-stages span {
+  display: grid;
+  justify-items: start;
+  gap: 3px;
+  color: rgba(244, 242, 236, 0.56);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.paon-env.paon-env .tp-party-progress-stages b {
+  color: #d8e7c1;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+.paon-env.paon-env .tp-party-progress-list li {
+  display: grid;
+  grid-template-columns: 1fr 30px;
+  gap: 8px;
+  align-items: center;
+  padding: 11px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.paon-env.paon-env .tp-party-progress-list small {
+  display: block;
+  margin-top: 2px;
+  color: rgba(244, 242, 236, 0.5);
+  font-size: 11px;
+}
+.paon-env.paon-env .tp-party-progress-track {
+  position: relative;
+  grid-column: 1 / -1;
+  height: 3px;
+  margin: 5px 3px 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+}
+.paon-env.paon-env .tp-party-progress-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #b8e6be, #e6d39b);
+}
+.paon-env.paon-env .tp-party-progress-track b {
+  position: absolute;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border: 1px solid rgba(244, 242, 236, 0.48);
+  border-radius: 50%;
+  background: #1d1d1d;
+  transform: translate(-50%, -50%);
+}
+.paon-env.paon-env .tp-party-progress-track b:nth-of-type(1) {
+  left: 0;
+}
+.paon-env.paon-env .tp-party-progress-track b:nth-of-type(2) {
+  left: 33.333%;
+}
+.paon-env.paon-env .tp-party-progress-track b:nth-of-type(3) {
+  left: 66.666%;
+}
+.paon-env.paon-env .tp-party-progress-track b:nth-of-type(4) {
+  left: 100%;
+}
+.paon-env.paon-env .tp-party-progress-track b.is-reached {
+  border-color: #d8e7c1;
+  background: #d8e7c1;
+  box-shadow: 0 0 0 3px rgba(184, 230, 190, 0.12);
+}
+.paon-env.paon-env .tp-party-progress-step {
+  color: rgba(244, 242, 236, 0.55);
+  font-size: 11px;
+  text-align: right;
+}
+.paon-env.paon-env .tp-party-progress-legend {
+  margin: 16px 0 0;
+  color: rgba(244, 242, 236, 0.45);
+  font-size: 11px;
+}
+.paon-env.paon-env .appointment-tailoring-party-cards > .tp-chat {
+  grid-column: 2;
+  grid-row: 2;
+  min-height: 0;
+}
+.paon-env.paon-env .appointment-tailoring-party-cards > .tp-chat {
+  max-height: none;
+  min-height: 224px;
+}
+.paon-env.paon-env .appointment-tailoring-party-invites-head > div > p,
+.paon-env.paon-env .tp-chat-label {
+  margin: 0 0 4px;
+  color: rgba(244, 242, 236, 0.46);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+/* Chat: a full, usable input surface with a fixed Send control. */
+.paon-env.paon-env .tp-chat-compose {
+  align-items: center;
+  height: 48px;
+  width: 100%;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: #262626;
+}
+.paon-env.paon-env .tp-chat-compose textarea {
+  flex: 1 1 0;
+  min-height: 0;
+  height: 40px;
+  min-width: 0;
+  padding: 10px 16px;
+  background: transparent;
+  field-sizing: fixed;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.paon-env.paon-env .tp-chat-compose button {
+  flex: none;
+  width: 92px;
+  height: 40px;
+  padding: 0 18px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+/* Location pill: "City – street and number" on one line. */
+.paon-env.paon-env .appointment-quick-book-trigger-inline {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.paon-env.paon-env .appointment-quick-book-trigger-inline > small {
+  color: rgba(244, 242, 236, 0.5);
+  font-size: inherit;
+}
+/* A narrow window gives up Today and Tomorrow before anything else. */
+@media (max-width: 1240px) {
+  .paon-env.paon-env .appointment-quick-book .appointment-quick-book-shortcut {
+    display: none;
+  }
+}
+@media (max-width: 640px) {
+  .paon-env.paon-env .appointment-tailoring-party-people li {
+    grid-template-columns: 32px minmax(0, 1fr) 32px;
+  }
+  .paon-env.paon-env
+    .appointment-tailoring-party-people
+    li
+    > .appointment-tailoring-party-person {
+    grid-column: 2;
+  }
+  .paon-env.paon-env
+    .appointment-tailoring-party-people
+    li
+    > .tp-person-settings-wrap {
+    grid-row: 1;
+    grid-column: 3;
+  }
+  .paon-env.paon-env
+    .appointment-tailoring-party-people
+    li
+    > .tp-field-with-status {
+    grid-row: 2;
+    grid-column: 2 / 4;
+  }
+  .paon-env.paon-env .appointment-tailoring-party-invites-foot {
+    display: block;
+  }
+  .paon-env.paon-env .appointment-tailoring-party-invites-foot > span {
+    display: none;
+  }
+  .paon-env.paon-env
+    .appointment-tailoring-party-invites-foot
+    > .appointment-tailoring-party-send {
+    width: 100%;
+  }
+}
+
+@media (max-width: 1100px) {
+  .paon-env.paon-env .appointment-tailoring-party-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .paon-env.paon-env .appointment-tailoring-party-orbit-card,
+  .paon-env.paon-env .appointment-tailoring-party-invites,
+  .paon-env.paon-env .appointment-tailoring-party-cards > .tp-chat {
+    grid-column: 1;
+    grid-row: auto;
+  }
+}
+
+/* ── High Maintenance: a stable card that folds open into a booker ────────── */
+/* The three cards keep their own heights (no stretching when one opens); the
+   label row is a fixed 72px that never moves; the fold opens underneath to
+   one fixed height. */
+.paon-env.paon-env .appointment-care-actions .pe-care-grid {
+  align-items: start;
+  height: 72px;
+  transition: height 500ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.paon-env.paon-env .appointment-care-actions .pe-care-grid[data-expanded] {
+  height: 694px;
+}
+.paon-env.paon-env .appointment-care-actions .pe-care-service-card {
+  display: grid;
+  grid-template-rows: 72px 0px;
+  min-height: 0;
+  overflow: hidden;
+  transition:
+    grid-template-rows 500ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 220ms ease;
+  will-change: grid-template-rows;
+}
+.paon-env.paon-env .appointment-care-actions .pe-care-service-card[data-open] {
+  grid-template-rows: 72px 622px;
+}
+.paon-env.paon-env
+  .appointment-care-actions
+  .pe-care-service-card[data-closing]
+  .pe-care-service-drawer {
+  visibility: hidden;
+  pointer-events: none;
+}
+.paon-env.paon-env .appointment-care-actions .pe-care-service-trigger {
+  height: 72px;
+  min-height: 72px;
+  outline: none;
+}
+.paon-env.paon-env
+  .appointment-care-actions
+  .pe-care-service-trigger:focus-visible {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+.paon-env.paon-env .appointment-care-actions .pe-care-service-drawer-inner {
+  padding: 0 14px 14px;
+}
+/* An older rule hid the first block of the old flow (its own heading);
+   the booker's head row is not that. */
+.paon-env.paon-env .pe-care-service-drawer-inner > .cb > .cb-head {
+  display: flex;
+}
+
+.paon-env.paon-env .cb {
+  display: flex;
+  flex-direction: column;
+  height: 594px;
+  color: #f4f2ec;
+}
+.paon-env.paon-env .cb-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  flex: none;
+}
+.paon-env.paon-env .cb-back {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #f4f2ec;
+  cursor: pointer;
+  transition: opacity 220ms ease;
+}
+.paon-env.paon-env .cb-back:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+.paon-env.paon-env .cb-back svg {
+  width: 13px;
+  height: 13px;
+}
+.paon-env.paon-env .cb-title {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+}
+.paon-env.paon-env .cb-spacer {
+  flex: 1;
+}
+.paon-env.paon-env .cb-steps {
+  color: rgba(244, 242, 236, 0.62);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+/* The steps sit side by side and slide like tabs; each scrolls on its own
+   if it runs longer than the card. */
+.paon-env.paon-env .cb-viewport {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-top: 8px;
+  overflow: hidden;
+}
+.paon-env.paon-env .cb-track {
+  display: flex;
+  height: 100%;
+  transition: transform 460ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.paon-env.paon-env .cb-step {
+  flex: 0 0 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 2px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+/* Every line arrives in turn, like the sidebar's items. */
+@keyframes cb-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.paon-env.paon-env .cb-step .cb-item {
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+.paon-env.paon-env .cb-step[data-active] .cb-item {
+  animation: cb-in 380ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  animation-delay: calc(var(--i, 0) * 45ms + 120ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .paon-env.paon-env .cb-track {
+    transition: none;
+  }
+  .paon-env.paon-env .cb-step[data-active] .cb-item {
+    animation: none;
+    opacity: 1;
+  }
+}
+.paon-env.paon-env .cb-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.paon-env.paon-env .cb-list > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 7px 0 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+}
+.paon-env.paon-env .cb-list > li.cb-empty {
+  display: block;
+  padding: 14px 16px;
+  color: rgba(244, 242, 236, 0.55);
+  font-size: 13px;
+}
+.paon-env.paon-env .cb-selection-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 56px;
+  margin-top: 10px;
+  padding: 0 17px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(244, 242, 236, 0.62);
+  font-size: 13px;
+}
+.paon-env.paon-env .cb-selection-total strong {
+  color: #f4f2ec;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.paon-env.paon-env .cb-photo-field {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 58px;
+  margin-top: 10px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(244, 242, 236, 0.7);
+  cursor: pointer;
+}
+.paon-env.paon-env .cb-photo-field svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.paon-env.paon-env .cb-photo-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+.paon-env.paon-env .cb-photo-copy strong {
+  overflow: hidden;
+  color: #f4f2ec;
+  font-size: 13px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.paon-env.paon-env .cb-photo-copy small {
+  color: rgba(244, 242, 236, 0.46);
+  font-size: 11px;
+}
+.paon-env.paon-env .cb-photo-plus {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.09);
+  color: #f4f2ec;
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 1;
+}
+.paon-env.paon-env .cb-item-label {
+  overflow: hidden;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.paon-env.paon-env .cb-item-price {
+  color: rgba(244, 242, 236, 0.5);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.paon-env.paon-env .cb-qty {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 34px;
+  padding: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  transition: background-color 200ms ease;
+}
+.paon-env.paon-env .cb-qty[data-set] {
+  background: rgba(184, 230, 190, 0.14);
+}
+.paon-env.paon-env .cb-qty button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #f4f2ec;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.paon-env.paon-env .cb-qty button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+}
+.paon-env.paon-env .cb-qty button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.paon-env.paon-env .cb-qty output {
+  min-width: 20px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.paon-env.paon-env .cb-qty[data-set] output {
+  color: #b8e6be;
+}
+.paon-env.paon-env .cb-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.paon-env.paon-env .cb-group + .cb-group {
+  margin-top: 22px;
+}
+.paon-env.paon-env .cb-label {
+  color: rgba(244, 242, 236, 0.55);
+  font-size: 12px;
+}
+.paon-env.paon-env .cb-segments {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.25);
+}
+.paon-env.paon-env .cb-segments button {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 36px;
+  padding: 0 10px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(244, 242, 236, 0.6);
+  font: inherit;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 220ms ease,
+    color 220ms ease;
+}
+.paon-env.paon-env .cb-segments button[aria-checked="true"] {
+  background: #f4f2ec;
+  color: #161616;
+}
+.paon-env.paon-env .cb-segments.is-small button {
+  height: 30px;
+  font-size: 12px;
+}
+.paon-env.paon-env .cb-choice-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.paon-env.paon-env .cb-choice-cards button {
+  display: flex;
+  min-width: 0;
+  min-height: 54px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(244, 242, 236, 0.66);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+.paon-env.paon-env .cb-choice-cards button:hover {
+  background: rgba(255, 255, 255, 0.09);
+}
+.paon-env.paon-env .cb-choice-cards button[aria-checked="true"] {
+  border-color: rgba(244, 242, 236, 0.52);
+  background: #f4f2ec;
+  color: #161616;
+}
+.paon-env.paon-env .cb-choice-cards button:active {
+  transform: scale(0.98);
+}
+.paon-env.paon-env .cb-choice-cards svg {
+  width: 17px;
+  height: 17px;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.paon-env.paon-env .cb-notes {
+  min-height: 64px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 16px;
+  outline: 0;
+  background: #262626;
+  color: #f4f2ec;
+  font: inherit;
+  font-size: 13px;
+  resize: none;
+}
+.paon-env.paon-env .cb-notes::placeholder {
+  color: rgba(244, 242, 236, 0.4);
+}
+.paon-env.paon-env .cb-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+.paon-env.paon-env .cb-summary > li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+}
+.paon-env.paon-env .cb-summary > li.cb-summary-total {
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  font-weight: 600;
+}
+.paon-env.paon-env .cb-summary > li.cb-summary-meta {
+  display: block;
+  color: rgba(244, 242, 236, 0.55);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.paon-env.paon-env .cb-signin {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.paon-env.paon-env .cb-done {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding-top: 8px;
+  font-size: 14px;
+}
+.paon-env.paon-env .cb-done span {
+  color: rgba(244, 242, 236, 0.7);
+  line-height: 1.5;
+}
+.paon-env.paon-env .cb-done img {
+  width: 132px;
+  height: 132px;
+  padding: 6px;
+  border-radius: 12px;
+  background: #ffffff;
+}
+.paon-env.paon-env .cb-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #b8e6be;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.paon-env.paon-env .cb-error {
+  margin: 10px 0 0;
+  color: #f0a8a0;
+  font-size: 13px;
+}
+/* The action always sits in the same place at the foot of the card. */
+.paon-env.paon-env .cb-foot {
+  display: flex;
+  flex: none;
+  align-items: flex-end;
+  height: 60px;
+}
+.paon-env.paon-env .cb-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  height: 48px;
+  border: 0;
+  border-radius: 999px;
+  background: #b8e6be;
+  color: #14120f;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 220ms ease,
+    color 220ms ease;
+}
+.paon-env.paon-env .cb-primary svg {
+  width: 17px;
+  height: 17px;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.paon-env.paon-env .cb-primary:disabled {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(244, 242, 236, 0.4);
+  cursor: default;
+}
+/* The sign-in card inside a booking: no close button of its own (the
+   booking's Back does that), no extra heading room, and it fills the width. */
+.paon-env.paon-env
+  .cb-signin
+  [data-guest-login][data-embedded]
+  button[aria-label="Close"] {
+  display: none;
+}
+.paon-env.paon-env .cb-signin [data-guest-login][data-embedded] > div {
+  padding: 0;
+}
+/* A closed card is only its 72px label row. */
+.paon-env.paon-env .appointment-care-actions .pe-care-service-drawer-inner {
+  padding: 0 14px;
+}
+.paon-env.paon-env
+  .appointment-care-actions
+  .pe-care-service-drawer-inner
+  > .cb {
+  padding-bottom: 14px;
+  height: 594px;
+}
+/* The tile's old flex gap became a grid row gap: 14px of empty band under
+   a closed card's label row. */
+.paon-env.paon-env .appointment-care-actions .pe-care-service-card {
+  row-gap: 0;
+}
+/* The writing field is the pill; the global textarea outline must not draw
+   a second one inside it. */
+.paon-env.paon-env .tp-chat-compose textarea {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+/* More room for the name and email pills: the orbit is drawn a little
+   smaller in a narrower card, and the chat keeps a steady 300px. */
+.paon-env.paon-env .appointment-tailoring-party-cards {
+  grid-template-columns: 320px minmax(0, 1fr) 300px;
+}
+.paon-env.paon-env .appointment-tailoring-party-orbit-card {
+  overflow: hidden;
+  padding: 12px 0;
+}
+.paon-env.paon-env .appointment-tailoring-party-orbit-card .tp-orbit-root {
+  zoom: 0.86;
+}
+/* The party planner is a two-column workflow. A later experimental
+   three-column override left an entire empty column on wide screens and
+   pinned the workflow to the left edge of the workspace. */
+.paon-env.paon-env .appointment-tailoring-party-section {
+  width: min(100%, 1280px);
+  margin-inline: auto;
+}
+.paon-env.paon-env .appointment-tailoring-party-cards {
+  grid-template-columns: minmax(300px, 0.42fr) minmax(0, 1fr);
+}
+.paon-env.paon-env .appointment-tailoring-party-orbit-card {
+  grid-row: 1 / span 2;
+}
+.paon-env.paon-env .appointment-tailoring-party-invites,
+.paon-env.paon-env .appointment-tailoring-party-cards > .tp-chat {
+  grid-column: 2;
+}
+/* Two deliberate workflow rows: invite the party, then follow their readiness
+   beside the conversation.  Do not let the orbit reserve the progress row. */
+.paon-env.paon-env .appointment-tailoring-party-orbit-card {
+  grid-column: 1;
+  grid-row: 1;
+}
+.paon-env.paon-env .appointment-tailoring-party-invites {
+  grid-column: 2;
+  grid-row: 1;
+}
+.paon-env.paon-env .tp-party-progress {
+  grid-column: 1;
+  grid-row: 2;
+}
+.paon-env.paon-env .appointment-tailoring-party-cards > .tp-chat {
+  grid-column: 2;
+  grid-row: 2;
+}
+@media (min-width: 1101px) {
+  .paon-env.paon-env .appointment-tailoring-party-cards {
+    align-items: stretch;
+    grid-template-rows: auto auto;
+  }
+  .paon-env.paon-env .appointment-tailoring-party-orbit-card,
+  .paon-env.paon-env .appointment-tailoring-party-invites,
+  .paon-env.paon-env .tp-party-progress,
+  .paon-env.paon-env .appointment-tailoring-party-cards > .tp-chat {
+    align-self: stretch;
+    height: 100%;
+  }
+}
+@media (max-width: 1280px) {
+  .paon-env.paon-env .appointment-tailoring-party-cards {
+    grid-template-columns: 320px minmax(0, 1fr);
+  }
+}
+@media (max-width: 1100px) {
+  .paon-env.paon-env .appointment-tailoring-party-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .paon-env.paon-env .appointment-tailoring-party-orbit-card,
+  .paon-env.paon-env .appointment-tailoring-party-invites,
+  .paon-env.paon-env .tp-party-progress,
+  .paon-env.paon-env .appointment-tailoring-party-cards > .tp-chat {
+    grid-column: 1;
+    grid-row: auto;
+  }
+}
+@media (min-width: 1101px) {
+  .paon-env.paon-env .appointment-tailoring-party-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.paon-env.paon-env .cb-list > li.cb-quoted {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 14px;
+}
+.paon-env.paon-env .cb-quoted-qty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.paon-env.paon-env textarea.cb-notes {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: #262626 !important;
+}
+.paon-env.paon-env .location-finder {
+  display: grid;
+  gap: 10px;
+  min-width: min(100%, 360px);
+  padding: 4px;
+}
+.paon-env.paon-env .location-finder-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 6px 6px 8px;
+}
+.paon-env.paon-env .location-finder-head p {
+  margin: 3px 0 0;
+  color: #f4f2ec;
+  font-family: "Brand Display", "Aviano", serif;
+  font-size: 17px;
+}
+.paon-env.paon-env .location-finder-kicker {
+  color: rgba(244, 242, 236, 0.48);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.paon-env.paon-env .location-finder-locate {
+  min-height: 32px;
+  border: 1px solid rgba(184, 230, 190, 0.48);
+  border-radius: 999px;
+  background: rgba(184, 230, 190, 0.08);
+  color: #c9ebce;
+  padding: 0 11px;
+  font: inherit;
+  font-size: 11px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.paon-env.paon-env .location-finder-locate:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+.paon-env.paon-env .location-finder-note {
+  margin: 0 6px;
+  color: rgba(244, 242, 236, 0.58);
+  font-size: 11px;
+}
+.paon-env.paon-env .location-finder-list {
+  display: grid;
+  gap: 5px;
+}
+.paon-env.paon-env .location-finder-option {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 58px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.045);
+  color: #f4f2ec;
+  padding: 10px 12px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.paon-env.paon-env .location-finder-option:hover,
+.paon-env.paon-env .location-finder-option[aria-pressed="true"] {
+  border-color: rgba(184, 230, 190, 0.52);
+  background: rgba(184, 230, 190, 0.1);
+}
+.paon-env.paon-env .location-finder-pin {
+  width: 10px;
+  height: 10px;
+  border: 2px solid #b8e6be;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+}
+.paon-env.paon-env .location-finder-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.paon-env.paon-env .location-finder-copy strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+.paon-env.paon-env .location-finder-copy small {
+  overflow: hidden;
+  color: rgba(244, 242, 236, 0.52);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.paon-env.paon-env .location-finder-copy em {
+  color: #b8e6be;
+  font-size: 10px;
+  font-style: normal;
+}
+.paon-env.paon-env .location-finder-distance {
+  color: rgba(244, 242, 236, 0.58);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.paon-env.paon-env .loyalty-environment h2 {
+  font-family: "NS Serrif", "Customer Display", serif;
+  font-size: clamp(1.5rem, 2.2vw, 2.15rem);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+}
+/* Page and section titles use the same house serif as Appointments. Body copy,
+   utility labels and controls stay sans so the navigation remains quiet. */
+.paon-env.paon-env
+  main
+  :is(
+    h1,
+    .customer-page > section > h2,
+    .customer-page > div > section > h2,
+    .paon-wardrobe-scene h2
+  ) {
+  font-family: "NS Serrif", "Customer Display", serif;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+.paon-env.paon-env main h1,
+.paon-env.paon-env
+  .paon-wardrobe-scene
+  > .paon-wardrobe-cards
+  > .paon-wardrobe-strip
+  h1 {
+  font-family: "NS Serrif", "Customer Display", serif;
+  font-size: clamp(2.45rem, 4.6vw, 4.5rem);
+  font-weight: 500;
+  letter-spacing: -0.055em;
+  line-height: 0.92;
+}
+.paon-env.paon-env .paon-wardrobe-scene :is(h1, h2),
+.paon-env.paon-env .loyalty-environment :is(h1, h2, h3) {
+  font-family: "NS Serrif", "Customer Display", serif !important;
+  font-weight: 400 !important;
+}
+.paon-env.paon-env .address-search-fields {
+  display: grid;
+  gap: 8px;
+}
+.paon-env.paon-env .address-search-fields > label,
+.paon-env.paon-env .address-search-grid > label {
+  display: grid;
+  gap: 7px;
+  color: rgba(244, 242, 236, 0.72);
+  font-size: 12px;
+  font-weight: 500;
+}
+.paon-env.paon-env .address-search-control {
+  position: relative;
+}
+.paon-env.paon-env .address-search-fields input {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.075);
+  color: #f4f2ec;
+  padding: 0 13px;
+  font: inherit;
+  font-size: 14px;
+  outline: 0;
+}
+.paon-env.paon-env .address-search-fields input:focus {
+  border-color: rgba(184, 230, 190, 0.66);
+  background: rgba(255, 255, 255, 0.11);
+  box-shadow: 0 0 0 3px rgba(184, 230, 190, 0.1);
+}
+.paon-env.paon-env .address-search-status {
+  position: absolute;
+  top: 15px;
+  right: 12px;
+  color: rgba(184, 230, 190, 0.8);
+  font-size: 11px;
+}
+.paon-env.paon-env .address-search-hint {
+  margin: -1px 0 2px;
+  color: rgba(244, 242, 236, 0.45);
+  font-size: 11px;
+}
+.paon-env.paon-env .address-search-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1fr);
+  gap: 12px;
+}
+.paon-env.paon-env .address-search-results {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 6px);
+  right: 0;
+  left: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 16px;
+  background: #1b1c1d;
+  box-shadow: 0 18px 35px rgba(0, 0, 0, 0.38);
+}
+.paon-env.paon-env .address-search-results button {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  background: transparent;
+  color: #f4f2ec;
+  padding: 11px 13px;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.paon-env.paon-env .address-search-results button:last-child {
+  border-bottom: 0;
+}
+.paon-env.paon-env .address-search-results button:hover {
+  background: rgba(184, 230, 190, 0.1);
+}
+.paon-env.paon-env .address-search-results strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+.paon-env.paon-env .address-search-results span {
+  color: rgba(244, 242, 236, 0.56);
+  font-size: 11px;
+}
+@media (max-width: 560px) {
+  .paon-env.paon-env .address-search-grid {
+    grid-template-columns: 1fr;
   }
 }

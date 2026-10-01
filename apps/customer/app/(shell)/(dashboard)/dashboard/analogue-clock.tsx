@@ -10,7 +10,7 @@
 
 import { useEffect, useState } from "react";
 
-import { HOME_LOCATION } from "../morning-routine/local-widgets";
+import { useHomeLocation } from "../morning-routine/home-location";
 
 import "./overview.css";
 
@@ -105,7 +105,7 @@ const LENS_GLASS_ID = "paon-analogue-lens-glass";
 
 export function AnalogueClock({
   size = 46,
-  timeZone = HOME_LOCATION.timeZone,
+  timeZone,
 }: {
   size?: number;
   /**
@@ -122,6 +122,8 @@ export function AnalogueClock({
    */
   timeZone?: string;
 }) {
+  const home = useHomeLocation();
+  const clockTimeZone = timeZone ?? home.timeZone;
   const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
@@ -140,7 +142,7 @@ export function AnalogueClock({
         minute: "2-digit",
         second: "2-digit",
         hourCycle: "h23",
-        ...(timeZone ? { timeZone } : {}),
+        ...(clockTimeZone ? { timeZone: clockTimeZone } : {}),
       }).formatToParts(now)
     : [];
   const part = (type: Intl.DateTimeFormatPartTypes) =>

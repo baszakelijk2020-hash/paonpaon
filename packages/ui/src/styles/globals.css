@@ -24,6 +24,16 @@
  * production too). Each app proxies same-origin via its own
  * `app/fonts/[filename]/route.ts`.
  */
+/* Manrope is the customer environment's interface face. Unlike the
+ * nebelspiegel.com faces above it is a self-hosted static file in each app's
+ * own public/fonts, so it needs no CORS proxy route. */
+@font-face {
+  font-family: "Manrope";
+  src: url("/fonts/Manrope-variable.ttf") format("truetype");
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+}
 @font-face {
   font-family: "Munged";
   src: url("/fonts/Munged-MZgX5NxJBs.woff2") format("woff2");
@@ -281,4 +291,168 @@
       @slot;
     }
   }
+}
+
+/**
+ * ── The customer environment's language, for the operator apps ──────────
+ *
+ * The customer environment (`apps/customer`, `.paon-env`) settled on a dark
+ * ground with one grey-gradient tile material, Manrope at negative tracking,
+ * pill CTAs and hover that changes colour but never moves. Retailer and admin
+ * were still the earlier warm-cream, white-card, 8px-radius system, so the two
+ * halves of the product did not read as one.
+ *
+ * This reuses the trick `.paon-env` already uses: rather than restyle every
+ * component, INVERT the stone ramp. Every component here already paints
+ * `stone-50` as ground and `stone-900` as ink, so flipping the ramp flips the
+ * whole system at once — values copied verbatim from
+ * `customer-environment.css` so the two cannot drift.
+ *
+ * Scoped to a wrapper class rather than `@theme` on purpose: login, invite and
+ * marketing surfaces keep the light treatment until they are deliberately
+ * moved over.
+ */
+.paon-dark-env {
+  --color-stone-50: #161819;
+  --color-stone-100: #232628;
+  --color-stone-200: #383c3f;
+  --color-stone-300: #62686c;
+  --color-stone-400: #a0a7ab;
+  --color-stone-500: #abb1b4;
+  --color-stone-600: #bdc2c5;
+  --color-stone-700: #d1d5d7;
+  --color-stone-800: #e5e8e9;
+  --color-stone-900: #f4f5f5;
+  --color-stone-950: #fff;
+
+  /* The customer's semantic hues, which read on a dark ground. */
+  --color-danger-500: #fb8d8d;
+  --color-success-500: #b8e6be;
+
+  /* Generosity to match: cards 20px, inputs 14px, CTAs a full pill. */
+  --radius-sm: 8px;
+  --radius-md: 20px;
+  --radius-lg: 24px;
+  --radius-xl: 28px;
+
+  font-family: Manrope, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  background: #161616;
+  color: #f4f2ec;
+}
+
+/* The one tile material the customer environment uses everywhere. Matching on
+   the shared Card's own classes so no component has to be rewritten. */
+.paon-dark-env :is([data-pe-card], .pe-card) {
+  background: linear-gradient(180deg, #1a1a1a 0%, #4d4d4d 100%);
+  border: 0;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 6%);
+}
+
+/* Bone pill, 44px, exactly as `.customer-button`. */
+.paon-dark-env
+  :is(button, a)[class*="rounded-[var(--radius-md)]"]:not([data-flat]) {
+  border-radius: 999px;
+}
+
+/* Hover lights a row; it never moves it. The operator shell used to nudge each
+   nav row 3px right, which reads as the label indenting itself — the customer
+   sidebar removed exactly that. */
+.paon-dark-env [data-paon-nav-row]:hover {
+  transform: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paon-dark-env * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Components that paint a literal `bg-white` / `border-stone-200` rather than
+   a token cannot follow the inverted ramp on their own — Card, Input, Select
+   and Badge all do. Repainting them here keeps the fix in one place instead of
+   forking four shared components that admin also uses. */
+.paon-dark-env :is(.bg-white, .bg-\[var\(--color-stone-50\)\]) {
+  background: linear-gradient(180deg, #1a1a1a 0%, #4d4d4d 100%);
+  border-color: rgb(255 255 255 / 10%);
+  color: #f4f2ec;
+}
+
+/* Fields read as recessed, not as another tile. */
+.paon-dark-env :is(input, textarea, select) {
+  background: rgb(255 255 255 / 6%) !important;
+  border-color: rgb(255 255 255 / 15%) !important;
+  color: #f4f2ec !important;
+}
+.paon-dark-env :is(input, textarea)::placeholder {
+  color: rgb(244 242 236 / 45%) !important;
+}
+
+/* Badges: the customer environment's chip — pill, 12px, 600. */
+.paon-dark-env [class*="rounded-[var(--radius-md)]"]:is(span) {
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* Primary CTA becomes the bone pill. The inverted ramp alone would paint it
+   near-white on near-white, since `bg-stone-900` is now the light end. */
+.paon-dark-env button[class*="bg-[var(--color-stone-900)]"],
+.paon-dark-env a[class*="bg-[var(--color-stone-900)]"] {
+  background: #f4f2ec;
+  color: #14120f;
+}
+.paon-dark-env button[class*="bg-[var(--color-stone-900)]"]:hover,
+.paon-dark-env a[class*="bg-[var(--color-stone-900)]"]:hover {
+  background: #ffffff;
+}
+
+/* Headings follow the customer environment's display scale: Manrope at 500
+   with negative tracking, not the Munged serif. */
+.paon-dark-env :is(h1, h2, h3, .font-display) {
+  font-family: Manrope, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.paon-dark-env h1 {
+  font-size: 28px;
+  line-height: 1.1;
+}
+.paon-dark-env h2 {
+  font-size: 20px;
+  line-height: 1.15;
+}
+.paon-dark-env :is(h3, [data-pe-card] h2, .pe-card h2) {
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+/* The brand lock-up keeps its serif — it is a wordmark, not a heading. */
+.paon-dark-env aside .font-display {
+  font-family: "Munged", ui-serif, Georgia, serif;
+  letter-spacing: 0.14em;
+}
+
+/* The sub-tab rail runs wider than its container on any real screen, and a
+   bare overflow-x:auto gives no sign there is more. Fade the right edge so the
+   rail reads as continuing, and keep the scrollbar out of the way. */
+.paon-dark-env [data-paon-subtabs] {
+  position: relative;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    #000 0,
+    #000 calc(100% - 48px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    #000 0,
+    #000 calc(100% - 48px),
+    transparent 100%
+  );
+}
+.paon-dark-env [data-paon-subtabs]::-webkit-scrollbar {
+  display: none;
 }

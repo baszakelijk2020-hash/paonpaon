@@ -7,6 +7,7 @@ import {
   resolveAppSession,
   type AppSession,
 } from "@paon/auth";
+import type { UserId } from "@paon/domain";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 
@@ -49,6 +50,43 @@ export async function requireSession(): Promise<
   }
   return session;
 }
+
+/**
+ * Stands in for the customer when a visitor opens the Wardrobe without an
+ * account. The nil UUID never belongs to an auth user, so every RLS-scoped
+ * read made under it returns nothing: the guest sees the environment with
+ * empty personal data and no orders, never anyone else's rows.
+ */
+export const GUEST_USER_ID = "00000000-0000-0000-0000-000000000000" as UserId;
+
+/** The demo persona the guest Wardrobe greets. */
+export const GUEST_FIRST_NAME = "Marc";
+
+export type ViewerSession = AppSession & {
+  accountType: "customer";
+  isGuest: boolean;
+};
+
+/**
+ * Read-only page guard for the guest-browsable Wardrobe tabs: the signed-in
+ * customer, or the guest stand-in instead of a redirect to /login. Server
+ * Actions keep `requireSession`, so anything that writes still needs an
+ * account.
+ */
+export const getViewerSession = cache(
+  async function getViewerSession(): Promise<ViewerSession> {
+    const session = await getSession();
+    if (session?.accountType === "customer") {
+      return { ...session, accountType: "customer", isGuest: false };
+    }
+    return {
+      userId: GUEST_USER_ID,
+      email: "",
+      accountType: "customer",
+      isGuest: true,
+    };
+  },
+);
 
 /** Employee Portal (PHASE 18.5) equivalent of `requireSession` — redirects
  * to `/employee/login` instead of throwing when not a wearer session. */

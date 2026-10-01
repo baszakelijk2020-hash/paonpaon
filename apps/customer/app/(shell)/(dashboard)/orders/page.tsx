@@ -9,13 +9,8 @@ import { formatDate, formatMoney } from "@paon/utils";
 import Image from "next/image";
 import Link from "next/link";
 
-import { RelatedLinks } from "../related-links";
-import { buildCategorizedCatalogue } from "../wardrobe/complete-the-look-catalogue";
-
-import { SeasonalStaffFavourites } from "./seasonal-staff-favourites";
-
 import { getCustomersForUser } from "@/lib/customer-context";
-import { requireSession } from "@/lib/session";
+import { getViewerSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 const TERMINAL_ORDER_STATUSES = new Set([
@@ -24,8 +19,6 @@ const TERMINAL_ORDER_STATUSES = new Set([
   "refunded",
   "delivered",
 ]);
-
-const COMPLETE_THE_LOOK_LIMIT = 8;
 
 interface OrderView {
   readonly order: Order;
@@ -62,29 +55,21 @@ function reorderHref(view: OrderView): string {
  * where the route accepts it, carries this order's own context so the
  * action continues *this* order rather than a generic flow. */
 function orderActions(view: OrderView) {
-  const completeTheLookHref = view.firstProduct
-    ? `/digital-fitting-room?productSlug=${encodeURIComponent(view.firstProduct.slug)}`
-    : "/orders#complete-the-look";
-  const askHref = `/messages?prefill=${encodeURIComponent(
-    `A question about order ${view.order.orderNumber}: `,
-  )}`;
   return [
     { label: "Order again", href: reorderHref(view) },
-    { label: "Complete the look", href: completeTheLookHref },
-    { label: "Ask a question", href: askHref },
-    { label: "Request service", href: "/services" },
-    { label: "View order / invoice", href: `/orders/${view.order.id}` },
+    { label: "Request care", href: "/appointments" },
+    { label: "View order", href: `/orders/${view.order.id}` },
   ];
 }
 
 function OrderActionRow({ view }: { view: OrderView }) {
   return (
-    <div className="flex flex-wrap gap-2 text-sm">
+    <div className="flex flex-wrap gap-2 border-t border-white/10 pt-4 text-sm sm:col-span-3">
       {orderActions(view).map((action) => (
         <Link
           key={action.label}
           href={action.href}
-          className="inline-flex min-h-[44px] items-center rounded-full bg-white/[0.08] px-4 text-white/75 transition-colors hover:bg-white/[0.14] hover:text-white"
+          className="inline-flex min-h-10 items-center rounded-full border border-white/15 px-4 text-white/75 transition-colors hover:bg-white/[0.1] hover:text-white"
         >
           {action.label}
         </Link>
@@ -97,169 +82,54 @@ function OrderCard({ view }: { view: OrderView }) {
   const { order } = view;
   return (
     <article
-      className="pe-card flex flex-col gap-6 rounded-[32px] bg-[#191b1d] p-6 text-white sm:p-8"
+      className="pe-card grid gap-5 rounded-[28px] bg-[#191b1d] p-5 text-white sm:grid-cols-[72px_minmax(0,1fr)_auto] sm:items-center sm:p-6"
       data-pe-card
     >
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0 space-y-1">
-          <Link
-            href={`/orders/${order.id}`}
-            className="font-display text-2xl font-semibold tracking-[-0.025em] text-white hover:underline"
-          >
-            {order.orderNumber}
-          </Link>
-          <p className="mt-2 text-sm text-white/55">
-            {view.retailerName} · {formatDate(order.createdAt, "en-US")} ·{" "}
-            {view.lineCount} item{view.lineCount === 1 ? "" : "s"}
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="text-lg font-semibold text-white">
-            {formatMoney(order.total, "en-US")}
-          </p>
-          <p className="mt-2 inline-flex rounded-full bg-[#b8e6be] px-3 py-1.5 text-xs font-semibold text-[#181818]">
+      <div className="relative hidden h-[72px] w-[72px] overflow-hidden rounded-[18px] bg-white/[0.06] sm:block">
+        {view.firstProduct?.imageUrl ? (
+          <Image
+            src={view.firstProduct.imageUrl}
+            alt=""
+            fill
+            unoptimized
+            className="object-cover object-top"
+          />
+        ) : null}
+      </div>
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-start justify-between gap-3 sm:block">
+          <div>
+            <Link
+              href={`/orders/${order.id}`}
+              className="font-display text-xl font-semibold tracking-[-0.025em] text-white hover:underline"
+            >
+              {order.orderNumber}
+            </Link>
+            <p className="mt-1 text-sm text-white/55">
+              {view.retailerName} · {formatDate(order.createdAt, "en-US")} ·{" "}
+              {view.lineCount} item{view.lineCount === 1 ? "" : "s"}
+            </p>
+          </div>
+          <p className="inline-flex rounded-full bg-[#b8e6be] px-3 py-1.5 text-xs font-semibold text-[#181818] sm:hidden">
             {ORDER_STATUS_LABELS[order.status]}
           </p>
         </div>
+      </div>
+      <div className="flex flex-col items-start gap-2 sm:items-end">
+        <p className="text-lg font-semibold text-white">
+          {formatMoney(order.total, "en-US")}
+        </p>
+        <p className="inline-flex rounded-full bg-[#b8e6be] px-3 py-1.5 text-xs font-semibold text-[#181818]">
+          {ORDER_STATUS_LABELS[order.status]}
+        </p>
       </div>
       <OrderActionRow view={view} />
     </article>
   );
 }
 
-function SupportingModules({ shopHref }: { shopHref: string }) {
-  const modules = [
-    { label: "Advisor selections", href: "/wardrobe" },
-    { label: "Saved items", href: "/wishlist" },
-    { label: "Complete the Look", href: "/orders#complete-the-look" },
-    { label: "Shop", href: shopHref },
-    { label: "Book in-store appointment", href: "/appointments" },
-    { label: "TableService", href: "/messages" },
-  ];
-  return (
-    <section aria-labelledby="orders-support-heading">
-      <p
-        id="orders-support-heading"
-        className="customer-kicker mb-4 text-white/55"
-      >
-        Keep going
-      </p>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {modules.map((module, index) => (
-          <Link
-            key={module.label}
-            href={module.href}
-            data-pe-card
-            className={`flex min-h-28 items-end rounded-[32px] p-5 text-base font-semibold text-[#181818] transition-transform hover:-translate-y-0.5 ${
-              ["bg-[#aed6e7]", "bg-[#b8e6be]", "bg-[#c7c1ef]", "bg-[#f0b6a4]"][
-                index % 4
-              ]
-            }`}
-          >
-            {module.label}
-          </Link>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function CompleteTheLookModule({
-  source,
-  suggestions,
-}: {
-  source: {
-    readonly name: string;
-    readonly imageUrl: string | undefined;
-    readonly href: string;
-  };
-  suggestions: readonly {
-    readonly productId: string;
-    readonly productSlug: string;
-    readonly displayName: string;
-    readonly primaryImageUrl?: string;
-    readonly href: string;
-  }[];
-}) {
-  return (
-    <section
-      id="complete-the-look"
-      aria-labelledby="orders-ctl-heading"
-      className="pe-card scroll-mt-24 rounded-[32px] bg-[#191b1d] p-6 text-white sm:p-8"
-      data-pe-card
-    >
-      <p id="orders-ctl-heading" className="customer-kicker mb-4 text-white/55">
-        Complete the Look
-      </p>
-      <div>
-        <Link
-          href={source.href}
-          className="relative mx-auto flex h-[70px] w-[70px] items-center justify-center overflow-hidden rounded-[22px] bg-[var(--color-stone-900)]"
-          aria-label={`From your order: ${source.name}`}
-        >
-          {source.imageUrl ? (
-            <>
-              <Image
-                src={source.imageUrl}
-                alt={source.name}
-                fill
-                unoptimized
-                className="object-cover object-top"
-              />
-            </>
-          ) : (
-            <span className="px-1 text-center text-[10px] leading-tight text-[var(--color-stone-300)]">
-              {source.name}
-            </span>
-          )}
-        </Link>
-        <p className="mt-3 text-center text-sm text-white/55">
-          Pairs for {source.name}
-        </p>
-        {suggestions.length > 0 ? (
-          <ul className="mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1">
-            {suggestions.map((suggestion) => (
-              <li key={suggestion.productId} className="shrink-0 snap-start">
-                <Link
-                  href={suggestion.href}
-                  className="flex w-32 flex-col gap-2"
-                >
-                  <span className="relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-[14px] bg-[var(--color-stone-900)]">
-                    {suggestion.primaryImageUrl ? (
-                      <>
-                        <Image
-                          src={suggestion.primaryImageUrl}
-                          alt={suggestion.displayName}
-                          fill
-                          unoptimized
-                          className="object-cover object-top"
-                        />
-                      </>
-                    ) : (
-                      <span className="px-2 text-center text-[10px] text-[var(--color-stone-300)]">
-                        {suggestion.displayName}
-                      </span>
-                    )}
-                  </span>
-                  <span className="line-clamp-2 text-xs text-white/70">
-                    {suggestion.displayName}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mt-4 text-center text-xs text-white/55">
-            No catalogue pairings available from this retailer yet.
-          </p>
-        )}
-      </div>
-    </section>
-  );
-}
-
 export default async function OrdersPage() {
-  const session = await requireSession();
+  const session = await getViewerSession();
   const supabase = await getSupabaseServerClient();
 
   const customers = await getCustomersForUser(session.userId);
@@ -317,88 +187,28 @@ export default async function OrdersPage() {
     }),
   );
 
-  const pending = views.filter(
-    (view) => !TERMINAL_ORDER_STATUSES.has(view.order.status),
+  const history = views.filter((view) =>
+    TERMINAL_ORDER_STATUSES.has(view.order.status),
   );
   const mostRecent = views[0];
   const shopHref = mostRecent?.retailerSlug
     ? `/r/${mostRecent.retailerSlug}`
     : "/wardrobe";
 
-  let completeTheLook: {
-    source: {
-      readonly name: string;
-      readonly imageUrl: string | undefined;
-      readonly href: string;
-    };
-    suggestions: readonly {
-      readonly productId: string;
-      readonly productSlug: string;
-      readonly displayName: string;
-      readonly primaryImageUrl?: string;
-      readonly href: string;
-    }[];
-  } | null = null;
-
-  if (mostRecent?.firstProduct && mostRecent.retailerSlug) {
-    const source = mostRecent.firstProduct;
-    const retailerSlug = mostRecent.retailerSlug;
-
-    const catalogue = await buildCategorizedCatalogue({
-      supabase,
-      retailerId: mostRecent.order.retailerId,
-    });
-    // §7: never duplicate the source product inside its own pairing carousel.
-    const suggestions = catalogue
-      .filter((candidate) => candidate.productId !== source.id)
-      .slice(0, COMPLETE_THE_LOOK_LIMIT)
-      .map((candidate) => ({
-        productId: candidate.productId,
-        productSlug: candidate.productSlug,
-        displayName: candidate.displayName,
-        ...(candidate.primaryImageUrl
-          ? { primaryImageUrl: candidate.primaryImageUrl }
-          : {}),
-        href: `/r/${retailerSlug}/products/${candidate.productSlug}?legacy=1`,
-      }));
-
-    completeTheLook = {
-      source: {
-        name: source.name,
-        imageUrl: source.imageUrl,
-        href: `/r/${retailerSlug}/products/${source.slug}?legacy=1`,
-      },
-      suggestions,
-    };
-  }
-
   return (
     <div className="customer-page flex flex-col gap-6 bg-black pb-12 text-white">
-      <header className="pe-page-head items-end gap-6 pb-3">
+      <header className="pe-page-head pb-3">
         <div>
-          <p className="customer-kicker mb-2 text-white/55">
-            Purchases and progress
-          </p>
           <h1 className="font-display text-5xl font-semibold leading-none tracking-[-0.055em] text-white sm:text-6xl">
-            Orders
+            Past orders
           </h1>
-          <p className="mt-4 max-w-xl text-base leading-7 text-white/60">
-            Follow what is being made, then revisit every piece and its
-            services.
-          </p>
         </div>
-        <RelatedLinks
-          links={[
-            { href: "/preferred-tailoring", label: "Preferred Tailoring" },
-            { href: "/services", label: "Services" },
-          ]}
-        />
       </header>
 
       {/* Two sections only when there is something in them. With no orders
           at all, "Pending: nothing" above "History: nothing" was two empty
           tiles saying the same thing; one card says it once. */}
-      {views.length === 0 ? (
+      {history.length === 0 ? (
         <section className="pe-card" data-pe-card>
           <p className="customer-kicker">Orders</p>
           <h2 className="mt-2">Your first piece starts here.</h2>
@@ -411,66 +221,15 @@ export default async function OrdersPage() {
         </section>
       ) : (
         <>
-          {pending.length > 0 ? (
-            <section aria-labelledby="orders-pending-heading">
-              <p id="orders-pending-heading" className="customer-kicker mb-3">
-                In progress
-              </p>
-              <div className="grid gap-4 lg:grid-cols-2">
-                {pending.map((view) => (
-                  <OrderCard key={view.order.id} view={view} />
-                ))}
-              </div>
-            </section>
-          ) : null}
-
           <section aria-labelledby="orders-history-heading">
-            <p id="orders-history-heading" className="customer-kicker mb-3">
-              Order history
-            </p>
             <div className="grid gap-4 lg:grid-cols-2">
-              {views.map((view) => (
+              {history.map((view) => (
                 <OrderCard key={`history-${view.order.id}`} view={view} />
               ))}
             </div>
           </section>
         </>
       )}
-
-      {completeTheLook ? (
-        <CompleteTheLookModule
-          source={completeTheLook.source}
-          suggestions={completeTheLook.suggestions}
-        />
-      ) : null}
-
-      {mostRecent?.retailerSlug ? (
-        <div
-          className="pe-card rounded-[32px] bg-[#191b1d] p-6 text-white sm:p-8"
-          data-pe-card
-        >
-          <SeasonalStaffFavourites
-            retailerId={mostRecent.order.retailerId}
-            retailerSlug={mostRecent.retailerSlug}
-            excludeProductIds={
-              new Set(
-                completeTheLook
-                  ? [
-                      ...(mostRecent.firstProduct
-                        ? [mostRecent.firstProduct.id]
-                        : []),
-                      ...completeTheLook.suggestions.map(
-                        (suggestion) => suggestion.productId,
-                      ),
-                    ]
-                  : [],
-              )
-            }
-          />
-        </div>
-      ) : null}
-
-      {views.length > 0 ? <SupportingModules shopHref={shopHref} /> : null}
     </div>
   );
 }

@@ -104,6 +104,7 @@ export async function RoutineSections() {
               retailerSlug={retailer?.slug ?? "store"}
               customerId={customer.id}
               forDate={forDate}
+              oneClickCheckoutStatus={customer.oneClickCheckoutStatus}
               view={
                 latest
                   ? {

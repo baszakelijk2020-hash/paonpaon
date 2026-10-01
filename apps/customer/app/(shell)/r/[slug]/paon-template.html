@@ -975,12 +975,158 @@ __PAON_BRAND_HEAD__
         display: block;
     }
 
+    /* The house serif, as the Wardrobe's appointment headings use it. */
+    @font-face {
+        font-family: "NS Serrif";
+        src: url("/fonts/ns-serif.woff2") format("woff2");
+        font-display: swap;
+    }
+
     .dr-title {
+        font-family: "NS Serrif", OptimaKlein, serif;
+        font-weight: 400;
         font-size: 20px;
         color: #bfbfbf;
         line-height: 1.35;
         margin-bottom: 8px;
     }
+
+/* Canvas selector: a list, not four tiles — each option a row with its
+   moon or sun in front, the canvas options above a hairline and the
+   zero-canvas ones below it. Id-doubled to outrank the tile rules. */
+#drf-selector#drf-selector.open .drf-dropdown {
+    max-height: 280px !important;
+}
+#drf-selector#drf-selector .drf-dropdown-inner {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+}
+#drf-selector#drf-selector .drf-dd-item {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    width: auto !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    padding: 0 12px !important;
+    border: 0 !important;
+    border-radius: 12px !important;
+    background: transparent !important;
+}
+#drf-selector#drf-selector .drf-dd-item:hover {
+    background: rgba(255, 255, 255, 0.06) !important;
+}
+#drf-selector#drf-selector .drf-dd-item.active {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+#drf-selector#drf-selector .drf-dd-item span {
+    margin: 0 !important;
+    text-align: left !important;
+    white-space: nowrap !important;
+}
+#drf-selector#drf-selector .drf-dd-item span:first-of-type {
+    flex: 1 1 auto !important;
+}
+#drf-selector#drf-selector .drf-dd-item span + span {
+    opacity: 0.6 !important;
+}
+#drf-selector#drf-selector .drf-canvas-icon {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    color: rgba(244, 242, 236, 0.9);
+}
+#drf-selector#drf-selector .drf-dd-sep {
+    height: 1px;
+    margin: 5px 12px;
+    background: rgba(255, 255, 255, 0.15);
+}
+/* Book Your Fitting: one clear scheme on the panel's dark gradient.
+   Every option is a quiet dark chip at full strength (the old 55% opacity
+   washed the whole panel out, and the atelier names were dark ink on a
+   dark ground); the chosen one turns light with dark ink; Confirm takes the
+   Wardrobe's sage once the booking is complete. Id-tripled: a later block already doubles the id with !important. */
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment .paon-store-btn,
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment .day,
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment .paon-time-slot {
+    opacity: 1 !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: rgba(244, 242, 236, 0.88) !important;
+    box-shadow: none !important;
+    transition: background-color 180ms ease, color 180ms ease !important;
+}
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment .paon-store-btn *,
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment .day *,
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment .paon-time-slot * {
+    color: inherit !important;
+    opacity: 1 !important;
+}
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment .paon-store-btn .paon-store-addr,
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment .day .dow {
+    color: rgba(244, 242, 236, 0.55) !important;
+}
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment .paon-store-btn:hover,
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment .day:hover,
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment .paon-time-slot:not(.disabled):hover {
+    background: rgba(255, 255, 255, 0.11) !important;
+}
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment .paon-store-btn.selected,
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment .day.selected,
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment .paon-time-slot.selected {
+    background: #f4f2ec !important;
+    color: #161616 !important;
+}
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment .paon-store-btn.selected .paon-store-addr,
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment .day.selected .dow {
+    color: rgba(22, 22, 22, 0.6) !important;
+}
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment .paon-time-slot.disabled {
+    opacity: 0.35 !important;
+    cursor: default !important;
+}
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment .day.is-relative {
+    width: auto !important;
+    min-width: 92px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+}
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment .paon-appt-times-empty {
+    padding: 18px 0;
+    color: rgba(244, 242, 236, 0.55);
+    font-size: 14px;
+}
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment #paon-appt-form input,
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment #paon-appt-form textarea {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: #f4f2ec !important;
+    box-shadow: none !important;
+}
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment #paon-appt-form input::placeholder,
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment #paon-appt-form textarea::placeholder {
+    color: rgba(244, 242, 236, 0.42) !important;
+}
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment #paon-appt-form input:focus,
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment #paon-appt-form textarea:focus {
+    box-shadow: inset 0 0 0 1px rgba(244, 242, 236, 0.35) !important;
+    outline: 0 !important;
+}
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment .paon-appt-confirm {
+    opacity: 1 !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: rgba(244, 242, 236, 0.4) !important;
+}
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment .paon-appt-confirm * {
+    color: inherit !important;
+}
+#paon-mobile-appointment#paon-mobile-appointment#paon-mobile-appointment .paon-appt-confirm.enabled {
+    background: #b8e6be !important;
+    color: #14120f !important;
+    cursor: pointer !important;
+}
+
 
     .dr-desc {
         font-size: 16px;
@@ -4058,7 +4204,7 @@ __PAON_HERO_HTML__
 <div class="drf-selector-backdrop" id="drf-backdrop" onclick="closeArchetypeDropdown()"></div>
 <div class="drf-selector" id="drf-selector" onclick="toggleArchetypeDropdown()">
 <div class="drf-selected-row">
-<span class="drf-sel-wrap"><span id="drf-sel-name-a">The Essentialist</span><span id="drf-sel-name-b" class="drf-sel-incoming"></span></span>
+<span class="drf-sel-wrap"><span id="drf-sel-name-a">Half-Canvas</span><span id="drf-sel-name-b" class="drf-sel-incoming"></span></span>
 <span class="drf-sel-wrap" style="right:14px;display:flex;align-items:center;gap:6px;">
 <span id="drf-sel-price-a">EUR 1.600</span><span id="drf-sel-price-b" class="drf-sel-incoming"></span>
 <img id="drf-arrow" src="https://www.nebelspiegel.com/images/up.png" alt="" style="width:12px;height:12px;display:block;transform:rotate(0deg);transition:transform 300ms cubic-bezier(.22,.61,.36,1);pointer-events:none;opacity:.65;flex-shrink:0;">
@@ -4066,21 +4212,30 @@ __PAON_HERO_HTML__
 </div>
 <div class="drf-dropdown" id="drf-dropdown">
 <div class="drf-dropdown-inner">
+<!-- Canvas construction, founder direction 2026-09-30. The first <span> is
+     the name the selector shows; the icon is an <svg> so it is not read as
+     one. Zero Canvas / Zero Canvas Handmade price steps are placeholders
+     until the house confirms them. -->
 <div class="drf-dd-item active" data-index="0" data-add="0">
-<span>The Essentialist</span>
+<svg class="drf-canvas-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1"><circle cx="8" cy="8" r="6.5"/><path d="M8 1.5a6.5 6.5 0 0 0 0 13z" fill="currentColor" stroke="none"/></svg><span>Half-Canvas</span>
 <span>Base Price</span>
 </div>
 <div class="drf-dd-item" data-index="1" data-add="99">
-<span>The Perfectionist</span>
+<svg class="drf-canvas-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1"><circle cx="8" cy="8" r="6.5" fill="currentColor"/></svg><span>Full-Canvas</span>
 <span>+99</span>
 </div>
 <div class="drf-dd-item" data-index="2" data-add="199">
-<span>The Specialist</span>
+<svg class="drf-canvas-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1"><circle cx="8" cy="8" r="6.5" fill="#b3261e" stroke="#d9473d"/></svg><span>Full-Canvas Handmade</span>
 <span>+199</span>
 </div>
-<div class="drf-dd-item" data-index="3" data-add="270">
-<span>Custom Profile</span>
-<span>+270</span>
+<div class="drf-dd-sep" aria-hidden="true"></div>
+<div class="drf-dd-item" data-index="3" data-add="0">
+<svg class="drf-canvas-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1"><circle cx="8" cy="8" r="3.5"/><line x1="12.90" y1="8.00" x2="15.20" y2="8.00"/><line x1="11.46" y1="11.46" x2="13.09" y2="13.09"/><line x1="8.00" y1="12.90" x2="8.00" y2="15.20"/><line x1="4.54" y1="11.46" x2="2.91" y2="13.09"/><line x1="3.10" y1="8.00" x2="0.80" y2="8.00"/><line x1="4.54" y1="4.54" x2="2.91" y2="2.91"/><line x1="8.00" y1="3.10" x2="8.00" y2="0.80"/><line x1="11.46" y1="4.54" x2="13.09" y2="2.91"/></svg><span>Zero Canvas</span>
+<span>Base Price</span>
+</div>
+<div class="drf-dd-item" data-index="4" data-add="199">
+<svg class="drf-canvas-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1"><circle cx="8" cy="8" r="3.5" fill="currentColor"/><line x1="12.90" y1="8.00" x2="15.20" y2="8.00"/><line x1="11.46" y1="11.46" x2="13.09" y2="13.09"/><line x1="8.00" y1="12.90" x2="8.00" y2="15.20"/><line x1="4.54" y1="11.46" x2="2.91" y2="13.09"/><line x1="3.10" y1="8.00" x2="0.80" y2="8.00"/><line x1="4.54" y1="4.54" x2="2.91" y2="2.91"/><line x1="8.00" y1="3.10" x2="8.00" y2="0.80"/><line x1="11.46" y1="4.54" x2="13.09" y2="2.91"/></svg><span>Zero Canvas Handmade</span>
+<span>+199</span>
 </div>
 </div>
 </div>
@@ -5926,8 +6081,8 @@ function renderGrid() {
         document.body.classList.add('product-detail-open');
         closeArchetypeDropdown();
         document.querySelectorAll('.drf-dd-item').forEach(function(item,i){ item.classList.toggle('active', i===0); item.classList.remove('fading-out'); });
-        document.getElementById('drf-sel-name-a').textContent = 'The Essentialist'; document.getElementById('drf-sel-name-b').textContent = ''; document.getElementById('drf-sel-name-a').style.opacity = '1'; document.getElementById('drf-sel-name-b').style.opacity = '0'; _crossfadeLayer = 'a';
-        document.getElementById('drf-sel-price-a').textContent = p.price || 'EUR 990'; document.getElementById('drf-sel-price-b').textContent = ''; document.getElementById('drf-sel-price-a').style.opacity = '1'; document.getElementById('drf-sel-price-b').style.opacity = '0';
+        document.getElementById('drf-sel-name-a').textContent = 'Half-Canvas'; document.getElementById('drf-sel-name-b').textContent = ''; document.getElementById('drf-sel-name-a').style.opacity = '1'; document.getElementById('drf-sel-name-b').style.opacity = '0'; _crossfadeLayer = 'a';
+        window.__paonDetailPriceText = p.price || 'EUR 990'; document.getElementById('drf-sel-price-a').textContent = window.__paonDetailPriceText; document.getElementById('drf-sel-price-b').textContent = ''; document.getElementById('drf-sel-price-a').style.opacity = '1'; document.getElementById('drf-sel-price-b').style.opacity = '0';
         state.infoVisible = true; var _ico=document.getElementById('detail-toggle-icon'); if(_ico) _ico.src='https://www.nebelspiegel.com/images/left2.png'; var _hico=document.getElementById('detail-hide-icon'); if(_hico) _hico.src='https://www.nebelspiegel.com/images/right2.png';
         document.getElementById('layout').classList.remove('right-hidden');
         
@@ -5948,9 +6103,16 @@ function renderGrid() {
         const detailBrand = millAbbreviations[detailBrandFull] || detailBrandFull;
         const detailTitle = detailBrand || sv.title || p.sanveneroTitle || p.name;
         const rawDesc = (sv && sv.description) ? sv.description : (p.sanveneroDescription || p.description || '');
-        const detailDesc = rawDesc
+        const trimmedDesc = rawDesc
             .replace(/\.\s*Cut and finished for[^.]*\.?\s*$/i, '.')
-            .trim() || 'A composed piece from the current collection.';
+            .trim();
+        /* "Petrol Wool Blend Twill from Carlo Barbera." only repeats the title
+           above it; the line under the title names the mill and nothing else. */
+        const fromMill = trimmedDesc.match(/^(.+?)\s+from\s+(.+?)\.?$/i);
+        const repeatsTitle = fromMill && [detailTitle, p.name, sv.title, p.sanveneroTitle]
+            .filter(Boolean)
+            .some(function (t) { return String(t).trim().toLowerCase() === fromMill[1].trim().toLowerCase(); });
+        const detailDesc = (repeatsTitle ? fromMill[2].trim() : trimmedDesc) || 'A composed piece from the current collection.';
         const detailMaterial = sv.material || p.sanveneroMaterial || p.material || '100% Wool';
         const detailLining = sv.recommendedLining || p.sanveneroRecommendedLining || '';
         const detailColor = sv.color || p.sanveneroColor || '';
@@ -6680,6 +6842,22 @@ function renderGrid() {
         }
         return 'EUR ' + rounded;
     }
+    function priceWithStep(text, add) {
+        var m = String(text || '').match(/^(\D*?)([\d.,]+)(\D*)$/);
+        if (!m) return null;
+        var digits = m[2];
+        var cents = /[.,]\d{2}$/.test(digits);
+        var usStyle = /,\d{3}(\.\d{2})?$/.test(digits) || /^\d+\.\d{2}$/.test(digits);
+        var amount = usStyle
+            ? parseFloat(digits.replace(/,/g, ''))
+            : parseFloat(digits.replace(/\./g, '').replace(',', '.'));
+        if (!isFinite(amount)) return null;
+        var total = amount + add;
+        var body = usStyle
+            ? total.toLocaleString('en-US', { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 })
+            : total.toLocaleString('de-DE', { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 });
+        return m[1] + body + m[3];
+    }
     function crossfadeText(prefix, newText) {
         var cur = _crossfadeLayer;
         var nxt = cur === 'a' ? 'b' : 'a';
@@ -6706,7 +6884,9 @@ function renderGrid() {
         chosen.classList.add('active');
         var newName = chosen.querySelectorAll('span')[0].textContent;
         var add = parseInt(chosen.dataset.add) || 0;
-        var newPrice = formatPrice(BASE_PRICE + add);
+        /* The step is added to the product's own price, in its own format —
+           a fixed EUR base swapped "$1,540.00" for "EUR 2.000" on any pick. */
+        var newPrice = priceWithStep(window.__paonDetailPriceText, add) || formatPrice(BASE_PRICE + add);
         crossfadeText('drf-sel-name', newName);
         crossfadeText('drf-sel-price', newPrice);
         _crossfadeLayer = _crossfadeLayer === 'a' ? 'b' : 'a';
@@ -10248,7 +10428,7 @@ body.home-view-active main {
 
     /* ── Feed images ── */
     var FEED_BASE  = 'https://www.nebelspiegel.com/images/frontfeed';
-    var FEED_SKIP  = [1, 2, 100, 103, 110];
+    var FEED_SKIP  = [1, 2, 93, 100, 103, 110];
 
     function buildFeedUrls() {
         var arr = [];
@@ -10577,9 +10757,13 @@ body.home-view-active main {
         if (window._feedResizeHandler) {
             window.removeEventListener('resize', window._feedResizeHandler);
         }
+        window._feedResizeColumns = typeof paonHomeFeedColumnCount === 'function' ? paonHomeFeedColumnCount() : window._feedResizeColumns;
         window._feedResizeHandler = function () {
             clearTimeout(window._feedResizeTimer);
             window._feedResizeTimer = setTimeout(function () {
+                var cols = typeof paonHomeFeedColumnCount === 'function' ? paonHomeFeedColumnCount() : null;
+                if (cols !== null && cols === window._feedResizeColumns) return;
+                window._feedResizeColumns = cols;
                 window.renderHome();
             }, 180);
         };
@@ -11115,7 +11299,12 @@ body.home-view-active main {
 
     window.addEventListener('resize', function () {
         clearTimeout(timer);
-        timer = setTimeout(applyColumnCount, 40);
+        timer = setTimeout(function () {
+            var cols = paonHomeFeedColumnCount();
+            if (cols === window.__paonHomeFeedResizeCols) return;
+            window.__paonHomeFeedResizeCols = cols;
+            applyColumnCount();
+        }, 40);
     });
 })();
 </script>
@@ -11151,7 +11340,12 @@ body.home-view-active main {
     }
 
     window.addEventListener('load', forceExistingFeedToThreeColumns);
-    window.addEventListener('resize', forceExistingFeedToThreeColumns);
+    window.addEventListener('resize', function () {
+        var cols = paonHomeFeedColumnCount();
+        if (cols === window.__paonHomeFeedResizeCols) return;
+        window.__paonHomeFeedResizeCols = cols;
+        forceExistingFeedToThreeColumns();
+    });
 
     var t = setInterval(forceExistingFeedToThreeColumns, 200);
     setTimeout(function () { clearInterval(t); }, 5000);
@@ -11269,6 +11463,10 @@ body.home-view-active main {
 
             var img = card.querySelector('img');
             if (!img) return;
+            /* Once paon-parallax-boundary-safety-final-js has measured an image
+               (data-paon-fit) it owns fit, transform and --card-ratio; writing
+               them here makes it re-measure every card on every image load. */
+            if (img.dataset.paonFit) return;
 
             img.style.setProperty('object-fit', 'contain', 'important');
             img.style.setProperty('object-position', 'center center', 'important');
@@ -11288,7 +11486,7 @@ body.home-view-active main {
             img.dataset.paonNaturalRatioBound = '1';
 
             function apply() {
-                if (img.naturalWidth && img.naturalHeight) {
+                if (!img.dataset.paonFit && img.naturalWidth && img.naturalHeight) {
                     var ratio = (img.naturalHeight / img.naturalWidth) * 100;
                     card.style.setProperty('--card-ratio', ratio.toFixed(6) + '%');
                 }
@@ -11327,6 +11525,9 @@ body.home-view-active main {
     });
 
     window.addEventListener('resize', function () {
+        var cols = paonHomeFeedColumnCount();
+        if (cols === window.__paonHomeFeedResizeCols) return;
+        window.__paonHomeFeedResizeCols = cols;
         setTimeout(bindNaturalRatios, 60);
         setTimeout(unlockHomeFeed, 160);
     });
@@ -11441,7 +11642,7 @@ body.home-view-active main {
             card.style.setProperty('overflow', 'hidden', 'important');
 
             var img = card.querySelector('img');
-            if (!img) return;
+            if (!img || img.dataset.paonFit) return;
             img.style.setProperty('object-fit', 'contain', 'important');
             img.style.setProperty('object-position', 'center center', 'important');
             img.style.setProperty('transform', 'none', 'important');
@@ -11454,7 +11655,12 @@ body.home-view-active main {
     }
 
     window.addEventListener('load', lockHomeFeedSpacing);
-    window.addEventListener('resize', lockHomeFeedSpacing);
+    window.addEventListener('resize', function () {
+        var cols = paonHomeFeedColumnCount();
+        if (cols === window.__paonHomeFeedResizeCols) return;
+        window.__paonHomeFeedResizeCols = cols;
+        lockHomeFeedSpacing();
+    });
     document.addEventListener('DOMContentLoaded', lockHomeFeedSpacing);
     setTimeout(lockHomeFeedSpacing, 0);
     setTimeout(lockHomeFeedSpacing, 250);
@@ -11538,6 +11744,29 @@ body.home-view-active main {
         return paonHomeFeedColumnCount();
     }
 
+    function styleCard(card) {
+        card.classList.remove('bottom-cropped', 'paon-distributed-clipped');
+        card.style.setProperty('height', 'auto', 'important');
+        card.style.setProperty('max-height', 'none', 'important');
+        card.style.setProperty('flex-basis', 'auto', 'important');
+        card.style.setProperty('overflow', 'hidden', 'important');
+
+        var img = card.querySelector('img');
+        if (img) {
+            var owned = !!img.dataset.paonFit;
+            if (!owned) {
+                img.style.setProperty('object-fit', 'contain', 'important');
+                img.style.setProperty('object-position', 'center center', 'important');
+                img.style.setProperty('transform', 'none', 'important');
+            }
+            if (!img.src && img.dataset.src) img.src = img.dataset.src;
+            if (!owned && img.complete && img.naturalWidth && img.naturalHeight) {
+                var ratio = (img.naturalHeight / img.naturalWidth) * 100;
+                card.style.setProperty('--card-ratio', ratio.toFixed(6) + '%');
+            }
+        }
+    }
+
     function lockHomeFeed() {
         var grid = document.getElementById('home-masonry-grid') || document.querySelector('.home-masonry-grid');
         if (!grid) return;
@@ -11561,12 +11790,41 @@ body.home-view-active main {
             col.style.setProperty('overflow', 'visible', 'important');
         });
 
-        var allCards = [];
-        columns.forEach(function (col) {
-            Array.prototype.slice.call(col.querySelectorAll('.home-feed-card')).forEach(function (card) {
-                allCards.push(card);
-            });
+        /* Read the cards back in the order they were dealt (row by row across
+           the columns), not column by column. Collecting a whole column first
+           and re-dealing round-robin moved almost every card on every call —
+           and this runs on every resize, which the app fires on each
+           environment switch — so the grid reshuffled under the reader. */
+        var perColumn = columns.map(function (col) {
+            return Array.prototype.slice.call(col.querySelectorAll('.home-feed-card'));
         });
+        var deepest = perColumn.reduce(function (max, list) { return Math.max(max, list.length); }, 0);
+        var allCards = [];
+        for (var row = 0; row < deepest; row++) {
+            for (var c = 0; c < perColumn.length; c++) {
+                if (perColumn[c][row]) allCards.push(perColumn[c][row]);
+            }
+        }
+
+        /* The column count is already right: never move a card that is on
+           the page. A card dropping out (a missing image) leaves a hole, and
+           re-dealing around it shifted every card after it into another
+           column. Short columns are topped up in place instead. */
+        if (perColumn.length === columnCount) {
+            if (allCards.length && allCards.length % columnCount !== 0) {
+                var seed = 0;
+                perColumn.forEach(function (list, c) {
+                    if (list.length >= deepest) return;
+                    var clone = allCards[seed++ % allCards.length].cloneNode(true);
+                    clone.classList.remove('bottom-cropped', 'paon-distributed-clipped');
+                    columns[c].appendChild(clone);
+                });
+            }
+            columns.forEach(function (col) {
+                Array.prototype.slice.call(col.querySelectorAll('.home-feed-card')).forEach(styleCard);
+            });
+            return;
+        }
 
         if (allCards.length && allCards.length % columnCount !== 0) {
             var needed = columnCount - (allCards.length % columnCount);
@@ -11580,24 +11838,7 @@ body.home-view-active main {
         if (allCards.length) {
             columns.forEach(function (col) { col.innerHTML = ''; });
             allCards.forEach(function (card, index) {
-                card.classList.remove('bottom-cropped', 'paon-distributed-clipped');
-                card.style.setProperty('height', 'auto', 'important');
-                card.style.setProperty('max-height', 'none', 'important');
-                card.style.setProperty('flex-basis', 'auto', 'important');
-                card.style.setProperty('overflow', 'hidden', 'important');
-
-                var img = card.querySelector('img');
-                if (img) {
-                    img.style.setProperty('object-fit', 'contain', 'important');
-                    img.style.setProperty('object-position', 'center center', 'important');
-                    img.style.setProperty('transform', 'none', 'important');
-                    if (!img.src && img.dataset.src) img.src = img.dataset.src;
-                    if (img.complete && img.naturalWidth && img.naturalHeight) {
-                        var ratio = (img.naturalHeight / img.naturalWidth) * 100;
-                        card.style.setProperty('--card-ratio', ratio.toFixed(6) + '%');
-                    }
-                }
-
+                styleCard(card);
                 columns[index % columnCount].appendChild(card);
             });
         }
@@ -11620,7 +11861,12 @@ body.home-view-active main {
         setTimeout(lockHomeFeed, 250);
     });
     window.addEventListener('load', function () { setTimeout(lockHomeFeed, 0); });
-    window.addEventListener('resize', function () { setTimeout(lockHomeFeed, 80); });
+    window.addEventListener('resize', function () {
+        var cols = paonHomeFeedColumnCount();
+        if (cols === window.__paonHomeFeedResizeCols) return;
+        window.__paonHomeFeedResizeCols = cols;
+        setTimeout(lockHomeFeed, 80);
+    });
 })();
 </script>
 
@@ -11842,7 +12088,7 @@ body.home-view-active main {
 <script id="paon-home-feed-skip-loaded-even-final">
 (function () {
     var FEED_BASE = 'https://www.nebelspiegel.com/images/frontfeed';
-    var FEED_SKIP = { 1: true, 2: true, 16: true, 24: true, 89: true, 100: true, 103: true, 106: true, 110: true };
+    var FEED_SKIP = { 1: true, 2: true, 16: true, 24: true, 89: true, 93: true, 100: true, 103: true, 106: true, 110: true };
     var FEED_TITLES = {"1": "Made in Italy", "2": "Craftmanship", "3": "Unlined Jackets", "4": "Safari Jackets", "5": "Made-to-Measure", "6": "Half-Lined Jackets", "7": "Herringbone Fabrics", "8": "Elevated Casual", "9": "Knitwear: Polo's", "10": "Custom Denims", "11": "Safari Jackets", "12": "Separate Trouser Fabrics", "13": "Loro Piana Fabrics", "14": "Contemporary Layering", "15": "Casual Flannels", "17": "Wedding", "18": "Elevated Casual", "19": "Loro Piana Camel", "20": "Knits", "21": "Trousers", "22": "Luxury Footwear", "23": "Summer Suits", "25": "Utility Jackets", "26": "Luxury Vests", "27": "Accessories", "28": "Custom Denims", "29": "Loro Piana Jersey®", "30": "Trouser Options", "31": "Accessories", "32": "Made-in-Italy Knitwear", "33": "Luxury Shirts", "34": "Elevated Knits", "35": "Knits", "36": "Summer Knits", "37": "Knitwear", "38": "4-ply Fabrics", "39": "Side Suspenders", "40": "Custom Denim", "41": "Summer Casuals", "42": "Knitwear Pairing", "43": "Custom Sneakers", "44": "Custom Made Shoes", "45": "Technical Vests", "46": "Wardrobe Design", "47": "Summer Knitwear", "48": "Cool Knits", "49": "Side Suspenders", "50": "Denim Buttons", "51": "Schiller Collar", "52": "Luxury Shirting", "53": "Pocket Squares", "54": "Summer Knitwear", "55": "Summer Knitwear", "56": "Summer Knits", "57": "Brushed Wool Vests", "58": "Design Options: Vests", "59": "Quilted Coats", "60": "Custom Coats", "61": "Surgeon Cuffs", "62": "Luxury Shirts", "63": "Wardrobe Styling", "64": "Separate Jackets", "65": "Safari Jackets", "66": "Casual Jackets", "67": "Safari Jackets", "68": "Mother Of Pearl Buttons", "69": "Spring-Summer 2026", "70": "Casual Footwear", "71": "Wardrobe Staples", "72": "Custom 5-Pockets", "73": "Custom Denims", "74": "Travel Essentials", "75": "Mohair Fabric Evening Wear", "76": "Evening Wear", "77": "V-Neck Knits", "78": "Mute Knit Colors", "79": "Knitwear Staples", "80": "Custom Vests", "81": "Design Options", "82": "Custom Trousers", "83": "Comfortable Knitwear", "84": "Knitted Comfort", "85": "Rolled Lapel", "86": "Corduroy", "87": "Washed Denim Fabric", "88": "Hand Painted Shoes", "90": "Milanese Lapel Button", "91": "Loro Piana", "92": "Unconstructed Jackets", "93": "Elevated Casual", "94": "Made in Italy", "95": "Summer Knits", "96": "Custom Jeans", "97": "Jersey Knits", "98": "Wool and Cashmere", "99": "Merino Wool Knits", "100": "Loro Piana", "101": "Luxury Overcoats", "102": "1-Piece Shirt Collar", "103": "Luxury Overcoats", "104": "Luxury Camel Coats", "105": "Design Options: Spalla Camicia", "107": "Utility Jackets", "108": "Luxury Overcoats", "109": "Utility", "110": "Densely Milled Wool Jackets"};
     var GAP = 40;
     var RATIOS = [133, 150, 125, 140, 160, 120, 145, 130, 155, 135, 115, 148];
@@ -11863,6 +12109,19 @@ body.home-view-active main {
         return array;
     }
 
+    var LOCAL_FEED_ITEMS = [
+        { n: 112, url: '/images/home-grid/merino-sheep-field.webp', title: 'Merino Wool Knits' },
+        { n: 113, url: '/images/home-grid/tweed-fleck-dark.webp', title: 'Tweed Fabrics' },
+        { n: 114, url: '/images/home-grid/herringbone-green.webp', title: 'Herringbone Fabrics' },
+        { n: 115, url: '/images/home-grid/summer-getaway-luggage.webp', title: 'Travel Essentials' },
+        { n: 116, url: '/images/home-grid/seasonal-jacket-swatches.webp', title: 'Seasonal Fabric Swatches' },
+        { n: 117, url: '/images/home-grid/cotton-velvet-burgundy.webp', title: 'Cotton Velvet' },
+        { n: 119, url: '/images/home-grid/herringbone-charcoal.webp', title: 'Herringbone Fabrics' },
+        { n: 120, url: '/images/home-grid/mare-stripe-seersucker.webp', title: 'Mare' },
+        { n: 121, url: '/images/home-grid/summertime-linen.webp', title: 'Summertime' },
+        { n: 122, url: '/images/home-grid/cruise-loro-piana-check.webp', title: 'Cruise' }
+    ];
+
     function buildFeedItems() {
         var items = [];
         for (var n = 1; n <= 110; n++) {
@@ -11874,6 +12133,7 @@ body.home-view-active main {
                 });
             }
         }
+        items = items.concat(LOCAL_FEED_ITEMS);
         return shuffle(items);
     }
 
@@ -11966,15 +12226,17 @@ body.home-view-active main {
         img.loading = 'lazy';
         img.dataset.src = item.url;
         img.addEventListener('load', function () {
-            if (img.naturalWidth && img.naturalHeight) {
+            if (!img.dataset.paonFit && img.naturalWidth && img.naturalHeight) {
                 var ratio = (img.naturalHeight / img.naturalWidth) * 100;
                 card.style.setProperty('--card-ratio', ratio.toFixed(6) + '%');
             }
             img.classList.add('img-loaded');
         });
+        /* A missing image just drops its own card. Re-dealing every card here
+           (as this did) rebuilt the whole grid under the reader each time one
+           of the feed numbers 404'd while scrolling. */
         img.addEventListener('error', function () {
             card.remove();
-            rebalanceExistingCards();
         }, { once: true });
 
         frame.appendChild(img);
@@ -12066,11 +12328,28 @@ body.home-view-active main {
         }
     };
 
+    /* Resize only reflows when the column count actually changes, and then
+       re-deals the cards already on the page rather than building a new
+       shuffled set. The app fires synthetic resize events on every
+       environment switch and re-mount; each one used to rebuild the grid
+       from scratch — new order, every card back to waiting, the entrance
+       replayed. Cards keep their revealed state across a re-deal. */
+    if (window._feedResizeHandler) {
+        window.removeEventListener('resize', window._feedResizeHandler);
+        window._feedResizeHandler = null;
+    }
     var resizeTimer;
     window.addEventListener('resize', function () {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(function () {
-            if (document.body.classList.contains('home-view-active')) window.renderHome();
+            if (!document.body.classList.contains('home-view-active')) return;
+            var grid = document.getElementById('home-masonry-grid');
+            if (!grid || !grid.querySelector('.home-feed-card')) {
+                window.renderHome();
+                return;
+            }
+            var current = grid.querySelectorAll(':scope > .home-masonry-column').length;
+            if (current !== getColumnCount()) rebalanceExistingCards();
         }, 120);
     });
 
@@ -12223,7 +12502,6 @@ body.home-view-active main {
     border-radius: 17px!important;
     clip:auto!important;
     clip-path:none!important;
-    will-change:transform,opacity,filter!important;
     backface-visibility:hidden!important;
     -webkit-backface-visibility:hidden!important;
     transform:translate3d(0,var(--parallax-y,0px),0) scale(1.001)!important;
@@ -12247,36 +12525,77 @@ body.home-view-active main {
     opacity:1!important;
     filter:blur(0px)!important;
 }
+
+/* Safari only (#main gets paon-webkit below). A card only drops back to
+   the plain waiting state when it is fully off-screen (hide()) or before
+   its first reveal, so the 900ms blur/opacity/scale fade-out there is
+   never seen, yet Safari still runs it and during a fast scroll those
+   invisible transitions were most of its frame drops. Revealing adds
+   paon-frontfeed-visible, which leaves this selector, so the fade-in keeps
+   its full transition. */
+#main.paon-webkit .home-feed-card.paon-waiting-frontfeed:not(.paon-frontfeed-visible) img{
+    transition:none!important;
+}
 </style>
+
+<script id="paon-webkit-marker">
+(function(){
+    if(navigator.vendor !== "Apple Computer, Inc.") return;
+    var tries = 0;
+    (function mark(){
+        var main = document.getElementById("main");
+        if(main){ main.classList.add("paon-webkit"); return; }
+        if(++tries < 100) setTimeout(mark, 50);
+    })();
+})();
+</script>
 
 <script id="paon-parallax-smooth-scroll-js">
 (function(){
     var items = [];
     var running = false;
     var needsCollect = true;
+    var baseScrollY = 0;
 
+    function getScrollY(){
+        var main = document.getElementById('main');
+        if(main && main.scrollHeight > main.clientHeight) return main.scrollTop;
+        return window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+    }
+
+    /* Reading getBoundingClientRect() for every card on every rAF frame (the
+       previous approach) forces a synchronous layout on each of 100+ elements
+       per frame. Chrome's layout pipeline absorbs that; Safari does not — it
+       was the main source of scroll jank there. Positions are now read once
+       per collect() and tracked with cheap scrollY-delta arithmetic instead,
+       with a periodic re-sync below to correct any drift from cards that
+       change height while off-screen (e.g. late image loads). */
     function collect(){
+        baseScrollY = getScrollY();
         items = Array.prototype.slice.call(
             document.querySelectorAll('.home-feed-card img, .grid-card img')
         ).map(function(img){
             var card = img.closest('.home-feed-card,.grid-card');
+            if(!card) return null;
+            var rect = card.getBoundingClientRect();
             var initial = parseFloat(img.dataset.paonParallaxY || '0') || 0;
-            return { img: img, card: card, current: initial, target: initial };
-        }).filter(function(it){ return it.card; });
+            return { img: img, card: card, current: initial, target: initial, top: rect.top, height: rect.height };
+        }).filter(Boolean);
         needsCollect = false;
     }
 
     function measure(){
         var vh = window.innerHeight || document.documentElement.clientHeight || 1;
+        var shift = getScrollY() - baseScrollY;
         for(var i = 0; i < items.length; i++){
             var it = items[i];
-            var rect = it.card.getBoundingClientRect();
-            if(rect.bottom < -240 || rect.top > vh + 240) continue;
+            var top = it.top - shift;
+            if(top + it.height < -240 || top > vh + 240) continue;
 
-            var center = rect.top + rect.height / 2;
+            var center = top + it.height / 2;
             var viewportCenter = vh / 2;
             var delta = (viewportCenter - center) / vh;
-            var range = rect.height * 0.10;
+            var range = it.height * 0.10;
             it.target = delta * range;
         }
     }
@@ -12300,7 +12619,7 @@ body.home-view-active main {
             it.img.style.setProperty('--parallax-y', y + 'px');
         }
 
-        if(active || running){
+        if(active){
             requestAnimationFrame(render);
         }else{
             running = false;
@@ -12325,6 +12644,8 @@ body.home-view-active main {
             needsCollect = true;
             kick();
         }).observe(document.body, { childList:true, subtree:true });
+
+        setInterval(function(){ needsCollect = true; }, 1500);
     }
 
     if(document.readyState === 'loading'){
@@ -12376,14 +12697,19 @@ html, body{
     var SKIP = {"001":true,"002":true,"016":true,"024":true,"089":true,"100":true,"106":true,"110":true};
 
     function getImg(card){
-        return card.querySelector('img[src*="frontfeed"],img[data-src*="frontfeed"]');
+        return card.querySelector('img[src*="frontfeed"],img[data-src*="frontfeed"],img[src*="home-grid"],img[data-src*="home-grid"]');
     }
 
     function getNum(img){
         if(!img) return null;
         var raw = img.getAttribute("data-src") || img.getAttribute("src") || "";
         var match = raw.match(/frontfeed(\d{3})\.webp/i);
-        return match ? match[1] : null;
+        if(match) return match[1];
+        /* Locally-added grid images (apps/customer/public/images/home-grid/) carry no
+           frontfeed number, so they get no SKIP/TITLES lookup — they already have a
+           title from LOCAL_FEED_ITEMS — but must still return a truthy id so the same
+           prepare()/reveal() blur-fade animation picks them up instead of skipping them. */
+        return raw.indexOf("home-grid") !== -1 ? raw : null;
     }
 
     function placeTitle(card, img, text){
@@ -12456,6 +12782,11 @@ html, body{
         function animate(){
             card.classList.add("paon-frontfeed-visible");
 
+            if(img){
+                img.style.willChange = "opacity, filter, transform";
+                setTimeout(function(){ img.style.willChange = "auto"; }, 1700);
+            }
+
             if(window.gsap && img){
                 gsap.to(img,{
                     opacity:1,
@@ -12486,8 +12817,24 @@ html, body{
 
     function hide(card){
         if(!card.classList.contains("paon-frontfeed-visible")) return;
+
+        var img = getImg(card);
         card.classList.remove("paon-frontfeed-visible");
         card.classList.add("paon-waiting-frontfeed");
+
+        if(img){
+            if(window.gsap){
+                gsap.killTweensOf(img);
+                gsap.set(img, { clearProps: "opacity,filter,transform,willChange" });
+            }else{
+                img.style.removeProperty("opacity");
+                img.style.removeProperty("filter");
+                img.style.removeProperty("transform");
+            }
+
+            img.style.willChange = "opacity, filter, transform";
+            setTimeout(function(){ img.style.willChange = "auto"; }, 1000);
+        }
     }
 
     var sharedObserver = null;
@@ -12496,16 +12843,16 @@ html, body{
         if(sharedObserver) return sharedObserver;
         sharedObserver = new IntersectionObserver(function(entries){
             entries.forEach(function(entry){
-                if(entry.isIntersecting){
+                if(entry.intersectionRatio >= 0.18){
                     reveal(entry.target);
-                }else{
+                }else if(entry.intersectionRatio <= 0){
                     hide(entry.target);
                 }
             });
         }, {
             root:null,
             rootMargin:"0px",
-            threshold:0.18
+            threshold:[0, 0.18]
         });
         return sharedObserver;
     }
@@ -14061,7 +14408,10 @@ requestAnimationFrame(fixFeedImages);
             if (!t || t.nodeType !== 1) continue;
             if (t.tagName === 'IMG' && t.closest && t.closest('.home-feed-card')) {
                 var wantFit = t.dataset ? t.dataset.paonFit : null;
-                if (t.style.getPropertyValue('transform') ||
+                /* Only an !important inline transform beats the clamped
+                   stylesheet one; GSAP's per-frame reveal transform never
+                   applies, and reacting to it re-measured every card each frame. */
+                if (t.style.getPropertyPriority('transform') === 'important' ||
                     (wantFit && t.style.getPropertyValue('object-fit') !== wantFit)) {
                     schedule(); return;
                 }
@@ -16861,7 +17211,9 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
                 dayEl.className = 'day';
                 var dowEl = document.createElement('div');
                 dowEl.className = 'dow';
-                dowEl.textContent = weekdays[d.getDay()];
+                /* The first two days read as words, not weekdays. */
+                dowEl.textContent = offset === 0 ? 'TODAY' : offset === 1 ? 'TOMORROW' : weekdays[d.getDay()];
+                if (offset < 2) dayEl.classList.add('is-relative');
                 var dnumEl = document.createElement('div');
                 dnumEl.className = 'dnum';
                 dnumEl.textContent = d.getDate();
@@ -16891,9 +17243,10 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
                     slot.className = 'paon-time-slot';
                     if (disabled) slot.classList.add('disabled');
                     if (isToday) {
+                        /* Today lists only the times still ahead. */
                         var slotDate = new Date();
                         slotDate.setHours(h, m, 0, 0);
-                        if (slotDate.getTime() <= Date.now()) slot.classList.add('disabled');
+                        if (slotDate.getTime() <= Date.now()) continue;
                     }
                     slot.textContent = (h < 10 ? '0' + h : h) + ':' + (m === 0 ? '00' : '30');
                     slot.addEventListener('click', function () {
@@ -16905,6 +17258,12 @@ html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
                     });
                     timesWrap.appendChild(slot);
                 }
+            }
+            if (!timesWrap.children.length) {
+                var none = document.createElement('div');
+                none.className = 'paon-appt-times-empty';
+                none.textContent = 'No more times today. Choose tomorrow or later.';
+                timesWrap.appendChild(none);
             }
         }
 
@@ -19760,8 +20119,17 @@ body.filter-active #filter-panel {
            figure and only a pair of looks fitted on screen; three is the
            density the catalogue is meant to be read at. The visitor can still
            choose 2 or 4 — this is only where it starts. */
-        if (name === 'Pants' || name === 'Suits' || name === 'Jackets') return 3;
-        return 2;
+        var base = (name === 'Pants' || name === 'Suits' || name === 'Jackets') ? 3 : 2;
+        /* Narrower windows drop a column at a time rather than keep shrinking
+           every card: 900px is where a 3-up row stops having room to read as
+           three full-height figures, 560px is where a 2-up row does the same.
+           Measured off the grid's own rendered width (already excludes the
+           sidebar) so it tracks the actual content column, not the viewport. */
+        var grid = document.getElementById('product-grid');
+        var width = (grid && grid.clientWidth) || window.innerWidth;
+        if (width < 560) return 1;
+        if (width < 900) return Math.max(1, base - 1);
+        return base;
     }
     /* Suits and Jackets are the same shared catalogue photography, cut the
        same way, so a column count chosen on one is the column count for both.
@@ -19805,6 +20173,19 @@ body.filter-active #filter-panel {
         window.syncCatalogGridSelector();
         if (typeof window.renderGrid === 'function') window.renderGrid();
     };
+    /* Live-reflow on resize: only the categories at their default (not a
+       visitor's explicit 2/3/4 choice) recompute — setCatalogGridColumns
+       already recorded an explicit pick in state.catalogGridColumns, and
+       paonGridColumnsForCategory reads that first, so this never overrides
+       one. */
+    window.addEventListener('resize', function () {
+        if (typeof state === 'undefined') return;
+        var grid = document.getElementById('product-grid');
+        if (grid && window.paonApplyIntegerColumns) {
+            paonApplyIntegerColumns(grid, window.paonGridColumnsForCategory(state.activeCat));
+        }
+        window.syncCatalogGridSelector();
+    });
     document.addEventListener('DOMContentLoaded', function () {
         window.syncCatalogGridSelector();
     });
@@ -20104,6 +20485,35 @@ body.filter-active #filter-panel {
         font-size: 14px !important; font-weight: 400 !important;
         letter-spacing: .14px !important; text-transform: none !important;
       }
+      /* Colour options carry their colour: a filled swatch at the chip's left,
+         no outline, inset 6px from the chip's edge with its corners drawn
+         concentric to the chip's (16px outer radius less the 6px inset). */
+      #filter-panel#filter-panel.paon-filter-top-drawer.paon-filter-top-drawer .fp-opt[data-filter-group="color"] {
+        position: relative !important;
+      }
+      #filter-panel#filter-panel.paon-filter-top-drawer.paon-filter-top-drawer .fp-opt[data-filter-group="color"]::before {
+        content: "" !important;
+        position: absolute !important;
+        top: 5px !important; bottom: 5px !important; left: 5px !important;
+        aspect-ratio: 1 !important;
+        border: 0 !important;
+        border-radius: 10px !important;
+        corner-shape: inherit;
+        background: var(--fp-swatch, transparent) !important;
+        pointer-events: none !important;
+      }
+      #filter-panel .fp-opt[data-filter-value="navy"] { --fp-swatch: #1c2740; }
+      #filter-panel .fp-opt[data-filter-value="grey"] { --fp-swatch: #7d7f82; }
+      #filter-panel .fp-opt[data-filter-value="brown"] { --fp-swatch: #5e4331; }
+      #filter-panel .fp-opt[data-filter-value="beige"] { --fp-swatch: #c9b596; }
+      #filter-panel .fp-opt[data-filter-value="blue"] { --fp-swatch: #3a5a8c; }
+      #filter-panel .fp-opt[data-filter-value="black"] { --fp-swatch: #0d0d0d; }
+      #filter-panel .fp-opt[data-filter-value="green"] { --fp-swatch: #3b5240; }
+      /* An open group is as tall as its options: the script below measures
+         each group into --fp-open-h, so the last row is never cut off. */
+      #filter-panel#filter-panel.paon-filter-top-drawer.paon-filter-top-drawer .fp-sec-body.open {
+        max-height: var(--fp-open-h, 480px) !important;
+      }
       #filter-panel#filter-panel.paon-filter-top-drawer.paon-filter-top-drawer .fp-opt.sel,
       #filter-panel#filter-panel.paon-filter-top-drawer.paon-filter-top-drawer .fp-opt.selected,
       #filter-panel#filter-panel.paon-filter-top-drawer.paon-filter-top-drawer .fp-choice.sel,
@@ -20149,9 +20559,33 @@ body.filter-active #filter-panel {
         #filter-dim.paon-filter-top-dim, #filter-panel.paon-filter-top-drawer { left: 0 !important; }
         #filter-panel.paon-filter-top-drawer { padding: 16px !important; max-height: calc(100vh - 90px) !important; }
         #filter-panel.paon-filter-top-drawer .fp-body { grid-template-columns: 1fr !important; }
+        /* Narrow chips: the name centres in the room beside the swatch. */
+        #filter-panel#filter-panel.paon-filter-top-drawer.paon-filter-top-drawer .fp-opt[data-filter-group="color"] {
+          padding-left: 48px !important;
+        }
       }
     `;
     document.head.appendChild(style);
+
+    // Each group's open height is its options' own height plus the open
+    // padding (10px top, 14px bottom). The options keep their size while the
+    // group is shut, so the content height can be read in either state.
+    function measureFpSections() {
+      drawer.querySelectorAll('.fp-sec-body').forEach(function (body) {
+        var cs = getComputedStyle(body);
+        var content = body.scrollHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+        body.style.setProperty('--fp-open-h', Math.ceil(content + 24) + 'px');
+      });
+    }
+    var baseToggleFpSection = window.toggleFpSection;
+    if (typeof baseToggleFpSection === 'function') {
+      window.toggleFpSection = function () {
+        measureFpSections();
+        return baseToggleFpSection.apply(this, arguments);
+      };
+    }
+    window.addEventListener('resize', measureFpSections, { passive: true });
+    measureFpSections();
 
     drawer.classList.add('paon-filter-top-drawer');
     dimmer.classList.add('paon-filter-top-dim');
@@ -20525,8 +20959,27 @@ body.filter-active #filter-panel {
         return clamp(L);
     }
 
+    /* The luminance estimate above only reads the header's OWN declared
+       colours — it has no way to see the random product photo scrolled
+       underneath it, so window.PAON_TOPBAR_CONTENT_L (its one real input
+       for that) was designed but never fed, and pixel-sampling the actual
+       image is a dead end: every grid photo is served cross-origin from
+       nebelspiegel.com without CORS headers, so any canvas read of it
+       throws SecurityError. On the home/grid view the photography behind
+       the header is an unpredictable shuffled mix of pale and dark shots,
+       so a single "assume bright" guess is wrong about half the time —
+       light icons are pinned on for that view instead of trusting the
+       estimate at all. Other views (product detail, cart, ...) keep the
+       real estimate, since their header sits over a single known surface. */
     var mode = null;
     function apply() {
+        if (document.body.classList.contains('home-view-active')) {
+            if (mode !== 'dark') {
+                mode = 'dark';
+                document.body.setAttribute('data-topbar', mode);
+            }
+            return;
+        }
         var L = estimate();
         if (L === null) return;
         var next = mode;
@@ -20595,5 +21048,6 @@ body.filter-active #filter-panel {
     window.addEventListener('load', measure, { passive: true });
 })();
 </script>
+
 </body>
 </html>

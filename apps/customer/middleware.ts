@@ -5,6 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { env } from "./lib/env";
 
 const PUBLIC_PATHS = [
+  "/api/address-search",
   "/login",
   "/auth/confirm",
   "/pricing",
@@ -19,6 +20,10 @@ const PUBLIC_PATHS = [
   // Guest-browsable private-client shell — see how the portal looks
   // without a login wall; mutations still require a session.
   "/dashboard",
+  "/hub",
+  "/wardrobe",
+  "/digital-fitting-room",
+  "/private-offers",
   "/wishlist",
   "/loyalty",
   "/orders",
@@ -79,13 +84,12 @@ function redirectWithCookies(url: URL, from: NextResponse): NextResponse {
 
 const PWA_METADATA_PATHS = ["/manifest.webmanifest", "/icon", "/apple-icon"];
 
-/** The eight account tabs and the id /hub selects them by. */
+/** The seven account tabs and the id /hub selects them by. */
 const ACCOUNT_TAB_PATHS: Record<string, string> = {
   "/dashboard": "dashboard",
   "/wardrobe": "wardrobe",
   "/appointments": "appointments",
   "/orders": "orders",
-  "/digital-fitting-room": "digital-fitting-room",
   "/loyalty": "loyalty",
   "/account": "account",
   "/private-offers": "private-offers",
@@ -101,7 +105,7 @@ export async function middleware(request: NextRequest) {
   }
 
   /*
-   * The eight account tabs are served by /hub, which renders them all together
+   * The seven account tabs are served by /hub, which renders them all together
    * so switching between them is a class toggle rather than eight separate
    * server renders.
    *
@@ -124,7 +128,10 @@ export async function middleware(request: NextRequest) {
   const hubUrl = request.nextUrl.clone();
   if (hubTab) {
     hubUrl.pathname = "/hub";
-    hubUrl.searchParams.set("tab", hubTab);
+    // "panel", not "tab": the wardrobe page owns its own ?tab= (aspirational,
+    // favorites, ...) and a rewrite that overwrote it froze that page on its
+    // first tab.
+    hubUrl.searchParams.set("panel", hubTab);
   }
 
   let response = hubTab
@@ -293,6 +300,10 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|icon|paon-icons/.*\\.png$).*)",
+    /* images/ is public/images — static bytes with no account content. Left
+       in, a guest's <img> request was redirected to /login (the Morning
+       Routine car never loaded), and a signed-in non-customer session could
+       be signed out by it, as the /fonts note above describes. */
+    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|icon|paon-icons/.*\\.png$|images/).*)",
   ],
 };

@@ -19,12 +19,13 @@ import { HIGHLIGHT } from "./highlight";
 import { MorningRoutineVisualRoot } from "./morning-routine-visual-root";
 import { OutfitBreakdown } from "./outfit-breakdown";
 import { PearlLight } from "./pearl-light";
-import { AirCard, SunCard, WindCard } from "./sky-cards";
+import { AirCard, SunCard } from "./sky-cards";
 import { HighlightCard, WelcomeCard } from "./welcome-card";
 import { WorldClock } from "./world-clock";
+import "./morning-cards.css";
 
 import { getCustomersForUser } from "@/lib/customer-context";
-import { getSession } from "@/lib/session";
+import { getViewerSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 /**
@@ -35,9 +36,10 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
  *   clock full width beneath. Kept whole, markup and CSS, so it can be
  *   switched back to by changing this one value.
  *
- * "morning" — two halves. Left, one "good morning" unit: the greeting, the
- *   day's readings in a strip, the live city cam filling the rest. Right, the
- *   OOTD photo with the outfit list under it.
+ * "morning" — every part a separate card on one responsive grid: the
+ *   readings, the greeting, the world clock, the OOTD photo, the pieces, the
+ *   delivery and fitting, and the total. Three columns filling the window
+ *   when they fit; two, then one, stacking and scrolling when they do not.
  */
 const OVERVIEW_LAYOUT: "original" | "morning" = "morning";
 
@@ -46,7 +48,6 @@ function SkyExtras() {
     <>
       <SunCard />
       <AirCard />
-      <WindCard />
     </>
   );
 }
@@ -81,27 +82,24 @@ function OverviewMorning({ firstName }: { firstName: string }) {
     /* The side columns paint themselves from this image's own edge pixels,
        so the ground matches whatever photograph the day's look is. */
     <div
-      className="paon-morning"
+      className="paon-morning paon-morning-cards"
       style={
         {
           "--paon-ootd-image": `url(${HIGHLIGHT.image})`,
         } as CSSProperties
       }
     >
-      {/* Three columns. One unit, one card: the greeting opens it, the day's
-          readings run in a strip beneath, and the live city view is the
-          picture window filling the rest — what the world looks like right
-          now. The outfit is the middle column, its pieces the third. */}
+      {/* Every part below is its own card on one responsive grid
+          (morning-cards.css): the section wrappers are dissolved there, so
+          the readings, the greeting, the world clock, the photograph and the
+          outfit's three parts each move and resize on their own. */}
       <section className="paon-morning-hello" aria-label="Good morning">
-        {/* The day first — what it is, what it is doing outside, how long
-            the drive takes — then what to wear because of it. */}
-        {/* No digital clock here: the face already tells the time, and the
-            date it carried sits in the dial's own day-date windows. Dropping
-            it gives the sky and the drive the room to be read at a glance,
-            which is what they are for. */}
+        {/* The readings: the watch with the time and date beside it, then
+            the weather, the drive and the sky. */}
         <div className="paon-morning-readings">
           <AnalogueClock size={72} />
           <LocalWidgets variant="dashboard" skyExtras={<SkyExtras />} />
+          <ClockCard />
         </div>
         <WelcomeCard firstName={firstName} />
         {/* Sizes the greeting to exactly fill the space it is left. */}
@@ -114,8 +112,8 @@ function OverviewMorning({ firstName }: { firstName: string }) {
       <section className="paon-morning-ootd" aria-label="Today’s outfit">
         <HighlightCard />
       </section>
-      {/* The pieces get their own column, one card each, rather than sitting
-          over the foot of the photograph. */}
+      {/* The outfit splits itself into three cards: the pieces, the delivery
+          and fitting, and the total with its actions. */}
       <section className="paon-morning-pieces" aria-label="The pieces">
         <OutfitBreakdown />
       </section>
@@ -167,8 +165,7 @@ async function DashboardFavorites({
 }
 
 export default async function DashboardPage() {
-  const session = await getSession();
-  if (!session || session.accountType !== "customer") return null;
+  const session = await getViewerSession();
 
   const supabase = await getSupabaseServerClient();
   const customers = await getCustomersForUser(session.userId);
@@ -197,8 +194,10 @@ export default async function DashboardPage() {
   );
 
   const primary = relationships[0];
-  const firstName =
-    primary?.customer.fullName.trim().split(/\s+/)[0] ?? "there";
+  /* A guest is greeted without a name. */
+  const firstName = session.isGuest
+    ? ""
+    : (primary?.customer.fullName.trim().split(/\s+/)[0] ?? "there");
 
   return (
     <div

@@ -11,7 +11,7 @@ import {
   useState,
 } from "react";
 
-import { HOME_LOCATION } from "../morning-routine/local-widgets";
+import { useHomeLocation } from "../morning-routine/home-location";
 
 import { HIGHLIGHT } from "./highlight";
 import { WeatherIcon } from "./stat-icons";
@@ -44,12 +44,12 @@ type LocalWeather = {
 const EVENING_HOUR = 18;
 
 /** The hour, 0–23, at the customer's home. */
-function homeHour(date: Date): number {
+function homeHour(date: Date, timeZone: string): number {
   return Number(
     new Intl.DateTimeFormat("en-GB", {
       hour: "numeric",
       hourCycle: "h23",
-      timeZone: HOME_LOCATION.timeZone,
+      timeZone,
     }).format(date),
   );
 }
@@ -79,6 +79,7 @@ function Words({ text }: { text: string }) {
 }
 
 export function WelcomeCard({ firstName }: { firstName: string }) {
+  const home = useHomeLocation();
   const [weather, setWeather] = useState<LocalWeather | null>(null);
   const [evening, setEvening] = useState(false);
   const copyRef = useRef<HTMLParagraphElement>(null);
@@ -128,11 +129,12 @@ export function WelcomeCard({ firstName }: { firstName: string }) {
      every minute so it turns over on an open page, and only in the browser:
      the hour is the customer's, not the server's. */
   useEffect(() => {
-    const check = () => setEvening(homeHour(new Date()) >= EVENING_HOUR);
+    const check = () =>
+      setEvening(homeHour(new Date(), home.timeZone) >= EVENING_HOUR);
     check();
     const tick = window.setInterval(check, 60_000);
     return () => window.clearInterval(tick);
-  }, []);
+  }, [home]);
 
   /*
    * And every time the customer crosses back into the wardrobe. The card stays
@@ -185,7 +187,7 @@ export function WelcomeCard({ firstName }: { firstName: string }) {
       fetch(
         `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
           `&current=temperature_2m,weather_code,is_day` +
-          `&daily=temperature_2m_max,weather_code&forecast_days=2&timezone=${encodeURIComponent(HOME_LOCATION.timeZone)}`,
+          `&daily=temperature_2m_max,weather_code&forecast_days=2&timezone=${encodeURIComponent(home.timeZone)}`,
       )
         .then((res) => (res.ok ? res.json() : null))
         .then(
@@ -225,12 +227,12 @@ export function WelcomeCard({ firstName }: { firstName: string }) {
         )
         .catch(() => undefined);
 
-    void load(HOME_LOCATION.coords.lat, HOME_LOCATION.coords.lon);
+    void load(home.coords.lat, home.coords.lon);
 
     return () => {
       disposed = true;
     };
-  }, []);
+  }, [home]);
 
   /**
    * Stands the sky glyph on the sentence's baseline.
@@ -295,17 +297,20 @@ export function WelcomeCard({ firstName }: { firstName: string }) {
   return (
     <section className="paon-welcome-message" aria-label="Welcome">
       <p className="paon-welcome-copy is-pending" ref={copyRef}>
-        <Words text={`Hi ${firstName},`} />{" "}
+        {/* No name when no one is signed in: just "Hi,". */}
+        <Words text={firstName ? `Hi ${firstName},` : "Hi,"} />{" "}
         {reading ? (
           <>
             <Words text={`with ${Math.round(reading.tempC)}°C and`} />{" "}
             <span className="paon-welcome-word">
-              <WeatherIcon
-                ref={skyRef}
-                code={reading.code}
-                isDay={reading.isDay}
-                className="paon-welcome-weather-icon"
-              />
+              <span className="paon-welcome-weather-reveal">
+                <WeatherIcon
+                  ref={skyRef}
+                  code={reading.code}
+                  isDay={reading.isDay}
+                  className="paon-welcome-weather-icon"
+                />
+              </span>
             </span>{" "}
             <Words text={`${day} calls for something special.`} />{" "}
           </>

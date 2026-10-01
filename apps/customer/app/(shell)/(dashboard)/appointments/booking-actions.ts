@@ -99,6 +99,7 @@ export async function bookAppointment(
     startsAt: formData.get("startsAt"),
     wardrobeItemId: formData.get("wardrobeItemId") || undefined,
     roadmapGapId: formData.get("roadmapGapId") || undefined,
+    notes: formData.get("notes") || undefined,
   });
 
   if (!parsed.success) {

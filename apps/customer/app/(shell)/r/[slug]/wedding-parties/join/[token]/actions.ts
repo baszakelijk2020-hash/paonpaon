@@ -17,6 +17,8 @@ export interface JoinPartyState {
   formError?: string;
   joined?: boolean;
   email?: string;
+  /** The new member's id, so the guest can later say whether they come. */
+  memberId?: string;
 }
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
@@ -113,5 +115,5 @@ export async function joinWeddingParty(
     };
   }
 
-  return { joined: true, email: parsed.data.email };
+  return { joined: true, email: parsed.data.email, memberId: joined.memberId };
 }

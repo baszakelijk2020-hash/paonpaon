@@ -9,7 +9,6 @@ import {
   type WardrobeRoadmapGap,
 } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
-import Image from "next/image";
 import Link from "next/link";
 import { useActionState, useState } from "react";
 
@@ -104,7 +103,7 @@ type DeckScreen =
   | { kind: "sent"; conversationId?: string };
 
 const CARD_CLASS =
-  "relative h-96 w-72 shrink-0 snap-start overflow-hidden rounded-[32px] bg-[#191b1d]";
+  "paon-wardrobe-piece relative flex shrink-0 snap-start flex-col overflow-hidden bg-[#191b1d]";
 
 function CardImageLayers({
   imageUrl,
@@ -116,7 +115,7 @@ function CardImageLayers({
   if (!imageUrl) {
     return (
       <div
-        className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[var(--color-stone-800)] to-[var(--color-stone-950)]"
+        className="flex h-40 w-full items-center justify-center bg-gradient-to-br from-[var(--color-stone-800)] to-[var(--color-stone-950)]"
         aria-hidden="true"
       >
         <span className="font-display text-lg text-[var(--color-stone-400)]">
@@ -126,39 +125,22 @@ function CardImageLayers({
     );
   }
   return (
-    <>
-      {/* Fills the tile edge to edge. A contained image left dark bands
-          either side of every portrait shot. */}
-      <Image
-        src={imageUrl}
-        alt={alt}
-        fill
-        unoptimized
-        className="object-cover object-top"
-      />
-    </>
+    // Natural aspect ratio, card height follows the image: never cropped,
+    // never letterboxed.
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={imageUrl}
+      alt={alt}
+      className="block h-auto w-full"
+      style={{ objectFit: "fill" }}
+    />
   );
 }
 
-/** Apple App Store-style progressive bottom blur: no hard panel edge, no
- * solid caption rectangle. A backdrop-blur layer fades in via a mask, and a
- * separate colour gradient darkens gradually beneath it. */
+/** Caption sits below the image in normal flow so the image is never
+ * covered, cropped or banded. */
 function ProgressiveBottomPanel({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[58%]">
-      <div
-        className="absolute inset-0 backdrop-blur-md"
-        style={{
-          WebkitMaskImage: "linear-gradient(to top, black 40%, transparent)",
-          maskImage: "linear-gradient(to top, black 40%, transparent)",
-        }}
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-      <div className="pointer-events-auto absolute inset-x-0 bottom-0 flex flex-col gap-1 p-3.5">
-        {children}
-      </div>
-    </div>
-  );
+  return <div className="paon-wardrobe-piece-caption">{children}</div>;
 }
 
 function DeckOverlay({
@@ -247,7 +229,7 @@ function OwnedActionsDeck({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="absolute bottom-3.5 left-3.5 z-10 text-sm font-medium text-white underline-offset-2 hover:underline"
+          className="paon-wardrobe-actions-btn absolute bottom-2.5 left-2.5 z-10"
         >
           Actions +
         </button>
@@ -257,7 +239,7 @@ function OwnedActionsDeck({
         {screen.kind === "menu" ? (
           <div className="flex flex-col gap-2">
             <div className="mb-1 flex items-center justify-between">
-              <p className="line-clamp-1 text-sm font-medium">
+              <p className="line-clamp-1 text-[13px] font-medium">
                 {item.displayName}
               </p>
               <button
@@ -268,6 +250,9 @@ function OwnedActionsDeck({
                 Close
               </button>
             </div>
+            <p className="text-[11px] leading-4 text-[var(--color-stone-400)]">
+              {card.purchasedOnLabel}
+            </p>
             {[
               {
                 label: "Complete the look",
@@ -282,7 +267,7 @@ function OwnedActionsDeck({
                 key={action.label}
                 type="button"
                 onClick={action.onClick}
-                className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-left text-sm"
+                className="rounded-[10px] bg-white/[0.06] px-3 py-2 text-left text-[13px]"
               >
                 {action.label}
               </button>
@@ -295,7 +280,7 @@ function OwnedActionsDeck({
                 <button
                   type="submit"
                   disabled={servicePending}
-                  className="w-full rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-left text-sm disabled:opacity-50"
+                  className="w-full rounded-[10px] bg-white/[0.06] px-3 py-2 text-left text-[13px] disabled:opacity-50"
                 >
                   {WARDROBE_SERVICE_REQUEST_KIND_LABELS[kind]}
                 </button>
@@ -303,7 +288,7 @@ function OwnedActionsDeck({
             ))}
             <Link
               href={`/appointments?prefillReason=service_size_check&prefillWardrobeItemId=${item.id}`}
-              className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-left text-sm"
+              className="rounded-[10px] bg-white/[0.06] px-3 py-2 text-left text-[13px]"
             >
               Request a fit-check in store
             </Link>
@@ -325,7 +310,7 @@ function OwnedActionsDeck({
                 key={action.label}
                 type="button"
                 onClick={action.onClick}
-                className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-left text-sm"
+                className="rounded-[10px] bg-white/[0.06] px-3 py-2 text-left text-[13px]"
               >
                 {action.label}
               </button>
@@ -394,7 +379,7 @@ function OwnedActionsDeck({
             {card.productDetailHref ? (
               <Link
                 href={card.productDetailHref}
-                className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-sm"
+                className="rounded-[10px] bg-white/[0.06] px-3 py-2 text-[13px]"
               >
                 The size is perfect
               </Link>
@@ -409,14 +394,14 @@ function OwnedActionsDeck({
             )}
             <Link
               href={`/appointments?prefillReason=service_size_check&prefillWardrobeItemId=${item.id}`}
-              className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-sm"
+              className="rounded-[10px] bg-white/[0.06] px-3 py-2 text-[13px]"
             >
               Request a fit-check in store
             </Link>
             <button
               type="button"
               onClick={() => setScreen({ kind: "in-app-fit-check" })}
-              className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-left text-sm"
+              className="rounded-[10px] bg-white/[0.06] px-3 py-2 text-left text-[13px]"
             >
               Do a fit-check in app
             </button>
@@ -606,13 +591,10 @@ function OwnedCard({
         alt={item.displayName}
       />
       <ProgressiveBottomPanel>
-        <p className="font-display truncate text-[20px] text-white">
+        <p className="paon-wardrobe-piece-name" title={card.purchasedOnLabel}>
           {item.displayName}
         </p>
-        <p className="text-xs text-[var(--color-stone-200)]">
-          {card.purchasedOnLabel}
-        </p>
-        <span className="h-5" aria-hidden="true" />
+        <span className="paon-wardrobe-actions-spacer" aria-hidden="true" />
       </ProgressiveBottomPanel>
       <OwnedActionsDeck retailerId={retailerId} card={card} />
     </article>
@@ -655,22 +637,20 @@ function AdvisorSelectionCard({
         imageUrl={suggestedProduct?.primaryImageUrl}
         alt={gap.title}
       />
-      <span className="absolute right-4 top-4 rounded-full bg-[#c7c1ef] px-3 py-2 text-xs font-semibold text-[#181818]">
+      <span className="absolute left-2 top-2 z-10 rounded-full bg-[#c7c1ef] px-2 py-1 text-[11px] font-semibold text-[#181818]">
         Advisor selection
       </span>
       <ProgressiveBottomPanel>
-        <p className="font-display truncate text-[20px] text-white">
+        <p
+          className="paon-wardrobe-piece-name"
+          title={gap.howPurchaseFillsGap ?? undefined}
+        >
           {gap.title}
         </p>
-        {gap.howPurchaseFillsGap ? (
-          <p className="line-clamp-2 text-xs text-[var(--color-stone-200)]">
-            {gap.howPurchaseFillsGap}
-          </p>
-        ) : null}
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="self-start text-sm font-medium text-white underline-offset-2 hover:underline"
+          className="paon-wardrobe-actions-btn self-start"
         >
           Actions +
         </button>
@@ -732,7 +712,7 @@ function AdvisorSelectionCard({
               {suggestedProduct ? (
                 <Link
                   href={`/r/${retailerId}/products/${suggestedProduct.slug}`}
-                  className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-sm"
+                  className="rounded-[10px] bg-white/[0.06] px-3 py-2 text-[13px]"
                 >
                   Buy
                 </Link>
@@ -757,28 +737,28 @@ function AdvisorSelectionCard({
               </form>
               <Link
                 href={`/appointments?prefillReason=in_the_mood_for_something_fresh&prefillRoadmapGapId=${gap.id}`}
-                className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-sm"
+                className="rounded-[10px] bg-white/[0.06] px-3 py-2 text-[13px]"
               >
                 Proceed in store
               </Link>
               <button
                 type="button"
                 onClick={() => setShowAlternatives(true)}
-                className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-left text-sm"
+                className="rounded-[10px] bg-white/[0.06] px-3 py-2 text-left text-[13px]"
               >
                 Explore alternatives
               </button>
               <button
                 type="button"
                 onClick={() => setConfirmRemove(true)}
-                className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-left text-sm"
+                className="rounded-[10px] bg-white/[0.06] px-3 py-2 text-left text-[13px]"
               >
                 Remove from wardrobe plan
               </button>
               {suggestedProduct ? (
                 <Link
-                  href={`/digital-fitting-room?productSlug=${suggestedProduct.slug}`}
-                  className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-sm"
+                  href={`/wardrobe?tab=fitting-room&fittingRoom_productSlug=${suggestedProduct.slug}`}
+                  className="rounded-[10px] bg-white/[0.06] px-3 py-2 text-[13px]"
                 >
                   Add to Digital Fitting Room
                 </Link>
@@ -803,7 +783,7 @@ function AdvisorSelectionCard({
                   <Link
                     key={alternative.productId}
                     href={`/r/${retailerId}/products/${alternative.productSlug}`}
-                    className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-sm"
+                    className="rounded-[10px] bg-white/[0.06] px-3 py-2 text-[13px]"
                   >
                     {alternative.displayName}
                   </Link>
@@ -842,12 +822,7 @@ function WardrobeRail({
 }) {
   const headerId = `wardrobe-rail-${retailerId}-${label}`;
   if (ownedCards.length === 0 && gaps.length === 0) {
-    /*
-     * An empty category is one row, not a tile. Eight near-identical tiles
-     * each holding a hanger, "No pieces yet" and the same link was a wall of
-     * boxes saying nothing; as rows in one card the wardrobe reads as a list
-     * of what is still to come, and the advisor link is on each line.
-     */
+    /* An empty category is one 40px line, not a card. */
     return (
       <Link
         href="/concierge"
@@ -855,12 +830,15 @@ function WardrobeRail({
         aria-labelledby={headerId}
         data-wardrobe-rail={label}
       >
-        <span id={headerId} className="pe-wardrobe-empty-row-label">
-          {label}
+        <span className="pe-wardrobe-empty-row-label">
+          <span id={headerId}>{label}</span>
+          <span className="pe-wardrobe-empty-row-meta">
+            {" "}
+            — none yet · Plan with your advisor
+          </span>
         </span>
-        <span className="pe-wardrobe-empty-row-meta">
-          No pieces yet · Plan with your advisor{" "}
-          <span aria-hidden="true">↗</span>
+        <span aria-hidden="true" className="pe-wardrobe-empty-row-meta">
+          ↗
         </span>
       </Link>
     );
@@ -870,24 +848,16 @@ function WardrobeRail({
     <section
       aria-labelledby={headerId}
       data-wardrobe-rail={label}
-      className="pe-card pe-wardrobe-populated rounded-[32px] bg-[#191b1d] py-7"
-      data-pe-card
+      className="pe-wardrobe-populated paon-wardrobe-rail"
     >
-      <div className="flex items-baseline justify-between gap-3 px-6 sm:px-8">
-        <h3
-          id={headerId}
-          className="font-display text-2xl font-semibold tracking-[-0.025em] text-white"
-        >
-          {label}
-        </h3>
-        <span className="text-xs text-[var(--color-stone-400)]">
-          {ownedCards.length} piece{ownedCards.length === 1 ? "" : "s"}
+      <div className="paon-wardrobe-rail-head">
+        <h3 id={headerId}>{label}</h3>
+        <span>
+          {ownedCards.length + gaps.length} piece
+          {ownedCards.length + gaps.length === 1 ? "" : "s"}
         </span>
       </div>
-      <div
-        className="mt-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2 sm:px-8"
-        style={{ scrollbarWidth: "thin" }}
-      >
+      <div className="paon-wardrobe-rail-track">
         {ownedCards.map((card) => (
           <OwnedCard key={card.item.id} retailerId={retailerId} card={card} />
         ))}
@@ -920,10 +890,10 @@ function PendingRoadmapBanner({ roadmap }: { roadmap: PendingRoadmapSummary }) {
 
   return (
     <div
-      className="pe-card pe-card-lavender flex flex-wrap items-center justify-between gap-4 rounded-[32px] bg-[#c7c1ef] p-6 text-[#181818]"
+      className="pe-card pe-card-lavender flex flex-wrap items-center justify-between gap-3 rounded-[16px] bg-[#c7c1ef] px-4 py-3 text-[#181818]"
       data-pe-card
     >
-      <p className="text-base font-medium">
+      <p className="text-sm font-medium">
         Your advisor shared a plan awaiting your review: {roadmap.title}
       </p>
       <div className="flex gap-2">
@@ -982,7 +952,7 @@ export function WardrobeRailsPanel({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-3">
       {pendingApprovalRoadmap ? (
         <PendingRoadmapBanner roadmap={pendingApprovalRoadmap} />
       ) : null}
