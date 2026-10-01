@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { allowRequest, clientAddress } from "@/lib/rate-limit";
+
 interface NominatimPlace {
   display_name: string;
   address?: {
@@ -15,6 +17,11 @@ interface NominatimPlace {
 }
 
 export async function GET(request: Request) {
+  // Public (the guest address preview uses it) and forwarded to Nominatim,
+  // whose policy is one request a second from this server.
+  if (!allowRequest(`address-search:${clientAddress(request)}`, 30, 60_000)) {
+    return NextResponse.json({ results: [] }, { status: 429 });
+  }
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("q")?.trim() ?? "";
 

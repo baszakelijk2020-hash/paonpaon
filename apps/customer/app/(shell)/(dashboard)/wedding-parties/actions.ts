@@ -18,6 +18,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { env } from "@/lib/env";
+import { sniffImageType } from "@/lib/image-signature";
 import { requireSession } from "@/lib/session";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -333,6 +334,9 @@ export async function uploadPartyCoverPhoto(
   if ("error" in gate) return { formError: gate.error };
   const parsed = parseImageFile(formData);
   if ("error" in parsed) return { formError: parsed.error };
+  if ((await sniffImageType(parsed.file)) !== parsed.mimeType) {
+    return { formError: "Use a JPEG, PNG or WebP image." };
+  }
 
   const safeName = parsed.file.name
     .replace(/[^a-zA-Z0-9._-]/g, "-")
@@ -368,6 +372,9 @@ export async function uploadMemberPhoto(
   if ("error" in gate) return { formError: gate.error };
   const parsed = parseImageFile(formData);
   if ("error" in parsed) return { formError: parsed.error };
+  if ((await sniffImageType(parsed.file)) !== parsed.mimeType) {
+    return { formError: "Use a JPEG, PNG or WebP image." };
+  }
 
   const members = await gate.repo.findMembers(gate.party.id);
   const member = members.find((item) => item.id === memberId);

@@ -9,6 +9,7 @@ import {
   type WeddingPartyMemberRole,
 } from "@paon/domain";
 
+import { sniffImageType } from "@/lib/image-signature";
 import { assertRetailerModuleActive } from "@/lib/module-session";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -58,6 +59,10 @@ export async function joinWeddingParty(
         photo.type as (typeof ALLOWED_IMAGE_TYPES)[number],
       )
     ) {
+      return { formError: "Use a JPEG, PNG or WebP photo." };
+    }
+    // The browser's type is only a claim; the bytes must agree.
+    if ((await sniffImageType(photo)) !== photo.type) {
       return { formError: "Use a JPEG, PNG or WebP photo." };
     }
     photoFile = photo;
