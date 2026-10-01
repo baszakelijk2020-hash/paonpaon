@@ -1134,6 +1134,98 @@ export type Database = {
           },
         ];
       };
+      alteration_grid_dispatches: {
+        Row: {
+          alteration_id: string;
+          attachment_ids: string[];
+          comments: string | null;
+          created_at: string;
+          dispatched_by_staff_id: string | null;
+          follow_up_opportunity_id: string | null;
+          id: string;
+          operation_ids: string[];
+          order_number: string | null;
+          retailer_id: string;
+          snapshot_id: string;
+        };
+        Insert: {
+          alteration_id: string;
+          attachment_ids?: string[];
+          comments?: string | null;
+          created_at?: string;
+          dispatched_by_staff_id?: string | null;
+          follow_up_opportunity_id?: string | null;
+          id?: string;
+          operation_ids: string[];
+          order_number?: string | null;
+          retailer_id: string;
+          snapshot_id: string;
+        };
+        Update: {
+          alteration_id?: string;
+          attachment_ids?: string[];
+          comments?: string | null;
+          created_at?: string;
+          dispatched_by_staff_id?: string | null;
+          follow_up_opportunity_id?: string | null;
+          id?: string;
+          operation_ids?: string[];
+          order_number?: string | null;
+          retailer_id?: string;
+          snapshot_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "alteration_grid_dispatches_alteration_id_fkey";
+            columns: ["alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "alteration_work_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alteration_grid_dispatches_alteration_id_fkey";
+            columns: ["alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "customer_alteration_work_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alteration_grid_dispatches_alteration_id_fkey";
+            columns: ["alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "worker_alteration_work_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alteration_grid_dispatches_dispatched_by_staff_id_fkey";
+            columns: ["dispatched_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alteration_grid_dispatches_follow_up_opportunity_id_fkey";
+            columns: ["follow_up_opportunity_id"];
+            isOneToOne: false;
+            referencedRelation: "clienteling_opportunities";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alteration_grid_dispatches_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alteration_grid_dispatches_snapshot_id_fkey";
+            columns: ["snapshot_id"];
+            isOneToOne: false;
+            referencedRelation: "alteration_grid_snapshots";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       alteration_grid_snapshots: {
         Row: {
           alteration_id: string;
@@ -3679,6 +3771,7 @@ export type Database = {
           priority: number;
           projector_version: string;
           retailer_id: string;
+          source_alteration_id: string | null;
           status: string;
           suggested_action: string;
           updated_at: string;
@@ -3707,6 +3800,7 @@ export type Database = {
           priority?: number;
           projector_version: string;
           retailer_id: string;
+          source_alteration_id?: string | null;
           status?: string;
           suggested_action: string;
           updated_at?: string;
@@ -3735,6 +3829,7 @@ export type Database = {
           priority?: number;
           projector_version?: string;
           retailer_id?: string;
+          source_alteration_id?: string | null;
           status?: string;
           suggested_action?: string;
           updated_at?: string;
@@ -3788,6 +3883,27 @@ export type Database = {
             columns: ["retailer_id"];
             isOneToOne: false;
             referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clienteling_opportunities_source_alteration_id_fkey";
+            columns: ["source_alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "alteration_work_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clienteling_opportunities_source_alteration_id_fkey";
+            columns: ["source_alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "customer_alteration_work_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clienteling_opportunities_source_alteration_id_fkey";
+            columns: ["source_alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "worker_alteration_work_orders";
             referencedColumns: ["id"];
           },
         ];
@@ -23617,7 +23733,9 @@ export type Database = {
       };
       dispatch_alteration_grid_snapshot: {
         Args: {
+          p_attachment_ids?: string[];
           p_comments?: string;
+          p_order_number?: string;
           p_selected_operation_ids: string[];
           p_snapshot_id: string;
         };

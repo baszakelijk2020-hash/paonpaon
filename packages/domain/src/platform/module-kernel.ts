@@ -184,6 +184,18 @@ export const PLATFORM_MODULES: readonly PlatformModuleDefinition[] = [
     navigation: [
       { href: "/alterations", label: "Alterations", roles: ALL_RETAILER_ROLES },
       {
+        href: "/alterations/workbench",
+        label: "Workbench",
+        roles: [
+          "owner",
+          "admin",
+          "manager",
+          "production_staff",
+          "workshop_manager",
+          "worker",
+        ],
+      },
+      {
         href: "/alterations/catalogue",
         label: "Service catalogue",
         roles: ["owner", "admin", "manager", "workshop_manager"],

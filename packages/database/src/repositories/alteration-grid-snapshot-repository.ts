@@ -75,6 +75,8 @@ export class AlterationGridSnapshotRepository {
     snapshotId: string;
     selectedOperationIds: string[];
     comments?: string;
+    orderNumber?: string;
+    attachmentIds?: string[];
   }): Promise<AlterationId> {
     const { data, error } = await this.client.rpc(
       "dispatch_alteration_grid_snapshot" as never,
@@ -82,6 +84,8 @@ export class AlterationGridSnapshotRepository {
         p_snapshot_id: input.snapshotId,
         p_selected_operation_ids: input.selectedOperationIds,
         p_comments: input.comments ?? null,
+        p_order_number: input.orderNumber ?? null,
+        p_attachment_ids: input.attachmentIds ?? null,
       } as never,
     );
     if (error) throw error;

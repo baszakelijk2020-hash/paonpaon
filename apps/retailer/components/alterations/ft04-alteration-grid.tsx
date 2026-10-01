@@ -49,10 +49,15 @@ export function Ft04AlterationGrid({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [dispatching, setDispatching] = useState(false);
   const [error, setError] = useState<string>();
+  const [orderNumber, setOrderNumber] = useState("");
+  const [workshopNotes, setWorkshopNotes] = useState("");
+  const [photos, setPhotos] = useState<File[]>([]);
   const current = snapshot ?? snapshots[0] ?? null;
   const shown =
-    snapshot && !isRevising
-      ? Object.fromEntries(snapshot.values.map((v) => [v.operationId, v.value]))
+    // The latest saved version is locked on screen until someone revises it
+    // — after a reload too, not only right after saving.
+    current && !isRevising
+      ? Object.fromEntries(current.values.map((v) => [v.operationId, v.value]))
       : values;
   async function save() {
     setError(undefined);
@@ -70,13 +75,14 @@ export function Ft04AlterationGrid({
   async function dispatch() {
     if (!current) return;
     setDispatching(true);
-    const selectedOperationIds = [...selected];
-    const result = await dispatchAlterationGridSnapshot({
-      alterationId,
-      snapshotId: current.id,
-      selectedOperationIds,
-      comments,
-    });
+    const form = new FormData();
+    form.set("alterationId", alterationId);
+    form.set("snapshotId", current.id);
+    for (const id of selected) form.append("operationId", id);
+    form.set("orderNumber", orderNumber);
+    form.set("comments", workshopNotes);
+    for (const photo of photos) form.append("photo", photo);
+    const result = await dispatchAlterationGridSnapshot(form);
     setDispatching(false);
     if (result.error) setError(result.error);
     else window.location.reload();
@@ -109,7 +115,10 @@ export function Ft04AlterationGrid({
     (operation) => operation.currency,
   )?.currency;
   return (
-    <section className="rounded-[var(--radius-lg)] border border-[var(--color-stone-200)] bg-white p-5">
+    <section
+      id="ft04-grid"
+      className="scroll-mt-6 rounded-[var(--radius-lg)] border border-[var(--color-stone-200)] bg-white p-5"
+    >
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h2 className="text-lg font-medium">First-fitting alteration grid</h2>
@@ -147,7 +156,7 @@ export function Ft04AlterationGrid({
               <span className="text-sm font-medium">{op.name}</span>
               <select
                 aria-label={`${op.name} positive`}
-                disabled={!canEdit || (Boolean(snapshot) && !isRevising)}
+                disabled={!canEdit || (Boolean(current) && !isRevising)}
                 value={value > 0 ? value : 0}
                 onChange={(e) =>
                   setValues({ ...values, [op.id]: Number(e.target.value) })
@@ -166,7 +175,7 @@ export function Ft04AlterationGrid({
               </select>
               <select
                 aria-label={`${op.name} negative`}
-                disabled={!canEdit || (Boolean(snapshot) && !isRevising)}
+                disabled={!canEdit || (Boolean(current) && !isRevising)}
                 value={value < 0 ? value : 0}
                 onChange={(e) =>
                   setValues({ ...values, [op.id]: Number(e.target.value) })
@@ -187,7 +196,7 @@ export function Ft04AlterationGrid({
           );
         })}
       </div>
-      {(!snapshot || isRevising) && canEdit ? (
+      {(!current || isRevising) && canEdit ? (
         <>
           <textarea
             value={comments}
@@ -294,12 +303,47 @@ export function Ft04AlterationGrid({
                 );
               })}
             </div>
-            <textarea
-              value={comments}
-              onChange={(event) => setComments(event.target.value)}
-              className="mt-4 w-full rounded border p-2 text-sm"
-              placeholder="Order number, workshop comments, and photo references"
-            />
+            <div className="mt-4 grid gap-3">
+              <label className="grid gap-1 text-sm">
+                Order number
+                <input
+                  value={orderNumber}
+                  onChange={(event) => setOrderNumber(event.target.value)}
+                  maxLength={80}
+                  className="h-11 rounded border px-3 text-sm"
+                  placeholder="e.g. PO-2048"
+                />
+              </label>
+              <label className="grid gap-1 text-sm">
+                Workshop comments
+                <textarea
+                  value={workshopNotes}
+                  onChange={(event) => setWorkshopNotes(event.target.value)}
+                  maxLength={2000}
+                  rows={3}
+                  className="w-full rounded border p-2 text-sm"
+                  placeholder="What the workshop should know"
+                />
+              </label>
+              <label className="grid gap-1 text-sm">
+                Photos
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  onChange={(event) =>
+                    setPhotos(Array.from(event.target.files ?? []).slice(0, 12))
+                  }
+                  className="text-sm"
+                />
+                {photos.length > 0 ? (
+                  <span className="text-xs text-[var(--color-stone-500)]">
+                    {photos.length} photo{photos.length === 1 ? "" : "s"}{" "}
+                    attached
+                  </span>
+                ) : null}
+              </label>
+            </div>
             <div className="mt-4 rounded-[var(--radius-md)] bg-[var(--color-stone-100)] p-4">
               <div className="flex items-center justify-between gap-4">
                 <span className="text-sm font-medium">Fixed-price total</span>
@@ -309,6 +353,11 @@ export function Ft04AlterationGrid({
                     : `${(selectedTotal / 100).toFixed(2)} ${selectedCurrency ?? ""}`}
                 </output>
               </div>
+              {error ? (
+                <p role="alert" className="mt-2 text-sm text-red-700">
+                  {error}
+                </p>
+              ) : null}
               {selectedHasUnavailablePrice ? (
                 <p className="mt-2 text-sm text-red-700">
                   A selected alteration has no current fixed price and cannot be

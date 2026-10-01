@@ -592,7 +592,13 @@ export default async function MissionControlPage() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <Link
-                      href={`/customers/${opportunity.customerId}`}
+                      href={
+                        // A fit-profile follow-up opens the locked grid it
+                        // came from (FT-04); every other task opens the client.
+                        opportunity.sourceAlterationId
+                          ? `/alterations/${opportunity.sourceAlterationId}#ft04-grid`
+                          : `/customers/${opportunity.customerId}`
+                      }
                       className="block hover:underline"
                     >
                       <p className="text-sm font-medium text-[var(--color-stone-900)]">

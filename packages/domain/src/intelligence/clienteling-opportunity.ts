@@ -26,6 +26,9 @@ export const CLIENTELING_OPPORTUNITY_TYPES = [
    * the same draft-task object, distinguished only by having no
    * system-detected trigger behind it. */
   "advisor_commitment",
+  /** After a first-fitting grid is sent to the workshop (FT-04): update the
+   * client's fit profile from the locked grid. Carries sourceAlterationId. */
+  "fit_profile_update",
 ] as const;
 
 export type ClientelingOpportunityType =
@@ -90,6 +93,8 @@ export interface ClientelingOpportunity {
   readonly evidence: readonly ClientelingOpportunityEvidence[];
   /** Set only for type "campaign_mission" (PHASE 10.1) — which activation created this mission. */
   readonly campaignId?: string;
+  /** Set for "fit_profile_update" — the work order whose grid it came from. */
+  readonly sourceAlterationId?: string;
   readonly outcomeMessageId?: string;
   readonly outcomeAppointmentId?: string;
   readonly outcomeOrderId?: string;

@@ -76,6 +76,9 @@ function toDomain(row: Row): ClientelingOpportunity {
     ...((row as unknown as { campaign_id?: string }).campaign_id
       ? { campaignId: (row as unknown as { campaign_id?: string }).campaign_id }
       : {}),
+    ...(row.source_alteration_id
+      ? { sourceAlterationId: row.source_alteration_id }
+      : {}),
     projectorVersion: row.projector_version,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

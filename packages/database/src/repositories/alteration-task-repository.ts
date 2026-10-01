@@ -155,6 +155,100 @@ export class AlterationTaskRepository {
     }));
   }
 
+  /** The workbench: every open work-now task the caller may see, with its
+   * work order's number, garment and due date. Workers read the price-free
+   * worker views; RLS decides which tasks either query returns. */
+  async findOpenForBench(options: { worker: boolean }): Promise<
+    Array<{
+      id: AlterationTaskId;
+      alterationId: AlterationId;
+      title: string;
+      instructions?: string;
+      status: AlterationTaskStatus;
+      updatedAt: string;
+      workOrderNumber?: string;
+      garment?: string;
+      dueDate?: string;
+    }>
+  > {
+    const open = ["approved", "assigned", "in_progress", "review_ready"];
+    const tasks = options.worker
+      ? await this.client
+          .from("worker_alteration_tasks")
+          .select("id, alteration_id, title, instructions, status, updated_at")
+          .in("status", open as never)
+          .order("updated_at", { ascending: true })
+      : await this.client
+          .from("alteration_tasks")
+          .select("id, alteration_id, title, instructions, status, updated_at")
+          .eq("classification", "work_now")
+          .is("deleted_at", null)
+          .in("status", open as never)
+          .order("updated_at", { ascending: true });
+    if (tasks.error) throw tasks.error;
+    const rows = (tasks.data ?? []) as Array<{
+      id: string | null;
+      alteration_id: string | null;
+      title: string | null;
+      instructions: string | null;
+      status: AlterationTaskStatus | null;
+      updated_at: string | null;
+    }>;
+    const orderIds = [
+      ...new Set(rows.map((row) => row.alteration_id).filter(Boolean)),
+    ] as string[];
+    const orders = new Map<
+      string,
+      { number?: string; garment?: string; due?: string }
+    >();
+    if (orderIds.length > 0) {
+      const { data, error } = options.worker
+        ? await this.client
+            .from("worker_alteration_work_orders")
+            .select("id, work_order_number, garment_type, due_date")
+            .in("id", orderIds)
+        : await this.client
+            .from("alteration_work_orders")
+            .select(
+              "id, work_order_number, due_date, physical_garments(garment_type)",
+            )
+            .in("id", orderIds);
+      if (error) throw error;
+      for (const row of (data ?? []) as Array<{
+        id: string | null;
+        work_order_number: string | null;
+        due_date: string | null;
+        garment_type?: string | null;
+        physical_garments?: { garment_type: string | null } | null;
+      }>) {
+        if (!row.id) continue;
+        const garment =
+          row.garment_type ?? row.physical_garments?.garment_type ?? null;
+        orders.set(row.id, {
+          ...(row.work_order_number ? { number: row.work_order_number } : {}),
+          ...(garment ? { garment } : {}),
+          ...(row.due_date ? { due: row.due_date } : {}),
+        });
+      }
+    }
+    return rows
+      .filter((row) => row.id && row.alteration_id && row.title && row.status)
+      .map((row) => {
+        const order = orders.get(row.alteration_id!);
+        return {
+          id: asId<"AlterationTaskId">(row.id!),
+          alterationId: asId<"AlterationId">(row.alteration_id!),
+          title: row.title!,
+          ...(row.instructions ? { instructions: row.instructions } : {}),
+          status: row.status!,
+          updatedAt: row.updated_at ?? "",
+          ...(order?.number ? { workOrderNumber: order.number } : {}),
+          ...(order?.garment ? { garment: order.garment } : {}),
+          ...(order?.due ? { dueDate: order.due } : {}),
+        };
+      });
+  }
+
   async updateStatus(
     taskId: AlterationTaskId,
     status: AlterationTaskStatus,

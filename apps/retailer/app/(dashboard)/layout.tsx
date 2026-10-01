@@ -208,6 +208,16 @@ export default async function DashboardLayout({
             ? "Assigned garments and due dates"
             : "Fitting-to-workshop progress",
         },
+        ...(isWorkshopRole ||
+        retailerRoleHasAlterationsPermission(session.retailerRole, "oversight")
+          ? [
+              {
+                href: "/alterations/workbench",
+                label: "Workbench",
+                description: "Each task: to do, in progress, ready for review",
+              },
+            ]
+          : []),
         ...(!isWorkshopRole
           ? [
               {
@@ -429,6 +439,7 @@ export default async function DashboardLayout({
   const mobileDock = isWorkshopRole
     ? [
         { href: "/dashboard", label: "Brief" },
+        { href: "/alterations/workbench", label: "Bench" },
         { href: "/alterations", label: "Queue" },
         { href: "/notifications", label: "Updates" },
         ...(canConfigureAlterations || canManageWorkshop

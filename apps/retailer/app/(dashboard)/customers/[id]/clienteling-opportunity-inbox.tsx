@@ -14,6 +14,7 @@ const TYPE_LABELS: Record<ClientelingOpportunity["type"], string> = {
   contact_pressure_warning: "Contact pressure",
   campaign_mission: "Campaign mission",
   advisor_commitment: "Advisor commitment",
+  fit_profile_update: "Fit profile update",
 };
 
 /**

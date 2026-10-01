@@ -70,12 +70,9 @@ export async function saveAlterationGridSnapshot(input: {
   }
 }
 
-export async function dispatchAlterationGridSnapshot(input: {
-  alterationId: string;
-  snapshotId: string;
-  selectedOperationIds: string[];
-  comments?: string;
-}): Promise<{ error?: string }> {
+export async function dispatchAlterationGridSnapshot(
+  form: FormData,
+): Promise<{ error?: string }> {
   const session = await requireModuleSession("garment_service_operations");
   if (
     !retailerRoleHasAlterationsPermission(
@@ -84,15 +81,72 @@ export async function dispatchAlterationGridSnapshot(input: {
     )
   )
     throw new ForbiddenError();
+
+  const alterationId = String(form.get("alterationId") ?? "");
+  const snapshotId = String(form.get("snapshotId") ?? "");
+  const selectedOperationIds = form.getAll("operationId").map(String);
+  const orderNumber = String(form.get("orderNumber") ?? "").trim();
+  const comments = String(form.get("comments") ?? "").trim();
+  const photos = form
+    .getAll("photo")
+    .filter((file): file is File => file instanceof File && file.size > 0);
+  const uuid =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (
+    !uuid.test(alterationId) ||
+    !uuid.test(snapshotId) ||
+    !selectedOperationIds.every((id) => uuid.test(id))
+  ) {
+    return { error: "Unable to dispatch selected alterations." };
+  }
+  if (orderNumber.length > 80) return { error: "Order number is too long." };
+  if (photos.length > 12) return { error: "Attach at most 12 photos." };
+  for (const photo of photos) {
+    if (photo.size > 10 * 1024 * 1024) {
+      return { error: "Photos must be 10 MB or smaller." };
+    }
+    if (
+      !ALLOWED_IMAGE_TYPES.includes(
+        photo.type as (typeof ALLOWED_IMAGE_TYPES)[number],
+      )
+    ) {
+      return { error: "Use JPEG, PNG or WebP photos." };
+    }
+  }
+
+  const supabase = await getSupabaseServerClient();
   try {
-    await new AlterationGridSnapshotRepository(
-      await getSupabaseServerClient(),
-    ).dispatch({
-      snapshotId: input.snapshotId,
-      selectedOperationIds: input.selectedOperationIds,
-      ...(input.comments ? { comments: input.comments } : {}),
+    // The photos are the work order's own evidence first, then named on the
+    // dispatch, so the workshop sees them with the task.
+    const staff = await new RetailerStaffRepository(supabase).findByUserId(
+      session.userId,
+    );
+    const attachments = new AlterationAttachmentRepository(supabase);
+    const attachmentIds: string[] = [];
+    for (const photo of photos) {
+      const safeName = photo.name.replace(/[^a-zA-Z0-9._-]/g, "-").slice(-120);
+      const attachment = await attachments.uploadImage({
+        retailerId: session.retailerId,
+        alterationId: asId<"AlterationId">(alterationId),
+        ...(staff ? { staffId: staff.id } : {}),
+        kind: "evidence",
+        storagePath: `${session.retailerId}/${alterationId}/${randomUUID()}-${safeName}`,
+        fileName: photo.name,
+        mimeType: photo.type as (typeof ALLOWED_IMAGE_TYPES)[number],
+        sizeBytes: photo.size,
+        content: await photo.arrayBuffer(),
+      });
+      attachmentIds.push(attachment.id);
+    }
+    await new AlterationGridSnapshotRepository(supabase).dispatch({
+      snapshotId,
+      selectedOperationIds,
+      ...(comments ? { comments } : {}),
+      ...(orderNumber ? { orderNumber } : {}),
+      ...(attachmentIds.length > 0 ? { attachmentIds } : {}),
     });
-    revalidatePath(`/alterations/${input.alterationId}`);
+    revalidatePath(`/alterations/${alterationId}`);
+    revalidatePath("/mission-control");
     return {};
   } catch (error) {
     return {
@@ -370,6 +424,7 @@ export async function updateTaskStatus(
     return workflowError(error, "Unable to update task.");
   }
   revalidatePath(`/alterations/${alterationId}`);
+  revalidatePath("/alterations/workbench");
   return { successMessage: "Task updated." };
 }
 
