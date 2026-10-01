@@ -59,6 +59,7 @@ export * from "./import/import-enrichment.schema";
 
 export * from "./commerce/order";
 export * from "./commerce/order.schema";
+export * from "./commerce/order-transitions";
 export * from "./commerce/payment";
 export * from "./commerce/payment.schema";
 

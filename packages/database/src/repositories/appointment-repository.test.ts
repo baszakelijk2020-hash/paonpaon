@@ -20,6 +20,7 @@ const row: AppointmentRow = {
   location_id: null,
   branch_id: null,
   notes: null,
+  party_size: 1,
   origin_message_thread_id: null,
   origin_message_attachment_id: null,
   created_at: "2026-01-01T00:00:00.000Z",

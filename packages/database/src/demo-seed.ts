@@ -2480,18 +2480,13 @@ async function seedRetailerSpecs(params: {
           role: "groom",
         });
       }
-      const attendants = [
-        {
-          name: "Julien Moreau",
-          email: `contact+${spec.slug}-wedding-julien@nebelspiegel.com`,
-          role: "best_man" as const,
-        },
-        {
-          name: "Thomas Leroy",
-          email: `contact+${spec.slug}-wedding-thomas@nebelspiegel.com`,
-          role: "groomsman" as const,
-        },
-      ];
+      // No invented attendants (founder direction 2026-09-30): the party
+      // starts with its organizer only, and guests arrive through invites.
+      const attendants: readonly {
+        name: string;
+        email: string;
+        role: "best_man" | "groomsman";
+      }[] = [];
       for (const person of attendants) {
         members = await weddingRepo.findMembers(party.id);
         if (!members.some((member) => member.name === person.name)) {

@@ -288,6 +288,45 @@ export class LoyaltyRepository {
     if (error) throw error;
     return data.map(referral);
   }
+  /**
+   * Every redemption across the retailer, newest first. `reward_redemptions`
+   * has carried a "retailer reads redemptions" policy since it was created,
+   * but nothing in the retailer app ever called for the rows — staff saw only
+   * an aggregate "points issued" tile and could not tell who redeemed what.
+   */
+  async findRedemptionsByRetailer(
+    retailerId: RetailerId,
+    limit = 50,
+  ): Promise<RewardRedemption[]> {
+    // `reward_redemptions` carries no retailer_id of its own — it reaches the
+    // tenant through its loyalty account, so the filter joins rather than
+    // guessing a column.
+    const { data, error } = await this.client
+      .from("reward_redemptions")
+      .select("*, loyalty_accounts!inner(retailer_id)")
+      .eq("loyalty_accounts.retailer_id", retailerId)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return data.map((row) => redemption(row as never));
+  }
+
+  /** Referrals across the retailer — who invited whom, and whether it landed. */
+  async findReferralsByRetailer(
+    retailerId: RetailerId,
+    limit = 50,
+  ): Promise<Referral[]> {
+    const { data, error } = await this.client
+      .from("referrals")
+      .select("*")
+      .eq("retailer_id", retailerId)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return data.map(referral);
+  }
+
   async ensureMyAccount(retailerId: RetailerId): Promise<LoyaltyAccountId> {
     const { data, error } = await this.client.rpc("ensure_my_loyalty_account", {
       p_retailer_id: retailerId,

@@ -11,7 +11,7 @@ export const rewardSchema = z.object({
   name: z.string().trim().min(1).max(120),
   type: z.enum(["discount_percent", "discount_fixed", "gift", "early_access"]),
   pointsCost: z.coerce.number().int().positive().max(10_000_000),
-  minimumTier: z.enum(["member", "silver", "gold", "platinum"]).optional(),
+  minimumTier: z.enum(["metre", "milli", "micron"]).optional(),
 });
 
 export const referralInviteSchema = z.object({

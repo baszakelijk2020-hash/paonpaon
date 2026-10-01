@@ -277,3 +277,20 @@ update public.retailers
   set brand_theme = jsonb_set(brand_theme, '{cornerStyle}', '"architectural"')
   where slug = 'atelier-demo';
 reset role;
+
+-- Atelier Demo's two showrooms as real, published locations, so the booking
+-- bars' location pill has something to offer (the storefront lists the same
+-- two). Idempotent.
+insert into public.retailer_branches
+  (retailer_id, name, timezone, is_default, address_line1, city, postal_code, country, published)
+select r.id, v.name, v.tz, v.is_default, v.addr, v.city, v.pc, v.country, true
+from public.retailers r
+cross join (values
+  ('Antwerp', 'Europe/Brussels', true, 'Lombardenstraat 2', 'Antwerp', '2000', 'BE'),
+  ('Amsterdam', 'Europe/Amsterdam', false, 'PC Hooftstraat 48', 'Amsterdam', '1071 BZ', 'NL')
+) as v(name, tz, is_default, addr, city, pc, country)
+where r.slug = 'atelier-demo'
+  and not exists (
+    select 1 from public.retailer_branches b
+    where b.retailer_id = r.id and b.name = v.name and b.deleted_at is null
+  );

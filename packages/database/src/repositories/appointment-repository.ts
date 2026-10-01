@@ -182,6 +182,100 @@ export class AppointmentRepository {
     return asId<"AppointmentId">(data);
   }
 
+  /**
+   * Calls `cancel_my_appointment`. The customer holds SELECT-only RLS on
+   * `appointments`, so cancelling has to go through the SECURITY DEFINER
+   * function, which re-derives ownership from `auth.uid()` and notifies the
+   * retailer's booking staff.
+   */
+  async cancelMyAppointment(params: {
+    appointmentId: AppointmentId;
+    reason?: string;
+  }): Promise<void> {
+    const { error } = await this.client.rpc("cancel_my_appointment", {
+      p_appointment_id: params.appointmentId,
+      p_reason: (params.reason ?? null) as never,
+    } as never);
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Calls `reschedule_my_appointment`. Refuses a closed or already-full slot
+   * through the same `appointment_slot_conflict` check the booking path uses,
+   * and drops a confirmed booking back to `requested` so the retailer re-reads
+   * the new time.
+   */
+  async rescheduleMyAppointment(params: {
+    appointmentId: AppointmentId;
+    startsAt: string;
+    endsAt: string;
+  }): Promise<void> {
+    const { error } = await this.client.rpc("reschedule_my_appointment", {
+      p_appointment_id: params.appointmentId,
+      p_starts_at: params.startsAt,
+      p_ends_at: params.endsAt,
+    } as never);
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Null when the slot can be taken, otherwise the reason it cannot. Lets the
+   * booking UI say why a time is unavailable before the customer submits,
+   * using exactly the same rule the write path enforces.
+   */
+  async slotConflict(params: {
+    retailerId: RetailerId;
+    branchId?: RetailerBranchId;
+    startsAt: string;
+    endsAt: string;
+    excludeAppointmentId?: AppointmentId;
+  }): Promise<string | null> {
+    const { data, error } = await this.client.rpc("appointment_slot_conflict", {
+      p_retailer_id: params.retailerId,
+      p_branch_id: (params.branchId ?? null) as never,
+      p_starts_at: params.startsAt,
+      p_ends_at: params.endsAt,
+      p_exclude_appointment_id: (params.excludeAppointmentId ?? null) as never,
+    } as never);
+
+    if (error) {
+      throw error;
+    }
+
+    return (data as string | null) ?? null;
+  }
+
+  /**
+   * Tell the customer their appointment changed. `notifications` is
+   * insert-locked to the recipient's own session, so this goes through the
+   * SECURITY DEFINER function, which re-derives the tenant and the caller's
+   * staff role. A guest booking with no account is a silent no-op.
+   */
+  async notifyCustomerOfChange(params: {
+    appointmentId: AppointmentId;
+    title: string;
+    body?: string;
+  }): Promise<void> {
+    const { error } = await this.client.rpc(
+      "notify_customer_of_appointment_change",
+      {
+        p_appointment_id: params.appointmentId,
+        p_title: params.title,
+        p_body: (params.body ?? null) as never,
+      } as never,
+    );
+
+    if (error) {
+      throw error;
+    }
+  }
+
   /** Employee Portal write-capable self-service (PHASE 18.5 / BD-105) —
    * `request_appointment_as_wearer` re-derives the caller's own wearer
    * row and books through their EXISTING linked `customer_id` only. It

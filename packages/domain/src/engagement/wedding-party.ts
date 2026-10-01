@@ -55,6 +55,11 @@ export const WEDDING_PARTY_MEMBER_ROLE_LABELS: Record<
 export type WeddingPartyMemberFittingStatus =
   "invited" | "scheduled" | "fitted" | "completed";
 
+/** Whether a guest is coming to the group fitting: attending (the default),
+ * declined, or rebooked — booked a fitting of their own instead. */
+export type WeddingPartyMemberAttendance =
+  "attending" | "declined" | "rebooked";
+
 export const WEDDING_PARTY_MEMBER_FITTING_STATUSES: readonly WeddingPartyMemberFittingStatus[] =
   ["invited", "scheduled", "fitted", "completed"];
 
@@ -106,6 +111,8 @@ export interface WeddingPartyMember extends Timestamps {
   readonly name: string;
   readonly role: WeddingPartyMemberRole;
   readonly fittingStatus: WeddingPartyMemberFittingStatus;
+  /** Absent means attending. */
+  readonly attendance?: WeddingPartyMemberAttendance;
   /** Public URL of the member's photo in the `party-photos` bucket. */
   readonly photoUrl?: string;
   /** Self-reported height in cm — party-scoped prep data (ADR-055),

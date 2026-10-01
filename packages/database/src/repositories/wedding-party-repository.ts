@@ -68,6 +68,9 @@ const toMember = (row: MemberRow): WeddingPartyMember => ({
   name: row.name,
   role: row.role,
   fittingStatus: row.fitting_status,
+  ...(row.attendance === "declined" || row.attendance === "rebooked"
+    ? { attendance: row.attendance }
+    : {}),
   ...(row.photo_url ? { photoUrl: row.photo_url } : {}),
   ...(row.height_cm != null ? { heightCm: Number(row.height_cm) } : {}),
   ...(row.weight_kg != null ? { weightKg: Number(row.weight_kg) } : {}),
@@ -405,6 +408,71 @@ export class WeddingPartyRepository {
       partyId: payload.party_id,
       retailerId: payload.retailer_id,
     };
+  }
+
+  /** The party chat, oldest first (latest 200). Keyed by the invite token,
+   * so it works for anyone holding the party's link, signed in or not
+   * (`list_wedding_party_messages`, security definer). */
+  async listMessages(inviteToken: string): Promise<
+    {
+      id: string;
+      authorName: string;
+      body: string;
+      createdAt: string;
+      isOrganizer: boolean;
+    }[]
+  > {
+    const { data, error } = await this.client.rpc(
+      "list_wedding_party_messages",
+      { p_invite_token: inviteToken },
+    );
+    if (error) throw error;
+    return (data ?? []).map((row) => ({
+      id: row.id,
+      authorName: row.author_name,
+      body: row.body,
+      createdAt: row.created_at,
+      isOrganizer: row.is_organizer,
+    }));
+  }
+
+  /** Posts to the party chat (`post_wedding_party_message`); the function
+   * validates the token, the name and the length, and links the message to
+   * the poster's customer record when they are signed in. */
+  async postMessage(params: {
+    inviteToken: string;
+    authorName: string;
+    body: string;
+  }): Promise<string> {
+    const { data, error } = await this.client.rpc(
+      "post_wedding_party_message",
+      {
+        p_invite_token: params.inviteToken,
+        p_author_name: params.authorName,
+        p_body: params.body,
+      },
+    );
+    if (error) throw error;
+    return data;
+  }
+
+  /** A guest saying whether they come to the group fitting
+   * (`set_wedding_party_member_attendance`: the party's invite token plus
+   * the guest's own member id). */
+  async setMemberAttendance(params: {
+    inviteToken: string;
+    memberId: string;
+    attendance: "attending" | "declined" | "rebooked";
+  }): Promise<void> {
+    const { error } = await this.client.rpc(
+      "set_wedding_party_member_attendance",
+      {
+        p_invite_token: params.inviteToken,
+        p_member_id: params.memberId,
+        p_attendance: params.attendance,
+      },
+    );
+    if (error) throw error;
   }
 
   async previewInvite(inviteToken: string): Promise<{

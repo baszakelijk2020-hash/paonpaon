@@ -1849,6 +1849,54 @@ export type Database = {
           },
         ];
       };
+      appointment_action_tokens: {
+        Row: {
+          action: string;
+          appointment_id: string;
+          created_at: string;
+          expires_at: string;
+          id: string;
+          retailer_id: string;
+          token: string;
+          used_at: string | null;
+        };
+        Insert: {
+          action: string;
+          appointment_id: string;
+          created_at?: string;
+          expires_at: string;
+          id?: string;
+          retailer_id: string;
+          token?: string;
+          used_at?: string | null;
+        };
+        Update: {
+          action?: string;
+          appointment_id?: string;
+          created_at?: string;
+          expires_at?: string;
+          id?: string;
+          retailer_id?: string;
+          token?: string;
+          used_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "appointment_action_tokens_appointment_id_fkey";
+            columns: ["appointment_id"];
+            isOneToOne: false;
+            referencedRelation: "appointments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "appointment_action_tokens_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       appointment_closeouts: {
         Row: {
           appointment_id: string;
@@ -1935,6 +1983,57 @@ export type Database = {
           },
         ];
       };
+      appointment_closures: {
+        Row: {
+          branch_id: string | null;
+          created_at: string;
+          deleted_at: string | null;
+          ends_at: string;
+          id: string;
+          reason: string | null;
+          retailer_id: string;
+          starts_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          branch_id?: string | null;
+          created_at?: string;
+          deleted_at?: string | null;
+          ends_at: string;
+          id?: string;
+          reason?: string | null;
+          retailer_id: string;
+          starts_at: string;
+          updated_at?: string;
+        };
+        Update: {
+          branch_id?: string | null;
+          created_at?: string;
+          deleted_at?: string | null;
+          ends_at?: string;
+          id?: string;
+          reason?: string | null;
+          retailer_id?: string;
+          starts_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "appointment_closures_branch_id_fkey";
+            columns: ["branch_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_branches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "appointment_closures_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       appointments: {
         Row: {
           branch_id: string | null;
@@ -1947,6 +2046,7 @@ export type Database = {
           notes: string | null;
           origin_message_attachment_id: string | null;
           origin_message_thread_id: string | null;
+          party_size: number;
           retailer_id: string;
           staff_id: string | null;
           starts_at: string;
@@ -1965,6 +2065,7 @@ export type Database = {
           notes?: string | null;
           origin_message_attachment_id?: string | null;
           origin_message_thread_id?: string | null;
+          party_size?: number;
           retailer_id: string;
           staff_id?: string | null;
           starts_at: string;
@@ -1983,6 +2084,7 @@ export type Database = {
           notes?: string | null;
           origin_message_attachment_id?: string | null;
           origin_message_thread_id?: string | null;
+          party_size?: number;
           retailer_id?: string;
           staff_id?: string | null;
           starts_at?: string;
@@ -2216,6 +2318,27 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      auth_email_recognition_rate_limits: {
+        Row: {
+          attempts: number;
+          key_hash: string;
+          scope: string;
+          window_started_at: string;
+        };
+        Insert: {
+          attempts?: number;
+          key_hash: string;
+          scope: string;
+          window_started_at: string;
+        };
+        Update: {
+          attempts?: number;
+          key_hash?: string;
+          scope?: string;
+          window_started_at?: string;
+        };
+        Relationships: [];
       };
       availability_windows: {
         Row: {
@@ -7012,13 +7135,18 @@ export type Database = {
           assigned_staff_id: string | null;
           corporate_account_id: string | null;
           created_at: string;
+          date_of_birth: string | null;
           deleted_at: string | null;
           email: string | null;
           full_name: string;
           id: string;
           lifecycle_stage: Database["public"]["Enums"]["customer_lifecycle_stage"];
+          one_click_activated_at: string | null;
+          one_click_checkout_status: string;
+          one_click_requested_at: string | null;
           phone: string | null;
           preferred_carrier: string | null;
+          profile_photo_url: string | null;
           retailer_id: string;
           shipping_addresses: Json;
           tags: string[];
@@ -7030,13 +7158,18 @@ export type Database = {
           assigned_staff_id?: string | null;
           corporate_account_id?: string | null;
           created_at?: string;
+          date_of_birth?: string | null;
           deleted_at?: string | null;
           email?: string | null;
           full_name: string;
           id?: string;
           lifecycle_stage?: Database["public"]["Enums"]["customer_lifecycle_stage"];
+          one_click_activated_at?: string | null;
+          one_click_checkout_status?: string;
+          one_click_requested_at?: string | null;
           phone?: string | null;
           preferred_carrier?: string | null;
+          profile_photo_url?: string | null;
           retailer_id: string;
           shipping_addresses?: Json;
           tags?: string[];
@@ -7048,13 +7181,18 @@ export type Database = {
           assigned_staff_id?: string | null;
           corporate_account_id?: string | null;
           created_at?: string;
+          date_of_birth?: string | null;
           deleted_at?: string | null;
           email?: string | null;
           full_name?: string;
           id?: string;
           lifecycle_stage?: Database["public"]["Enums"]["customer_lifecycle_stage"];
+          one_click_activated_at?: string | null;
+          one_click_checkout_status?: string;
+          one_click_requested_at?: string | null;
           phone?: string | null;
           preferred_carrier?: string | null;
+          profile_photo_url?: string | null;
           retailer_id?: string;
           shipping_addresses?: Json;
           tags?: string[];
@@ -14785,6 +14923,7 @@ export type Database = {
           address_line1: string | null;
           address_line2: string | null;
           city: string | null;
+          concurrent_appointment_capacity: number;
           contact_actions: Json;
           contact_email: string | null;
           country: string | null;
@@ -14813,6 +14952,7 @@ export type Database = {
           address_line1?: string | null;
           address_line2?: string | null;
           city?: string | null;
+          concurrent_appointment_capacity?: number;
           contact_actions?: Json;
           contact_email?: string | null;
           country?: string | null;
@@ -14841,6 +14981,7 @@ export type Database = {
           address_line1?: string | null;
           address_line2?: string | null;
           city?: string | null;
+          concurrent_appointment_capacity?: number;
           contact_actions?: Json;
           contact_email?: string | null;
           country?: string | null;
@@ -15284,12 +15425,15 @@ export type Database = {
       retailer_staff_members: {
         Row: {
           accepted_at: string | null;
+          bio: string | null;
+          bookable: boolean;
           created_at: string;
           deleted_at: string | null;
           email: string;
           full_name: string;
           id: string;
           invited_at: string;
+          photo_url: string | null;
           retailer_id: string;
           role: Database["public"]["Enums"]["retailer_role"];
           updated_at: string;
@@ -15298,12 +15442,15 @@ export type Database = {
         };
         Insert: {
           accepted_at?: string | null;
+          bio?: string | null;
+          bookable?: boolean;
           created_at?: string;
           deleted_at?: string | null;
           email: string;
           full_name: string;
           id?: string;
           invited_at?: string;
+          photo_url?: string | null;
           retailer_id: string;
           role?: Database["public"]["Enums"]["retailer_role"];
           updated_at?: string;
@@ -15312,12 +15459,15 @@ export type Database = {
         };
         Update: {
           accepted_at?: string | null;
+          bio?: string | null;
+          bookable?: boolean;
           created_at?: string;
           deleted_at?: string | null;
           email?: string;
           full_name?: string;
           id?: string;
           invited_at?: string;
+          photo_url?: string | null;
           retailer_id?: string;
           role?: Database["public"]["Enums"]["retailer_role"];
           updated_at?: string;
@@ -21509,6 +21659,7 @@ export type Database = {
           status: string;
           style_portrait_id: string;
           updated_at: string;
+          usage_ledger_id: string | null;
         };
         Insert: {
           actual_cost_cents?: number | null;
@@ -21531,6 +21682,7 @@ export type Database = {
           status?: string;
           style_portrait_id: string;
           updated_at?: string;
+          usage_ledger_id?: string | null;
         };
         Update: {
           actual_cost_cents?: number | null;
@@ -21553,6 +21705,7 @@ export type Database = {
           status?: string;
           style_portrait_id?: string;
           updated_at?: string;
+          usage_ledger_id?: string | null;
         };
         Relationships: [
           {
@@ -21595,6 +21748,13 @@ export type Database = {
             columns: ["style_portrait_id"];
             isOneToOne: false;
             referencedRelation: "style_portraits";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_visualization_jobs_usage_ledger_id_fkey";
+            columns: ["usage_ledger_id"];
+            isOneToOne: false;
+            referencedRelation: "virtual_try_on_usage_ledger";
             referencedColumns: ["id"];
           },
         ];
@@ -22064,6 +22224,7 @@ export type Database = {
       };
       wedding_party_members: {
         Row: {
+          attendance: string;
           created_at: string;
           customer_id: string;
           deleted_at: string | null;
@@ -22078,6 +22239,7 @@ export type Database = {
           weight_kg: number | null;
         };
         Insert: {
+          attendance?: string;
           created_at?: string;
           customer_id: string;
           deleted_at?: string | null;
@@ -22092,6 +22254,7 @@ export type Database = {
           weight_kg?: number | null;
         };
         Update: {
+          attendance?: string;
           created_at?: string;
           customer_id?: string;
           deleted_at?: string | null;
@@ -22115,6 +22278,48 @@ export type Database = {
           },
           {
             foreignKeyName: "wedding_party_members_wedding_party_id_fkey";
+            columns: ["wedding_party_id"];
+            isOneToOne: false;
+            referencedRelation: "wedding_parties";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      wedding_party_messages: {
+        Row: {
+          author_customer_id: string | null;
+          author_name: string;
+          body: string;
+          created_at: string;
+          id: string;
+          wedding_party_id: string;
+        };
+        Insert: {
+          author_customer_id?: string | null;
+          author_name: string;
+          body: string;
+          created_at?: string;
+          id?: string;
+          wedding_party_id: string;
+        };
+        Update: {
+          author_customer_id?: string | null;
+          author_name?: string;
+          body?: string;
+          created_at?: string;
+          id?: string;
+          wedding_party_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "wedding_party_messages_author_customer_id_fkey";
+            columns: ["author_customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wedding_party_messages_wedding_party_id_fkey";
             columns: ["wedding_party_id"];
             isOneToOne: false;
             referencedRelation: "wedding_parties";
@@ -22825,6 +23030,16 @@ export type Database = {
         Args: { p_limit?: number };
         Returns: number;
       };
+      appointment_slot_conflict: {
+        Args: {
+          p_branch_id: string;
+          p_ends_at: string;
+          p_exclude_appointment_id?: string;
+          p_retailer_id: string;
+          p_starts_at: string;
+        };
+        Returns: string;
+      };
       approve_conversation_ai_draft: {
         Args: { p_draft_id: string; p_edited_text?: string };
         Returns: string;
@@ -22908,6 +23123,10 @@ export type Database = {
       can_write_knowledge_object: {
         Args: { p_object_id: string };
         Returns: boolean;
+      };
+      cancel_my_appointment: {
+        Args: { p_appointment_id: string; p_reason?: string };
+        Returns: undefined;
       };
       cancel_wardrobe_visualization_job: {
         Args: { p_job_id: string };
@@ -23072,6 +23291,7 @@ export type Database = {
           status: string;
           style_portrait_id: string;
           updated_at: string;
+          usage_ledger_id: string | null;
         }[];
         SetofOptions: {
           from: "*";
@@ -23146,6 +23366,7 @@ export type Database = {
           status: string;
           style_portrait_id: string;
           updated_at: string;
+          usage_ledger_id: string | null;
         };
         SetofOptions: {
           from: "*";
@@ -23365,6 +23586,18 @@ export type Database = {
         Args: { p_customer_app_base_url: string; p_invitation_id: string };
         Returns: string;
       };
+      enqueue_google_virtual_try_on_job: {
+        Args: {
+          p_customer_id: string;
+          p_input_hash: string;
+          p_input_snapshot: Json;
+          p_outfit_id: string;
+          p_retailer_id: string;
+          p_retailer_visual_preset_id: string;
+          p_style_portrait_id: string;
+        };
+        Returns: Json;
+      };
       enqueue_morning_routine_delivery_notification: {
         Args: {
           p_action_href?: string;
@@ -23408,6 +23641,7 @@ export type Database = {
           status: string;
           style_portrait_id: string;
           updated_at: string;
+          usage_ledger_id: string | null;
         };
         SetofOptions: {
           from: "*";
@@ -23449,6 +23683,7 @@ export type Database = {
           status: string;
           style_portrait_id: string;
           updated_at: string;
+          usage_ledger_id: string | null;
         };
         SetofOptions: {
           from: "*";
@@ -23641,6 +23876,16 @@ export type Database = {
           starts_at: string;
         }[];
       };
+      list_wedding_party_messages: {
+        Args: { p_invite_token: string };
+        Returns: {
+          author_name: string;
+          body: string;
+          created_at: string;
+          id: string;
+          is_organizer: boolean;
+        }[];
+      };
       loyalty_milestone_slug_matches: {
         Args: { p_hints: string[]; p_slug: string };
         Returns: boolean;
@@ -23667,6 +23912,10 @@ export type Database = {
       };
       next_alteration_work_order_number: { Args: never; Returns: string };
       next_order_number: { Args: never; Returns: string };
+      notify_customer_of_appointment_change: {
+        Args: { p_appointment_id: string; p_body?: string; p_title: string };
+        Returns: undefined;
+      };
       open_payroll_period: {
         Args: {
           p_period_end: string;
@@ -23738,6 +23987,10 @@ export type Database = {
         };
         Returns: string;
       };
+      post_wedding_party_message: {
+        Args: { p_author_name: string; p_body: string; p_invite_token: string };
+        Returns: string;
+      };
       preview_prospect_demo: {
         Args: { p_public_token: string };
         Returns: Json;
@@ -23779,6 +24032,15 @@ export type Database = {
       };
       publish_catalogue_import_row: {
         Args: { p_import_row_id: string };
+        Returns: Json;
+      };
+      recognize_customer_login_email: {
+        Args: {
+          p_email_hash: string;
+          p_ip_hash: string;
+          p_normalized_email: string;
+          p_pair_hash: string;
+        };
         Returns: Json;
       };
       record_advisor_rectangle_facts: {
@@ -24142,6 +24404,10 @@ export type Database = {
         };
         Returns: string;
       };
+      request_one_click_checkout_eligibility: {
+        Args: { p_retailer_id: string };
+        Returns: string;
+      };
       request_service_booking: {
         Args: {
           p_idempotency_key: string;
@@ -24151,6 +24417,14 @@ export type Database = {
           p_requested_for?: string;
         };
         Returns: string;
+      };
+      reschedule_my_appointment: {
+        Args: {
+          p_appointment_id: string;
+          p_ends_at: string;
+          p_starts_at: string;
+        };
+        Returns: undefined;
       };
       reserve_stock_atomic: {
         Args: {
@@ -24430,6 +24704,14 @@ export type Database = {
         };
         Returns: string;
       };
+      set_wedding_party_member_attendance: {
+        Args: {
+          p_attendance: string;
+          p_invite_token: string;
+          p_member_id: string;
+        };
+        Returns: undefined;
+      };
       settle_virtual_try_on_generation: {
         Args: {
           p_actual_cost_currency?: string;
@@ -24676,6 +24958,15 @@ export type Database = {
         Args: { p_address: Json; p_retailer_id: string };
         Returns: undefined;
       };
+      update_my_profile_details: {
+        Args: {
+          p_date_of_birth: string | null;
+          p_full_name: string;
+          p_profile_photo_url: string | null;
+          p_retailer_id: string;
+        };
+        Returns: undefined;
+      };
       update_product_catalogue: {
         Args: {
           p_collection_ids?: string[];
@@ -24752,6 +25043,10 @@ export type Database = {
           p_timezone?: string;
         };
         Returns: string;
+      };
+      upsert_my_labeled_address: {
+        Args: { p_address: Json; p_label: string; p_retailer_id: string };
+        Returns: undefined;
       };
       variant_ledger_balance: {
         Args: { p_variant_id: string };
@@ -24923,7 +25218,7 @@ export type Database = {
         | "premium_construction"
         | "advanced_fabric"
         | "custom";
-      loyalty_tier: "member" | "silver" | "gold" | "platinum";
+      loyalty_tier: "metre" | "milli" | "micron";
       message_sender_type: "customer" | "staff" | "ai_assistant" | "guest";
       metadata_concept_kind:
         | "mill"
@@ -25339,7 +25634,7 @@ export const Constants = {
         "advanced_fabric",
         "custom",
       ],
-      loyalty_tier: ["member", "silver", "gold", "platinum"],
+      loyalty_tier: ["metre", "milli", "micron"],
       message_sender_type: ["customer", "staff", "ai_assistant", "guest"],
       metadata_concept_kind: [
         "mill",

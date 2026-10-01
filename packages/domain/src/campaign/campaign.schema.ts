@@ -76,7 +76,7 @@ export const upsertCampaignAudienceRuleInputSchema = z
     ruleKind: campaignAudienceRuleKindSchema,
     conceptId: z.string().uuid().optional(),
     productId: z.string().uuid().optional(),
-    loyaltyTier: z.enum(["member", "silver", "gold", "platinum"]).optional(),
+    loyaltyTier: z.enum(["metre", "milli", "micron"]).optional(),
     requirePersonalizationConsent: z.boolean().default(true),
     explanation: z.string().trim().min(1).max(300),
     active: z.boolean().default(true),

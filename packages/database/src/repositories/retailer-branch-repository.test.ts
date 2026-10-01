@@ -17,6 +17,7 @@ function branchRow(overrides: Partial<Row> & Pick<Row, "id" | "name">): Row {
     retailer_id: retailerId,
     timezone: "Europe/Amsterdam",
     is_default: true,
+    concurrent_appointment_capacity: 1,
     created_at: now,
     updated_at: now,
     deleted_at: null,

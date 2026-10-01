@@ -96,8 +96,7 @@ function toAudienceRule(row: AudienceRow): CampaignAudienceRule {
     ...(row.product_id ? { productId: asId<"ProductId">(row.product_id) } : {}),
     ...(row.loyalty_tier
       ? {
-          loyaltyTier: row.loyalty_tier as
-            "member" | "silver" | "gold" | "platinum",
+          loyaltyTier: row.loyalty_tier as "metre" | "milli" | "micron",
         }
       : {}),
     requirePersonalizationConsent: row.require_personalization_consent,

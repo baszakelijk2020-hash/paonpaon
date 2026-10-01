@@ -30,6 +30,7 @@ export * from "./repositories/platform-module-repository";
 export * from "./repositories/commercial-inquiry-repository";
 export * from "./repositories/commercial-prospect-repository";
 export * from "./repositories/retailer-subscription-repository";
+export * from "./repositories/appointment-closure-repository";
 export * from "./repositories/availability-window-repository";
 export * from "./repositories/appointment-repository";
 export * from "./repositories/retailer-branch-repository";

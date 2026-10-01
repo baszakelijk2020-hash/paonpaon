@@ -149,6 +149,38 @@ export class PaidCareBookingRepository {
     return data.map(toBooking);
   }
 
+  /**
+   * Every paid-care booking for a retailer, newest first.
+   *
+   * The staff read policy (`paid_care_bookings_staff_read`) has existed since
+   * this table was created; there was simply never a repository method or a
+   * screen that used it, so a customer booking a repair or a clean was
+   * invisible to the people who have to do the work.
+   */
+  async findByRetailer(retailerId: RetailerId): Promise<PaidCareBooking[]> {
+    const { data, error } = await this.client
+      .from("paid_care_bookings")
+      .select("*")
+      .eq("retailer_id", retailerId)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data.map(toBooking);
+  }
+
+  /** Staff advance a booking through its lifecycle — gated by
+   *  `paid_care_bookings_staff_update`, which this does not re-implement. */
+  async updateStatusAsStaff(params: {
+    id: PaidCareBookingId;
+    status: PaidCareBookingStatus;
+  }): Promise<void> {
+    const { error } = await this.client
+      .from("paid_care_bookings")
+      .update({ status: params.status })
+      .eq("id", params.id);
+    if (error) throw error;
+  }
+
   async findByQrToken(qrToken: string): Promise<PaidCareBooking | null> {
     const { data, error } = await this.client
       .from("paid_care_bookings")

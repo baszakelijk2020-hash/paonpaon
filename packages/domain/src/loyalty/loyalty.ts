@@ -10,13 +10,12 @@ import type {
 } from "../shared/branded-id";
 import type { Timestamps } from "../shared/timestamps";
 
-export type LoyaltyTier = "member" | "silver" | "gold" | "platinum";
+export type LoyaltyTier = "metre" | "milli" | "micron";
 
 export const LOYALTY_TIER_LABELS: Record<LoyaltyTier, string> = {
-  member: "Member",
-  silver: "Silver",
-  gold: "Gold",
-  platinum: "Platinum",
+  metre: "Metre",
+  milli: "Milli",
+  micron: "Micron",
 };
 
 export interface LoyaltyProgram extends Timestamps {

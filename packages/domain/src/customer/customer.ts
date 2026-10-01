@@ -26,6 +26,12 @@ export const PREFERRED_CARRIERS: readonly PreferredCarrier[] = [
   "customer_pickup",
 ];
 
+/** Honor-system 1-Click Checkout status only — never implies a stored
+ * payment method. Stripe is not connected; "active" still means nothing
+ * charges automatically until that integration exists (ADR-062). */
+export type OneClickCheckoutStatus =
+  "not_requested" | "pending_review" | "eligible" | "active";
+
 /**
  * A Customer is scoped to one retailer, even when the same shopper buys
  * from several PAON retailers — each relationship is modeled
@@ -47,6 +53,11 @@ export interface Customer extends Timestamps {
   readonly acquisitionSource?: string;
   readonly tags: readonly string[];
   readonly preferredCarrier?: PreferredCarrier;
+  readonly dateOfBirth?: string;
+  readonly profilePhotoUrl?: string;
+  readonly oneClickCheckoutStatus: OneClickCheckoutStatus;
+  readonly oneClickRequestedAt?: string;
+  readonly oneClickActivatedAt?: string;
 }
 
 /** Links one Customer Portal login to many per-retailer Customer records. */

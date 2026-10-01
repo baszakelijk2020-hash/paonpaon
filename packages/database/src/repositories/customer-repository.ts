@@ -4,9 +4,11 @@ import {
   maskEmail,
   maskPhone,
   type Address,
+  type AddressLabel,
   type Customer,
   type CustomerLifecycleStage,
   type CustomerId,
+  type OneClickCheckoutStatus,
   type PreferredCarrier,
   type RetailerId,
   type RetailerRole,
@@ -38,6 +40,18 @@ function toDomain(row: CustomerRow): Customer {
     tags: row.tags,
     ...(row.preferred_carrier
       ? { preferredCarrier: row.preferred_carrier as PreferredCarrier }
+      : {}),
+    ...(row.date_of_birth ? { dateOfBirth: row.date_of_birth } : {}),
+    ...(row.profile_photo_url
+      ? { profilePhotoUrl: row.profile_photo_url }
+      : {}),
+    oneClickCheckoutStatus:
+      row.one_click_checkout_status as OneClickCheckoutStatus,
+    ...(row.one_click_requested_at
+      ? { oneClickRequestedAt: row.one_click_requested_at }
+      : {}),
+    ...(row.one_click_activated_at
+      ? { oneClickActivatedAt: row.one_click_activated_at }
       : {}),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -218,6 +232,67 @@ export class CustomerRepository {
       },
     );
     if (error) throw error;
+  }
+
+  /**
+   * Upsert a labeled address (home/work/other) into shipping_addresses,
+   * replacing any existing entry with that label and leaving other entries
+   * untouched. Called from the customer's own session via RPC, mirroring
+   * `updateMyDefaultShippingAddress`'s convention.
+   */
+  async upsertMyLabeledAddress(
+    retailerId: RetailerId,
+    label: AddressLabel,
+    address: Omit<Address, "label">,
+  ): Promise<void> {
+    const { error } = await this.client.rpc("upsert_my_labeled_address", {
+      p_retailer_id: retailerId,
+      p_label: label,
+      p_address:
+        address as unknown as Database["public"]["Functions"]["upsert_my_labeled_address"]["Args"]["p_address"],
+    });
+    if (error) throw error;
+  }
+
+  /**
+   * Update the customer's own profile details: full name, date of birth,
+   * profile photo URL. Null values clear those fields (except full_name
+   * which is required). Called from the customer's own session via RPC.
+   */
+  async updateMyProfileDetails(
+    retailerId: RetailerId,
+    details: {
+      fullName: string;
+      dateOfBirth: string | null;
+      profilePhotoUrl: string | null;
+    },
+  ): Promise<void> {
+    const { error } = await this.client.rpc("update_my_profile_details", {
+      p_retailer_id: retailerId,
+      p_full_name: details.fullName,
+      p_date_of_birth: details.dateOfBirth,
+      p_profile_photo_url: details.profilePhotoUrl,
+    });
+    if (error) throw error;
+  }
+
+  /**
+   * Request 1-Click Checkout eligibility for the customer's own account.
+   * Idempotent: if already pending/eligible/active, returns the current
+   * status as a silent no-op. Otherwise moves from 'not_requested' to
+   * 'pending_review' for advisor review.
+   */
+  async requestMyOneClickCheckoutEligibility(
+    retailerId: RetailerId,
+  ): Promise<OneClickCheckoutStatus> {
+    const { data, error } = await this.client.rpc(
+      "request_one_click_checkout_eligibility",
+      {
+        p_retailer_id: retailerId,
+      },
+    );
+    if (error) throw error;
+    return data as OneClickCheckoutStatus;
   }
 
   /**

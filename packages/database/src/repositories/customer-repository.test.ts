@@ -21,6 +21,11 @@ const row: CustomerRow = {
   shipping_addresses: [],
   acquisition_source: null,
   preferred_carrier: null,
+  date_of_birth: null,
+  profile_photo_url: null,
+  one_click_checkout_status: "not_requested",
+  one_click_requested_at: null,
+  one_click_activated_at: null,
   tags: [],
   created_at: "2026-01-01T00:00:00.000Z",
   updated_at: "2026-01-01T00:00:00.000Z",
@@ -112,5 +117,197 @@ describe("CustomerRepository", () => {
     const repo = new CustomerRepository(client);
 
     await expect(repo.linkMyAccounts()).rejects.toBeTruthy();
+  });
+
+  it("maps dateOfBirth, profilePhotoUrl, oneClickCheckoutStatus, oneClickRequestedAt, oneClickActivatedAt fields", async () => {
+    const rowWithProfile: CustomerRow = {
+      ...row,
+      date_of_birth: "1990-06-15",
+      profile_photo_url: "https://example.com/photo.jpg",
+      one_click_checkout_status: "eligible",
+      one_click_requested_at: "2026-01-10T12:00:00.000Z",
+      one_click_activated_at: "2026-01-15T12:00:00.000Z",
+    };
+    const repo = new CustomerRepository(
+      clientReturning({ data: rowWithProfile, error: null }),
+    );
+    const customer = await repo.findById(row.id as never);
+
+    expect(customer).not.toBeNull();
+    expect(customer?.dateOfBirth).toBe("1990-06-15");
+    expect(customer?.profilePhotoUrl).toBe("https://example.com/photo.jpg");
+    expect(customer?.oneClickCheckoutStatus).toBe("eligible");
+    expect(customer?.oneClickRequestedAt).toBe("2026-01-10T12:00:00.000Z");
+    expect(customer?.oneClickActivatedAt).toBe("2026-01-15T12:00:00.000Z");
+  });
+
+  it("omits dateOfBirth, profilePhotoUrl, oneClickRequestedAt, oneClickActivatedAt when null", async () => {
+    const repo = new CustomerRepository(
+      clientReturning({ data: row, error: null }),
+    );
+    const customer = await repo.findById(row.id as never);
+
+    expect(customer).not.toBeNull();
+    expect("dateOfBirth" in (customer ?? {})).toBe(false);
+    expect("profilePhotoUrl" in (customer ?? {})).toBe(false);
+    expect("oneClickRequestedAt" in (customer ?? {})).toBe(false);
+    expect("oneClickActivatedAt" in (customer ?? {})).toBe(false);
+  });
+
+  it("always maps oneClickCheckoutStatus (never omitted)", async () => {
+    const repo = new CustomerRepository(
+      clientReturning({ data: row, error: null }),
+    );
+    const customer = await repo.findById(row.id as never);
+
+    expect(customer).not.toBeNull();
+    expect(customer?.oneClickCheckoutStatus).toBe("not_requested");
+  });
+
+  it("upsertMyLabeledAddress calls the RPC with correct parameters", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: null, error: null });
+    const client = { rpc } as unknown as PaonSupabaseClient;
+    const repo = new CustomerRepository(client);
+
+    await repo.upsertMyLabeledAddress(row.retailer_id as never, "home", {
+      line1: "123 Main St",
+      city: "New York",
+      postalCode: "10001",
+      countryCode: "US",
+    });
+
+    expect(rpc).toHaveBeenCalledWith("upsert_my_labeled_address", {
+      p_retailer_id: row.retailer_id,
+      p_label: "home",
+      p_address: {
+        line1: "123 Main St",
+        city: "New York",
+        postalCode: "10001",
+        countryCode: "US",
+      },
+    });
+  });
+
+  it("upsertMyLabeledAddress rejects when the RPC errors", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: null,
+      error: new Error("Address validation failed"),
+    });
+    const client = { rpc } as unknown as PaonSupabaseClient;
+    const repo = new CustomerRepository(client);
+
+    await expect(
+      repo.upsertMyLabeledAddress(row.retailer_id as never, "home", {
+        line1: "",
+        city: "New York",
+        postalCode: "10001",
+        countryCode: "US",
+      }),
+    ).rejects.toBeTruthy();
+  });
+
+  it("updateMyProfileDetails calls the RPC with correct parameters", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: null, error: null });
+    const client = { rpc } as unknown as PaonSupabaseClient;
+    const repo = new CustomerRepository(client);
+
+    await repo.updateMyProfileDetails(row.retailer_id as never, {
+      fullName: "Jane Updated",
+      dateOfBirth: "1990-06-15",
+      profilePhotoUrl: "https://example.com/new-photo.jpg",
+    });
+
+    expect(rpc).toHaveBeenCalledWith("update_my_profile_details", {
+      p_retailer_id: row.retailer_id,
+      p_full_name: "Jane Updated",
+      p_date_of_birth: "1990-06-15",
+      p_profile_photo_url: "https://example.com/new-photo.jpg",
+    });
+  });
+
+  it("updateMyProfileDetails accepts null date_of_birth and profile_photo_url to clear fields", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: null, error: null });
+    const client = { rpc } as unknown as PaonSupabaseClient;
+    const repo = new CustomerRepository(client);
+
+    await repo.updateMyProfileDetails(row.retailer_id as never, {
+      fullName: "Jane",
+      dateOfBirth: null,
+      profilePhotoUrl: null,
+    });
+
+    expect(rpc).toHaveBeenCalledWith("update_my_profile_details", {
+      p_retailer_id: row.retailer_id,
+      p_full_name: "Jane",
+      p_date_of_birth: null,
+      p_profile_photo_url: null,
+    });
+  });
+
+  it("updateMyProfileDetails rejects when the RPC errors", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: null,
+      error: new Error("Full name required"),
+    });
+    const client = { rpc } as unknown as PaonSupabaseClient;
+    const repo = new CustomerRepository(client);
+
+    await expect(
+      repo.updateMyProfileDetails(row.retailer_id as never, {
+        fullName: "",
+        dateOfBirth: null,
+        profilePhotoUrl: null,
+      }),
+    ).rejects.toBeTruthy();
+  });
+
+  it("requestMyOneClickCheckoutEligibility calls the RPC and returns the status", async () => {
+    const rpc = vi
+      .fn()
+      .mockResolvedValue({ data: "pending_review", error: null });
+    const client = { rpc } as unknown as PaonSupabaseClient;
+    const repo = new CustomerRepository(client);
+
+    const status = await repo.requestMyOneClickCheckoutEligibility(
+      row.retailer_id as never,
+    );
+
+    expect(rpc).toHaveBeenCalledWith("request_one_click_checkout_eligibility", {
+      p_retailer_id: row.retailer_id,
+    });
+    expect(status).toBe("pending_review");
+  });
+
+  it("requestMyOneClickCheckoutEligibility is idempotent, returning current status on repeat calls", async () => {
+    const rpc = vi
+      .fn()
+      .mockResolvedValueOnce({ data: "pending_review", error: null })
+      .mockResolvedValueOnce({ data: "pending_review", error: null });
+    const client = { rpc } as unknown as PaonSupabaseClient;
+    const repo = new CustomerRepository(client);
+
+    const status1 = await repo.requestMyOneClickCheckoutEligibility(
+      row.retailer_id as never,
+    );
+    const status2 = await repo.requestMyOneClickCheckoutEligibility(
+      row.retailer_id as never,
+    );
+
+    expect(status1).toBe("pending_review");
+    expect(status2).toBe("pending_review");
+    expect(rpc).toHaveBeenCalledTimes(2);
+  });
+
+  it("requestMyOneClickCheckoutEligibility rejects when the RPC errors", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: null,
+      error: new Error("Customer relationship not found"),
+    });
+    const client = { rpc } as unknown as PaonSupabaseClient;
+    const repo = new CustomerRepository(client);
+
+    await expect(
+      repo.requestMyOneClickCheckoutEligibility(row.retailer_id as never),
+    ).rejects.toBeTruthy();
   });
 });

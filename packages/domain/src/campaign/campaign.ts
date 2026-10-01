@@ -182,7 +182,7 @@ export interface CampaignAudienceRule {
   readonly ruleKind: CampaignAudienceRuleKind;
   readonly conceptId?: MetadataConceptId;
   readonly productId?: ProductId;
-  readonly loyaltyTier?: "member" | "silver" | "gold" | "platinum";
+  readonly loyaltyTier?: "metre" | "milli" | "micron";
   readonly requirePersonalizationConsent: boolean;
   readonly explanation: string;
   readonly active: boolean;
@@ -353,7 +353,7 @@ export function evaluateAudienceRules(args: {
   readonly personalizationConsent: ConsentStatus;
   readonly customerConceptIds: ReadonlySet<string>;
   readonly customerProductInterestIds?: ReadonlySet<string>;
-  readonly loyaltyTier?: "member" | "silver" | "gold" | "platinum";
+  readonly loyaltyTier?: "metre" | "milli" | "micron";
 }):
   | { readonly ok: true; readonly matchedExplanations: readonly string[] }
   | {
@@ -560,7 +560,7 @@ export function evaluateCampaignDelivery(args: {
   readonly personalizationConsent: ConsentStatus;
   readonly customerConceptIds: ReadonlySet<string>;
   readonly customerProductInterestIds?: ReadonlySet<string>;
-  readonly loyaltyTier?: "member" | "silver" | "gold" | "platinum";
+  readonly loyaltyTier?: "metre" | "milli" | "micron";
   readonly nowUtcIso: string;
   readonly alreadyDeliveredForDate: boolean;
 }):
