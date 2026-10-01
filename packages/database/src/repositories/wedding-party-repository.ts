@@ -353,6 +353,32 @@ export class WeddingPartyRepository {
     return data;
   }
 
+  /** Queues a guest's invitation email (`invite_wedding_party_guest`).
+   * Service-role client only: the caller has already proved the
+   * organizer's session. Returns the invitation id. */
+  async inviteGuestByEmail(params: {
+    weddingPartyId: WeddingPartyId;
+    organizerCustomerId: CustomerId;
+    name: string;
+    email: string;
+    subject: string;
+    htmlBody: string;
+  }): Promise<string> {
+    const { data, error } = await this.client.rpc(
+      "invite_wedding_party_guest",
+      {
+        p_wedding_party_id: params.weddingPartyId,
+        p_organizer_customer_id: params.organizerCustomerId,
+        p_name: params.name,
+        p_email: params.email,
+        p_subject: params.subject,
+        p_html_body: params.htmlBody,
+      },
+    );
+    if (error) throw error;
+    return data;
+  }
+
   /** Resolves a token's owning retailer without joining, so a caller can
    * check module state first. `wedding_parties` has no anonymous select
    * policy (ADR-034's "no new anonymous RLS read/insert policy, narrow

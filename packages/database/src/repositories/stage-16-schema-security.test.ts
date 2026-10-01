@@ -133,6 +133,8 @@ describe("PHASE 16.5 Moonstruck wedding pack", () => {
       .map((match) => match[1]!.toLowerCase());
     expect([...new Set(partyTables)].sort()).toEqual([
       "wedding_parties",
+      // Sent invitations: rows of an existing party, not a second party model.
+      "wedding_party_invitations",
       "wedding_party_members",
       // The party chat: rows of an existing party, not a second party model.
       "wedding_party_messages",

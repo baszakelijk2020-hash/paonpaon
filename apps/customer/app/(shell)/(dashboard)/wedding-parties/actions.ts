@@ -19,6 +19,7 @@ import { redirect } from "next/navigation";
 
 import { env } from "@/lib/env";
 import { requireSession } from "@/lib/session";
+import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 /** A member marking their own fitting "scheduled" — RLS/RPC only
@@ -443,6 +444,7 @@ export async function updatePartySchedule(
 }
 
 export interface TailoringPartyInviteResult {
+  readonly partyId?: string;
   readonly inviteUrl?: string;
   /** The party's link token, which also opens its chat. */
   readonly inviteToken?: string;
@@ -528,16 +530,25 @@ export async function prepareTailoringPartyInvite(input: {
     if (!customer) {
       return { formError: "You don't have a relationship with that atelier." };
     }
-    party = await new WeddingPartyRepository(supabase).create({
-      retailerId: customer.retailerId,
-      organizerCustomerId: customer.id,
-      ...(parsed.data.eventDate ? { eventDate: parsed.data.eventDate } : {}),
-      ...(parsed.data.eventTime ? { eventTime: parsed.data.eventTime } : {}),
-      ...(parsed.data.fittingLocation
-        ? { fittingLocation: parsed.data.fittingLocation }
-        : {}),
-      ...(parsed.data.notes ? { notes: parsed.data.notes } : {}),
-    });
+    try {
+      party = await new WeddingPartyRepository(supabase).create({
+        retailerId: customer.retailerId,
+        organizerCustomerId: customer.id,
+        ...(parsed.data.eventDate ? { eventDate: parsed.data.eventDate } : {}),
+        ...(parsed.data.eventTime ? { eventTime: parsed.data.eventTime } : {}),
+        ...(parsed.data.fittingLocation
+          ? { fittingLocation: parsed.data.fittingLocation }
+          : {}),
+        ...(parsed.data.notes ? { notes: parsed.data.notes } : {}),
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      return {
+        formError: message.includes("Too many parties created today")
+          ? "You have started enough parties for today."
+          : "The party could not be created.",
+      };
+    }
   }
 
   const retailer = await new RetailerRepository(supabase).findById(
@@ -548,9 +559,150 @@ export async function prepareTailoringPartyInvite(input: {
   // Invitees land in the Wardrobe's Appointments, where the party sits at
   // the top with their own details to fill in.
   return {
+    partyId: party.id,
     inviteUrl: `${env.appUrl}/appointments?party=${encodeURIComponent(party.inviteToken)}`,
     inviteToken: party.inviteToken,
   };
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+export interface SendTailoringPartyInvitesResult {
+  readonly partyId?: string;
+  /** Emails that were queued. */
+  readonly sent: readonly string[];
+  /** Per-email reasons for the ones that were not. */
+  readonly failed: readonly { email: string; reason: string }[];
+  readonly formError?: string;
+}
+
+/** Sends the party invitation from PAON itself: each guest becomes a party
+ * member and gets an email with the join link, queued in the email outbox
+ * and delivered by the dispatch job (ADR-032). The organizer is proved with
+ * their own session first; only then does the service role queue the mail,
+ * and the database checks the organizer again. */
+export async function sendTailoringPartyInvites(input: {
+  retailerId: string;
+  partyId?: string;
+  eventDate?: string;
+  eventTime?: string;
+  fittingLocation?: string;
+  notes?: string;
+  occasion?: "wedding" | "office" | "friends";
+  guests: readonly { name: string; email: string }[];
+}): Promise<SendTailoringPartyInvitesResult> {
+  const guests = input.guests
+    .map((guest) => ({
+      name: guest.name.trim().slice(0, 200),
+      email: guest.email.trim().toLowerCase().slice(0, 320),
+    }))
+    .filter((guest) => guest.name && guest.email)
+    .slice(0, 12);
+  if (guests.length === 0) {
+    return { sent: [], failed: [], formError: "Add a name and email first." };
+  }
+
+  const fittingLocation = input.fittingLocation?.trim().slice(0, 120);
+  const occasion =
+    input.occasion === "wedding"
+      ? "a wedding"
+      : input.occasion === "office"
+        ? "the office"
+        : input.occasion === "friends"
+          ? "a get-together with friends"
+          : null;
+
+  const prepared = await prepareTailoringPartyInvite({
+    retailerId: input.retailerId,
+    ...(input.partyId ? { partyId: input.partyId } : {}),
+    ...(input.eventDate ? { eventDate: input.eventDate } : {}),
+    ...(input.eventTime ? { eventTime: input.eventTime } : {}),
+    ...(fittingLocation ? { fittingLocation } : {}),
+    ...(input.notes ? { notes: input.notes } : {}),
+  });
+  if (!prepared.partyId || !prepared.inviteUrl) {
+    return {
+      sent: [],
+      failed: [],
+      formError: prepared.formError ?? "The invite could not be prepared.",
+    };
+  }
+
+  const owned = await requireOrganizerParty(prepared.partyId);
+  if ("error" in owned) return { sent: [], failed: [], formError: owned.error };
+  const organizer = (
+    await new CustomerRepository(owned.supabase).findByUserId(
+      owned.session.userId,
+    )
+  ).find((customer) => customer.id === owned.party.organizerCustomerId);
+  if (!organizer) {
+    return {
+      sent: [],
+      failed: [],
+      formError: "Only the organizer can manage this party.",
+    };
+  }
+
+  const host = organizer.fullName.trim().slice(0, 80) || "Your friend";
+  const when = input.eventDate
+    ? `${new Intl.DateTimeFormat("en-GB", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        timeZone: "UTC",
+      }).format(new Date(`${input.eventDate}T00:00:00Z`))}${
+        input.eventTime ? ` at ${input.eventTime}` : ""
+      }${fittingLocation ? ` in ${fittingLocation}` : ""}`
+    : null;
+  const subject = `${host} invites you to a tailoring party`.slice(0, 200);
+  const repo = new WeddingPartyRepository(getSupabaseAdminClient());
+
+  const sent: string[] = [];
+  const failed: { email: string; reason: string }[] = [];
+  for (const guest of guests) {
+    const html = [
+      `<p>Hi ${escapeHtml(guest.name.split(/\s+/)[0] ?? guest.name)},</p>`,
+      `<p>${escapeHtml(host)} is getting suited up at Nebel &amp; Spiegel${
+        occasion ? ` for ${escapeHtml(occasion)}` : ""
+      } and would like you there${
+        when ? ` &mdash; the fitting is ${escapeHtml(when)}` : ""
+      }.</p>`,
+      `<p><a href="${escapeHtml(prepared.inviteUrl)}">Join the party and set up your profile</a></p>`,
+      `<p style="color:#777;font-size:12px">If the button does not work, open ${escapeHtml(prepared.inviteUrl)}</p>`,
+    ].join("\n");
+    try {
+      await repo.inviteGuestByEmail({
+        weddingPartyId: owned.party.id,
+        organizerCustomerId: organizer.id,
+        name: guest.name,
+        email: guest.email,
+        subject,
+        htmlBody: html,
+      });
+      sent.push(guest.email);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      // Only the database's own limit messages reach the browser.
+      const known = [
+        "Invitation limit reached for today",
+        "This address was invited recently",
+        "This address cannot be invited",
+        "A valid email is required",
+        "Too many parties created today",
+      ].find((text) => message.includes(text));
+      failed.push({ email: guest.email, reason: known ?? "Could not send." });
+    }
+  }
+
+  revalidatePath("/appointments");
+  return { partyId: owned.party.id, sent, failed };
 }
 
 export interface PartyMessage {

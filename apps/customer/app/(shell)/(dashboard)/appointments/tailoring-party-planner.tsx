@@ -5,7 +5,10 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 
 import { GuestPortalPreview } from "../guest-portal-preview";
-import { prepareTailoringPartyInvite } from "../wedding-parties/actions";
+import {
+  prepareTailoringPartyInvite,
+  sendTailoringPartyInvites,
+} from "../wedding-parties/actions";
 
 import { bookAppointment } from "./booking-actions";
 import type { BookableBranch } from "./booking-flow";
@@ -469,7 +472,7 @@ export function TailoringPartyPlanner({
     });
   };
 
-  /** Opens the organizer's mail app addressed to these guests. */
+  /** Sends the invitation from PAON to these guests. */
   const invite = (targets: Guest[]) => {
     if (isGuest) {
       setSigningIn(true);
@@ -478,48 +481,42 @@ export function TailoringPartyPlanner({
     if (targets.length === 0) return;
     setError(null);
     startBusy(async () => {
-      const result = await prepareTailoringPartyInvite({
+      const result = await sendTailoringPartyInvites({
         retailerId,
         ...(partyId ? { partyId } : {}),
         ...(date ? { eventDate: date } : {}),
         eventTime: time,
         ...(branchName ? { fittingLocation: branchName } : {}),
         notes: partyNotes(),
+        ...(occasion === "wedding" ||
+        occasion === "office" ||
+        occasion === "friends"
+          ? { occasion }
+          : {}),
+        guests: targets.map((guest) => ({
+          name: guest.name,
+          email: guest.email,
+        })),
       });
-      if (!result.inviteUrl) {
-        setError(result.formError ?? "The invite could not be prepared.");
+      if (result.formError) {
+        setError(result.formError);
         return;
       }
-      const when = date
-        ? `on ${formatDateLabel(date)} at ${time}${branchName ? ` in ${branchName}` : ""}`
-        : `at ${time} (the date is still to be set)`;
-      const body = [
-        `Hi ${targets.map((guest) => guest.name.trim().split(/\s+/)[0]).join(", ")},`,
-        "",
-        `I'm getting suited up at Nebel & Spiegel${
-          occasionLabel && occasion !== "none"
-            ? ` for ${occasion === "office" ? "the office" : `a ${occasionLabel.toLowerCase()}`}`
-            : ""
-        } and would like you with me — our fitting is ${when}.`,
-        "",
-        "Join the party and set up your own profile here:",
-        result.inviteUrl,
-      ].join("\n");
-      window.location.href = `mailto:${targets
-        .map((guest) => guest.email.trim())
-        .join(",")}?subject=${encodeURIComponent(
-        "Join my tailoring party",
-      )}&body=${encodeURIComponent(body)}`;
+      const sent = new Set(result.sent);
       setGuests((list) =>
         list.map((guest) =>
-          targets.some(
-            (target) =>
-              target.email === guest.email && target.name === guest.name,
-          )
+          sent.has(guest.email.trim().toLowerCase())
             ? { ...guest, sent: true, editing: false }
             : guest,
         ),
       );
+      if (result.failed.length > 0) {
+        setError(
+          result.failed
+            .map((failure) => `${failure.email}: ${failure.reason}`)
+            .join(" · "),
+        );
+      }
       router.refresh();
     });
   };

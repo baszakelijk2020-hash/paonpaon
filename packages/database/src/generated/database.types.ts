@@ -22222,6 +22222,68 @@ export type Database = {
           },
         ];
       };
+      wedding_party_invitations: {
+        Row: {
+          email: string;
+          email_outbox_id: string | null;
+          guest_name: string;
+          id: string;
+          organizer_customer_id: string;
+          retailer_id: string;
+          sent_at: string;
+          wedding_party_id: string;
+        };
+        Insert: {
+          email: string;
+          email_outbox_id?: string | null;
+          guest_name: string;
+          id?: string;
+          organizer_customer_id: string;
+          retailer_id: string;
+          sent_at?: string;
+          wedding_party_id: string;
+        };
+        Update: {
+          email?: string;
+          email_outbox_id?: string | null;
+          guest_name?: string;
+          id?: string;
+          organizer_customer_id?: string;
+          retailer_id?: string;
+          sent_at?: string;
+          wedding_party_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "wedding_party_invitations_email_outbox_id_fkey";
+            columns: ["email_outbox_id"];
+            isOneToOne: false;
+            referencedRelation: "email_outbox";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wedding_party_invitations_organizer_customer_id_fkey";
+            columns: ["organizer_customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wedding_party_invitations_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wedding_party_invitations_wedding_party_id_fkey";
+            columns: ["wedding_party_id"];
+            isOneToOne: false;
+            referencedRelation: "wedding_parties";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       wedding_party_members: {
         Row: {
           attendance: string;
@@ -22292,6 +22354,7 @@ export type Database = {
           body: string;
           created_at: string;
           id: string;
+          retailer_id: string;
           wedding_party_id: string;
         };
         Insert: {
@@ -22300,6 +22363,7 @@ export type Database = {
           body: string;
           created_at?: string;
           id?: string;
+          retailer_id: string;
           wedding_party_id: string;
         };
         Update: {
@@ -22308,6 +22372,7 @@ export type Database = {
           body?: string;
           created_at?: string;
           id?: string;
+          retailer_id?: string;
           wedding_party_id?: string;
         };
         Relationships: [
@@ -22316,6 +22381,13 @@ export type Database = {
             columns: ["author_customer_id"];
             isOneToOne: false;
             referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wedding_party_messages_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
             referencedColumns: ["id"];
           },
           {
@@ -23821,6 +23893,17 @@ export type Database = {
       hex_color_relative_luminance: {
         Args: { p_hex: string };
         Returns: number;
+      };
+      invite_wedding_party_guest: {
+        Args: {
+          p_email: string;
+          p_html_body: string;
+          p_name: string;
+          p_organizer_customer_id: string;
+          p_subject: string;
+          p_wedding_party_id: string;
+        };
+        Returns: string;
       };
       is_alterations_advisor: { Args: never; Returns: boolean };
       is_alterations_management: { Args: never; Returns: boolean };
