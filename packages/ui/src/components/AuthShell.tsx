@@ -34,7 +34,7 @@ export function AuthShell({
   footer: ReactNode;
 }) {
   return (
-    <main className="grid min-h-screen bg-[var(--color-stone-50)] lg:grid-cols-[minmax(0,1.15fr)_minmax(28rem,.85fr)]">
+    <main className="paon-dark-env grid min-h-screen lg:grid-cols-[minmax(0,1.15fr)_minmax(28rem,.85fr)]">
       <section className="relative hidden min-h-screen overflow-hidden bg-black lg:block">
         <img
           src={imageUrl}
@@ -43,7 +43,7 @@ export function AuthShell({
         />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.15)_0%,rgba(0,0,0,.05)_30%,rgba(0,0,0,.5)_70%,rgba(0,0,0,.85)_100%)]" />
 
-        <span className="absolute left-12 top-12 inline-flex w-fit items-center gap-2 rounded-[var(--radius-md)] border border-white/15 bg-white/10 px-4 py-2 text-[10px] uppercase tracking-[0.24em] text-white/80 backdrop-blur-2xl xl:left-16 xl:top-16">
+        <span className="absolute left-12 top-12 inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/80 backdrop-blur-2xl xl:left-16 xl:top-16">
           PAON · {persona}
         </span>
 
@@ -51,7 +51,7 @@ export function AuthShell({
           <p className="font-accent text-[8px] uppercase tracking-[0.2em] text-white/55">
             Private retail, beautifully operated
           </p>
-          <p className="font-display mt-5 max-w-xl text-4xl leading-[1.08] text-white xl:text-5xl">
+          <p className="paon-serif-title paon-serif-title-hero mt-5 max-w-xl">
             {title}
           </p>
           <p className="mt-4 max-w-md text-sm leading-6 text-white/70">
@@ -76,21 +76,19 @@ export function AuthShell({
       <section className="flex min-h-screen items-center px-5 py-10 sm:px-10 lg:px-14 xl:px-20">
         <div className="mx-auto w-full max-w-md">
           <div className="mb-10 flex items-center justify-between gap-3">
-            <p className="font-display text-lg tracking-[0.16em] text-[var(--color-stone-900)]">
+            <p className="paon-wordmark text-[15px] uppercase leading-none">
               PAON
             </p>
-            <span className="font-accent inline-flex items-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-[var(--color-stone-100)] px-3 py-1 text-[9px] uppercase tracking-[0.18em] text-[var(--color-stone-600)] lg:hidden">
+            <span className="font-accent inline-flex items-center gap-1.5 rounded-full bg-white/[.06] px-3 py-1 lg:hidden">
               {persona}
             </span>
           </div>
 
-          <div className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white p-6 shadow-[var(--shadow-elevated)] sm:p-8">
+          <div data-pe-card className="p-6 sm:p-8">
             <p className="font-accent hidden text-[8px] uppercase tracking-[0.2em] text-[var(--color-stone-500)] lg:block">
               {eyebrow}
             </p>
-            <h1 className="font-display mt-0 text-3xl leading-none text-[var(--color-stone-900)] lg:mt-3">
-              {title}
-            </h1>
+            <h1 className="paon-serif-title mt-0 lg:mt-3">{title}</h1>
             <p className="mt-4 text-sm leading-6 text-[var(--color-stone-500)]">
               {description}
             </p>
@@ -98,7 +96,7 @@ export function AuthShell({
             <div className="mt-7">{children}</div>
           </div>
 
-          <div className="mt-6 border-t border-[var(--color-stone-200)] pt-5 text-xs leading-5 text-[var(--color-stone-500)]">
+          <div className="mt-6 border-t border-white/10 pt-5 text-xs leading-5 text-[rgb(244_242_236/60%)]">
             {footer}
           </div>
         </div>

@@ -70,23 +70,31 @@
   font-weight: 700;
   font-display: swap;
 }
-/* Compatibility aliases keep isolated legacy widgets on the house faces
- * while their markup is gradually simplified. */
+/* The customer environment's display faces, so the operator apps share its
+ * wordmark (Aviano), tiny uppercase labels (GTBold3), pill labels
+ * (OptimaKlein) and section titles (NS Serrif, the house serif, self-hosted
+ * in each app's public/fonts). */
 @font-face {
   font-family: "OptimaKlein";
-  src: url("/fonts/TN_Web_Use_Only_2.woff2") format("woff2");
+  src: url("/fonts/optimaklein.woff2") format("woff2");
   font-weight: 400;
   font-display: swap;
 }
 @font-face {
   font-family: "GTBold3";
-  src: url("/fonts/Munged-teVV8iw7A5.woff2") format("woff2");
+  src: url("/fonts/gtbold3.woff2") format("woff2");
   font-weight: 700;
   font-display: swap;
 }
 @font-face {
   font-family: "Aviano";
-  src: url("/fonts/Munged-MZgX5NxJBs.woff2") format("woff2");
+  src: url("/fonts/aviano.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "NS Serrif";
+  src: url("/fonts/ns-serif.woff2") format("woff2");
   font-weight: 400;
   font-display: swap;
 }
@@ -348,9 +356,13 @@
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 6%);
 }
 
-/* Bone pill, 44px, exactly as `.customer-button`. */
+/* Bone pill, exactly as `.customer-button`: buttons, and links styled as
+   buttons (inline-flex). A link that is a whole tile keeps its 20px corners. */
+.paon-dark-env button[class*="rounded-[var(--radius-md)]"]:not([data-flat]),
 .paon-dark-env
-  :is(button, a)[class*="rounded-[var(--radius-md)]"]:not([data-flat]) {
+  a[class*="rounded-[var(--radius-md)]"][class*="inline-flex"]:not(
+    [data-flat]
+  ) {
   border-radius: 999px;
 }
 
@@ -378,12 +390,6 @@
   color: #f4f2ec;
 }
 
-/* Fields read as recessed, not as another tile. */
-.paon-dark-env :is(input, textarea, select) {
-  background: rgb(255 255 255 / 6%) !important;
-  border-color: rgb(255 255 255 / 15%) !important;
-  color: #f4f2ec !important;
-}
 .paon-dark-env :is(input, textarea)::placeholder {
   color: rgb(244 242 236 / 45%) !important;
 }
@@ -418,6 +424,7 @@
 .paon-dark-env h1 {
   font-size: 28px;
   line-height: 1.1;
+  color: #f4f2ec;
 }
 .paon-dark-env h2 {
   font-size: 20px;
@@ -428,10 +435,222 @@
   line-height: 1.2;
 }
 
-/* The brand lock-up keeps its serif — it is a wordmark, not a heading. */
-.paon-dark-env aside .font-display {
-  font-family: "Munged", ui-serif, Georgia, serif;
-  letter-spacing: 0.14em;
+/* ── The customer environment, element by element ─────────────────────────
+   Values are the customer shell's final ones (customer-environment.css,
+   sidebar.css, shop-category-sidebar.tsx, context-switcher.tsx). Unlayered,
+   so they win over Tailwind's utilities without !important. */
+
+.paon-dark-env {
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  color-scheme: dark;
+}
+
+/* The wordmark: Aviano with the slow silver shimmer. */
+.paon-dark-env .paon-wordmark {
+  font-family: "Aviano", "Munged", serif;
+  letter-spacing: 0.06em;
+  background: linear-gradient(90deg, #404040, #fff, #404040);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: paon-wordmark-shimmer 8s linear infinite;
+}
+@keyframes paon-wordmark-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+/* The STORE / WARDROBE switch's track, carrying the product name. */
+.paon-dark-env .paon-side-chip {
+  display: flex;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 35%);
+  padding: 3px;
+}
+.paon-dark-env .paon-side-chip > span {
+  flex: 1;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 9%);
+  padding: 9px 14px;
+  text-align: center;
+  font-family: "GTBold3", Manrope, sans-serif;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #e4e4e1;
+}
+
+/* Kickers: 11px, 600, tracked capitals at 46% — "AFTER BOOKING". */
+.paon-dark-env .font-accent {
+  font-family: Manrope, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(244 242 236 / 46%);
+}
+
+/* Page heroes were dark slabs (stone-900), which the inverted ramp turns
+   white with white type. The customer environment has no slab: a page opens
+   on its title, set on the ground itself. */
+.paon-dark-env :is(section, header)[class*="bg-[var(--color-stone-900)]"],
+.paon-dark-env :is(section, header)[class*="bg-[var(--color-stone-950)]"] {
+  background: none;
+  box-shadow: none;
+  padding: 4px 0 6px;
+  border-radius: 0;
+  color: #f4f2ec;
+}
+.paon-dark-env
+  :is(section, header)[class*="bg-[var(--color-stone-9"]
+  > [aria-hidden="true"] {
+  display: none;
+}
+/* Small dark plates (chips, notes) become the customer's quiet inset. */
+.paon-dark-env
+  :is(div, article, li, span, p)[class*="bg-[var(--color-stone-9"]:not(
+    [class*="hover:bg-[var(--color-stone-9"]
+  ) {
+  background: rgb(255 255 255 / 8%);
+  color: #f4f2ec;
+}
+
+/* Titles on the page ground — a hero's h1, a section's h2 — take the house
+   serif, as "Tailoring Party" does: NS Serrif 40px at half white. Inside a
+   card they stay Manrope. */
+.paon-dark-env :is(section, header)[class*="bg-[var(--color-stone-9"] h1,
+.paon-dark-env main h2:not(:is([data-pe-card], [class*="rounded-["]) h2) {
+  font-family: "NS Serrif", "Munged", Georgia, serif;
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: rgb(244 242 236 / 50%);
+}
+@media (max-width: 700px) {
+  .paon-dark-env :is(section, header)[class*="bg-[var(--color-stone-9"] h1,
+  .paon-dark-env main h2:not(:is([data-pe-card], [class*="rounded-["]) h2) {
+    font-size: 32px;
+  }
+}
+/* The serif title as a named style, for titles that are not page h2s. */
+.paon-dark-env .paon-serif-title {
+  font-family: "NS Serrif", "Munged", Georgia, serif;
+  font-size: 36px;
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: #f4f2ec;
+}
+.paon-dark-env .paon-serif-title-hero {
+  font-size: clamp(44px, 4vw, 56px);
+  color: #fff;
+}
+
+/* A hero's lede: 13px at 60%. */
+.paon-dark-env :is(section, header)[class*="bg-[var(--color-stone-9"] h1 ~ p,
+.paon-dark-env :is(section, header)[class*="bg-[var(--color-stone-9"] h1 + * p {
+  font-size: 13px;
+  color: rgb(244 242 236 / 60%);
+}
+
+/* Tiles: 20px, the grey gradient, a 1px light at the top edge, 22/24 inset. */
+.paon-dark-env :is([data-pe-card], .pe-card) {
+  border-radius: 20px;
+  color: #f4f2ec;
+}
+.paon-dark-env [data-pe-card] :is(h2, h3) {
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: #f4f2ec;
+}
+
+/* Buttons: 13px/500 pills — bone when primary, a hairline ring otherwise. */
+.paon-dark-env button[class*="rounded-[var(--radius-md)]"],
+.paon-dark-env a[class*="rounded-[var(--radius-md)]"][class*="inline-flex"] {
+  font-family: Manrope, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  box-shadow: none;
+}
+.paon-dark-env
+  :is(button, a)[class*="border-[var(--color-stone-"]:not(
+    [class*="bg-[var(--color-stone-900)]"]
+  ) {
+  border-color: rgb(255 255 255 / 15%);
+  color: #f4f2ec;
+}
+
+/* Fields: the customer card field — 5% white, no rule, 14px corners. */
+.paon-dark-env
+  :is(input, textarea, select):not(
+    [type="checkbox"],
+    [type="radio"],
+    [type="range"],
+    [type="file"]
+  ) {
+  background: rgb(255 255 255 / 5%) !important;
+  border-color: transparent !important;
+  border-radius: 14px;
+  color: #f4f2ec !important;
+  font-size: 14px;
+}
+.paon-dark-env :is(input, textarea, select):focus-visible {
+  outline: 2px solid #aed6e7;
+  outline-offset: 2px;
+}
+.paon-dark-env :is(input[type="checkbox"], input[type="radio"]) {
+  accent-color: #94cfaf;
+}
+
+/* Labels above fields: 12px/600 at 60%, as the customer's form labels. */
+.paon-dark-env label {
+  color: rgb(244 242 236 / 72%);
+}
+
+/* Status chips: the customer environment's green, amber and red on a 12%
+   wash of themselves. The light theme's dark-green ink (#063d2a) is
+   unreadable on a dark ground. */
+.paon-dark-env
+  :is(span, p, div)[class*="bg-[var(--color-success-500)]"]:not(
+    [class*="h-1"],
+    [class*="h-2"]
+  ),
+.paon-dark-env [class*="text-[#063d2a]"] {
+  background: rgb(184 230 190 / 12%);
+  color: #b8e6be;
+}
+.paon-dark-env
+  :is(span, p, div)[class*="bg-[var(--color-warning-500)]"]:not(
+    [class*="h-1"],
+    [class*="h-2"]
+  ) {
+  background: rgb(240 200 120 / 12%);
+  color: #f0c878;
+}
+.paon-dark-env
+  :is(span, p, div)[class*="bg-[var(--color-danger-500)]"]:not(
+    [class*="h-1"],
+    [class*="h-2"]
+  ) {
+  background: rgb(251 141 141 / 12%);
+  color: #fb8d8d;
+}
+
+/* Links and focus: the customer environment's soft blue. */
+.paon-dark-env :focus-visible {
+  outline-color: #aed6e7;
 }
 
 /* The sub-tab rail runs wider than its container on any real screen, and a

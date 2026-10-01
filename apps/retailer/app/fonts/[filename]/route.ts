@@ -11,6 +11,9 @@ import { NextResponse } from "next/server";
  * this is a Route Handler tied to that app's own origin.
  */
 const ALLOWED_FONTS = new Set([
+  "aviano.woff2",
+  "gtbold3.woff2",
+  "optimaklein.woff2",
   "Munged-MZgX5NxJBs.woff2",
   "Munged-teVV8iw7A5.woff2",
   "TN_Web_Use_Only.woff2",
