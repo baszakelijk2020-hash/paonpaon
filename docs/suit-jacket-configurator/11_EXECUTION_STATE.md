@@ -43,7 +43,8 @@ sandbox; no render was run or claimed.
 **Second audit pass, same day, later firing.** Independently re-verified both
 code and docs from scratch (two fresh Route-A workers, not trusting the pass
 above as evidence per AGENTS.md ch.20). Seam/arity audit: all 25 seam pairs
-and all 11 cut-list calls re-confirmed PASS, no defect. Three more doc-drift
+and all 18 cut-list calls (11 distinct panel constructors) re-confirmed PASS,
+no defect. Three more doc-drift
 items found and fixed in this file, all pre-dating the pass above (not
 regressions from it): the "Where things stand" status paragraph still said
 the drape "won't read as a jacket until P1.1's sleeve/armscye contract
@@ -59,6 +60,28 @@ radius) — corrected to "tip point". No code changes. This run's stop-hook
 also found `node_modules` was never installed in this container (pre-existing
 environment gap, unrelated to any change here); ran `pnpm install` for this
 session only to unblock `pnpm lint` — nothing tracked changed as a result.
+
+**Third audit pass, same day, later firing.** `git pull`/`git status` found
+nothing uncommitted. Independently re-verified both code and docs from
+scratch again (two more fresh Route-A workers, not trusting either pass
+above as evidence). Seam/arity audit: all 25 seam pairs, all point-count
+arities and all 18 cut-list calls (11 distinct constructors) re-confirmed
+PASS across `panels.py`/`sew.py`/`p1_1_drape.py` — zero defects, nothing to
+fix. Two more doc-drift items found and fixed in this file, both pre-dating
+this pass: the P1.2 item-6 history still said "sleeves are not sewn in yet
+(`BODY_SEAMS` has no armscye contract)" with no date marker, reading as a
+current claim when `SLEEVE_SEAMS` has existed and been wired into
+`p1_1_drape.py` since the P1.1 section further down this file — corrected to
+mark that sentence as describing the pre-P1.1 state; and this file's own
+"Second audit pass" paragraph above said "all 11 cut-list calls" when
+`p1_1_drape.py`'s cut list is 18 calls over 11 distinct panel constructors —
+corrected to state both numbers. Confirmed again, not newly found: the same
+`panels.py` `POCKET_SEAMS`/`pocket_welt()` comment-vs-pin-group mismatch
+recorded above is still present and still out of this run's doc-accuracy-only
+mandate, so it is again left unfixed; this file's own "Pocket welt,
+spring-sewn not pinned" entry below already states the correct current
+behaviour. `node_modules` from the prior pass was reused; `pnpm install`/lint
+were not rerun this pass since nothing tracked changed.
 
 ---
 
@@ -705,8 +728,9 @@ gravity before or during the fall, not just eventually pull it sideways.**
    residual gap/hole near one shoulder in the render (a minor remaining
    seam-closure artifact, not investigated further this session), and the
    overall silhouette reads as a draped, twisted length of cloth rather than
-   a jacket — expected, since sleeves are not sewn in yet (`BODY_SEAMS` has
-   no armscye contract) and P1.2's gate
+   a jacket — expected at this point in the session, before P1.1 added the
+   sleeve/armscye contract (`SLEEVE_SEAMS`, now wired into `p1_1_drape.py` —
+   sleeves are sewn as of the P1.1 section below) — and P1.2's gate
    is holding the sewn body on the form, not final visual fidelity (that's
    P1.7's gate, after P1.1's sleeves and P1.0's render pass).
 
