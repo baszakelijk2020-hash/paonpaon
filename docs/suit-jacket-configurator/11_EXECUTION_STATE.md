@@ -40,6 +40,26 @@ sandbox; no render was run or claimed.
   mandate (scoped to this file and `12_...md`), so it is left for a session
   authorized to touch that file's comments.
 
+**Second audit pass, same day, later firing.** Independently re-verified both
+code and docs from scratch (two fresh Route-A workers, not trusting the pass
+above as evidence per AGENTS.md ch.20). Seam/arity audit: all 25 seam pairs
+and all 11 cut-list calls re-confirmed PASS, no defect. Three more doc-drift
+items found and fixed in this file, all pre-dating the pass above (not
+regressions from it): the "Where things stand" status paragraph still said
+the drape "won't read as a jacket until P1.1's sleeve/armscye contract
+exists" when that contract has existed since the P1.1 section further down
+this same file — corrected to describe the actual current gap (shoulder/
+armscye/sleeve visual quality, not a missing contract); the summary table's
+"P1.1/P1.2 seam repair" row still said "46 springs" from before the P1.1/
+Stage-2 panel additions — corrected to the current production figure (123
+springs, 18 panels, matching this file's own numbers elsewhere); and a
+sleeve-tip debugging note mislabelled the arc's tip point (`cz=top_z-0.12+rz`)
+as the arc's "centre" (the centre is `cz=top_z-0.12`, before adding the
+radius) — corrected to "tip point". No code changes. This run's stop-hook
+also found `node_modules` was never installed in this container (pre-existing
+environment gap, unrelated to any change here); ran `pnpm install` for this
+session only to unblock `pnpm lint` — nothing tracked changed as a result.
+
 ---
 
 ## Plan to completion (founder-requested, 2026-08-18)
@@ -526,9 +546,11 @@ The binding requirements are in `06_VISUAL_QUALITY_AND_ACCEPTANCE.md` under
 **Phase: P1.1/P1.2 seam-contract repair complete; P1.2's stability gate now
 passes (no-sleeve body holds on the form across all 90 settle frames,
 verified by trace and render from the production script). Visual quality is
-not yet a pass — a small shoulder seam-closure artifact remains, and the
-drape won't read as a jacket until P1.1's sleeve/armscye contract exists.
-See the debugging history below for the full chain, including one subagent
+not yet a pass — a small shoulder seam-closure artifact remains, and even
+now that P1.1's sleeve/armscye contract exists and runs end-to-end, the
+drape still does not read as a jacket at the shoulder/armscye/sleeve
+transition. See the debugging history below for the full chain, including
+one subagent
 report that was independently caught fabricating a visual result.**
 
 | Item                      | State                                                                                                             |
@@ -540,7 +562,7 @@ report that was independently caught fabricating a visual result.**
 | Build plan W0–W6          | Specified (ch. 10)                                                                                                |
 | Blender pin               | 5.2 LTS, confirmed from blender.org                                                                               |
 | **Executable code**       | P1.0 render harness and P1.1/P1.2 prototype                                                                       |
-| **P1.1/P1.2 seam repair** | Ordered named seams verified; 46 springs                                                                          |
+| **P1.1/P1.2 seam repair** | Ordered named seams verified; 123 springs (current production, 18 panels)                                         |
 | **P1.2 stability gate**   | Passing. Shoulder-seam pinned at its worn (not cut) position; holds across 90 frames. Small shoulder gap remains. |
 
 ### P1.2 debugging history — read before touching sew.py or panels.py's collider geometry
@@ -863,8 +885,9 @@ there before. Root cause, and it sharpens the principle rather than
 contradicting it: `collar_stub()`'s neck points pinned cleanly because they
 are computed with `_front_neck_x()` — the _exact same formula_ forepart's
 own `neckline` uses — so only `y` ever needed reconciling by `snap_y`. The
-sleeve tip's position comes from the arc's own centre (`cx=0+x_off,
-cz=top_z-0.12+rz`), a _different_ formula than forepart's actual armhole
+sleeve tip's position comes from the arc's own tip point (`cx=0+x_off,
+cz=top_z-0.12+rz` — the arc's centre plus its radius in `z`), a
+_different_ formula than forepart's actual armhole
 corner (`side*HEM_HALF*_waist_factor(1.0)*0.96, Z_SHOULDER`). Pinning both
 ends of the same seam to two different target coordinates recreates
 exactly the first pinning mistake this session made (two shoulder edges
