@@ -136,7 +136,7 @@ joins vertices that share no seam at all — front hem to sleeve cuff, armscye t
 side seam — so the solver is asked to satisfy hundreds of mutually
 contradictory constraints and tears the cloth apart satisfying none of them.
 
-Chapter 09 specifies `seam.shoulder`, `seam.side`, `seam.armscye`,
+Chapter 14 specifies `seam.shoulder`, `seam.side`, `seam.armscye`,
 `seam.neckline`, `seam.gorge`, each with a declared `ring_arity` and
 arc-length parameterisation, precisely so that a sewing spring joins the two
 edges that a tailor would actually stitch. **That contract is not

@@ -427,7 +427,7 @@ stage's breadth work.
 ### Stage 3 — P1.0's actual gate
 
 Founder/panel judgment against a Suitsupply reference shot
-(`06_VISUAL_QUALITY_AND_ACCEPTANCE.md`'s "cannot be identified as the
+(`12_PHASE_1_SUITSUPPLY_PARITY_ROADMAP.md`'s "cannot be identified as the
 weaker image"). Not self-certifiable by any session, regardless of how
 good the render looks — recorded here so nobody skips straight to
 declaring victory once Stage 1-2 look decent.

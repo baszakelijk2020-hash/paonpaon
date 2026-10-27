@@ -297,8 +297,8 @@ def back_panel():
     obj, b = _grid("back", fn, nu=16, nv=ARITY_VERTICAL - 1)
     nu = 16
     v1 = b["v1"]
-    # Split the top edge into two shoulder seams, each ordered from the armhole
-    # inward to the neck so both match their forepart counterpart's direction,
+    # Split the top edge into two shoulder seams, each ordered from the neck
+    # outward to the armhole so both match their forepart counterpart's direction,
     # and a neckline_back seam from the centre points the dip above pulled down.
     right_shoulder = list(reversed(v1[: ARITY_SHOULDER]))
     left_shoulder = v1[nu - ARITY_SHOULDER + 1 :]
