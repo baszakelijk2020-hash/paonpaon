@@ -136,10 +136,11 @@ joins vertices that share no seam at all — front hem to sleeve cuff, armscye t
 side seam — so the solver is asked to satisfy hundreds of mutually
 contradictory constraints and tears the cloth apart satisfying none of them.
 
-Chapter 14 specifies `seam.shoulder`, `seam.side`, `seam.armscye`,
-`seam.neckline`, `seam.gorge`, each with a declared `ring_arity` and
-arc-length parameterisation, precisely so that a sewing spring joins the two
-edges that a tailor would actually stitch. **That contract is not
+Chapter 09 specifies the seam contract — each seam with a declared
+`ring_arity` and arc-length parameterisation — and chapter 14 names its
+concrete content: `seam.shoulder`, `seam.side`, `seam.armscye`,
+`seam.neckline`, `seam.gorge`. That contract exists precisely so that a
+sewing spring joins the two edges that a tailor would actually stitch. **It is not
 bureaucracy — it is the thing that makes the simulation solvable.** Skipping it
 did not save time; it produced 518 springs pulling in arbitrary directions.
 
