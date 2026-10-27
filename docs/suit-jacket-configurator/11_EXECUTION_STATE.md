@@ -10,6 +10,38 @@ execution state is worse than none, because the next session will trust it.
 
 ---
 
+## Audit-only run, 2026-10-27 (founder directive: full freeze on new work)
+
+Scope was limited to: commit any pre-existing uncommitted work (none found —
+checkout was clean), a static consistency audit of `panels.py`/`sew.py`/
+`p1_1_drape.py`'s seam contracts, and a documentation-accuracy pass on this
+file and `12_PHASE_1_SUITSUPPLY_PARITY_ROADMAP.md`. No Blender in this
+sandbox; no render was run or claimed.
+
+- Static seam/arity audit: every `(panel, seam_name)` pair in `BODY_SEAMS`,
+  `SLEEVE_SEAMS`, `COLLAR_SEAMS`, `POCKET_SEAMS` and `LINING_SEAMS` resolves
+  to an existing boundary key with matching point counts on both sides; every
+  panel constructor `p1_1_drape.py`'s cut list calls is actually imported and
+  defined with a matching signature. No defect found, no fix needed.
+- Documentation-drift fixes applied below (factual corrections only, no
+  rewrites): the `3e2f48d` commit attribution at the shoulder-pin entry was
+  corrected (that commit is the `sew.py` helper only; the `p1_1_drape.py` pin
+  call site first lands in `625c5fa0`); the dead `sleeve_cap()` docstring
+  citation next to the P1.2-gate "sleeves are not sewn in yet" note was
+  dropped (that docstring sentence no longer exists in `panels.py`); the
+  Stage-3 quote of the parity roadmap's acceptance line was corrected to its
+  exact current wording.
+- Not fixed (out of this run's scope, recorded only): `panels.py`'s
+  `POCKET_SEAMS` comment ("Each welt's anchor edge is pinned, not just
+  sewn") and `pocket_welt()`'s docstring both still describe the pocket
+  anchor as pinned; `p1_1_drape.py`'s actual pin group does not include it,
+  matching this file's own "Pocket welt, spring-sewn not pinned" entry below.
+  A code-comment correction in `panels.py` was outside this run's doc-accuracy
+  mandate (scoped to this file and `12_...md`), so it is left for a session
+  authorized to touch that file's comments.
+
+---
+
 ## Plan to completion (founder-requested, 2026-08-18)
 
 Written after a full session of building breadth and testing the drape
@@ -427,8 +459,8 @@ stage's breadth work.
 ### Stage 3 — P1.0's actual gate
 
 Founder/panel judgment against a Suitsupply reference shot
-(`12_PHASE_1_SUITSUPPLY_PARITY_ROADMAP.md`'s "cannot be identified as the
-weaker image"). Not self-certifiable by any session, regardless of how
+(`12_PHASE_1_SUITSUPPLY_PARITY_ROADMAP.md`'s "cannot identify the PAON
+render as the weaker image on V7–V10"). Not self-certifiable by any session, regardless of how
 good the render looks — recorded here so nobody skips straight to
 declaring victory once Stage 1-2 look decent.
 
@@ -602,8 +634,10 @@ gravity before or during the fall, not just eventually pull it sideways.**
    and `back_panel().shoulder_L/R`, 7 vertices per side, weight 1.0). **This
    genuinely stops the free-fall** — z stayed stable across all 90 frames,
    confirmed by trace and render, first real stability in this whole
-   debugging history. Committed as `3e2f48d` (WIP) once verified, since it's
-   a real fix even though the shape wasn't right yet: the render showed sharp
+   debugging history. Committed as `3e2f48d` (WIP) once verified -- that
+   commit is the `sew.pin_vertex_group()`/`setup_cloth(pin_group=...)`
+   helper only; the `p1_1_drape.py` pin call site first lands in `625c5fa0`
+   -- since it's a real fix even though the shape wasn't right yet: the render showed sharp
    pointed "wings" at both shoulders and a twisted, crumpled drape below —
    worse-looking than free-fall, just stable.
 
@@ -650,7 +684,7 @@ gravity before or during the fall, not just eventually pull it sideways.**
    seam-closure artifact, not investigated further this session), and the
    overall silhouette reads as a draped, twisted length of cloth rather than
    a jacket — expected, since sleeves are not sewn in yet (`BODY_SEAMS` has
-   no armscye contract, per `sleeve_cap()`'s own docstring) and P1.2's gate
+   no armscye contract) and P1.2's gate
    is holding the sewn body on the form, not final visual fidelity (that's
    P1.7's gate, after P1.1's sleeves and P1.0's render pass).
 
